@@ -17,24 +17,24 @@ export default function LandingPage() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
             </span>
-            Reimagining Healthcare for Everyone
+            Empowering Every Woman's Journey
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground leading-[1.1]">
-            Your Health Journey, <br />
+            Your Cycle, <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600">
-              Personalized & Simplified.
+              Understood & Celebrated.
             </span>
           </h1>
           
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Infano Care provides state-of-the-art healthcare solutions tailored to your unique needs. 
-            From AI-driven insights to expert consultations, we're with you every step of the way.
+            Infano Care is your companion for menstrual health and reproductive wellness. 
+            Track your cycle, get AI-powered insights, and connect with experts who care.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <Link href="/get-started" className="btn-primary flex items-center gap-2 text-lg px-8 py-4">
-              Get Started Now <ArrowRight size={20} />
+              Start Your Journey <ArrowRight size={20} />
             </Link>
             <Link href="/about" className="px-8 py-4 rounded-lg font-medium border border-border hover:bg-secondary transition-all">
               Learn More
@@ -44,25 +44,25 @@ export default function LandingPage() {
       </section>
 
       {/* Features Grid */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-4">
         {[
           { 
-            title: "AI Predictions", 
-            desc: "Advanced algorithms to track and predict your health milestones with precision.",
+            title: "Smart Cycle Tracking", 
+            desc: "Understand your body better with precision tracking and AI-driven cycle predictions tailored to your unique rhythm.",
             icon: Zap,
-            color: "text-amber-500"
+            color: "text-purple-500"
           },
           { 
-            title: "Expert Network", 
-            desc: "Connect with certified medical professionals and mentors at any time.",
+            title: "Expert Consultations", 
+            desc: "Direct access to reproductive health specialists and mentors whenever you need guidance or support.",
+            icon: Heart,
+            color: "text-rose-500"
+          },
+          { 
+            title: "Health Insights", 
+            desc: "Deep-dive analysis of your symptoms and patterns to help you manage your wellness proactively.",
             icon: Shield,
-            color: "text-blue-500"
-          },
-          { 
-            title: "Safe & Private", 
-            desc: "Your data is encrypted and secure. We prioritize your privacy above all else.",
-            icon: CheckCircle2,
-            color: "text-green-500"
+            color: "text-indigo-500"
           }
         ].map((feature) => (
           <div key={feature.title} className="glass-card p-8 rounded-3xl space-y-4 hover:translate-y-[-8px] transition-all duration-300">
@@ -78,18 +78,18 @@ export default function LandingPage() {
       </section>
 
       {/* Social Proof */}
-      <section className="text-center space-y-12 py-20 bg-secondary/30 rounded-[40px]">
+      <section className="text-center space-y-12 py-20 bg-secondary/30 rounded-[40px] mx-4">
         <div className="flex items-center justify-center gap-2 text-primary font-semibold">
-          <Heart fill="currentColor" size={20} /> Loved by 10,000+ users worldwide
+          <Heart fill="currentColor" size={20} /> Trusted by thousands of women globally
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 opacity-50 grayscale">
-          {/* Logo Placeholders */}
-          <div className="text-2xl font-bold">HEALTHLINE</div>
-          <div className="text-2xl font-bold">TECHCRUNCH</div>
+          <div className="text-2xl font-bold italic">WOMEN'S HEALTH</div>
+          <div className="text-2xl font-bold">VOGUE</div>
           <div className="text-2xl font-bold">FORBES</div>
-          <div className="text-2xl font-bold">WIRED</div>
+          <div className="text-2xl font-bold">TECHCRUNCH</div>
         </div>
       </section>
     </div>
+
   );
 }

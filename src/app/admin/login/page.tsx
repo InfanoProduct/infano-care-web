@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Lock, User, ArrowRight, Loader2 } from 'lucide-react';
+import { AuthService } from '@/services/auth.service';
+import { useAuthStore } from '@/store/auth-store';
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState('');
@@ -10,6 +12,7 @@ export default function AdminLoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const setAuth = useAuthStore((state) => state.setAuth);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,18 +20,23 @@ export default function AdminLoginPage() {
     setError('');
 
     try {
-      // Mock API call - Replace with actual fetch to your updated API
-      // const res = await fetch('http://localhost:4000/api/auth/admin/login', { ... });
+      const data = await AuthService.adminLogin(username, password);
       
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      if (username === 'admin' && password === 'admin123') {
-        router.push('/admin/dashboard');
-      } else {
-        setError('Invalid username or password');
-      }
-    } catch (err) {
-      setError('Something went wrong. Please try again.');
+      // Set auth in store
+      setAuth(data.accessToken, {
+        id: data.userId,
+        username: data.username,
+        role: data.role,
+      });
+
+      // Set cookie for middleware (expires in 7 days)
+      const expires = new Date();
+      expires.setDate(expires.getDate() + 7);
+      document.cookie = `admin-token=${data.accessToken}; path=/; expires=${expires.toUTCString()}; SameSite=Strict`;
+
+      router.push('/admin/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Invalid username or password');
     } finally {
       setIsLoading(false);
     }

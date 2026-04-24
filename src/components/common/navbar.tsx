@@ -33,8 +33,8 @@ export function Navbar() {
 
       <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
         <Link href="/" className="hover:text-primary transition-colors">Dashboard</Link>
-        <Link href="/patients" className="hover:text-primary transition-colors">Patients</Link>
-        <Link href="/appointments" className="hover:text-primary transition-colors">Appointments</Link>
+        <Link href="/users" className="hover:text-primary transition-colors">Users</Link>
+        <Link href="/consultations" className="hover:text-primary transition-colors">Consultations</Link>
       </div>
 
       <div className="flex items-center gap-3">

@@ -1,6 +1,6 @@
 import { useAuthStore } from "@/store/auth-store";
 
-const API_BASE_URL = 'http://localhost:4005/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4005/api';
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number>;
@@ -71,6 +71,9 @@ class ApiClient {
       }
       if (!requestHeaders.has('Content-Type')) {
         requestHeaders.set('Content-Type', 'application/json');
+      }
+      if (requestHeaders.get('Content-Type') === 'skip') {
+        requestHeaders.delete('Content-Type');
       }
 
       return fetch(url, {

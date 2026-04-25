@@ -70,5 +70,19 @@ export const LearningApiService = {
 
   async deleteEpisode(id: string) {
     return apiClient.delete(`/admin/learning/episodes/${id}`);
+  },
+
+  async uploadFile(file: File): Promise<{ url: string; filename: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return apiClient.request<{ url: string; filename: string }>('/admin/upload', {
+      method: 'POST',
+      body: formData,
+      // We don't set Content-Type header here because fetch will set it automatically with the boundary for FormData
+      headers: {
+        'Content-Type': 'skip' as any // Hack to tell our apiClient to not set application/json
+      }
+    });
   }
 };

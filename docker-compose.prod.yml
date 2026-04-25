@@ -1,0 +1,22 @@
+services:
+  prod-web:
+    image: registry.pocapi.in/infano.web:prod-latest
+    container_name: infano-web-prod
+    restart: always
+    ports:
+      - "8087:3000"
+    # Unified environment management via .env file on the VPS
+    env_file:
+      - .env
+    networks:
+      - portal_network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  portal_network:
+    external: true
+    name: docker_default

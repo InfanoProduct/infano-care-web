@@ -5,8 +5,9 @@ import {
   X, Plus, Trash2, Type, ImageIcon, 
   MessageSquare, HelpCircle, Save, ArrowLeft, 
   BarChart3, ChevronRight, ChevronLeft,
-  CheckCircle2, Info
+  CheckCircle2, Info, Upload, Loader2
 } from 'lucide-react';
+import { LearningApiService } from '../services/learning-api';
 
 interface QuizQuestion {
   question: string;
@@ -103,6 +104,7 @@ const normalizeContent = (content: any): CurriculumContent => {
 export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave, onBack }: ActivityEditorProps) {
   const [content, setContent] = useState<CurriculumContent>(normalizeContent(initialContent));
   const [activeTab, setActiveTab] = useState<keyof CurriculumContent>('hook');
+  const [uploadingPages, setUploadingPages] = useState<Record<number, boolean>>({});
 
   const tabs: { id: keyof CurriculumContent; label: string; icon: any; color: string }[] = [
     { id: 'hook', label: 'Hook', icon: Type, color: 'blue' },
@@ -138,6 +140,22 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
   const handlePrev = () => {
     if (activeTabIndex > 0) {
       setActiveTab(tabs[activeTabIndex - 1].id);
+    }
+  };
+
+  const handleImageUpload = async (index: number, file: File) => {
+    try {
+      setUploadingPages(prev => ({ ...prev, [index]: true }));
+      const response = await LearningApiService.uploadFile(file);
+      
+      const newPages = [...content.story.pages];
+      newPages[index] = response.url;
+      updateSegment('story', { pages: newPages });
+    } catch (error) {
+      console.error('Upload failed:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setUploadingPages(prev => ({ ...prev, [index]: false }));
     }
   };
 
@@ -309,17 +327,39 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                           </button>
                         </div>
                       </div>
-                      <input 
-                        type="text"
-                        value={page}
-                        onChange={(e) => {
-                          const newPages = [...content.story.pages];
-                          newPages[i] = e.target.value;
-                          updateSegment('story', { pages: newPages });
-                        }}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary text-[10px] font-bold text-slate-500 placeholder:text-slate-300 transition-all shadow-sm"
-                        placeholder="Image URL (https://...)"
-                      />
+                      <div className="flex gap-2">
+                        <input 
+                          type="text"
+                          value={page}
+                          onChange={(e) => {
+                            const newPages = [...content.story.pages];
+                            newPages[i] = e.target.value;
+                            updateSegment('story', { pages: newPages });
+                          }}
+                          className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary text-[10px] font-bold text-slate-500 placeholder:text-slate-300 transition-all shadow-sm"
+                          placeholder="Image URL (https://...)"
+                        />
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleImageUpload(i, file);
+                            }}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                            disabled={uploadingPages[i]}
+                          />
+                          <button 
+                            className={`p-3 rounded-xl border border-slate-200 transition-all ${
+                              uploadingPages[i] ? 'bg-slate-50 text-slate-400' : 'bg-white text-slate-500 hover:text-primary hover:border-primary/30'
+                            }`}
+                            disabled={uploadingPages[i]}
+                          >
+                            {uploadingPages[i] ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   ))}
                   

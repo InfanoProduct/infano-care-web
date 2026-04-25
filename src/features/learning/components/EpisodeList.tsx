@@ -49,7 +49,7 @@ export function EpisodeList({ journeyId, journeyTitle, onBack }: EpisodeListProp
   const handleCreate = (data: any) => createMutation.mutate(data);
   const handleUpdate = (data: any) => editingEpisode && updateMutation.mutate({ id: editingEpisode.id, data });
 
-  const handleSaveContent = (content: any[]) => {
+  const handleSaveContent = (content: any) => {
     if (selectedEpisodeForContent) {
       updateMutation.mutate({ id: selectedEpisodeForContent.id, data: { content } });
       setSelectedEpisodeForContent(null);

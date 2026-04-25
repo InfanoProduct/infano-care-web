@@ -1,4 +1,4 @@
-import { useAuthStore } from "@/store/auth-store";
+import { apiClient } from "@/lib/api-client";
 
 export interface Episode {
   id: string;
@@ -34,117 +34,41 @@ export interface LearningJourney {
   };
 }
 
-const API_BASE_URL = 'http://127.0.0.1:4005/api';
-
 export const LearningApiService = {
   async fetchJourneys(): Promise<LearningJourney[]> {
-    const token = useAuthStore.getState().token;
-    
-    const response = await fetch(`${API_BASE_URL}/admin/learning/journeys`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Failed to fetch journeys');
-    }
-    
-    return response.json();
+    return apiClient.get<LearningJourney[]>('/admin/learning/journeys');
   },
 
   async getJourney(id: string): Promise<LearningJourney> {
-    const token = useAuthStore.getState().token;
-    const response = await fetch(`${API_BASE_URL}/admin/learning/journeys/${id}`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    if (!response.ok) throw new Error('Failed to fetch journey');
-    return response.json();
+    return apiClient.get<LearningJourney>(`/admin/learning/journeys/${id}`);
   },
 
   async createJourney(data: Partial<LearningJourney>) {
-    const token = useAuthStore.getState().token;
-    const response = await fetch(`${API_BASE_URL}/admin/learning/journeys`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error('Failed to create journey');
-    return response.json();
+    return apiClient.post<LearningJourney>('/admin/learning/journeys', data);
   },
 
   async updateJourney(id: string, data: Partial<LearningJourney>) {
-    const token = useAuthStore.getState().token;
-    const response = await fetch(`${API_BASE_URL}/admin/learning/journeys/${id}`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error('Failed to update journey');
-    return response.json();
+    return apiClient.patch<LearningJourney>(`/admin/learning/journeys/${id}`, data);
   },
 
   async deleteJourney(id: string) {
-    const token = useAuthStore.getState().token;
-    const response = await fetch(`${API_BASE_URL}/admin/learning/journeys/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    if (!response.ok) throw new Error('Failed to delete journey');
+    return apiClient.delete(`/admin/learning/journeys/${id}`);
   },
 
   async fetchEpisodes(journeyId: string) {
-    const token = useAuthStore.getState().token;
-    const response = await fetch(`${API_BASE_URL}/admin/learning/journeys/${journeyId}`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    if (!response.ok) throw new Error('Failed to fetch episodes');
-    const data = await response.json();
+    const data = await apiClient.get<LearningJourney>(`/admin/learning/journeys/${journeyId}`);
     return data?.episodes || [];
   },
 
   async createEpisode(journeyId: string, data: any) {
-    const token = useAuthStore.getState().token;
-    const response = await fetch(`${API_BASE_URL}/admin/learning/journeys/${journeyId}/episodes`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error('Failed to create episode');
-    return response.json();
+    return apiClient.post(`/admin/learning/journeys/${journeyId}/episodes`, data);
   },
 
   async updateEpisode(id: string, data: any) {
-    const token = useAuthStore.getState().token;
-    const response = await fetch(`${API_BASE_URL}/admin/learning/episodes/${id}`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error('Failed to update episode');
-    return response.json();
+    return apiClient.patch(`/admin/learning/episodes/${id}`, data);
   },
 
   async deleteEpisode(id: string) {
-    const token = useAuthStore.getState().token;
-    const response = await fetch(`${API_BASE_URL}/admin/learning/episodes/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    if (!response.ok) throw new Error('Failed to delete episode');
+    return apiClient.delete(`/admin/learning/episodes/${id}`);
   }
 };

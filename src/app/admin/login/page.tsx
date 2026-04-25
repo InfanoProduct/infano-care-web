@@ -23,7 +23,7 @@ export default function AdminLoginPage() {
       const data = await AuthService.adminLogin(username, password);
       
       // Set auth in store
-      setAuth(data.accessToken, {
+      setAuth(data.accessToken, data.refreshToken, {
         id: data.userId,
         username: data.username,
         role: data.role,

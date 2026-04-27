@@ -52,7 +52,9 @@ class ApiClient {
     const { params, headers, ...init } = options;
     
     // Construct URL with query params
-    let url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+    let url = endpoint.startsWith('http') 
+      ? endpoint 
+      : `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
     if (params) {
       const searchParams = new URLSearchParams();
       Object.entries(params).forEach(([key, value]) => {

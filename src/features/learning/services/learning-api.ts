@@ -76,7 +76,11 @@ export const LearningApiService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    return apiClient.request<{ url: string; filename: string }>('/admin/upload', {
+    const uploadUrl = process.env.NEXT_PUBLIC_UPLOAD_API_URL 
+      ? `${process.env.NEXT_PUBLIC_UPLOAD_API_URL}/admin/upload`
+      : '/admin/upload';
+
+    return apiClient.request<{ url: string; filename: string }>(uploadUrl, {
       method: 'POST',
       body: formData,
       // We don't set Content-Type header here because fetch will set it automatically with the boundary for FormData

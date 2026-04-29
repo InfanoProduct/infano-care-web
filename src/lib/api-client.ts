@@ -7,6 +7,8 @@ interface RequestOptions extends RequestInit {
 }
 
 class ApiClient {
+  private refreshPromise: Promise<string | null> | null = null;
+
   private async getAuthToken(): Promise<string | null> {
     return useAuthStore.getState().token;
   }
@@ -16,36 +18,49 @@ class ApiClient {
   }
 
   private async refreshAccessToken(): Promise<string | null> {
-    const refreshToken = await this.getRefreshToken();
-    if (!refreshToken) return null;
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refreshToken }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Refresh failed');
-      }
-
-      const data = await response.json();
-      const { accessToken, refreshToken: newRefreshToken } = data;
-      
-      const user = useAuthStore.getState().user;
-      if (user) {
-        useAuthStore.getState().setAuth(accessToken, newRefreshToken || refreshToken, user);
-      }
-      
-      return accessToken;
-    } catch (error) {
-      console.error('Token refresh error:', error);
-      useAuthStore.getState().clearAuth();
-      return null;
+    if (this.refreshPromise) {
+      return this.refreshPromise;
     }
+
+    this.refreshPromise = (async () => {
+      const refreshToken = await this.getRefreshToken();
+      if (!refreshToken) {
+        this.refreshPromise = null;
+        return null;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ refreshToken }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Refresh failed');
+        }
+
+        const data = await response.json();
+        const { accessToken, refreshToken: newRefreshToken } = data;
+        
+        const user = useAuthStore.getState().user;
+        if (user) {
+          useAuthStore.getState().setAuth(accessToken, newRefreshToken || refreshToken, user);
+        }
+        
+        return accessToken;
+      } catch (error) {
+        console.error('Token refresh error:', error);
+        useAuthStore.getState().clearAuth();
+        return null;
+      } finally {
+        this.refreshPromise = null;
+      }
+    })();
+
+    return this.refreshPromise;
   }
 
   async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {

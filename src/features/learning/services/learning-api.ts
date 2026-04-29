@@ -26,6 +26,7 @@ export interface LearningJourney {
   bannerImage: string | null;
   thumbnailUrl: string | null;
   totalXP: number;
+  isPremium: boolean;
   isActive: boolean;
   createdAt: string;
   episodes?: Episode[];

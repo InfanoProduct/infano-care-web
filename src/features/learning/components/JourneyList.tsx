@@ -103,16 +103,27 @@ export function JourneyList() {
               <div className="w-14 h-14 bg-gradient-to-br from-primary/10 to-primary-light/5 rounded-2xl flex items-center justify-center text-primary border border-primary/10 group-hover:scale-110 transition-transform">
                 <BookOpen size={28} />
               </div>
-              <div className="flex items-center gap-2">
-                {journey.isActive ? (
-                  <span className="flex items-center gap-1.5 text-[10px] font-black text-emerald-600 bg-emerald-500/10 px-3 py-1.5 rounded-full uppercase tracking-wider border border-emerald-500/20">
-                    <CheckCircle2 size={12} /> Active
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1.5 text-[10px] font-black text-rose-600 bg-rose-500/10 px-3 py-1.5 rounded-full uppercase tracking-wider border border-rose-500/20">
-                    <XCircle size={12} /> Inactive
-                  </span>
-                )}
+              <div className="flex flex-col items-end gap-2">
+                <div className="flex items-center gap-2">
+                  {journey.isPremium ? (
+                    <span className="flex items-center gap-1.5 text-[10px] font-black text-amber-600 bg-amber-500/10 px-3 py-1.5 rounded-full uppercase tracking-wider border border-amber-500/20">
+                      Premium
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1.5 text-[10px] font-black text-blue-600 bg-blue-500/10 px-3 py-1.5 rounded-full uppercase tracking-wider border border-blue-500/20">
+                      Free
+                    </span>
+                  )}
+                  {journey.isActive ? (
+                    <span className="flex items-center gap-1.5 text-[10px] font-black text-emerald-600 bg-emerald-500/10 px-3 py-1.5 rounded-full uppercase tracking-wider border border-emerald-500/20">
+                      <CheckCircle2 size={12} /> Active
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1.5 text-[10px] font-black text-rose-600 bg-rose-500/10 px-3 py-1.5 rounded-full uppercase tracking-wider border border-rose-500/20">
+                      <XCircle size={12} /> Inactive
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 

@@ -105,7 +105,12 @@ export function EpisodeList({ journeyId, journeyTitle, onBack }: EpisodeListProp
               </div>
 
               <div className="flex-1">
-                <h4 className="font-bold text-slate-800 group-hover:text-primary transition-colors">{episode.title}</h4>
+                <div className="flex items-center gap-2">
+                  <h4 className="font-bold text-slate-800 group-hover:text-primary transition-colors">{episode.title}</h4>
+                  {episode.isPremium && (
+                    <span className="bg-amber-100 text-amber-700 text-[10px] uppercase font-black px-2 py-0.5 rounded-full">PRO</span>
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground font-medium mt-1 line-clamp-1">{episode.description || 'No description provided.'}</p>
                 <button 
                   onClick={() => setSelectedEpisodeForContent(episode)}

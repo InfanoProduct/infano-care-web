@@ -9,6 +9,7 @@ export interface Episode {
   content: any;
   points: number;
   isActive: boolean;
+  isPremium: boolean;
   createdAt: string;
 }
 
@@ -33,6 +34,8 @@ export interface LearningJourney {
   _count: {
     episodes: number;
   };
+  freeEpisodesCount?: number;
+  premiumEpisodesCount?: number;
 }
 
 export const LearningApiService = {

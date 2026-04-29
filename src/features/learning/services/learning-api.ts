@@ -72,13 +72,17 @@ export const LearningApiService = {
     return apiClient.delete(`/admin/learning/episodes/${id}`);
   },
 
-  async uploadFile(file: File): Promise<{ url: string; filename: string }> {
+  async uploadFile(file: File, folder?: string): Promise<{ url: string; filename: string }> {
     const formData = new FormData();
     formData.append('file', file);
 
-    const uploadUrl = process.env.NEXT_PUBLIC_UPLOAD_API_URL 
+    let uploadUrl = process.env.NEXT_PUBLIC_UPLOAD_API_URL 
       ? `${process.env.NEXT_PUBLIC_UPLOAD_API_URL}/admin/upload`
       : '/admin/upload';
+
+    if (folder) {
+      uploadUrl += `?folder=${encodeURIComponent(folder)}`;
+    }
 
     return apiClient.request<{ url: string; filename: string }>(uploadUrl, {
       method: 'POST',

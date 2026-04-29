@@ -150,7 +150,7 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
   const handleImageUpload = async (index: number, file: File) => {
     try {
       setUploadingPages(prev => ({ ...prev, [index]: true }));
-      const response = await LearningApiService.uploadFile(file);
+      const response = await LearningApiService.uploadFile(file, 'learning-journey/images');
       
       const newPages = [...content.story.pages];
       newPages[index] = response.url;

@@ -279,10 +279,10 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
 
             {activeTab === 'story' && (
               <div className="max-w-4xl space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {content.story.pages.map((page, i) => (
-                    <div key={i} className="group relative bg-slate-50 border border-slate-200 rounded-3xl p-4 transition-all hover:border-primary/30 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50">
-                      <div className="aspect-[3/4] rounded-2xl bg-slate-200 overflow-hidden mb-4 relative shadow-inner">
+                    <div key={i} className="group relative bg-slate-50 border border-slate-200 rounded-3xl p-4 transition-all hover:border-primary/30 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 flex flex-col">
+                      <div className="aspect-[3/4] rounded-2xl bg-slate-200 overflow-hidden mb-4 relative shadow-inner shrink-0">
                         {page ? (
                           <img src={page} alt={`Page ${i+1}`} className="w-full h-full object-cover" />
                         ) : (
@@ -331,7 +331,7 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                           </button>
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 mt-auto">
                         <input 
                           type="text"
                           value={page}
@@ -340,7 +340,7 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                             newPages[i] = e.target.value;
                             updateSegment('story', { pages: newPages });
                           }}
-                          className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary text-[10px] font-bold text-slate-500 placeholder:text-slate-300 transition-all shadow-sm"
+                          className="flex-1 min-w-0 bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary text-[10px] font-bold text-slate-500 placeholder:text-slate-300 transition-all shadow-sm"
                           placeholder="Image URL (https://...)"
                         />
                         <div className="relative">
@@ -369,7 +369,7 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                   
                   <button 
                     onClick={() => updateSegment('story', { pages: [...content.story.pages, ''] })}
-                    className="aspect-[3/4] rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-4 text-slate-400 hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-all group"
+                    className="h-full min-h-[300px] rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-4 text-slate-400 hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-all group"
                   >
                     <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:scale-110 transition-transform">
                       <Plus size={32} />

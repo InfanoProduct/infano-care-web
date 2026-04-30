@@ -95,23 +95,28 @@ export function JourneyList() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-        {journeys?.map((journey) => (
+        {journeys?.map((journey, index) => (
           <div key={journey.id} className="glass-card p-8 rounded-[2.5rem] flex flex-col gap-6 group hover:shadow-glow transition-all border border-transparent hover:border-primary/20 relative overflow-hidden">
             <div className="absolute -right-4 -top-4 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
             
             <div className="flex items-start justify-between relative">
-              <div className="w-14 h-14 bg-gradient-to-br from-primary/10 to-primary-light/5 rounded-2xl flex items-center justify-center text-primary border border-primary/10 group-hover:scale-110 transition-transform">
-                <BookOpen size={28} />
+              <div className="flex items-center gap-4">
+                <div className="text-4xl font-black text-slate-200 group-hover:text-primary/20 transition-colors">
+                  #{index + 1}
+                </div>
+                <div className="w-14 h-14 bg-gradient-to-br from-primary/10 to-primary-light/5 rounded-2xl flex items-center justify-center text-primary border border-primary/10 group-hover:scale-110 transition-transform">
+                  <BookOpen size={28} />
+                </div>
               </div>
               <div className="flex flex-col items-end gap-2">
                 <div className="flex items-center gap-2">
-                  {journey.isPremium || (journey.premiumEpisodesCount && journey.premiumEpisodesCount > 0 && journey.freeEpisodesCount === 0) ? (
-                    <span className="flex items-center gap-1.5 text-[10px] font-black text-amber-600 bg-amber-500/10 px-3 py-1.5 rounded-full uppercase tracking-wider border border-amber-500/20">
-                      Premium
-                    </span>
-                  ) : journey.premiumEpisodesCount && journey.premiumEpisodesCount > 0 && journey.freeEpisodesCount && journey.freeEpisodesCount > 0 ? (
+                  {journey.premiumEpisodesCount > 0 && journey.freeEpisodesCount > 0 ? (
                     <span className="flex items-center gap-1.5 text-[10px] font-black text-amber-600 bg-amber-500/10 px-3 py-1.5 rounded-full uppercase tracking-wider border border-amber-500/20">
                       {journey.freeEpisodesCount} Episodes Free
+                    </span>
+                  ) : journey.isPremium || (journey.premiumEpisodesCount > 0 && journey.freeEpisodesCount === 0) ? (
+                    <span className="flex items-center gap-1.5 text-[10px] font-black text-amber-600 bg-amber-500/10 px-3 py-1.5 rounded-full uppercase tracking-wider border border-amber-500/20">
+                      Premium
                     </span>
                   ) : (
                     <span className="flex items-center gap-1.5 text-[10px] font-black text-blue-600 bg-blue-500/10 px-3 py-1.5 rounded-full uppercase tracking-wider border border-blue-500/20">

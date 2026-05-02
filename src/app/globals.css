@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+
 @theme {
   --font-sans: var(--font-geist-sans), system-ui;
   --font-heading: "Outfit", var(--font-geist-sans), system-ui;

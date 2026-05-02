@@ -14,6 +14,7 @@ const navLinks = [
   { name: 'Circle', href: '/the-circle' },
   { name: 'Book', href: '/the-book' },
   { name: 'Impact', href: '/impact' },
+  { name: 'Blog', href: '/blog' },
 ];
 
 export function MarketingNavbar() {
@@ -49,7 +50,9 @@ export function MarketingNavbar() {
         {/* Desktop Nav */}
         <nav className="hidden xl:flex items-center gap-1 bg-white/70 p-1 rounded-full border border-white/80 shadow-lg shadow-slate-200/50 backdrop-blur-md">
           {navLinks.map((link) => {
-            const isActive = pathname === link.href;
+            const isActive = link.href === '/' 
+              ? pathname === '/' 
+              : pathname.startsWith(link.href);
             return (
               <Link
                 key={link.name}
@@ -90,7 +93,9 @@ export function MarketingNavbar() {
         <div className="lg:hidden fixed inset-0 z-40 bg-white pt-24 px-6 flex flex-col gap-6 overflow-y-auto">
           <nav className="flex flex-col gap-4">
             {navLinks.map((link) => {
-              const isActive = pathname === link.href;
+              const isActive = link.href === '/' 
+                ? pathname === '/' 
+                : pathname.startsWith(link.href);
               return (
                 <Link
                   key={link.name}

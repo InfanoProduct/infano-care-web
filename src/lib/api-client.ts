@@ -7,7 +7,6 @@ interface RequestOptions extends RequestInit {
 }
 
 class ApiClient {
-  private isRefreshing = false;
   private refreshPromise: Promise<string | null> | null = null;
 
   private async getAuthToken(): Promise<string | null> {
@@ -19,14 +18,16 @@ class ApiClient {
   }
 
   private async refreshAccessToken(): Promise<string | null> {
-    if (this.isRefreshing) {
+    if (this.refreshPromise) {
       return this.refreshPromise;
     }
 
-    this.isRefreshing = true;
     this.refreshPromise = (async () => {
       const refreshToken = await this.getRefreshToken();
-      if (!refreshToken) return null;
+      if (!refreshToken) {
+        this.refreshPromise = null;
+        return null;
+      }
 
       try {
         const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
@@ -43,26 +44,18 @@ class ApiClient {
 
         const data = await response.json();
         const { accessToken, refreshToken: newRefreshToken } = data;
-        
+
         const user = useAuthStore.getState().user;
         if (user) {
           useAuthStore.getState().setAuth(accessToken, newRefreshToken || refreshToken, user);
-          
-          // Update cookie for middleware consistency
-          if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
-            const expires = new Date();
-            expires.setDate(expires.getDate() + 7);
-            document.cookie = `admin-token=${accessToken}; path=/; expires=${expires.toUTCString()}; SameSite=Strict`;
-          }
         }
-        
+
         return accessToken;
       } catch (error) {
         console.error('Token refresh error:', error);
         useAuthStore.getState().clearAuth();
         return null;
       } finally {
-        this.isRefreshing = false;
         this.refreshPromise = null;
       }
     })();
@@ -72,10 +65,10 @@ class ApiClient {
 
   async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
     const { params, headers, ...init } = options;
-    
+
     // Construct URL with query params
-    let url = endpoint.startsWith('http') 
-      ? endpoint 
+    let url = endpoint.startsWith('http')
+      ? endpoint
       : `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
     if (params) {
       const searchParams = new URLSearchParams();
@@ -87,7 +80,7 @@ class ApiClient {
 
     // Get current token
     let token = await this.getAuthToken();
-    
+
     const fetchWithToken = async (authToken: string | null) => {
       const requestHeaders = new Headers(headers);
       if (authToken) {
@@ -110,7 +103,7 @@ class ApiClient {
 
     // Handle 401 Unauthorized - Attempt refresh (skip for auth endpoints)
     const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/admin/login') || url.includes('/auth/refresh');
-    
+
     if (response.status === 401 && !isAuthEndpoint) {
       const newToken = await this.refreshAccessToken();
       if (newToken) {
@@ -141,26 +134,26 @@ class ApiClient {
   }
 
   post<T>(endpoint: string, body?: any, options?: RequestOptions) {
-    return this.request<T>(endpoint, { 
-      ...options, 
-      method: 'POST', 
-      body: body ? JSON.stringify(body) : undefined 
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'POST',
+      body: body ? JSON.stringify(body) : undefined
     });
   }
 
   put<T>(endpoint: string, body?: any, options?: RequestOptions) {
-    return this.request<T>(endpoint, { 
-      ...options, 
-      method: 'PUT', 
-      body: body ? JSON.stringify(body) : undefined 
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'PUT',
+      body: body ? JSON.stringify(body) : undefined
     });
   }
 
   patch<T>(endpoint: string, body?: any, options?: RequestOptions) {
-    return this.request<T>(endpoint, { 
-      ...options, 
-      method: 'PATCH', 
-      body: body ? JSON.stringify(body) : undefined 
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'PATCH',
+      body: body ? JSON.stringify(body) : undefined
     });
   }
 

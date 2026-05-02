@@ -1,8 +1,5 @@
-'use client';
-
-import { Navbar } from "@/components/common/navbar";
-import { BlogNavbar } from "@/components/blog/BlogNavbar";
-import { usePathname } from "next/navigation";
+import { MarketingNavbar } from "@/components/marketing/navbar";
+import { MarketingFooter } from "@/components/marketing/footer";
 
 export default function MarketingLayout({
   children,
@@ -13,11 +10,12 @@ export default function MarketingLayout({
   const isBlog = pathname?.startsWith('/blog');
 
   return (
-    <>
-      {isBlog ? <BlogNavbar /> : <Navbar />}
-      <main className={`flex-1 ${isBlog ? '' : 'p-4 md:p-6 max-w-7xl mx-auto w-full'}`}>
+    <div className="flex flex-col min-h-screen">
+      <MarketingNavbar />
+      <main className="flex-1 w-full pt-20">
         {children}
       </main>
-    </>
+      <MarketingFooter />
+    </div>
   );
 }

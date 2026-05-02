@@ -106,6 +106,10 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
   const [activeTab, setActiveTab] = useState<keyof CurriculumContent>('hook');
   const [uploadingPages, setUploadingPages] = useState<Record<number, boolean>>({});
 
+  const isUpdating = initialContent && 
+    (typeof initialContent === 'string' ? initialContent !== '[]' && initialContent !== '{}' && initialContent !== '' 
+     : (Array.isArray(initialContent) ? initialContent.length > 0 : Object.keys(initialContent || {}).length > 0));
+
   const tabs: { id: keyof CurriculumContent; label: string; icon: any; color: string }[] = [
     { id: 'hook', label: 'Hook', icon: Type, color: 'blue' },
     { id: 'story', label: 'Story', icon: ImageIcon, color: 'purple' },
@@ -146,7 +150,7 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
   const handleImageUpload = async (index: number, file: File) => {
     try {
       setUploadingPages(prev => ({ ...prev, [index]: true }));
-      const response = await LearningApiService.uploadFile(file);
+      const response = await LearningApiService.uploadFile(file, 'learning-journey/images');
       
       const newPages = [...content.story.pages];
       newPages[index] = response.url;
@@ -176,7 +180,7 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
           onClick={() => onSave(content)} 
           className="btn-primary flex items-center gap-2 shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all py-3 px-6"
         >
-          <Save size={20} /> Publish Curriculum
+          <Save size={20} /> {isUpdating ? 'Save Curriculum' : 'Publish Curriculum'}
         </button>
       </div>
 

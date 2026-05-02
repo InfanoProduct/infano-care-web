@@ -2,35 +2,43 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-  --font-sans: "Outfit", var(--font-geist-sans), system-ui;
+  --font-sans: var(--font-geist-sans), system-ui;
+  --font-heading: "Outfit", var(--font-geist-sans), system-ui;
   --font-mono: var(--font-geist-mono);
   
-  /* Refined HSL Palette - Infano Purple Theme */
-  --color-background: #fdfaff; /* Very light purple tint */
-  --color-foreground: #0f172a;
+  /* Infano.care Brand Colors */
+  --color-background: #FFFCFA; /* Warm off-white */
+  --color-foreground: #1c1917; /* Dark stone */
   
-  --color-primary: #6D28D9;
-  --color-primary-light: #8b5cf6;
-  --color-primary-dark: #4c1d95;
+  /* Primary: Deep Purple */
+  --color-primary: #7B2D8B;
+  --color-primary-light: #9B42AF;
+  --color-primary-dark: #581C65;
   --color-primary-foreground: #ffffff;
   
-  --color-secondary: #f3f4f6;
-  --color-secondary-foreground: #1e293b;
+  /* Secondary: Warm Pink */
+  --color-secondary: #E91E8C;
+  --color-secondary-light: #F452A9;
+  --color-secondary-dark: #C21370;
+  --color-secondary-foreground: #ffffff;
   
-  --color-accent: #f43f5e; /* Rose accent */
+  /* Accent: Teal */
+  --color-accent: #00A896;
+  --color-accent-light: #1BC5B3;
+  --color-accent-dark: #008274;
   --color-accent-foreground: #ffffff;
   
-  --color-muted: #64748b;
-  --color-muted-foreground: #94a3b8;
+  --color-muted: #f5f5f4;
+  --color-muted-foreground: #78716c;
   
-  --color-border: rgba(109, 40, 217, 0.1);
+  --color-border: #e7e5e4;
   
   --radius-xl: 1rem;
   --radius-2xl: 1.5rem;
   --radius-3xl: 2rem;
 
-  --shadow-premium: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
-  --shadow-glow: 0 0 20px rgba(109, 40, 217, 0.15);
+  --shadow-premium: 0 10px 15px -3px rgba(123, 45, 139, 0.05), 0 4px 6px -2px rgba(123, 45, 139, 0.02);
+  --shadow-glow: 0 0 20px rgba(233, 30, 140, 0.15);
 }
 
 @layer base {
@@ -38,17 +46,20 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans selection:bg-primary/20 selection:text-primary-dark;
     font-feature-settings: "rlig" 1, "calt" 1;
     background-image: 
-      radial-gradient(at 0% 0%, rgba(109, 40, 217, 0.03) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(244, 63, 94, 0.03) 0px, transparent 50%);
+      radial-gradient(at 0% 0%, rgba(123, 45, 139, 0.03) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(233, 30, 140, 0.03) 0px, transparent 50%);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading tracking-tight;
   }
 }
 
 @layer components {
   .glass-card {
-    @apply bg-white/80 backdrop-blur-xl border border-white/50 shadow-premium transition-all duration-300;
+    @apply bg-white/70 backdrop-blur-xl border border-white shadow-premium transition-all duration-300;
   }
   
   .glass-card-dark {
@@ -56,15 +67,23 @@
   }
   
   .btn-primary {
-    @apply px-6 py-2.5 bg-gradient-to-r from-primary to-primary-light text-primary-foreground rounded-xl font-semibold transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-95 disabled:opacity-50;
+    @apply px-6 py-3 bg-primary text-primary-foreground rounded-full font-semibold transition-all hover:bg-primary-dark hover:shadow-lg hover:shadow-primary/20 active:scale-95 disabled:opacity-50 text-center inline-flex items-center justify-center;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 bg-secondary text-secondary-foreground rounded-full font-semibold transition-all hover:bg-secondary-dark hover:shadow-lg hover:shadow-secondary/20 active:scale-95 disabled:opacity-50 text-center inline-flex items-center justify-center;
+  }
+  
+  .btn-outline {
+    @apply px-6 py-3 bg-transparent border-2 border-primary text-primary rounded-full font-semibold transition-all hover:bg-primary/5 active:scale-95 disabled:opacity-50 text-center inline-flex items-center justify-center;
   }
 
   .nav-item-active {
-    @apply bg-gradient-to-r from-primary to-primary-light text-white shadow-lg shadow-primary/25 scale-[1.02];
+    @apply text-primary font-semibold;
   }
 
   .premium-gradient-text {
-    @apply text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent font-bold;
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-accent font-bold;
   }
 }
 

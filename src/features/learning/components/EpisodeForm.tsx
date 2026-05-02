@@ -16,6 +16,7 @@ export function EpisodeForm({ initialData, onSubmit, onClose, title }: EpisodeFo
     description: initialData?.description || '',
     points: initialData?.points || 50,
     isActive: initialData?.isActive ?? true,
+    isPremium: initialData?.isPremium ?? false,
     order: initialData?.order || 0,
   });
 
@@ -79,15 +80,31 @@ export function EpisodeForm({ initialData, onSubmit, onClose, title }: EpisodeFo
             </div>
           </div>
 
-          <div className="flex items-center gap-3 px-1">
-            <input 
-              type="checkbox"
-              id="isActiveEpisode"
-              checked={formData.isActive}
-              onChange={e => setFormData({...formData, isActive: e.target.checked})}
-              className="w-5 h-5 rounded-md border-border text-primary focus:ring-primary"
-            />
-            <label htmlFor="isActiveEpisode" className="text-sm font-bold text-slate-700 select-none">Active and visible</label>
+          <div className="flex flex-col gap-3 px-1">
+            <div className="flex items-center gap-3">
+              <input 
+                type="checkbox"
+                id="isActiveEpisode"
+                checked={formData.isActive}
+                onChange={e => setFormData({...formData, isActive: e.target.checked})}
+                className="w-5 h-5 rounded-md border-border text-primary focus:ring-primary"
+              />
+              <label htmlFor="isActiveEpisode" className="text-sm font-bold text-slate-700 select-none">Active and visible</label>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <input 
+                type="checkbox"
+                id="isPremiumEpisode"
+                checked={formData.isPremium}
+                onChange={e => setFormData({...formData, isPremium: e.target.checked})}
+                className="w-5 h-5 rounded-md border-amber-300 text-amber-500 focus:ring-amber-500 accent-amber-500"
+              />
+              <label htmlFor="isPremiumEpisode" className="text-sm font-bold text-slate-700 select-none flex items-center gap-2">
+                Premium Episode
+                <span className="bg-amber-100 text-amber-700 text-[10px] uppercase font-black px-2 py-0.5 rounded-full">PRO</span>
+              </label>
+            </div>
           </div>
 
           <div className="pt-4 flex gap-3">

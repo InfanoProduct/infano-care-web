@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { LayoutDashboard, Users, Calendar, Settings, ShieldCheck, LogOut, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, Settings, ShieldCheck, LogOut, BookOpen, FileText } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 
 export default function AdminLayout({
@@ -28,6 +28,7 @@ export default function AdminLayout({
     { name: 'User Management', icon: Users, href: '/admin/users' },
     { name: 'Consultations', icon: Calendar, href: '/admin/consultations' },
     { name: 'Learning Journeys', icon: BookOpen, href: '/admin/learning' },
+    { name: 'Blogs', icon: FileText, href: '/admin/blogs' },
     { name: 'System Settings', icon: Settings, href: '/admin/settings' },
   ];
 
@@ -78,6 +79,7 @@ export default function AdminLayout({
           
           <button 
             onClick={handleLogout}
+            suppressHydrationWarning
             className="flex items-center gap-4 px-5 py-4 w-full rounded-2xl text-rose-500 hover:bg-rose-500/10 transition-all font-bold group"
           >
             <LogOut size={22} className="group-hover:-translate-x-1 transition-transform" />

@@ -7,6 +7,9 @@ interface RequestOptions extends RequestInit {
 }
 
 class ApiClient {
+  private isRefreshing = false;
+  private refreshPromise: Promise<string | null> | null = null;
+
   private async getAuthToken(): Promise<string | null> {
     return useAuthStore.getState().token;
   }
@@ -16,36 +19,55 @@ class ApiClient {
   }
 
   private async refreshAccessToken(): Promise<string | null> {
-    const refreshToken = await this.getRefreshToken();
-    if (!refreshToken) return null;
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refreshToken }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Refresh failed');
-      }
-
-      const data = await response.json();
-      const { accessToken, refreshToken: newRefreshToken } = data;
-      
-      const user = useAuthStore.getState().user;
-      if (user) {
-        useAuthStore.getState().setAuth(accessToken, newRefreshToken || refreshToken, user);
-      }
-      
-      return accessToken;
-    } catch (error) {
-      console.error('Token refresh error:', error);
-      useAuthStore.getState().clearAuth();
-      return null;
+    if (this.isRefreshing) {
+      return this.refreshPromise;
     }
+
+    this.isRefreshing = true;
+    this.refreshPromise = (async () => {
+      const refreshToken = await this.getRefreshToken();
+      if (!refreshToken) return null;
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ refreshToken }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Refresh failed');
+        }
+
+        const data = await response.json();
+        const { accessToken, refreshToken: newRefreshToken } = data;
+        
+        const user = useAuthStore.getState().user;
+        if (user) {
+          useAuthStore.getState().setAuth(accessToken, newRefreshToken || refreshToken, user);
+          
+          // Update cookie for middleware consistency
+          if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+            const expires = new Date();
+            expires.setDate(expires.getDate() + 7);
+            document.cookie = `admin-token=${accessToken}; path=/; expires=${expires.toUTCString()}; SameSite=Strict`;
+          }
+        }
+        
+        return accessToken;
+      } catch (error) {
+        console.error('Token refresh error:', error);
+        useAuthStore.getState().clearAuth();
+        return null;
+      } finally {
+        this.isRefreshing = false;
+        this.refreshPromise = null;
+      }
+    })();
+
+    return this.refreshPromise;
   }
 
   async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
@@ -86,14 +108,16 @@ class ApiClient {
 
     let response = await fetchWithToken(token);
 
-    // Handle 401 Unauthorized - Attempt refresh
-    if (response.status === 401) {
+    // Handle 401 Unauthorized - Attempt refresh (skip for auth endpoints)
+    const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/admin/login') || url.includes('/auth/refresh');
+    
+    if (response.status === 401 && !isAuthEndpoint) {
       const newToken = await this.refreshAccessToken();
       if (newToken) {
         response = await fetchWithToken(newToken);
       } else {
-        // Refresh failed, redirect to login if we are in admin area
-        if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+        // Refresh failed, redirect to login if we are in admin area (and not already on login page)
+        if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
           window.location.href = '/admin/login';
         }
         throw new Error('Unauthorized');
@@ -102,7 +126,7 @@ class ApiClient {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Request failed with status ${response.status}`);
+      throw new Error(errorData.message || errorData.error || `Request failed with status ${response.status}`);
     }
 
     if (response.status === 204) {

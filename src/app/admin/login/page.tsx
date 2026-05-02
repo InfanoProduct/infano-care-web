@@ -43,7 +43,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center">
+    <div suppressHydrationWarning className="min-h-[80vh] flex items-center justify-center">
       <div className="w-full max-w-md space-y-8 animate-fade-in">
         <div className="text-center space-y-2">
           <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">

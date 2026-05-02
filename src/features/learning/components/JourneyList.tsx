@@ -110,11 +110,11 @@ export function JourneyList() {
               </div>
               <div className="flex flex-col items-end gap-2">
                 <div className="flex items-center gap-2">
-                  {journey.premiumEpisodesCount > 0 && journey.freeEpisodesCount > 0 ? (
+                  {(journey.premiumEpisodesCount ?? 0) > 0 && (journey.freeEpisodesCount ?? 0) > 0 ? (
                     <span className="flex items-center gap-1.5 text-[10px] font-black text-amber-600 bg-amber-500/10 px-3 py-1.5 rounded-full uppercase tracking-wider border border-amber-500/20">
-                      {journey.freeEpisodesCount} Episodes Free
+                      {journey.freeEpisodesCount ?? 0} Episodes Free
                     </span>
-                  ) : journey.isPremium || (journey.premiumEpisodesCount > 0 && journey.freeEpisodesCount === 0) ? (
+                  ) : journey.isPremium || ((journey.premiumEpisodesCount ?? 0) > 0 && (journey.freeEpisodesCount ?? 0) === 0) ? (
                     <span className="flex items-center gap-1.5 text-[10px] font-black text-amber-600 bg-amber-500/10 px-3 py-1.5 rounded-full uppercase tracking-wider border border-amber-500/20">
                       Premium
                     </span>

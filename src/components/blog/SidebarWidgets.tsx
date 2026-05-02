@@ -31,7 +31,7 @@ export function PromoBanner() {
 
 export function CategoryWidget({ categories }: { categories: any[] }) {
   const displayCategories = categories
-    .sort((a, b) => (b._count?.posts || 0) - (a._count?.posts || 0))
+    .sort((a: any, b: any) => (b._count?.posts || 0) - (a._count?.posts || 0))
     .slice(0, 4);
 
   if (categories.length === 0) return null;

@@ -61,7 +61,7 @@ const MenuBar = ({ editor, ctas = [] }: { editor: any, ctas?: any[] }) => {
     if (!file) return;
 
     try {
-      const res = await blogService.uploadImage(file);
+      const res = await blogService.uploadImage(file) as any;
       editor.chain().focus().setImage({ src: res.url }).run();
     } catch (error) {
       alert('Failed to upload image');

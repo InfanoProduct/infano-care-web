@@ -28,7 +28,7 @@ export default function BlogDashboard() {
       const [statsData, postsData] = await Promise.all([
         blogService.getStats(),
         blogService.getAllPosts(1, 5)
-      ]);
+      ]) as [any, any];
       setStats(statsData);
       setRecentPosts(postsData.items);
     } catch (error) {

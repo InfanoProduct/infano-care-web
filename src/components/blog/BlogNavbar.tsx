@@ -18,7 +18,7 @@ export function BlogNavbar() {
 
   const loadCategories = async () => {
     try {
-      const cats = await blogService.getCategories();
+      const cats = await blogService.getCategories() as any;
       setCategories(cats);
     } catch (error) {
       console.error('Failed to load blog categories:', error);

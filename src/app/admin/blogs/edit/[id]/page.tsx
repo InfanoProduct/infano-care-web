@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, use } from 'react';
-import PostForm from '../../components/PostForm';
+import BlogForm from '../../components/BlogForm';
 import { blogService } from '@/services/blog.service';
 import { Loader2 } from 'lucide-react';
 
@@ -16,7 +16,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
   const loadPost = async () => {
     try {
-      const data = await blogService.getPostById(id);
+      const data = await blogService.getPostById(id) as any;
       setPost(data);
     } catch (error) {
       console.error('Failed to load post:', error);
@@ -48,7 +48,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
   return (
     <div className="pb-20">
-      <PostForm initialData={post} isEditing />
+      <BlogForm initialData={post} isEditing />
     </div>
   );
 }

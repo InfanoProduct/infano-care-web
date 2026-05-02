@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ChevronLeft, Calendar, Clock, TwitterIcon, LinkedinIcon, FacebookIcon, Share2 } from 'lucide-react';
+import { ChevronLeft, Calendar, Clock, Share2 } from 'lucide-react';
 import { getImageUrl, getCategoryColor } from '@/lib/utils';
 
 interface BlogHeaderProps {

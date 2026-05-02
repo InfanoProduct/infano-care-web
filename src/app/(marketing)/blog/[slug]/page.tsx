@@ -31,16 +31,16 @@ export default function BlogPostDetailPage() {
   const loadPost = async () => {
     setLoading(true);
     try {
-      const [data, postsData, categoriesData] = await Promise.all([
-        blogService.getPostBySlug(slug),
-        blogService.getAllPosts(1, 50, ''),
-        blogService.getCategories()
-      ]);
-      
-      if (!data || !data.isPublished) {
-        router.push('/blog');
-        return;
-      }
+        const [data, postsData, categoriesData] = await Promise.all([
+          blogService.getPostBySlug(slug),
+          blogService.getAllPosts(1, 50, ''),
+          blogService.getCategories()
+        ]) as [any, any, any];
+        
+        if (!data || !data.isPublished) {
+          router.push('/blog');
+          return;
+        }
       setPost(data);
 
       const publishedPosts = postsData.items.filter((p: any) => p.isPublished);
@@ -50,7 +50,7 @@ export default function BlogPostDetailPage() {
       // Load Editor's Choice posts (Posts with 'choice' or 'editor' tag, or latest)
       const ecPosts = publishedPosts
         .filter((p: any) => p.id !== data.id)
-        .sort((a, b) => {
+        .sort((a: any, b: any) => {
           const aChoice = a.tags?.some((t: string) => ['choice', 'editor'].includes(t.toLowerCase()));
           const bChoice = b.tags?.some((t: string) => ['choice', 'editor'].includes(t.toLowerCase()));
           if (aChoice && !bChoice) return -1;
@@ -59,7 +59,7 @@ export default function BlogPostDetailPage() {
         })
         .slice(0, 4);
       setRelatedPosts(ecPosts);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load post:', error);
       router.push('/blog');
     } finally {

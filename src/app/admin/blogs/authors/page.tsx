@@ -30,7 +30,7 @@ export default function AuthorsPage() {
   const loadAuthors = async () => {
     setLoading(true);
     try {
-      const data = await blogService.getAuthors();
+      const data = await blogService.getAuthors() as any;
       setAuthors(data);
     } catch (error) {
       console.error('Failed to load authors:', error);

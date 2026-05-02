@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, CheckCircle2, FileText, Activity, BookOpen, Lock, Globe2, Heart } from 'lucide-react';
+import { ArrowRight, CheckCircle2, FileText, Activity, BookOpen, Lock, Globe2, Heart, Users } from 'lucide-react';
 
 export default function SchoolsPage() {
   return (
@@ -46,7 +46,7 @@ export default function SchoolsPage() {
             {[
               { icon: <BookOpen className="text-primary mb-4" size={32} />, title: 'Curriculum-Aligned', desc: 'Mapped to NEP 2020 wellness and life skills frameworks' },
               { icon: <Activity className="text-accent mb-4" size={32} />, title: 'Data-Backed Reports', desc: 'School-level impact dashboards and termly insight reports' },
-              { icon: <UsersIcon className="text-secondary mb-4" size={32} />, title: 'Teacher-Ready', desc: 'No extra burden on staff — we handle content, facilitation, and tracking' },
+              { icon: <Users className="text-secondary mb-4" size={32} />, title: 'Teacher-Ready', desc: 'No extra burden on staff — we handle content, facilitation, and tracking' },
               { icon: <Lock className="text-slate-600 mb-4" size={32} />, title: 'Fully Safe', desc: 'DPDP Act compliant, end-to-end encrypted, with strict content moderation' },
               { icon: <Globe2 className="text-blue-500 mb-4" size={32} />, title: 'Multilingual', desc: 'Available in English, Hindi, Tamil, Telugu, Marathi, and more' },
               { icon: <Heart className="text-pink-500 mb-4" size={32} />, title: 'Holistic & Inclusive', desc: 'Addresses mental health, menstrual wellness, life skills, and community' },
@@ -245,24 +245,3 @@ export default function SchoolsPage() {
   );
 }
 
-function UsersIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
-}

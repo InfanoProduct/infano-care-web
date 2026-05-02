@@ -18,7 +18,7 @@ export default function BlogListPage() {
   const loadBlogs = async () => {
     setLoading(true);
     try {
-      const data = await blogService.getAllPosts(1, 50, search);
+      const data = await blogService.getAllPosts(1, 50, search) as any;
       setBlogs(data.items);
       setTotal(data.total);
     } catch (error) {

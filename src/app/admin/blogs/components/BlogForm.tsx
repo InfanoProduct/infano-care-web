@@ -69,7 +69,7 @@ export default function BlogForm({ initialData, isEditing }: BlogFormProps) {
         blogService.getAuthors(),
         blogService.getCategories(),
         blogService.getCTAs(),
-      ]);
+      ]) as [any, any, any];
       setAuthors(authorsData);
       setCategories(categoriesData);
       setCtas(ctasData);

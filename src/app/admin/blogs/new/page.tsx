@@ -1,11 +1,11 @@
 'use client';
 
-import PostForm from '../components/PostForm';
+import BlogForm from '../components/BlogForm';
 
 export default function NewPostPage() {
   return (
     <div className="pb-20">
-      <PostForm />
+      <BlogForm />
     </div>
   );
 }

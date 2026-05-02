@@ -28,7 +28,7 @@ export default function CTAsPage() {
   const loadCTAs = async () => {
     setLoading(true);
     try {
-      const data = await blogService.getCTAs();
+      const data = await blogService.getCTAs() as any;
       setCtas(data);
     } catch (error) {
       console.error('Failed to load CTAs:', error);

@@ -34,7 +34,7 @@ export default function ImageUploader({ onUpload, label, value }: ImageUploaderP
 
     setIsUploading(true);
     try {
-      const result = await blogService.uploadImage(file);
+      const result = await blogService.uploadImage(file) as any;
       onUpload(result.url);
       setPreview(result.url);
     } catch (error) {

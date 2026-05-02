@@ -23,7 +23,7 @@ export function Navbar() {
 
   const loadCategories = async () => {
     try {
-      const cats = await blogService.getCategories();
+      const cats = await blogService.getCategories() as any;
       setCategories(cats.slice(0, 5)); // Show top 5 categories
     } catch (error) {
       console.error('Failed to load nav categories:', error);

@@ -45,7 +45,7 @@ export default function PostForm({ initialData, isEditing }: PostFormProps) {
       const [authorsData, categoriesData] = await Promise.all([
         blogService.getAuthors(),
         blogService.getCategories(),
-      ]);
+      ]) as [any, any];
       setAuthors(authorsData);
       setCategories(categoriesData);
     } catch (error) {

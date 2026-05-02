@@ -36,10 +36,10 @@ function BlogPageContent() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [postsData, categoriesData] = await Promise.all([
-        blogService.getAllPosts(1, 50, ''),
-        blogService.getCategories()
-      ]);
+        const [postsData, categoriesData] = await Promise.all([
+          blogService.getAllPosts(1, 50, ''),
+          blogService.getCategories()
+        ]) as [any, any];
       // Only show published posts for public view
       setPosts(postsData.items.filter((p: any) => p.isPublished));
       setCategories(categoriesData);
@@ -68,7 +68,7 @@ function BlogPageContent() {
   // 2. Top Stories (Highest views, excluding featured and recent)
   const topStories = [...filteredPosts]
     .filter(p => p.id !== featuredPost?.id && !recentNews.find(rn => rn.id === p.id))
-    .sort((a, b) => (b.views || 0) - (a.views || 0))
+    .sort((a: any, b: any) => (b.views || 0) - (a.views || 0))
     .slice(0, 3);
     
   // 3. Trending Stories (Remaining posts with highest views or 'trending' tag)
@@ -78,7 +78,7 @@ function BlogPageContent() {
       !recentNews.find(rn => rn.id === p.id) &&
       !topStories.find(ts => ts.id === p.id)
     )
-    .sort((a, b) => {
+    .sort((a: any, b: any) => {
       // Prioritize 'trending' tag if it exists
       const aTrending = a.tags?.some((t: string) => t.toLowerCase() === 'trending');
       const bTrending = b.tags?.some((t: string) => t.toLowerCase() === 'trending');
@@ -111,7 +111,7 @@ function BlogPageContent() {
 
   // 5. Editor's Choice (Posts with 'choice' or 'editor' tag, or next in line)
   const editorsChoice = [...latestUpdates]
-    .sort((a, b) => {
+    .sort((a: any, b: any) => {
       const aChoice = a.tags?.some((t: string) => ['choice', 'editor'].includes(t.toLowerCase()));
       const bChoice = b.tags?.some((t: string) => ['choice', 'editor'].includes(t.toLowerCase()));
       if (aChoice && !bChoice) return -1;

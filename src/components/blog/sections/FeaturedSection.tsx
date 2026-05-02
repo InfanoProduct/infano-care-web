@@ -2,7 +2,14 @@ import Link from 'next/link';
 import { User, Calendar, TrendingUp } from 'lucide-react';
 import { getImageUrl, getCategoryColor } from '@/lib/utils';
 
-export function FeaturedSection({ featuredPost, otherPosts, search, selectedCategory }) {
+interface FeaturedSectionProps {
+  featuredPost: any;
+  otherPosts: any[];
+  search: string;
+  selectedCategory: string | null;
+}
+
+export function FeaturedSection({ featuredPost, otherPosts, search, selectedCategory }: FeaturedSectionProps) {
   return (
     <section className="grid grid-cols-1 lg:grid-cols-12 gap-12">
 

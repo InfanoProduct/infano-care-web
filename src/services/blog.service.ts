@@ -128,13 +128,19 @@ class BlogService {
   // --- Image Upload ---
   async uploadImage(file: File) {
     const formData = new FormData();
-    formData.append('image', file);
-    
-    return apiClient.request<any>('/blog/upload-image', {
+    formData.append('file', file);
+
+    let uploadUrl = process.env.NEXT_PUBLIC_UPLOAD_API_URL 
+      ? `${process.env.NEXT_PUBLIC_UPLOAD_API_URL}/admin/upload`
+      : '/admin/upload';
+
+    uploadUrl += `?folder=blog`;
+
+    return apiClient.request<any>(uploadUrl, {
       method: 'POST',
       body: formData,
       headers: {
-        'Content-Type': 'skip', // apiClient will skip setting JSON content type
+        'Content-Type': 'skip' as any,
       }
     });
   }

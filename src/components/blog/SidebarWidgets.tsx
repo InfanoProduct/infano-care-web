@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { getImageUrl, getCategoryColor } from '@/lib/utils';
@@ -5,10 +6,12 @@ import { getImageUrl, getCategoryColor } from '@/lib/utils';
 export function PromoBanner() {
   return (
     <div className="group relative overflow-hidden rounded-none aspect-square shadow-2xl">
-      <img
+      <Image
         src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe"
         alt="Promotion"
-        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 sharp-image"
+        fill
+        className="object-cover group-hover:scale-110 transition-transform duration-700 sharp-image"
+        sizes="(max-width: 1024px) 100vw, 33vw"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
       <div className="absolute inset-0 p-8 flex flex-col justify-end items-center text-center space-y-4">
@@ -123,13 +126,15 @@ function CategoryCard({ cat }: { cat: any }) {
       {/* Background Image Slideshow */}
       <div className="absolute inset-0 bg-gray-900">
         {images.map((img, idx) => (
-          <img
+          <Image
             key={img}
             src={img}
             alt=""
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+            fill
+            className={`object-cover transition-opacity duration-1000 ${
               idx === currentImageIndex ? 'opacity-100 scale-110' : 'opacity-0 scale-100'
             } group-hover:scale-125 transition-transform duration-[2000ms]`}
+            sizes="(max-width: 1024px) 50vw, 15vw"
           />
         ))}
       </div>
@@ -207,11 +212,13 @@ export function PostTabsWidget({ posts }: { posts: any[] }) {
       <div className="p-6 space-y-6">
         {displayPosts.map((post) => (
           <Link key={post.id} href={`/blog/${post.slug}`} className="group flex gap-4 items-center">
-            <div className="w-20 h-20 rounded-none overflow-hidden shadow-md shrink-0 border border-gray-50">
-              <img
+            <div className="relative w-20 h-20 rounded-none overflow-hidden shadow-md shrink-0 border border-gray-50">
+              <Image
                 src={getImageUrl(post.thumbnailUrl)}
                 alt=""
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 sharp-image"
+                fill
+                className="object-cover group-hover:scale-110 transition-transform duration-700 sharp-image"
+                sizes="80px"
               />
             </div>
             <div className="space-y-1">

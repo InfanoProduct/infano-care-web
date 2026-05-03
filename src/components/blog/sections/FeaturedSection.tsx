@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { User, Calendar, TrendingUp } from 'lucide-react';
 import { getImageUrl, getCategoryColor } from '@/lib/utils';
@@ -20,10 +21,13 @@ export function FeaturedSection({ featuredPost, otherPosts, search, selectedCate
 
             {/* Image */}
             <div className="relative aspect-[16/10] overflow-hidden sharp-image">
-              <img
+              <Image
                 src={getImageUrl(featuredPost.thumbnailUrl)}
                 alt={featuredPost.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                fill
+                priority
+                className="object-cover group-hover:scale-105 transition-transform duration-700"
+                sizes="(max-width: 1024px) 100vw, 66vw"
               />
 
               {/* Category */}
@@ -79,11 +83,13 @@ export function FeaturedSection({ featuredPost, otherPosts, search, selectedCate
             <Link key={post.id} href={`/blog/${post.slug}`} className="group flex gap-4">
 
               {/* Image */}
-              <div className="w-24 h-24 overflow-hidden sharp-image shrink-0">
-                <img
+              <div className="relative w-24 h-24 overflow-hidden sharp-image shrink-0">
+                <Image
                   src={getImageUrl(post.thumbnailUrl)}
                   alt=""
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  sizes="96px"
                 />
               </div>
 

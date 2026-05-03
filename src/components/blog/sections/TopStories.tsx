@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { User, Calendar, Eye, Share2 } from 'lucide-react';
 import { getImageUrl, getCategoryColor } from '@/lib/utils';
@@ -25,10 +26,13 @@ export function TopStories({ posts }: TopStoriesProps) {
         {/* Large Featured Story */}
         <div className="lg:col-span-8">
           <Link href={`/blog/${mainStory.slug}`} className="group relative block aspect-[16/10] overflow-hidden rounded-none shadow-2xl">
-            <img
+            <Image
               src={getImageUrl(mainStory.thumbnailUrl)}
               alt={mainStory.title}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[2000ms] sharp-image"
+              fill
+              priority
+              className="object-cover group-hover:scale-110 transition-transform duration-[2000ms] sharp-image"
+              sizes="(max-width: 1024px) 100vw, 66vw"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
             
@@ -53,10 +57,12 @@ export function TopStories({ posts }: TopStoriesProps) {
         <div className="lg:col-span-4 flex flex-col gap-8">
           {sideStories.map((story) => (
             <Link key={story.id} href={`/blog/${story.slug}`} className="group relative block aspect-[16/10] overflow-hidden rounded-none shadow-xl">
-              <img
+              <Image
                 src={getImageUrl(story.thumbnailUrl)}
                 alt={story.title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 sharp-image"
+                fill
+                className="object-cover group-hover:scale-110 transition-transform duration-700 sharp-image"
+                sizes="(max-width: 1024px) 100vw, 33vw"
               />
               <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-colors" />
               <div className="absolute inset-0 p-8 flex flex-col justify-end space-y-4">

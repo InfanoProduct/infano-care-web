@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { getImageUrl, getCategoryColor } from '@/lib/utils';
 
@@ -20,11 +21,13 @@ export function TrendingStories({ posts }: TrendingStoriesProps) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-10">
         {posts.map((post) => (
           <Link key={post.id} href={`/blog/${post.slug}`} className="group flex gap-8 items-center">
-            <div className="w-32 h-32 md:w-48 md:h-48 rounded-none overflow-hidden shadow-xl shrink-0">
-              <img
+            <div className="relative w-32 h-32 md:w-48 md:h-48 rounded-none overflow-hidden shadow-xl shrink-0">
+              <Image
                 src={getImageUrl(post.thumbnailUrl)}
                 alt=""
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 sharp-image"
+                fill
+                className="object-cover group-hover:scale-110 transition-transform duration-700 sharp-image"
+                sizes="(max-width: 768px) 128px, 192px"
               />
             </div>
             <div className="space-y-3">

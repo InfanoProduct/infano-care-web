@@ -80,16 +80,16 @@ export function BlogHeader({ post }: BlogHeaderProps) {
               </div>
 
               <div className="sm:ml-auto flex items-center gap-2">
-                <button className="w-8 h-8 rounded-full bg-secondary/50 flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white transition-all shadow-sm">
+                <button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white transition-all shadow-sm">
                   <Twitter />
                 </button>
-                <button className="w-8 h-8 rounded-full bg-secondary/50 flex items-center justify-center text-muted-foreground hover:bg-[#0077b5] hover:text-white transition-all shadow-sm">
+                <button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-[#0077b5] hover:text-white transition-all shadow-sm">
                   <Linkedin />
                 </button>
-                <button className="w-8 h-8 rounded-full bg-secondary/50 flex items-center justify-center text-muted-foreground hover:bg-[#1877f2] hover:text-white transition-all shadow-sm">
+                <button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-[#1877f2] hover:text-white transition-all shadow-sm">
                   <Facebook />
                 </button>
-                <button className="w-8 h-8 rounded-full bg-secondary/50 flex items-center justify-center text-muted-foreground hover:bg-slate-900 hover:text-white transition-all shadow-sm ml-2">
+                <button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-slate-900 hover:text-white transition-all shadow-sm ml-2">
                   <Share2 size={14} />
                 </button>
               </div>

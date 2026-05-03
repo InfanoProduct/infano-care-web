@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { getImageUrl, getCategoryColor } from '@/lib/utils';
 import { User, Calendar, Clock } from 'lucide-react';
@@ -14,11 +15,13 @@ export function MainPostList({ posts }: MainPostListProps) {
       {posts.map((post) => (
         <article key={post.id} className="group grid grid-cols-1 md:grid-cols-12 gap-8 items-center border-b border-gray-100 pb-12 last:border-0">
           <div className="md:col-span-5">
-            <Link href={`/blog/${post.slug}`} className="block aspect-[4/3] rounded-none overflow-hidden shadow-2xl">
-              <img
+            <Link href={`/blog/${post.slug}`} className="block relative aspect-[4/3] rounded-none overflow-hidden shadow-2xl">
+              <Image
                 src={getImageUrl(post.thumbnailUrl)}
                 alt={post.title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 sharp-image"
+                fill
+                className="object-cover group-hover:scale-110 transition-transform duration-700 sharp-image"
+                sizes="(max-width: 768px) 100vw, 40vw"
               />
             </Link>
           </div>

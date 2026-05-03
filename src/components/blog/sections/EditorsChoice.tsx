@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { getImageUrl, getCategoryColor } from '@/lib/utils';
 
@@ -21,10 +22,12 @@ export function EditorsChoice({ posts }: EditorsChoiceProps) {
         {posts.map((post) => (
           <Link key={post.id} href={`/blog/${post.slug}`} className="group relative block aspect-square overflow-hidden rounded-none shadow-xl">
             {/* Background Image */}
-            <img
+            <Image
               src={getImageUrl(post.thumbnailUrl)}
               alt={post.title}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 sharp-image"
+              fill
+              className="object-cover group-hover:scale-110 transition-transform duration-1000 sharp-image"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             />
             
             {/* Dark Overlay */}

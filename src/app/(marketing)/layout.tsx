@@ -15,8 +15,8 @@ export default function MarketingLayout({
 
   return (
     <div className="flex flex-col min-h-screen">
-      {isBlog ? <BlogNavbar /> : <MarketingNavbar />}
-      <main className={`flex-1 w-full ${isBlog ? '' : 'pt-20'}`}>
+      <MarketingNavbar />
+      <main className="flex-1 w-full pt-20">
         {children}
       </main>
       <MarketingFooter />

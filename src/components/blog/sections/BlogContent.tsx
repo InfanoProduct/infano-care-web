@@ -22,7 +22,7 @@ export function BlogContent({ post }: BlogContentProps) {
             <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-6">Article Keywords</p>
             <div className="flex flex-wrap gap-3">
               {post.tags.map((tag: string) => (
-                <span key={tag} className="px-5 py-2.5 rounded-2xl bg-secondary/50 text-slate-700 text-sm font-black border border-border/50 hover:bg-secondary transition-colors cursor-default">
+                <span key={tag} className="px-5 py-2.5 rounded-2xl bg-muted text-slate-700 text-sm font-black border border-border/50 hover:bg-gray-100 transition-colors cursor-default">
                   #{tag}
                 </span>
               ))}
@@ -31,7 +31,7 @@ export function BlogContent({ post }: BlogContentProps) {
         )}
 
         {/* Author Bio Section */}
-        <div className="mt-20 p-8 md:p-12 rounded-none bg-secondary/30 border border-primary/5 flex flex-col md:flex-row items-center gap-8">
+        <div className="mt-20 p-8 md:p-12 rounded-none bg-muted border border-border flex flex-col md:flex-row items-center gap-8">
           <div className="w-24 h-24 rounded-full bg-white overflow-hidden border-4 border-white shadow-xl flex-shrink-0">
             {post.author?.avatarUrl ? (
               <img src={post.author.avatarUrl} alt="" className="w-full h-full object-cover" />

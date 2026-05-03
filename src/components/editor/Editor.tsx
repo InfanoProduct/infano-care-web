@@ -3,7 +3,7 @@
 import { useRef, useEffect, useMemo } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
+import { CustomImage } from './extensions/CustomImage.tsx';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
@@ -23,7 +23,7 @@ import {
   Subscript as SubscriptIcon, Superscript as SuperscriptIcon,
   CheckSquare, Type
 } from 'lucide-react';
-import { GlobalCta } from './extensions/GlobalCta';
+import { GlobalCta } from './extensions/GlobalCta.tsx';
 import { blogService } from '@/services/blog.service';
 
 interface EditorProps {
@@ -37,12 +37,7 @@ const MenuBar = ({ editor, ctas = [] }: { editor: any, ctas?: any[] }) => {
   
   if (!editor) return null;
 
-  const addImageFromUrl = () => {
-    const url = window.prompt('Enter Image URL');
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
-    }
-  };
+
 
   const setLink = () => {
     const previousUrl = editor.getAttributes('link').href;
@@ -75,7 +70,8 @@ const MenuBar = ({ editor, ctas = [] }: { editor: any, ctas?: any[] }) => {
       description: cta.description,
       buttonText: cta.buttonText,
       buttonLink: cta.buttonLink,
-      type: cta.type || 'primary'
+      type: cta.type || 'primary',
+      imageUrl: cta.imageUrl
     }).run();
   };
 
@@ -148,9 +144,10 @@ const MenuBar = ({ editor, ctas = [] }: { editor: any, ctas?: any[] }) => {
 
       {/* Media */}
       <div className="flex gap-1 pr-2 border-r border-primary/10 mr-1">
-        <IconButton onClick={() => fileInputRef.current?.click()} title="Upload Image"><Upload size={18} /></IconButton>
+        <IconButton onClick={() => fileInputRef.current?.click()} title="Insert Image">
+          <ImageIcon size={18} />
+        </IconButton>
         <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
-        <IconButton onClick={addImageFromUrl} title="Image from URL"><ImageIcon size={18} /></IconButton>
       </div>
 
       {/* CTA Insert */}
@@ -203,11 +200,7 @@ export default function Editor({ content, onChange, ctas = [] }: EditorProps) {
     Subscript.configure(),
     Superscript.configure(),
     Typography.configure(),
-    Image.configure({
-      HTMLAttributes: {
-        class: 'post-content-image rounded-2xl shadow-lg my-8 mx-auto block max-w-full',
-      },
-    }),
+    CustomImage,
     GlobalCta,
     Underline,
     Link.configure({

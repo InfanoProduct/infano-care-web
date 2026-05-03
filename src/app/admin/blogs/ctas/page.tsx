@@ -159,66 +159,93 @@ export default function CTAsPage() {
               />
             </div>
 
-            <div className="md:col-span-2 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-1">Background Image URL</label>
+            <div className="md:col-span-2 space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-1">Description / Subtext</label>
+              <textarea
+                className="w-full bg-secondary/30 border-none rounded-2xl py-4 px-6 font-medium min-h-[80px] focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none"
+                value={newCTA.description}
+                onChange={(e) => setNewCTA({...newCTA, description: e.target.value})}
+              />
+            </div>
+
+            <div className="pt-6 border-t border-border/30 md:col-span-2">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-1">Live Preview & Poster Customization</p>
+                <div className="flex gap-2">
                   <input
-                    className="w-full bg-secondary/30 border-none rounded-2xl py-3 px-6 font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                    placeholder="Enter image URL..."
+                    className="bg-secondary/30 border-none rounded-xl py-1.5 px-4 text-[10px] font-bold focus:ring-1 focus:ring-primary/20 outline-none transition-all w-48"
+                    placeholder="Paste Image URL instead..."
                     value={newCTA.imageUrl}
                     onChange={(e) => setNewCTA({...newCTA, imageUrl: e.target.value})}
                   />
                 </div>
-                <ImageUploader 
-                  label="Or Upload Image"
-                  value={newCTA.imageUrl}
-                  onUpload={(url) => setNewCTA({...newCTA, imageUrl: url})}
-                />
               </div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-1">Description / Subtext</label>
-            <textarea
-              className="w-full bg-secondary/30 border-none rounded-2xl py-4 px-6 font-medium min-h-[80px] focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none"
-              value={newCTA.description}
-              onChange={(e) => setNewCTA({...newCTA, description: e.target.value})}
-            />
-          </div>
-
-          <div className="pt-6 border-t border-border/30">
-            <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4 pl-1">Live Preview</p>
-            <div 
-              className={`relative p-12 rounded-[2.5rem] flex flex-col items-center text-center transition-all min-h-[300px] justify-center overflow-hidden shadow-2xl ${
-                newCTA.imageUrl ? 'text-white' : 
-                newCTA.type === 'primary' ? 'bg-primary text-white' : 
-                newCTA.type === 'dark' ? 'bg-black text-white' : 'bg-white text-foreground'
-              }`}
-            >
-              {newCTA.imageUrl && (
-                <>
-                  <img 
-                    src={newCTA.imageUrl} 
-                    alt="" 
-                    className="absolute inset-0 w-full h-full object-cover"
-                    onError={(e) => (e.currentTarget.style.display = 'none')}
-                  />
-                  <div className="absolute inset-0 bg-black/60" />
-                </>
-              )}
               
-              <div className="relative z-10 space-y-4">
-                <h3 className="text-3xl font-black">{newCTA.title || 'Your Heading Here'}</h3>
-                <p className={`mt-3 max-w-md font-medium ${newCTA.imageUrl || newCTA.type === 'primary' || newCTA.type === 'dark' ? 'text-white/80' : 'text-muted-foreground'}`}>
-                  {newCTA.description || 'Add a compelling description to engage your readers.'}
-                </p>
-                <div className="mt-8">
-                  <div className={`px-10 py-4 rounded-2xl font-black text-sm transition-all shadow-xl inline-block ${
-                    newCTA.imageUrl || newCTA.type === 'dark' || newCTA.type === 'primary' ? 'bg-white text-primary' : 'bg-primary text-white'
-                  }`}>
-                    {newCTA.buttonText || 'Button Text'}
+              <div 
+                className={`relative p-12 rounded-[2.5rem] flex flex-col items-center text-center transition-all min-h-[300px] justify-center overflow-hidden shadow-2xl group/preview ${
+                  newCTA.imageUrl ? 'text-white' : 
+                  newCTA.type === 'primary' ? 'bg-primary text-white' : 
+                  newCTA.type === 'dark' ? 'bg-black text-white' : 'bg-white text-foreground'
+                }`}
+              >
+                {newCTA.imageUrl && (
+                  <>
+                    <img 
+                      src={newCTA.imageUrl} 
+                      alt="" 
+                      className="absolute inset-0 w-full h-full object-cover"
+                      onError={(e) => (e.currentTarget.style.display = 'none')}
+                    />
+                    <div className="absolute inset-0 bg-black/60" />
+                  </>
+                )}
+
+                {/* Upload Overlay */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/preview:opacity-100 transition-opacity flex items-center justify-center z-20">
+                  <label className="cursor-pointer flex flex-col items-center gap-2 p-6 bg-white/10 backdrop-blur-md rounded-3xl border border-white/20 hover:bg-white/20 transition-all">
+                    {isSaving ? <Loader2 className="animate-spin text-white" size={32} /> : <Plus size={32} className="text-white" />}
+                    <span className="text-white font-black text-xs uppercase tracking-widest">Update Poster</span>
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*" 
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setIsSaving(true);
+                        try {
+                          const result = await blogService.uploadImage(file) as any;
+                          setNewCTA(prev => ({ ...prev, imageUrl: result.url }));
+                        } catch (error) {
+                          alert('Failed to upload image');
+                        } finally {
+                          setIsSaving(false);
+                        }
+                      }} 
+                    />
+                  </label>
+                  {newCTA.imageUrl && (
+                    <button 
+                      type="button"
+                      onClick={() => setNewCTA({...newCTA, imageUrl: ''})}
+                      className="absolute top-6 right-6 p-3 bg-red-500/20 backdrop-blur-md rounded-2xl hover:bg-red-500/40 transition-all border border-red-500/20"
+                    >
+                      <Trash2 size={20} className="text-white" />
+                    </button>
+                  )}
+                </div>
+                
+                <div className="relative z-10 space-y-4">
+                  <h3 className="text-3xl font-black">{newCTA.title || 'Your Heading Here'}</h3>
+                  <p className={`mt-3 max-w-md font-medium ${newCTA.imageUrl || newCTA.type === 'primary' || newCTA.type === 'dark' ? 'text-white/80' : 'text-muted-foreground'}`}>
+                    {newCTA.description || 'Add a compelling description to engage your readers.'}
+                  </p>
+                  <div className="mt-8">
+                    <div className={`px-10 py-4 rounded-2xl font-black text-sm transition-all shadow-xl inline-block ${
+                      newCTA.imageUrl || newCTA.type === 'dark' || newCTA.type === 'primary' ? 'bg-white text-primary' : 'bg-primary text-white'
+                    }`}>
+                      {newCTA.buttonText || 'Button Text'}
+                    </div>
                   </div>
                 </div>
               </div>

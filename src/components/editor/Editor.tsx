@@ -3,7 +3,7 @@
 import { useRef, useEffect, useMemo } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { CustomImage } from './extensions/CustomImage.tsx';
+import { CustomImage } from './extensions/CustomImage';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
@@ -23,7 +23,7 @@ import {
   Subscript as SubscriptIcon, Superscript as SuperscriptIcon,
   CheckSquare, Type
 } from 'lucide-react';
-import { GlobalCta } from './extensions/GlobalCta.tsx';
+import { GlobalCta } from './extensions/GlobalCta';
 import { blogService } from '@/services/blog.service';
 
 interface EditorProps {

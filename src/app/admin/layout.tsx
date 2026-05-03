@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { LayoutDashboard, Users, Calendar, Settings, ShieldCheck, LogOut, BookOpen, FileText } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, Settings, ShieldCheck, LogOut, BookOpen, FileText, ShoppingBag } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 
 export default function AdminLayout({
@@ -29,6 +29,7 @@ export default function AdminLayout({
     { name: 'Consultations', icon: Calendar, href: '/admin/consultations' },
     { name: 'Learning Journeys', icon: BookOpen, href: '/admin/learning' },
     { name: 'Blogs', icon: FileText, href: '/admin/blogs' },
+    { name: 'Book Orders', icon: ShoppingBag, href: '/admin/orders' },
     { name: 'System Settings', icon: Settings, href: '/admin/settings' },
   ];
 

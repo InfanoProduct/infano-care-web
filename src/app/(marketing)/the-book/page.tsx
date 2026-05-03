@@ -17,7 +17,7 @@ export default function TheBookPage() {
                 Written with warmth, honesty, and deep respect for adolescent girls, the Infano book is a comprehensive guide to growing up — addressing the questions that don't make it into school textbooks or family dinners.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="#" className="btn-primary bg-white text-accent hover:bg-slate-100 px-8 py-4">
+                <Link href="/checkout" className="btn-primary bg-white text-accent hover:bg-slate-100 px-8 py-4">
                   Buy Your Copy <ArrowRight className="ml-2 inline" size={20} />
                 </Link>
                 <Link href="/contact" className="px-8 py-4 bg-transparent border-2 border-white/30 text-white rounded-full font-bold hover:bg-white/10 transition-colors text-center">
@@ -145,7 +145,7 @@ export default function TheBookPage() {
           </div>
 
           <div className="text-center">
-            <Link href="#" className="btn-primary text-lg px-8 py-4">
+            <Link href="/checkout" className="btn-primary text-lg px-8 py-4">
               Order Your Copy Now <ArrowRight className="ml-2 inline" size={20} />
             </Link>
           </div>

@@ -43,6 +43,10 @@ export const ShopService = {
     return apiClient.get<Book>(`/shop/books/${id}`);
   },
 
+  async validateCoupon(code: string, amount: number): Promise<{ coupon: any, discountAmount: number }> {
+    return apiClient.post('/shop/coupons/validate', { code, amount });
+  },
+
   async createOrder(data: CreateOrderRequest): Promise<OrderResponse> {
     return apiClient.post<OrderResponse>('/shop/orders', data);
   },

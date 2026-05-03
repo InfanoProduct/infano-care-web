@@ -1,11 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Script from 'next/script';
 import { useAuthStore } from '@/store/auth-store';
 import { ShopService, Book } from '@/services/shop.service';
-import { ArrowLeft, CreditCard, Truck, CheckCircle2, ShieldCheck, ShoppingBag } from 'lucide-react';
+import { 
+  ArrowLeft, CreditCard, Truck, CheckCircle2, ShieldCheck, 
+  ShoppingBag, Tag, Info, AlertCircle, Loader2 
+} from 'lucide-react';
 import Link from 'next/link';
 
 export default function CheckoutPage() {
@@ -20,6 +23,13 @@ export default function CheckoutPage() {
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Financials
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [pincodeLoading, setPincodeLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     guestName: '',
     guestEmail: '',
@@ -29,6 +39,7 @@ export default function CheckoutPage() {
     state: '',
     pincode: '',
     paymentMethod: 'ONLINE' as 'ONLINE' | 'COD',
+    gstNumber: '',
   });
 
   useEffect(() => {
@@ -38,20 +49,11 @@ export default function CheckoutPage() {
           const data = await ShopService.getBook(bookId);
           setBook(data);
         } else {
-          // Default book fallback or fetch first available
           const books = await ShopService.getBooks();
           if (books.length > 0) setBook(books[0]);
         }
       } catch (err) {
-        console.error('Failed to load book', err);
-        // Fallback static data for demonstration if API fails
-        setBook({
-          id: 'default',
-          title: 'Growing Up Honest',
-          description: 'The companion guide every adolescent girl needs. Written with warmth, honesty, and deep respect.',
-          price: 499,
-          stock: 100
-        });
+        setBook({ id: 'default', title: 'Growing Up Honest', description: '...', price: 499, stock: 100 });
       } finally {
         setLoading(false);
       }
@@ -59,14 +61,63 @@ export default function CheckoutPage() {
     loadBook();
   }, [bookId]);
 
+  // Pincode Lookup
+  useEffect(() => {
+    if (formData.pincode.length === 6) {
+      const fetchPincodeData = async () => {
+        setPincodeLoading(true);
+        try {
+          const res = await fetch(`https://api.postalpincode.in/pincode/${formData.pincode}`);
+          const data = await res.json();
+          if (data[0].Status === 'Success') {
+            const postOffice = data[0].PostOffice[0];
+            setFormData(prev => ({
+              ...prev,
+              city: postOffice.District,
+              state: postOffice.State
+            }));
+          }
+        } catch (err) {
+          console.error('Pincode lookup failed');
+        } finally {
+          setPincodeLoading(false);
+        }
+      };
+      fetchPincodeData();
+    }
+  }, [formData.pincode]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handlePaymentMethodChange = (method: 'ONLINE' | 'COD') => {
-    setFormData(prev => ({ ...prev, paymentMethod: method }));
+  const applyCoupon = async () => {
+    if (!couponCode || !book) return;
+    setValidatingCoupon(true);
+    setError(null);
+    try {
+      const result = await ShopService.validateCoupon(couponCode, book.price);
+      setAppliedCoupon(result.coupon);
+      setDiscountAmount(result.discountAmount);
+    } catch (err: any) {
+      setError(err.message || 'Invalid coupon');
+      setAppliedCoupon(null);
+      setDiscountAmount(0);
+    } finally {
+      setValidatingCoupon(false);
+    }
   };
+
+  const calculateTotal = () => {
+    if (!book) return { subtotal: 0, gst: 0, total: 0 };
+    const subtotal = book.price;
+    const gst = Math.round((subtotal - discountAmount) * 0.05);
+    const total = subtotal - discountAmount + gst;
+    return { subtotal, gst, total };
+  };
+
+  const { subtotal, gst, total } = calculateTotal();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,12 +131,12 @@ export default function CheckoutPage() {
         ...formData,
         userId: user?.id,
         items: [{ bookId: book.id, quantity: 1 }],
+        couponCode: appliedCoupon?.code,
       };
 
       const order = await ShopService.createOrder(orderData);
 
       if (formData.paymentMethod === 'ONLINE' && order.razorpayOrderId) {
-        // Razorpay integration
         const options = {
           key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
           amount: order.totalAmount * 100,
@@ -102,7 +153,7 @@ export default function CheckoutPage() {
               });
               setOrderSuccess(true);
             } catch (err) {
-              setError('Payment verification failed. Please contact support.');
+              setError('Payment verification failed.');
             } finally {
               setProcessing(false);
             }
@@ -112,25 +163,16 @@ export default function CheckoutPage() {
             email: formData.guestEmail,
             contact: formData.guestPhone,
           },
-          theme: {
-            color: '#6366f1',
-          },
-          modal: {
-            ondismiss: function() {
-                setProcessing(false);
-            }
-          }
+          modal: { ondismiss: () => setProcessing(false) }
         };
-
         const rzp = new (window as any).Razorpay(options);
         rzp.open();
       } else {
-        // COD path
         setOrderSuccess(true);
         setProcessing(false);
       }
     } catch (err: any) {
-      setError(err.message || 'Something went wrong. Please try again.');
+      setError(err.message || 'Order placement failed');
       setProcessing(false);
     }
   };
@@ -138,18 +180,15 @@ export default function CheckoutPage() {
   if (orderSuccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 text-center animate-in fade-in zoom-in duration-500">
-          <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 size={40} />
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-10 text-center animate-in zoom-in duration-500">
+          <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8">
+            <CheckCircle2 size={48} />
           </div>
-          <h1 className="text-3xl font-bold mb-4">Order Placed!</h1>
-          <p className="text-slate-600 mb-8">
-            Thank you for your purchase. We've sent a confirmation email with your order details.
+          <h1 className="text-3xl font-extrabold mb-4">Order Placed!</h1>
+          <p className="text-slate-600 mb-10 leading-relaxed">
+            Your journey with Infano has begun. We've sent a confirmation email with all the details.
           </p>
-          <button 
-            onClick={() => router.push('/')}
-            className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors"
-          >
+          <button onClick={() => router.push('/')} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-95">
             Back to Home
           </button>
         </div>
@@ -160,211 +199,178 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-slate-50 pt-24 pb-20">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
-      
-      <div className="max-w-6xl mx-auto px-4">
-        <Link href="/the-book" className="inline-flex items-center text-slate-500 hover:text-indigo-600 mb-8 transition-colors">
-          <ArrowLeft size={20} className="mr-2" /> Back to Product
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <Link href="/the-book" className="inline-flex items-center text-slate-500 hover:text-indigo-600 mb-10 transition-colors font-semibold group">
+          <ArrowLeft size={20} className="mr-2 group-hover:-translate-x-1 transition-transform" /> Back to Product
         </Link>
 
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
-          {/* Left: Book Info */}
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-8">
-              <h2 className="text-2xl font-bold mb-6 flex items-center">
-                <ShoppingBag className="mr-3 text-indigo-600" /> Order Summary
+        <div className="grid lg:grid-cols-12 gap-10">
+          {/* Left: Product Info & Price Summary */}
+          <div className="lg:col-span-5 space-y-8">
+            <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 p-8">
+              <h2 className="text-xl font-bold mb-8 flex items-center gap-3">
+                <ShoppingBag className="text-indigo-600" size={24} />
+                Order Summary
               </h2>
               
-              {loading ? (
-                <div className="animate-pulse flex space-x-4">
-                  <div className="rounded-lg bg-slate-200 h-40 w-32"></div>
-                  <div className="flex-1 space-y-4 py-1">
-                    <div className="h-4 bg-slate-200 rounded w-3/4"></div>
-                    <div className="space-y-2">
-                      <div className="h-4 bg-slate-200 rounded"></div>
-                      <div className="h-4 bg-slate-200 rounded w-5/6"></div>
-                    </div>
+              {book && (
+                <div className="flex gap-6 mb-10">
+                  <div className="w-28 h-36 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-xl p-3 flex flex-col justify-between text-white text-[9px] font-bold">
+                    <span>Infano</span>
+                    <span className="text-xs leading-tight">{book.title}</span>
+                    <div className="h-1 w-6 bg-white/40 rounded-full"></div>
                   </div>
-                </div>
-              ) : book ? (
-                <div className="flex flex-col md:flex-row gap-6">
-                  <div className="w-full md:w-40 aspect-[3/4] bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg p-4 flex flex-col justify-between text-white transform rotate-1">
-                     <p className="text-[10px] font-bold opacity-80">Infano.care</p>
-                     <h3 className="text-xl font-bold leading-tight">{book.title}</h3>
-                     <div className="h-1 w-8 bg-white/30 rounded"></div>
+                  <div>
+                    <h3 className="font-bold text-lg text-slate-900">{book.title}</h3>
+                    <p className="text-slate-500 text-sm mt-1 leading-relaxed line-clamp-2">{book.description}</p>
+                    <div className="mt-4 font-extrabold text-xl">₹{book.price}</div>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-slate-900 mb-2">{book.title}</h3>
-                    <p className="text-slate-600 text-sm mb-4 leading-relaxed">
-                      {book.description}
-                    </p>
-                    <div className="flex items-center justify-between border-t border-slate-100 pt-4">
-                      <span className="text-slate-500">Price</span>
-                      <span className="text-2xl font-bold text-indigo-600">₹{book.price}</span>
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-
-              <div className="mt-8 space-y-4 border-t border-slate-100 pt-8">
-                <div className="flex items-center text-slate-600 text-sm">
-                  <Truck size={18} className="mr-3 text-indigo-500" />
-                  <span>Free Express Shipping across India</span>
-                </div>
-                <div className="flex items-center text-slate-600 text-sm">
-                  <ShieldCheck size={18} className="mr-3 text-indigo-500" />
-                  <span>Secure & Encrypted Transactions</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right: Checkout Form */}
-          <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-8 lg:p-10">
-            <h2 className="text-2xl font-bold mb-8">Shipping & Payment</h2>
-            
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {error && (
-                <div className="p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm">
-                  {error}
                 </div>
               )}
 
-              <div className="grid md:grid-cols-2 gap-4">
+              {/* Coupon Section */}
+              <div className="space-y-4 pt-8 border-t border-slate-100">
+                <div className="flex gap-3">
+                  <div className="relative flex-1">
+                    <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input 
+                      type="text" 
+                      placeholder="Coupon Code"
+                      className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none uppercase font-bold text-sm tracking-widest"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    />
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={applyCoupon}
+                    disabled={validatingCoupon || !couponCode}
+                    className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 disabled:bg-slate-200 transition-all active:scale-95 flex items-center gap-2"
+                  >
+                    {validatingCoupon && <Loader2 className="animate-spin" size={16} />}
+                    Apply
+                  </button>
+                </div>
+                {appliedCoupon && (
+                  <div className="flex items-center justify-between p-3 bg-green-50 border border-green-100 rounded-xl">
+                    <div className="flex items-center gap-2 text-green-700 text-sm font-bold">
+                      <CheckCircle2 size={16} /> {appliedCoupon.code} Applied
+                    </div>
+                    <button onClick={() => { setAppliedCoupon(null); setDiscountAmount(0); }} className="text-[10px] uppercase font-bold text-green-700 underline">Remove</button>
+                  </div>
+                )}
+              </div>
+
+              {/* Price Breakdown */}
+              <div className="mt-10 space-y-4 pt-8 border-t border-slate-100">
+                <div className="flex justify-between text-slate-600 font-medium">
+                  <span>Subtotal</span>
+                  <span>₹{subtotal}</span>
+                </div>
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-green-600 font-bold">
+                    <span>Discount</span>
+                    <span>-₹{discountAmount}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-slate-600 font-medium items-center gap-2">
+                  <span className="flex items-center gap-1.5">GST (5%) <Info size={14} className="text-slate-400" /></span>
+                  <span>₹{gst}</span>
+                </div>
+                <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+                  <span className="text-xl font-bold text-slate-900">Total Amount</span>
+                  <span className="text-3xl font-black text-indigo-600">₹{total}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-indigo-600 rounded-[2rem] p-8 text-white shadow-xl shadow-indigo-100">
+               <div className="flex items-start gap-4">
+                  <div className="bg-white/20 p-3 rounded-2xl">
+                    <ShieldCheck size={28} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-lg">Infano Guarantee</h4>
+                    <p className="text-indigo-100 text-sm mt-1 leading-relaxed">
+                      Your payment is 100% secure. We use Razorpay for end-to-end encryption. Delivery takes 3-5 business days.
+                    </p>
+                  </div>
+               </div>
+            </div>
+          </div>
+
+          {/* Right: Shipping Form */}
+          <div className="lg:col-span-7 bg-white rounded-[2rem] shadow-xl border border-slate-200 p-8 sm:p-12">
+            <h2 className="text-2xl font-extrabold mb-10">Shipping Details</h2>
+            
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {error && (
+                <div className="p-5 bg-rose-50 border border-rose-100 text-rose-600 rounded-2xl text-sm font-bold flex items-center gap-3">
+                  <AlertCircle size={20} /> {error}
+                </div>
+              )}
+
+              <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Full Name</label>
-                  <input
-                    required
-                    type="text"
-                    name="guestName"
-                    value={formData.guestName}
-                    onChange={handleInputChange}
-                    placeholder="Enter your name"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                  />
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Full Name</label>
+                  <input required name="guestName" value={formData.guestName} onChange={handleInputChange} className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-semibold" placeholder="John Doe" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Email Address</label>
-                  <input
-                    required
-                    type="email"
-                    name="guestEmail"
-                    value={formData.guestEmail}
-                    onChange={handleInputChange}
-                    placeholder="you@example.com"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                  />
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Email</label>
+                  <input required type="email" name="guestEmail" value={formData.guestEmail} onChange={handleInputChange} className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-semibold" placeholder="john@example.com" />
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Phone</label>
+                  <input required name="guestPhone" value={formData.guestPhone} onChange={handleInputChange} className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-semibold" placeholder="+91 XXXXX XXXXX" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">GST Number (Optional)</label>
+                  <input name="gstNumber" value={formData.gstNumber} onChange={handleInputChange} className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-semibold" placeholder="22AAAAA0000A1Z5" />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Phone Number</label>
-                <input
-                  required
-                  type="tel"
-                  name="guestPhone"
-                  value={formData.guestPhone}
-                  onChange={handleInputChange}
-                  placeholder="+91 XXXXX XXXXX"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                />
+                <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Address</label>
+                <textarea required name="shippingAddress" value={formData.shippingAddress} onChange={handleInputChange} rows={3} className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-semibold resize-none" placeholder="Flat No, Street, Area..." />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Shipping Address</label>
-                <textarea
-                  required
-                  name="shippingAddress"
-                  value={formData.shippingAddress}
-                  onChange={handleInputChange}
-                  placeholder="Street address, Apartment, etc."
-                  rows={3}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">City</label>
-                  <input
-                    required
-                    name="city"
-                    value={formData.city}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none"
-                  />
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Pincode</label>
+                  <div className="relative">
+                    <input required maxLength={6} name="pincode" value={formData.pincode} onChange={handleInputChange} className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-bold tracking-widest" placeholder="400001" />
+                    {pincodeLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-indigo-500" size={18} />}
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">State</label>
-                  <input
-                    required
-                    name="state"
-                    value={formData.state}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none"
-                  />
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">City</label>
+                  <input required name="city" value={formData.city} onChange={handleInputChange} className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50 text-slate-500 font-bold" readOnly placeholder="Autofilled" />
                 </div>
                 <div className="space-y-2 col-span-2 md:col-span-1">
-                  <label className="text-sm font-semibold text-slate-700">Pincode</label>
-                  <input
-                    required
-                    name="pincode"
-                    value={formData.pincode}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none"
-                  />
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">State</label>
+                  <input required name="state" value={formData.state} onChange={handleInputChange} className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50 text-slate-500 font-bold" readOnly placeholder="Autofilled" />
                 </div>
               </div>
 
-              <div className="space-y-4 pt-4">
-                <label className="text-sm font-semibold text-slate-700">Payment Method</label>
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    type="button"
-                    onClick={() => handlePaymentMethodChange('ONLINE')}
-                    className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${
-                      formData.paymentMethod === 'ONLINE'
-                        ? 'border-indigo-600 bg-indigo-50 text-indigo-600'
-                        : 'border-slate-100 hover:border-slate-200'
-                    }`}
-                  >
-                    <CreditCard size={24} />
-                    <span className="font-bold text-sm">Online Payment</span>
+              <div className="space-y-4 pt-6">
+                <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Payment Method</label>
+                <div className="grid grid-cols-2 gap-6">
+                  <button type="button" onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'ONLINE' }))} className={`p-6 rounded-[2rem] border-2 flex flex-col items-center gap-3 transition-all ${formData.paymentMethod === 'ONLINE' ? 'border-indigo-600 bg-indigo-50 text-indigo-600 shadow-lg shadow-indigo-100' : 'border-slate-100 hover:border-slate-200'}`}>
+                    <CreditCard size={28} />
+                    <span className="font-extrabold text-sm">Online Payment</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => handlePaymentMethodChange('COD')}
-                    className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${
-                      formData.paymentMethod === 'COD'
-                        ? 'border-indigo-600 bg-indigo-50 text-indigo-600'
-                        : 'border-slate-100 hover:border-slate-200'
-                    }`}
-                  >
-                    <Truck size={24} />
-                    <span className="font-bold text-sm">Cash on Delivery</span>
+                  <button type="button" onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'COD' }))} className={`p-6 rounded-[2rem] border-2 flex flex-col items-center gap-3 transition-all ${formData.paymentMethod === 'COD' ? 'border-indigo-600 bg-indigo-50 text-indigo-600 shadow-lg shadow-indigo-100' : 'border-slate-100 hover:border-slate-200'}`}>
+                    <Truck size={28} />
+                    <span className="font-extrabold text-sm">Cash on Delivery</span>
                   </button>
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={processing || !book}
-                className={`w-full py-5 rounded-2xl font-bold text-lg shadow-lg transform active:scale-95 transition-all mt-6 ${
-                  processing 
-                    ? 'bg-slate-300 cursor-not-allowed' 
-                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                }`}
-              >
-                {processing ? (
-                  <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Processing...
-                  </span>
-                ) : (
-                  formData.paymentMethod === 'ONLINE' ? `Pay ₹${book?.price}` : 'Place Order'
-                )}
+              <button disabled={processing || !book || pincodeLoading} className={`w-full py-6 rounded-[2rem] font-black text-xl shadow-2xl transform active:scale-[0.98] transition-all mt-10 ${processing ? 'bg-slate-300' : 'bg-slate-900 text-white hover:bg-black shadow-slate-200'}`}>
+                {processing ? <span className="flex items-center justify-center gap-3"><Loader2 className="animate-spin" /> Finalizing...</span> : (formData.paymentMethod === 'ONLINE' ? `Complete Payment` : 'Place Order Now')}
               </button>
             </form>
           </div>

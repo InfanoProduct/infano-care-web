@@ -6,7 +6,7 @@ import { apiClient } from '@/lib/api-client';
 import { 
   ArrowLeft, ShoppingBag, User, MapPin, CreditCard, 
   Clock, Truck, CheckCircle, XCircle, Package, Phone, Mail,
-  AlertCircle, ChevronRight, Receipt, Tag, Info
+  AlertCircle, ChevronRight, Receipt, Tag, Info, ShieldCheck
 } from 'lucide-react';
 
 const STATUS_STEPS = [

@@ -7,6 +7,9 @@ export interface Book {
   price: number;
   imageUrl?: string;
   stock: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface OrderItem {

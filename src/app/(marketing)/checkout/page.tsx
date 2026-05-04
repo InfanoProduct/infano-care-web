@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const bookId = searchParams.get('bookId');
@@ -53,7 +53,7 @@ export default function CheckoutPage() {
           if (books.length > 0) setBook(books[0]);
         }
       } catch (err) {
-        setBook({ id: 'default', title: 'Growing Up Honest', description: '...', price: 499, stock: 100 });
+        setBook({ id: 'default', title: 'Growing Up Honest', description: '...', price: 499, stock: 100, isActive: true });
       } finally {
         setLoading(false);
       }
@@ -377,5 +377,17 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <React.Suspense fallback={
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="animate-spin text-indigo-600" size={48} />
+      </div>
+    }>
+      <CheckoutContent />
+    </React.Suspense>
   );
 }

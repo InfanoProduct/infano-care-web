@@ -30,6 +30,8 @@ export const metadata: Metadata = {
   description: "Production grade healthcare management platform.",
 };
 
+import { Toaster } from "react-hot-toast";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -43,6 +45,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background" suppressHydrationWarning>
         <QueryProvider>
+          <Toaster position="top-right" />
           {children}
         </QueryProvider>
       </body>

@@ -57,5 +57,23 @@ export const ShopService = {
     razorpaySignature: string;
   }): Promise<any> {
     return apiClient.post('/shop/orders/verify', data);
+  },
+
+  // Admin Methods
+  async adminGetBooks(): Promise<Book[]> {
+    // We use the public getBooks but could add a separate admin one if needed for draft/inactive books
+    return apiClient.get<Book[]>('/shop/books'); 
+  },
+
+  async adminCreateBook(data: Partial<Book>): Promise<Book> {
+    return apiClient.post<Book>('/admin/books', data);
+  },
+
+  async adminUpdateBook(id: string, data: Partial<Book>): Promise<Book> {
+    return apiClient.patch<Book>(`/admin/books/${id}`, data);
+  },
+
+  async adminDeleteBook(id: string): Promise<void> {
+    return apiClient.delete(`/admin/books/${id}`);
   }
 };

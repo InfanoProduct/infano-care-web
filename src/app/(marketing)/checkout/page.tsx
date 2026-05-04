@@ -220,10 +220,20 @@ function CheckoutContent() {
               
               {book && (
                 <div className="flex gap-6 mb-10">
-                  <div className="w-28 h-36 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-xl p-3 flex flex-col justify-between text-white text-[9px] font-bold">
-                    <span>Infano</span>
-                    <span className="text-xs leading-tight">{book.title}</span>
-                    <div className="h-1 w-6 bg-white/40 rounded-full"></div>
+                  <div className="w-28 h-36 rounded-2xl shadow-xl overflow-hidden relative group shrink-0">
+                    {book.imageUrl ? (
+                      <img 
+                        src={book.imageUrl} 
+                        alt={book.title} 
+                        className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500" 
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 p-3 flex flex-col justify-between text-white text-[9px] font-bold">
+                        <span>Infano</span>
+                        <span className="text-xs leading-tight">{book.title}</span>
+                        <div className="h-1 w-6 bg-white/40 rounded-full"></div>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <h3 className="font-bold text-lg text-slate-900">{book.title}</h3>

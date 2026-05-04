@@ -1,15 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  Globe, Plus, Loader2, Edit, Trash2, CheckCircle2, 
-  X, Save, Hash, Type, AlignLeft, Palette, Layers
-} from 'lucide-react';
+import { Globe, Plus, Loader2, Edit, Trash2, CheckCircle2, X, Save, Hash, Type, AlignLeft, Palette, Layers, ShieldCheck, UserCheck } from 'lucide-react';
 import { CommunityService, CommunityCircle } from '@/services/community.service';
 import { toast } from 'react-hot-toast';
 
 export default function CircleManagement() {
   const [circles, setCircles] = useState<CommunityCircle[]>([]);
+  const [mentors, setMentors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCircle, setEditingCircle] = useState<CommunityCircle | null>(null);
@@ -27,7 +25,8 @@ export default function CircleManagement() {
     isAgeSpecific: false,
     minContentTier: undefined,
     maxContentTier: undefined,
-    benefits: []
+    benefits: [],
+    moderatorIds: []
   });
 
   const [benefitInput, setBenefitInput] = useState('');
@@ -57,17 +56,21 @@ export default function CircleManagement() {
   ];
 
   useEffect(() => {
-    loadCircles();
+    loadData();
   }, []);
 
-  const loadCircles = async () => {
+  const loadData = async () => {
     setLoading(true);
     try {
-      const data = await CommunityService.adminGetCircles();
-      setCircles(data);
+      const [circlesData, mentorsData] = await Promise.all([
+        CommunityService.adminGetCircles(),
+        CommunityService.adminGetMentors()
+      ]);
+      setCircles(circlesData);
+      setMentors(mentorsData);
     } catch (error) {
-      console.error('Failed to load circles:', error);
-      toast.error('Failed to load circles');
+      console.error('Failed to load data:', error);
+      toast.error('Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -78,7 +81,8 @@ export default function CircleManagement() {
       setEditingCircle(circle);
       setFormData({
         ...circle,
-        benefits: circle.benefits || []
+        benefits: circle.benefits || [],
+        moderatorIds: circle.moderators?.map(m => m.id) || []
       });
     } else {
       setEditingCircle(null);
@@ -94,7 +98,8 @@ export default function CircleManagement() {
         isAgeSpecific: false,
         minContentTier: undefined,
         maxContentTier: undefined,
-        benefits: []
+        benefits: [],
+        moderatorIds: []
       });
     }
     setIsModalOpen(true);
@@ -124,7 +129,7 @@ export default function CircleManagement() {
         toast.success('Circle created successfully');
       }
       handleCloseModal();
-      loadCircles();
+      loadData();
     } catch (error) {
       toast.error('Failed to save circle');
     } finally {
@@ -137,7 +142,7 @@ export default function CircleManagement() {
     try {
       await CommunityService.adminDeleteCircle(id);
       toast.success('Circle deleted successfully');
-      loadCircles();
+      loadData();
     } catch (error) {
       toast.error('Failed to delete circle');
     }
@@ -254,6 +259,23 @@ export default function CircleManagement() {
                     +{circle.benefits.length - 3}
                   </span>
                 )}
+              </div>
+            )}
+
+            {circle.moderators && circle.moderators.length > 0 && (
+              <div className="flex flex-col gap-2 pt-4 border-t border-border/30">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Moderated By</p>
+                <div className="flex -space-x-2">
+                  {circle.moderators.map((mod, i) => (
+                    <div 
+                      key={mod.id} 
+                      className="w-8 h-8 rounded-full border-2 border-white bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shadow-sm"
+                      title={mod.username || mod.profile?.displayName}
+                    >
+                      {mod.username?.substring(0, 2).toUpperCase() || '??'}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
             
@@ -410,6 +432,49 @@ export default function CircleManagement() {
                       <option key={tier.value} value={tier.value}>{tier.label}</option>
                     ))}
                   </select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                  <ShieldCheck size={14} className="text-primary" />
+                  Assigned Moderators (Peer Mentors)
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-secondary/20 rounded-2xl border border-border/50 max-h-[200px] overflow-y-auto">
+                  {mentors.map((mentor) => (
+                    <label 
+                      key={mentor.id} 
+                      className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all border ${
+                        formData.moderatorIds?.includes(mentor.id) 
+                          ? 'bg-primary/10 border-primary/20 text-primary' 
+                          : 'bg-white/50 border-transparent hover:bg-white transition-all'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.moderatorIds?.includes(mentor.id)}
+                        onChange={(e) => {
+                          const ids = formData.moderatorIds || [];
+                          if (e.target.checked) {
+                            setFormData({ ...formData, moderatorIds: [...ids, mentor.id] });
+                          } else {
+                            setFormData({ ...formData, moderatorIds: ids.filter(id => id !== mentor.id) });
+                          }
+                        }}
+                        className="w-4 h-4 rounded border-primary text-primary focus:ring-primary"
+                      />
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold">{mentor.profile?.displayName || mentor.username}</span>
+                        <span className="text-[10px] opacity-60 font-semibold">{mentor.profile?.mentorStatus || 'Certified Mentor'}</span>
+                      </div>
+                    </label>
+                  ))}
+                  {mentors.length === 0 && (
+                    <div className="col-span-full py-8 flex flex-col items-center justify-center text-muted-foreground opacity-60">
+                      <UserCheck size={24} />
+                      <p className="text-[10px] font-bold uppercase tracking-widest mt-2 text-center">No qualified peer mentors found</p>
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -16,6 +16,11 @@ export interface CommunityCircle {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  moderators?: any[];
+  moderatorIds?: string[];
+  _count?: {
+    members: number;
+  };
 }
 
 export const CommunityService = {
@@ -25,6 +30,10 @@ export const CommunityService = {
   },
 
   // Admin Methods
+  async adminGetMentors(): Promise<any[]> {
+    return apiClient.get<any[]>('/admin/mentors');
+  },
+
   async adminGetCircles(): Promise<CommunityCircle[]> {
     return apiClient.get<CommunityCircle[]>('/admin/circles');
   },

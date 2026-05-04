@@ -26,10 +26,8 @@ export default function AdminLayout({
     router.push('/admin/login');
   };
 
-  if (isLoginPage) return <>{children}</>;
-
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
-
+  
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, href: '/admin/dashboard' },
     { name: 'User Management', icon: Users, href: '/admin/users' },
@@ -65,6 +63,8 @@ export default function AdminLayout({
     
     setExpandedItems(prev => Array.from(new Set([...prev, ...activeItems])));
   }, [pathname]);
+
+  if (isLoginPage) return <>{children}</>;
 
   const toggleExpand = (name: string) => {
     setExpandedItems(prev => 

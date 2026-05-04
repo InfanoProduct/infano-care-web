@@ -161,127 +161,70 @@ export default function CircleManagement() {
     <div className="space-y-8 animate-in fade-in duration-700 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black tracking-tight text-foreground italic">Circle <span className="text-primary">Management</span></h1>
-          <p className="text-muted-foreground mt-1">Configure community groups and discovery settings</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Community <span className="text-primary">Circles</span></h1>
+          <p className="text-sm text-muted-foreground mt-1">Manage and curate safe spaces for the community.</p>
         </div>
         <button 
           onClick={() => handleOpenModal()}
-          className="btn-primary flex items-center gap-2 px-6 py-3 rounded-2xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95"
+          className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl shadow-md transition-all hover:translate-y-[-2px]"
         >
-          <Plus size={20} />
-          <span>Create New Circle</span>
+          <Plus size={18} />
+          <span className="text-sm font-semibold">New Circle</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {circles.map((circle) => (
-          <div key={circle.id} className="glass-card rounded-[2.5rem] border-primary/5 p-8 flex flex-col gap-6 group hover:scale-[1.02] transition-all duration-300 relative overflow-hidden">
-             <div 
-              className="absolute top-0 right-0 w-32 h-32 opacity-[0.05] pointer-events-none translate-x-10 -translate-y-10 group-hover:scale-110 transition-transform duration-500"
-              style={{ color: circle.accentColor }}
-            >
-              <Globe size={128} />
-            </div>
-
-            <div className="flex items-start justify-between relative z-10">
+          <div key={circle.id} className="bg-white border border-border/60 rounded-2xl p-5 flex flex-col gap-4 group hover:shadow-xl hover:border-primary/20 transition-all duration-500 relative">
+            <div className="flex items-center justify-between">
               <div 
-                className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:rotate-6 transition-transform"
-                style={{ backgroundColor: `${circle.accentColor}15` }}
+                className="w-11 h-11 rounded-xl flex items-center justify-center text-xl shadow-inner bg-slate-50"
+                style={{ color: circle.accentColor }}
               >
                 {circle.iconEmoji}
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button 
                   onClick={() => handleOpenModal(circle)}
-                  className="p-2 bg-secondary/50 rounded-xl hover:bg-primary/10 hover:text-primary transition-all shadow-sm"
+                  className="p-1.5 hover:bg-primary/10 hover:text-primary transition-all text-muted-foreground"
                 >
-                  <Edit size={16} />
+                  <Edit size={14} />
                 </button>
                 <button 
                   onClick={() => handleDelete(circle.id)}
-                  className="p-2 bg-secondary/50 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-all shadow-sm"
+                  className="p-1.5 hover:bg-destructive/10 hover:text-destructive transition-all text-muted-foreground"
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={14} />
                 </button>
               </div>
             </div>
 
-            <div className="space-y-1 relative z-10">
+            <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <h3 className="text-xl font-black italic">{circle.name}</h3>
+                <h3 className="text-sm font-bold text-slate-800">{circle.name}</h3>
                 {!circle.isActive && (
-                  <span className="text-[8px] font-black uppercase tracking-[0.2em] bg-amber-500/10 text-amber-600 px-2 py-0.5 rounded-full border border-amber-500/20">
+                  <span className="text-[8px] font-medium bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded border border-amber-200">
                     Draft
                   </span>
                 )}
               </div>
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1 opacity-60">
-                <Hash size={10} /> {circle.slug}
+              <p className="text-[10px] text-muted-foreground font-mono opacity-50">
+                /{circle.slug}
               </p>
             </div>
 
-            <p className="text-sm text-muted-foreground font-medium line-clamp-2 leading-relaxed min-h-[2.5rem]">
+            <p className="text-[11px] text-muted-foreground/80 font-normal line-clamp-2 leading-relaxed">
               {circle.description || 'No description provided.'}
             </p>
 
-            <div className="pt-6 border-t border-border/30 flex flex-wrap gap-2 mt-auto">
-              {circle.requiresPreReview && (
-                <span className="text-[8px] font-black uppercase tracking-widest bg-rose-500/10 text-rose-600 px-2 py-1 rounded-md border border-rose-500/10">
-                  Pre-Review
-                </span>
-              )}
-              {circle.isAgeSpecific && (
-                <span className="text-[8px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-600 px-2 py-1 rounded-md border border-blue-500/10">
-                  Age-Gated
-                </span>
-              )}
-              {circle.minContentTier && (
-                <span className="text-[8px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-600 px-2 py-1 rounded-md border border-emerald-500/10">
-                  Min: {circle.minContentTier}
-                </span>
-              )}
-               {circle.maxContentTier && (
-                <span className="text-[8px] font-black uppercase tracking-widest bg-purple-500/10 text-purple-600 px-2 py-1 rounded-md border border-purple-500/10">
-                  Max: {circle.maxContentTier}
-                </span>
-              )}
-            </div>
-
-            {circle.benefits && circle.benefits.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {circle.benefits.slice(0, 3).map((benefit, i) => (
-                  <span key={i} className="text-[7px] font-bold bg-secondary/50 px-2 py-0.5 rounded text-muted-foreground truncate max-w-[80px]">
-                    {benefit}
-                  </span>
-                ))}
-                {circle.benefits.length > 3 && (
-                  <span className="text-[7px] font-bold bg-secondary/50 px-2 py-0.5 rounded text-muted-foreground">
-                    +{circle.benefits.length - 3}
-                  </span>
-                )}
+            <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-50">
+              <div className="flex gap-1.5">
+                {circle.requiresPreReview && <div className="w-1.5 h-1.5 rounded-full bg-rose-400" title="Moderated" />}
+                {circle.isAgeSpecific && <div className="w-1.5 h-1.5 rounded-full bg-blue-400" title="Age-Gated" />}
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Active" />
               </div>
-            )}
-
-            {circle.moderators && circle.moderators.length > 0 && (
-              <div className="flex flex-col gap-2 pt-4 border-t border-border/30">
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Moderated By</p>
-                <div className="flex -space-x-2">
-                  {circle.moderators.map((mod, i) => (
-                    <div 
-                      key={mod.id} 
-                      className="w-8 h-8 rounded-full border-2 border-white bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shadow-sm"
-                      title={mod.username || mod.profile?.displayName}
-                    >
-                      {mod.username?.substring(0, 2).toUpperCase() || '??'}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            <div className="flex items-center justify-between mt-2">
-               <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                Order #{circle.sortOrder}
+              <span className="text-[9px] font-medium text-slate-400">
+                Ord. {circle.sortOrder}
               </span>
             </div>
           </div>
@@ -293,78 +236,82 @@ export default function CircleManagement() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
           <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={handleCloseModal} />
           
-          <div className="glass-card w-full max-w-2xl rounded-[3rem] border-primary/10 shadow-2xl overflow-hidden relative z-10 flex flex-col max-h-[95vh]">
-            <div className="p-8 border-b border-border/30 flex items-center justify-between bg-primary/5">
+          <div className="glass-card w-full max-w-2xl rounded-3xl border-primary/10 shadow-2xl overflow-hidden relative z-10 flex flex-col max-h-[95vh]">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
               <div>
-                <h2 className="text-2xl font-black italic">
+                <h2 className="text-xl font-bold text-slate-800">
                   {editingCircle ? 'Edit' : 'Create'} <span className="text-primary">Circle</span>
                 </h2>
-                <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1 opacity-60">Configure community space</p>
+                <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Configure your community space settings</p>
               </div>
-              <button onClick={handleCloseModal} className="p-3 bg-secondary/50 rounded-2xl hover:bg-secondary transition-all">
-                <X size={24} />
+              <button onClick={handleCloseModal} className="p-2 hover:bg-slate-100 rounded-lg transition-all text-slate-400">
+                <X size={20} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-y-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Circle Name</label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                      <Type size={18} />
+            <form onSubmit={handleSubmit} className="p-6 space-y-8 overflow-y-auto">
+              {/* Section: Basic Information */}
+              <div className="space-y-4">
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-primary/70 border-b border-primary/10 pb-2">Basic Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-semibold text-slate-700 ml-1">Circle Name</label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+                        <Type size={16} />
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        placeholder="e.g. Period Talk"
+                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/5 focus:border-primary transition-all text-sm font-medium"
+                      />
                     </div>
-                    <input
-                      type="text"
-                      required
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="e.g. Period Talk"
-                      className="w-full pl-12 pr-4 py-4 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-bold"
-                    />
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">URL Slug</label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                      <Hash size={18} />
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-semibold text-slate-700 ml-1">URL Slug</label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+                        <Hash size={16} />
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        value={formData.slug}
+                        onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                        placeholder="e.g. period-talk"
+                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/5 focus:border-primary transition-all text-sm font-medium"
+                      />
                     </div>
-                    <input
-                      type="text"
-                      required
-                      value={formData.slug}
-                      onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
-                      placeholder="e.g. period-talk"
-                      className="w-full pl-12 pr-4 py-4 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-bold"
-                    />
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Description</label>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-slate-700 ml-1">Description</label>
                 <div className="relative group">
-                  <div className="absolute top-4 left-4 text-muted-foreground group-focus-within:text-primary transition-colors">
-                    <AlignLeft size={18} />
+                  <div className="absolute top-3 left-3.5 text-slate-400 group-focus-within:text-primary transition-colors">
+                    <AlignLeft size={16} />
                   </div>
                   <textarea
                     rows={2}
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     placeholder="Briefly describe this community space..."
-                    className="w-full pl-12 pr-4 py-4 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/5 focus:border-primary transition-all text-sm font-medium"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Benefits of Joining</label>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-slate-700 ml-1">Benefits of Joining</label>
                 <div className="flex gap-2">
                   <div className="relative flex-1 group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                      <CheckCircle2 size={18} />
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+                      <CheckCircle2 size={16} />
                     </div>
                     <input
                       type="text"
@@ -372,13 +319,13 @@ export default function CircleManagement() {
                       onChange={(e) => setBenefitInput(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addBenefit())}
                       placeholder="e.g. Expert moderation, safe space..."
-                      className="w-full pl-12 pr-4 py-4 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:border-primary transition-all font-medium"
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-primary transition-all text-sm"
                     />
                   </div>
                   <button
                     type="button"
                     onClick={addBenefit}
-                    className="px-6 py-4 bg-secondary hover:bg-secondary/80 rounded-2xl font-bold transition-all"
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold transition-all"
                   >
                     Add
                   </button>
@@ -387,184 +334,177 @@ export default function CircleManagement() {
                   {formData.benefits?.map((benefit, index) => (
                     <span 
                       key={index}
-                      className="flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-xl text-xs font-bold border border-primary/10 animate-in zoom-in duration-300"
+                      className="flex items-center gap-1.5 bg-primary/5 text-primary px-3 py-1.5 rounded-lg text-[11px] font-semibold border border-primary/10"
                     >
                       {benefit}
                       <button 
                         type="button" 
                         onClick={() => removeBenefit(benefit)}
-                        className="hover:text-destructive transition-colors"
+                        className="hover:text-destructive transition-colors opacity-60 hover:opacity-100"
                       >
-                        <X size={14} />
+                        <X size={12} />
                       </button>
                     </span>
                   ))}
-                  {(!formData.benefits || formData.benefits.length === 0) && (
-                    <p className="text-[10px] text-muted-foreground italic ml-1">No benefits added yet.</p>
-                  )}
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Min Content Tier</label>
-                  <select
-                    value={formData.minContentTier || ''}
-                    onChange={(e) => setFormData({ ...formData, minContentTier: e.target.value })}
-                    className="w-full px-4 py-4 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:border-primary transition-all font-bold appearance-none cursor-pointer"
-                  >
-                    <option value="">No Minimum</option>
-                    {contentTiers.map(tier => (
-                      <option key={tier.value} value={tier.value}>{tier.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Max Content Tier</label>
-                  <select
-                    value={formData.maxContentTier || ''}
-                    onChange={(e) => setFormData({ ...formData, maxContentTier: e.target.value })}
-                    className="w-full px-4 py-4 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:border-primary transition-all font-bold appearance-none cursor-pointer"
-                  >
-                    <option value="">No Maximum</option>
-                    {contentTiers.map(tier => (
-                      <option key={tier.value} value={tier.value}>{tier.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
-                  <ShieldCheck size={14} className="text-primary" />
-                  Assigned Moderators (Peer Mentors)
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-secondary/20 rounded-2xl border border-border/50 max-h-[200px] overflow-y-auto">
-                  {mentors.map((mentor) => (
-                    <label 
-                      key={mentor.id} 
-                      className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all border ${
-                        formData.moderatorIds?.includes(mentor.id) 
-                          ? 'bg-primary/10 border-primary/20 text-primary' 
-                          : 'bg-white/50 border-transparent hover:bg-white transition-all'
-                      }`}
+              {/* Section: Discovery & Access */}
+              <div className="space-y-4">
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-primary/70 border-b border-primary/10 pb-2">Discovery & Access</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-semibold text-slate-700 ml-1">Min Content Tier</label>
+                    <select
+                      value={formData.minContentTier || ''}
+                      onChange={(e) => setFormData({ ...formData, minContentTier: e.target.value })}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-primary transition-all text-sm font-medium appearance-none cursor-pointer"
                     >
-                      <input
-                        type="checkbox"
-                        checked={formData.moderatorIds?.includes(mentor.id)}
-                        onChange={(e) => {
-                          const ids = formData.moderatorIds || [];
-                          if (e.target.checked) {
-                            setFormData({ ...formData, moderatorIds: [...ids, mentor.id] });
-                          } else {
-                            setFormData({ ...formData, moderatorIds: ids.filter(id => id !== mentor.id) });
-                          }
-                        }}
-                        className="w-4 h-4 rounded border-primary text-primary focus:ring-primary"
-                      />
-                      <div className="flex flex-col">
-                        <span className="text-xs font-bold">{mentor.profile?.displayName || mentor.username}</span>
-                        <span className="text-[10px] opacity-60 font-semibold">{mentor.profile?.mentorStatus || 'Certified Mentor'}</span>
-                      </div>
-                    </label>
-                  ))}
-                  {mentors.length === 0 && (
-                    <div className="col-span-full py-8 flex flex-col items-center justify-center text-muted-foreground opacity-60">
-                      <UserCheck size={24} />
-                      <p className="text-[10px] font-bold uppercase tracking-widest mt-2 text-center">No qualified peer mentors found</p>
-                    </div>
-                  )}
+                      <option value="">No Minimum</option>
+                      {contentTiers.map(tier => (
+                        <option key={tier.value} value={tier.value}>{tier.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-semibold text-slate-700 ml-1">Max Content Tier</label>
+                    <select
+                      value={formData.maxContentTier || ''}
+                      onChange={(e) => setFormData({ ...formData, maxContentTier: e.target.value })}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-primary transition-all text-sm font-medium appearance-none cursor-pointer"
+                    >
+                      <option value="">No Maximum</option>
+                      {contentTiers.map(tier => (
+                        <option key={tier.value} value={tier.value}>{tier.label}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Section: Moderation & Assignment */}
+              <div className="space-y-4">
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-primary/70 border-b border-primary/10 pb-2">Moderation & Assignment</h3>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Emoji Icon</label>
+                  <label className="text-[11px] font-semibold text-slate-700 ml-1 flex items-center gap-2">
+                    <ShieldCheck size={14} className="text-primary" />
+                    Assigned Peer Mentors
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 bg-slate-50/50 rounded-xl border border-slate-100 max-h-[160px] overflow-y-auto">
+                    {mentors.map((mentor) => (
+                      <label 
+                        key={mentor.id} 
+                        className={`flex items-center gap-2.5 p-2 rounded-lg cursor-pointer transition-all border ${
+                          formData.moderatorIds?.includes(mentor.id) 
+                            ? 'bg-white border-primary/30 text-primary shadow-sm' 
+                            : 'bg-transparent border-transparent hover:bg-white hover:border-slate-200'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.moderatorIds?.includes(mentor.id)}
+                          onChange={(e) => {
+                            const ids = formData.moderatorIds || [];
+                            if (e.target.checked) {
+                              setFormData({ ...formData, moderatorIds: [...ids, mentor.id] });
+                            } else {
+                              setFormData({ ...formData, moderatorIds: ids.filter(id => id !== mentor.id) });
+                            }
+                          }}
+                          className="w-3.5 h-3.5 rounded border-slate-300 text-primary focus:ring-primary"
+                        />
+                        <div className="flex flex-col leading-tight">
+                          <span className="text-[11px] font-bold">{mentor.profile?.displayName || mentor.username}</span>
+                          <span className="text-[9px] opacity-60 font-medium">Mentor</span>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Section: Visuals & Order */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+                <div className="space-y-1.5 text-center">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Emoji Icon</label>
                   <input
                     type="text"
                     required
                     value={formData.iconEmoji}
                     onChange={(e) => setFormData({ ...formData, iconEmoji: e.target.value })}
-                    className="w-full px-4 py-4 bg-secondary/30 border border-border/50 rounded-2xl text-center text-2xl focus:outline-none focus:border-primary transition-all"
+                    className="w-full py-2 bg-white border border-slate-200 rounded-lg text-center text-xl focus:outline-none focus:border-primary transition-all"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Accent Color</label>
-                  <div className="relative">
-                    <input
-                      type="color"
-                      value={formData.accentColor}
-                      onChange={(e) => setFormData({ ...formData, accentColor: e.target.value })}
-                      className="w-full h-[60px] p-1 bg-secondary/30 border border-border/50 rounded-2xl cursor-pointer"
-                    />
-                  </div>
+                <div className="space-y-1.5 text-center">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Accent</label>
+                  <input
+                    type="color"
+                    value={formData.accentColor}
+                    onChange={(e) => setFormData({ ...formData, accentColor: e.target.value })}
+                    className="w-full h-11 p-1 bg-white border border-slate-200 rounded-lg cursor-pointer"
+                  />
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Display Order</label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                      <Layers size={18} />
-                    </div>
-                    <input
-                      type="number"
-                      required
-                      value={formData.sortOrder}
-                      onChange={(e) => setFormData({ ...formData, sortOrder: parseInt(e.target.value) })}
-                      className="w-full pl-12 pr-4 py-4 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:border-primary transition-all font-bold"
-                    />
-                  </div>
+                <div className="space-y-1.5 text-center">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Order</label>
+                  <input
+                    type="number"
+                    required
+                    value={formData.sortOrder}
+                    onChange={(e) => setFormData({ ...formData, sortOrder: parseInt(e.target.value) })}
+                    className="w-full py-2 bg-white border border-slate-200 rounded-lg text-center text-sm font-bold focus:outline-none focus:border-primary transition-all"
+                  />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
-                <label className="flex items-center gap-3 p-4 bg-secondary/20 rounded-2xl cursor-pointer hover:bg-secondary/30 transition-all border border-border/50">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <label className="flex items-center gap-2.5 p-3 bg-slate-50 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-100 transition-all">
                   <input
                     type="checkbox"
                     checked={formData.isActive}
                     onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                    className="w-5 h-5 rounded-lg border-primary text-primary focus:ring-primary"
+                    className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary"
                   />
-                  <span className="text-xs font-black italic">Is Active</span>
+                  <span className="text-[11px] font-bold text-slate-700">Active</span>
                 </label>
                 
-                <label className="flex items-center gap-3 p-4 bg-secondary/20 rounded-2xl cursor-pointer hover:bg-secondary/30 transition-all border border-border/50">
+                <label className="flex items-center gap-2.5 p-3 bg-slate-50 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-100 transition-all">
                   <input
                     type="checkbox"
                     checked={formData.requiresPreReview}
                     onChange={(e) => setFormData({ ...formData, requiresPreReview: e.target.checked })}
-                    className="w-5 h-5 rounded-lg border-primary text-primary focus:ring-primary"
+                    className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary"
                   />
-                  <span className="text-xs font-black italic">Pre-Review</span>
+                  <span className="text-[11px] font-bold text-slate-700">Pre-Review</span>
                 </label>
 
-                <label className="flex items-center gap-3 p-4 bg-secondary/20 rounded-2xl cursor-pointer hover:bg-secondary/30 transition-all border border-border/50">
+                <label className="flex items-center gap-2.5 p-3 bg-slate-50 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-100 transition-all">
                   <input
                     type="checkbox"
                     checked={formData.isAgeSpecific}
                     onChange={(e) => setFormData({ ...formData, isAgeSpecific: e.target.checked })}
-                    className="w-5 h-5 rounded-lg border-primary text-primary focus:ring-primary"
+                    className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary"
                   />
-                  <span className="text-xs font-black italic">Age-Specific</span>
+                  <span className="text-[11px] font-bold text-slate-700">Age-Specific</span>
                 </label>
               </div>
 
-              <div className="pt-6 flex gap-4">
+              <div className="pt-4 flex gap-3">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="flex-1 py-4 bg-secondary rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-secondary/80 transition-all"
+                  className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-slate-200 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-[2] py-4 bg-primary text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                  className="flex-[2] py-3 bg-primary text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-primary/10 hover:translate-y-[-1px] active:translate-y-[0px] transition-all flex items-center justify-center gap-2"
                 >
-                  {saving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+                  {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
                   <span>{editingCircle ? 'Save Changes' : 'Create Circle'}</span>
                 </button>
               </div>

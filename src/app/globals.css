@@ -80,7 +80,7 @@
   }
 
   .nav-item-active {
-    @apply text-primary font-semibold;
+    @apply bg-primary text-white font-bold shadow-lg shadow-primary/20;
   }
 
   .premium-gradient-text {

@@ -3,6 +3,14 @@ import { ReactNodeViewRenderer, NodeViewWrapper } from "@tiptap/react";
 import React from "react";
 import { Trash2 } from "lucide-react";
 
+declare module '@tiptap/core' {
+  interface Commands<ReturnType> {
+    globalCta: {
+      setGlobalCta: (attrs: any) => ReturnType;
+    };
+  }
+}
+
 const CtaComponent = (props: any) => {
   const { title, description, buttonText, type, imageUrl } = props.node.attrs;
   const bg = type === "secondary" ? "#d940af" : type === "info" ? "#3b82f6" : "#6344d4";

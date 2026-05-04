@@ -228,7 +228,10 @@ export default function Editor({ content, onChange, ctas = [] }: EditorProps) {
   // Update editor content when prop changes (hydration)
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content);
+      const timer = setTimeout(() => {
+        editor.commands.setContent(content);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [content, editor]);
 

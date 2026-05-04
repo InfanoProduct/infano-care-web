@@ -92,13 +92,34 @@ export const GlobalCta = Node.create({
 
   addAttributes() {
     return {
-      id: { default: "" },
-      title: { default: "" },
-      description: { default: "" },
-      buttonText: { default: "Learn More" },
-      buttonLink: { default: "#" },
-      type: { default: "primary" },
-      imageUrl: { default: "" },
+      id: { 
+        default: "",
+        parseHTML: element => element.getAttribute('data-cta-id')
+      },
+      title: { 
+        default: "",
+        parseHTML: element => element.getAttribute('data-cta-title') || element.querySelector('h3')?.innerText
+      },
+      description: { 
+        default: "",
+        parseHTML: element => element.getAttribute('data-cta-description') || element.querySelector('p')?.innerText
+      },
+      buttonText: { 
+        default: "Learn More",
+        parseHTML: element => element.getAttribute('data-cta-button-text') || element.querySelector('a')?.innerText
+      },
+      buttonLink: { 
+        default: "#",
+        parseHTML: element => element.getAttribute('data-cta-button-link') || element.querySelector('a')?.getAttribute('href')
+      },
+      type: { 
+        default: "primary",
+        parseHTML: element => element.getAttribute('data-cta-type')
+      },
+      imageUrl: { 
+        default: "",
+        parseHTML: element => element.getAttribute('data-cta-image')
+      },
     };
   },
 
@@ -124,6 +145,10 @@ export const GlobalCta = Node.create({
         {
           "data-type": "global-cta",
           "data-cta-id": id,
+          "data-cta-title": title,
+          "data-cta-description": description,
+          "data-cta-button-text": buttonText,
+          "data-cta-button-link": buttonLink,
           "data-cta-type": type,
           "data-cta-image": imageUrl,
           class: "blog-cta-node",

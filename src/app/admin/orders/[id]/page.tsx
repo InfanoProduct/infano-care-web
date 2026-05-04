@@ -201,7 +201,7 @@ export default function OrderDetailPage() {
             {/* Financials Breakdown */}
             <div className="p-8 bg-slate-50/50 border-t border-border space-y-4">
               <div className="flex justify-between font-bold text-muted-foreground">
-                <span>Subtotal</span>
+                <span>Gross Amount</span>
                 <span>₹{order.subtotal}</span>
               </div>
               {order.discountAmount > 0 && (
@@ -211,14 +211,49 @@ export default function OrderDetailPage() {
                 </div>
               )}
               <div className="flex justify-between font-bold text-muted-foreground">
-                <span>GST (5%)</span>
-                <span>₹{order.gstAmount}</span>
+                <span>Taxable Amount</span>
+                <span>₹{order.taxableAmount || (order.subtotal - order.discountAmount)}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-4 py-3 border-y border-dashed border-border/50">
+                 <div className="flex justify-between text-xs font-bold text-muted-foreground">
+                   <span>CGST (2.5%)</span>
+                   <span>₹{order.cgstAmount}</span>
+                 </div>
+                 <div className="flex justify-between text-xs font-bold text-muted-foreground">
+                   <span>SGST (2.5%)</span>
+                   <span>₹{order.sgstAmount}</span>
+                 </div>
+              </div>
+              <div className="flex justify-between font-bold text-muted-foreground">
+                <span>Delivery Charge</span>
+                <span>{order.deliveryCharge > 0 ? `₹${order.deliveryCharge}` : 'FREE'}</span>
               </div>
               <div className="flex justify-between items-center pt-6 border-t border-border">
-                <span className="text-xl font-black">Total Amount</span>
+                <span className="text-xl font-black">Total Paid</span>
                 <span className="text-4xl font-black text-primary">₹{order.totalAmount}</span>
               </div>
             </div>
+
+            {/* Payment Details */}
+            {order.razorpayOrderId && (
+              <div className="p-8 border-t border-border bg-indigo-50/30">
+                <h3 className="text-sm font-black uppercase tracking-widest text-indigo-900 mb-4 flex items-center gap-2">
+                  <CreditCard size={16} /> Payment Reference
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-indigo-400 uppercase">Razorpay Order ID</p>
+                    <p className="text-sm font-mono font-bold text-indigo-900">{order.razorpayOrderId}</p>
+                  </div>
+                  {order.razorpayPaymentId && (
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-indigo-400 uppercase">Payment ID</p>
+                      <p className="text-sm font-mono font-bold text-indigo-900">{order.razorpayPaymentId}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Shipping Info */}

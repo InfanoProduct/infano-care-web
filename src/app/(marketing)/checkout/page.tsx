@@ -110,14 +110,19 @@ function CheckoutContent() {
   };
 
   const calculateTotal = () => {
-    if (!book) return { subtotal: 0, gst: 0, total: 0 };
-    const subtotal = book.price;
-    const gst = Math.round((subtotal - discountAmount) * 0.05);
-    const total = subtotal - discountAmount + gst;
-    return { subtotal, gst, total };
+    if (!book) return { subtotal: 0, gst: 0, delivery: 0, total: 0 };
+    const priceAfterDiscount = book.price - discountAmount;
+    const delivery = priceAfterDiscount < 500 ? 50 : 0;
+    
+    // Inclusive GST breakdown for UI display
+    const taxableValue = Math.round((priceAfterDiscount / 1.05) * 100) / 100;
+    const gst = Math.round((priceAfterDiscount - taxableValue) * 100) / 100;
+    
+    const total = priceAfterDiscount + delivery;
+    return { subtotal: book.price, gst, delivery, total };
   };
 
-  const { subtotal, gst, total } = calculateTotal();
+  const { subtotal, gst, delivery, total } = calculateTotal();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -273,12 +278,17 @@ function CheckoutContent() {
                     <span>-₹{discountAmount}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-slate-600 font-medium items-center gap-2">
-                  <span className="flex items-center gap-1.5">GST (5%) <Info size={14} className="text-slate-400" /></span>
-                  <span>₹{gst}</span>
+                <div className="flex justify-between text-slate-600 font-medium">
+                  <span>Delivery Charge</span>
+                  <span>{delivery > 0 ? `₹${delivery}` : <span className="text-green-600 font-bold uppercase text-[10px]">Free</span>}</span>
                 </div>
                 <div className="flex justify-between items-center pt-4 border-t border-slate-100">
-                  <span className="text-xl font-bold text-slate-900">Total Amount</span>
+                  <div className="space-y-1">
+                    <span className="text-xl font-bold text-slate-900 block">Total Amount</span>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight flex items-center gap-1">
+                      Includes ₹{gst} GST (CGST 2.5%, SGST 2.5%)
+                    </span>
+                  </div>
                   <span className="text-3xl font-black text-indigo-600">₹{total}</span>
                 </div>
               </div>

@@ -31,7 +31,6 @@ export default function AdminLayout({
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, href: '/admin/dashboard' },
     { name: 'User Management', icon: Users, href: '/admin/users' },
-    { name: 'Consultations', icon: Calendar, href: '/admin/consultations' },
     { name: 'Learning Journeys', icon: BookOpen, href: '/admin/learning' },
     { name: 'Blogs', icon: FileText, href: '/admin/blogs' },
     { 

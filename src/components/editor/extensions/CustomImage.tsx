@@ -3,6 +3,14 @@ import { ReactNodeViewRenderer, NodeViewWrapper } from "@tiptap/react";
 import React from "react";
 import { Trash2 } from "lucide-react";
 
+declare module '@tiptap/core' {
+  interface Commands<ReturnType> {
+    image: {
+      setImage: (options: { src: string; alt?: string; title?: string }) => ReturnType;
+    };
+  }
+}
+
 const CustomImageComponent = (props: any) => {
   const { src, alt } = props.node.attrs;
 

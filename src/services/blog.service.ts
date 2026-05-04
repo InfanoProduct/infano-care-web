@@ -126,7 +126,7 @@ class BlogService {
   }
 
   // --- Image Upload ---
-  async uploadImage(file: File) {
+  async uploadImage(file: File, folder: string = 'blog') {
     const formData = new FormData();
     formData.append('file', file);
 
@@ -134,7 +134,7 @@ class BlogService {
       ? `${process.env.NEXT_PUBLIC_UPLOAD_API_URL}/admin/upload`
       : '/admin/upload';
 
-    uploadUrl += `?folder=blog`;
+    uploadUrl += `?folder=${folder}`;
 
     return apiClient.request<any>(uploadUrl, {
       method: 'POST',

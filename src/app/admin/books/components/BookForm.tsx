@@ -7,6 +7,7 @@ import {
   Type, AlignLeft, Loader2, CheckCircle2 
 } from 'lucide-react';
 import { ShopService, Book } from '@/services/shop.service';
+import ImageUploader from '@/components/upload/ImageUploader';
 import { toast } from 'react-hot-toast';
 
 interface BookFormProps {
@@ -183,37 +184,22 @@ export default function BookForm({ bookId }: BookFormProps) {
         <div className="space-y-6">
           <div className="glass-card p-8 rounded-[2.5rem] border-primary/5 shadow-2xl space-y-6">
             <div className="space-y-4">
-              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Cover Image URL</label>
-              <div className="aspect-[3/4] rounded-3xl bg-secondary/50 border-2 border-dashed border-border flex flex-col items-center justify-center overflow-hidden relative group">
-                {formData.imageUrl ? (
-                  <>
-                    <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <button 
-                        type="button" 
-                        onClick={() => setFormData({ ...formData, imageUrl: '' })}
-                        className="p-3 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-white/30 transition-all"
-                      >
-                        <X size={20} />
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center p-6 space-y-3">
-                    <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto">
-                      <ImageIcon size={24} />
-                    </div>
-                    <p className="text-xs font-bold text-muted-foreground">No cover image set</p>
-                  </div>
-                )}
-              </div>
-              <input
-                type="url"
+              <ImageUploader 
+                label="Cover Image" 
+                onUpload={(url) => setFormData({ ...formData, imageUrl: url })}
                 value={formData.imageUrl}
-                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                placeholder="https://example.com/cover.jpg"
-                className="w-full px-5 py-4 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm font-bold"
+                folder="shop"
               />
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground pl-1">Or Paste Image URL</label>
+                <input
+                  type="url"
+                  value={formData.imageUrl}
+                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                  placeholder="https://example.com/cover.jpg"
+                  className="w-full px-5 py-4 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm font-bold"
+                />
+              </div>
             </div>
 
             <div className="pt-6 border-t border-border/30">

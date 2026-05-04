@@ -8,9 +8,10 @@ interface ImageUploaderProps {
   onUpload: (url: string) => void;
   label?: string;
   value?: string;
+  folder?: string;
 }
 
-export default function ImageUploader({ onUpload, label, value }: ImageUploaderProps) {
+export default function ImageUploader({ onUpload, label, value, folder = 'blog' }: ImageUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState(value || '');
 
@@ -34,7 +35,7 @@ export default function ImageUploader({ onUpload, label, value }: ImageUploaderP
 
     setIsUploading(true);
     try {
-      const result = await blogService.uploadImage(file) as any;
+      const result = await blogService.uploadImage(file, folder) as any;
       onUpload(result.url);
       setPreview(result.url);
     } catch (error) {

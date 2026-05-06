@@ -6,8 +6,10 @@ interface AuthState {
   refreshToken: string | null;
   user: {
     id: string;
-    username: string;
+    username?: string;
+    phone?: string;
     role: string;
+    peerApplicationStatus?: string;
   } | null;
   setAuth: (token: string, refreshToken: string, user: AuthState['user']) => void;
   clearAuth: () => void;

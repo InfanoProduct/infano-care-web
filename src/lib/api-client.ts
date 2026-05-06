@@ -1,6 +1,6 @@
 import { useAuthStore } from "@/store/auth-store";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4005/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:4005/api';
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number>;
@@ -109,9 +109,14 @@ class ApiClient {
       if (newToken) {
         response = await fetchWithToken(newToken);
       } else {
-        // Refresh failed, redirect to login if we are in admin area (and not already on login page)
-        if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
-          window.location.href = '/admin/login';
+        // Refresh failed, redirect to login if we are in admin or peerline area
+        if (typeof window !== 'undefined') {
+          const path = window.location.pathname;
+          if (path.startsWith('/admin') && path !== '/admin/login') {
+            window.location.href = '/admin/login';
+          } else if (path.startsWith('/peerline') && !path.includes('/login') && !path.includes('onboarding')) {
+            window.location.href = '/peerline/login';
+          }
         }
         throw new Error('Unauthorized');
       }
@@ -119,7 +124,9 @@ class ApiClient {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || errorData.error || `Request failed with status ${response.status}`);
+      const error = new Error(errorData.message || errorData.error || `Request failed with status ${response.status}`);
+      (error as any).details = errorData.details;
+      throw error;
     }
 
     if (response.status === 204) {

@@ -17,15 +17,10 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const clearAuth = useAuthStore((state) => state.clearAuth);
+  const { isAuthenticated, clearAuth, user } = useAuthStore();
   const isLoginPage = pathname === '/admin/login';
-
-  const handleLogout = () => {
-    clearAuth();
-    document.cookie = 'admin-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    router.push('/admin/login');
-  };
-
+  
+  const [mounted, setMounted] = useState(false);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   
   const menuItems = [
@@ -55,15 +50,28 @@ export default function AdminLayout({
   ];
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    
     // Auto-expand items that have active children on mount
     const activeItems = menuItems
       .filter(item => item.subItems?.some(sub => pathname.startsWith(sub.href)))
       .map(item => item.name);
     
     setExpandedItems(prev => Array.from(new Set([...prev, ...activeItems])));
-  }, [pathname]);
+  }, [mounted, pathname]);
 
+  if (!mounted) return null;
   if (isLoginPage) return <>{children}</>;
+
+  const handleLogout = () => {
+    clearAuth();
+    document.cookie = 'admin-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    router.push('/admin/login');
+  };
 
   const toggleExpand = (name: string) => {
     setExpandedItems(prev => 
@@ -156,11 +164,11 @@ export default function AdminLayout({
         <div className="pt-8 border-t border-border">
           <div className="bg-secondary/50 rounded-2xl p-4 mb-6 flex items-center gap-3 border border-primary/5">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-              JD
+              {user?.username?.[0]?.toUpperCase() || 'A'}
             </div>
             <div className="overflow-hidden">
-              <p className="text-sm font-bold truncate text-foreground">John Doe</p>
-              <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Super Admin</p>
+              <p className="text-sm font-bold truncate text-foreground">{user?.username || 'Admin'}</p>
+              <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">{user?.role === 'ADMIN' ? 'Super Admin' : 'Staff'}</p>
             </div>
           </div>
           

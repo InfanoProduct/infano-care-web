@@ -21,5 +21,13 @@ export const AuthService = {
 
   async refreshToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
     return apiClient.post('/auth/refresh', { refreshToken });
+  },
+
+  async sendOtp(phone: string) {
+    return apiClient.post('/auth/otp/send', { phone });
+  },
+
+  async verifyOtp(phone: string, otp: string) {
+    return apiClient.post<any>('/auth/otp/verify', { phone, otp });
   }
 };

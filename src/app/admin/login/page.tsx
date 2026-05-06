@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Lock, User, ArrowRight, Loader2 } from 'lucide-react';
 import { AuthService } from '@/services/auth.service';
@@ -11,8 +11,15 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const setAuth = useAuthStore((state) => state.setAuth);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +79,7 @@ export default function AdminLoginPage() {
                   className="w-full bg-secondary/50 border border-border rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                   placeholder="Enter username"
                   required
+                  suppressHydrationWarning
                 />
               </div>
             </div>
@@ -87,6 +95,7 @@ export default function AdminLoginPage() {
                   className="w-full bg-secondary/50 border border-border rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                   placeholder="••••••••"
                   required
+                  suppressHydrationWarning
                 />
               </div>
             </div>
@@ -95,6 +104,7 @@ export default function AdminLoginPage() {
               type="submit"
               disabled={isLoading}
               className="btn-primary w-full py-4 rounded-xl flex items-center justify-center gap-2 group"
+              suppressHydrationWarning
             >
               {isLoading ? (
                 <Loader2 className="animate-spin" size={20} />

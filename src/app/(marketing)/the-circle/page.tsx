@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight, ShieldAlert, Heart, Zap, Briefcase, Users, Star } from 'lucide-react';
+import { PeerLineHeroAction } from '@/components/marketing/PeerLineHeroAction';
 
 export default function TheCirclePage() {
   return (
@@ -8,12 +9,13 @@ export default function TheCirclePage() {
       <section className="pt-24 pb-20 bg-primary/5">
         <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
           <h1 className="text-4xl md:text-6xl font-bold font-heading mb-6 text-foreground">
-            Every girl needs a circle. <br className="hidden md:block"/>
+            Every girl needs a circle. <br className="hidden md:block" />
             <span className="text-primary">We help her build one.</span>
           </h1>
           <p className="text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-10">
             The Infano Support Circle is where expertise meets community. From live sessions with qualified professionals to warm, peer-to-peer connection — it's the space where girls feel truly understood.
           </p>
+          <PeerLineHeroAction />
         </div>
       </section>
 
@@ -93,7 +95,7 @@ export default function TheCirclePage() {
                 ))}
               </div>
             </div>
-            
+
             <div className="relative">
               <div className="bg-white rounded-3xl p-8 shadow-xl border border-slate-100">
                 <h3 className="text-xl font-bold font-heading mb-6 flex items-center gap-2">

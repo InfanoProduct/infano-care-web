@@ -11,15 +11,16 @@ export default function MarketingLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isBlog = pathname?.startsWith('/blog');
+  const isDashboard = pathname?.startsWith('/peerline/dashboard');
+  const isPortal = isDashboard;
 
   return (
     <div className="flex flex-col min-h-screen">
-      <MarketingNavbar />
-      <main className="flex-1 w-full pt-20">
+      {!isPortal && <MarketingNavbar />}
+      <main className={`flex-1 w-full ${!isPortal ? 'pt-20' : ''}`}>
         {children}
       </main>
-      <MarketingFooter />
+      {!isPortal && <MarketingFooter />}
     </div>
   );
 }

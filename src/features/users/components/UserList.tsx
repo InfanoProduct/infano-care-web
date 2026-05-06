@@ -2,7 +2,7 @@
 
 import { useUsers } from '../hooks/use-users';
 import { useState } from 'react';
-import { Shield, MoreVertical, Search } from 'lucide-react';
+import { Search, MoreVertical, CheckCircle2, Clock } from 'lucide-react';
 
 export function UserList() {
   const [page, setPage] = useState(1);
@@ -44,6 +44,7 @@ export function UserList() {
                 <th className="px-8 py-5 text-[11px] uppercase tracking-[0.2em] font-black text-muted-foreground/80">Platform Role</th>
                 <th className="px-8 py-5 text-[11px] uppercase tracking-[0.2em] font-black text-muted-foreground/80">Account Status</th>
                 <th className="px-8 py-5 text-[11px] uppercase tracking-[0.2em] font-black text-muted-foreground/80">Membership</th>
+                <th className="px-8 py-5 text-[11px] uppercase tracking-[0.2em] font-black text-muted-foreground/80">Peer Onboarding</th>
                 <th className="px-8 py-5"></th>
               </tr>
             </thead>
@@ -69,7 +70,7 @@ export function UserList() {
                   <td className="px-8 py-4">
                     <span className={`inline-flex items-center px-4 py-1 rounded-full text-[11px] font-black tracking-wider uppercase ${
                       user.role === 'ADMIN' ? 'bg-indigo-500/10 text-indigo-600 border border-indigo-500/20' : 
-                      user.role === 'EXPERT' ? 'bg-blue-500/10 text-blue-600 border border-blue-500/20' : 
+                      user.role === 'PEER' ? 'bg-blue-500/10 text-blue-600 border border-blue-500/20' : 
                       'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
                     }`}>
                       {user.role}
@@ -90,6 +91,21 @@ export function UserList() {
                   <td className="px-8 py-4">
                     <p className="text-sm font-bold text-slate-700">{new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                     <p className="text-[10px] text-muted-foreground font-semibold">Joined at {new Date(user.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                  </td>
+                  <td className="px-8 py-4">
+                    {user.peerOnboarding ? (
+                      user.role === 'PEER' ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-600 rounded-lg text-xs font-bold border border-green-200">
+                          <CheckCircle2 size={14} /> Approved
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold border border-blue-200">
+                          <Clock size={14} /> Applied
+                        </span>
+                      )
+                    ) : (
+                      <span className="text-xs text-muted-foreground">-</span>
+                    )}
                   </td>
                   <td className="px-8 py-4 text-right">
                     <button className="p-3 hover:bg-primary/10 hover:text-primary rounded-2xl transition-all text-muted-foreground/60">

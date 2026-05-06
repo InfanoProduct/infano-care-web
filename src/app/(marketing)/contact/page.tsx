@@ -8,7 +8,7 @@ export default function ContactPage() {
       <section className="pt-24 pb-20 bg-gradient-to-b from-primary/5 to-background">
         <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-bold font-heading mb-6 text-foreground">
-            We'd love to hear from you. <br/>
+            We'd love to hear from you. <br />
             <span className="text-primary">Every great partnership starts with a conversation.</span>
           </h1>
           <p className="text-xl text-muted-foreground leading-relaxed">
@@ -29,7 +29,7 @@ export default function ContactPage() {
                 schools@infano.care <ArrowRight size={16} className="ml-1" />
               </a>
             </div>
-            
+
             <div className="p-6 border border-border rounded-2xl bg-slate-50 hover:border-secondary transition-colors">
               <UserCircle className="text-secondary mb-4" size={32} />
               <h3 className="font-bold text-lg mb-2">I'm a Parent or Carer</h3>
@@ -38,7 +38,7 @@ export default function ContactPage() {
                 parents@infano.care <ArrowRight size={16} className="ml-1" />
               </a>
             </div>
-            
+
             <div className="p-6 border border-border rounded-2xl bg-slate-50 hover:border-accent transition-colors">
               <BookOpen className="text-accent mb-4" size={32} />
               <h3 className="font-bold text-lg mb-2">I Want the Book</h3>
@@ -47,7 +47,7 @@ export default function ContactPage() {
                 books@infano.care <ArrowRight size={16} className="ml-1" />
               </a>
             </div>
-            
+
             <div className="p-6 border border-border rounded-2xl bg-slate-50 hover:border-blue-500 transition-colors">
               <Handshake className="text-blue-500 mb-4" size={32} />
               <h3 className="font-bold text-lg mb-2">I Want to Partner</h3>
@@ -56,7 +56,7 @@ export default function ContactPage() {
                 partnerships@infano.care <ArrowRight size={16} className="ml-1" />
               </a>
             </div>
-            
+
             <div className="p-6 border border-border rounded-2xl bg-slate-50 hover:border-slate-800 transition-colors">
               <MessageSquare className="text-slate-700 mb-4" size={32} />
               <h3 className="font-bold text-lg mb-2">General Enquiry</h3>
@@ -75,7 +75,7 @@ export default function ContactPage() {
           <div className="glass-card bg-white p-8 md:p-12 rounded-3xl shadow-lg border border-slate-100">
             <h2 className="text-3xl font-bold font-heading mb-2 text-center">School Enquiry Form</h2>
             <p className="text-center text-muted-foreground mb-8">Fill out the form below and we'll be in touch within one working day.</p>
-            
+
             <form className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">

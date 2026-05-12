@@ -40,7 +40,7 @@ export default function TheBookPage() {
     <div className="flex flex-col min-h-screen">
       {/* Section 7.1 — Hero */}
       <section className="pt-24 pb-20 bg-accent text-white">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="animate-in fade-in slide-in-from-left-8 duration-1000">
               <h1 className="text-4xl md:text-6xl font-bold font-heading mb-6 leading-tight">
@@ -114,7 +114,7 @@ export default function TheBookPage() {
 
       {/* Section 7.3 — What's Inside */}
       <section className="py-32 bg-slate-50 border-y border-slate-200/50">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-5xl font-black font-heading mb-4 italic">What's <span className="text-primary">Inside</span></h2>
             <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">A comprehensive guide to modern girlhood</p>
@@ -143,7 +143,7 @@ export default function TheBookPage() {
 
       {/* Section 7.4 — Reader Voices */}
       <section className="py-32 bg-white">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
           <div className="text-center mb-20">
             <h2 className="text-4xl font-black font-heading mb-4 italic text-primary">Reader Voices</h2>
           </div>
@@ -166,7 +166,7 @@ export default function TheBookPage() {
 
       {/* Section 7.5 — How to Get the Book */}
       <section className="py-32 bg-slate-900 text-white rounded-t-[5rem]">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 text-center">
+        <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 text-center">
           <h2 className="text-4xl md:text-5xl font-black font-heading mb-20 italic">How to <span className="text-primary">Get the Book</span></h2>
 
           <div className="grid md:grid-cols-3 gap-12 mb-24">

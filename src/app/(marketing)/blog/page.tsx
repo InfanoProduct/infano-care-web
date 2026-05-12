@@ -159,7 +159,7 @@ function BlogPageContent() {
           <h2 className="text-2xl font-black">No articles found</h2>
         </div>
       ) : (
-        <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="max-w-[1440px] mx-auto px-6 py-12">
           <BlogListingHeader
             categories={categories}
             selectedCategory={selectedCategory}

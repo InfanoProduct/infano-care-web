@@ -7,7 +7,7 @@ export default function ImpactPage() {
       {/* Section 8.1 — Hero */}
       <section className="pt-24 pb-20 bg-slate-900 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20" />
-        <div className="max-w-4xl mx-auto px-4 md:px-6 text-center relative z-10">
+        <div className="max-w-4xl mx-auto px-6 md:px-12 lg:px-24 text-center relative z-10">
           <h1 className="text-4xl md:text-6xl font-bold font-heading mb-6 leading-tight">
             Numbers tell the story. <br/>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-secondary-light to-accent-light">Girls live it.</span>
@@ -17,7 +17,7 @@ export default function ImpactPage() {
 
       {/* Section 8.2 — Impact at a Glance */}
       <section className="py-20 bg-white -mt-10 relative z-20">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
           <div className="glass-card bg-white p-8 md:p-12 rounded-3xl shadow-xl grid grid-cols-2 md:grid-cols-3 gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-border">
             {[
               { num: '10,000+', label: 'Girls Empowered', desc: 'Across partner schools and direct enrolments nationwide' },
@@ -39,7 +39,7 @@ export default function ImpactPage() {
 
       {/* Section 8.3 — Stories That Matter */}
       <section className="py-24 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-bold font-heading mb-6">Stories That Matter</h2>
             <p className="text-lg text-muted-foreground">
@@ -80,7 +80,7 @@ export default function ImpactPage() {
 
       {/* Section 8.4 — Media & Recognition */}
       <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold font-heading mb-4 text-muted-foreground">As seen and recognised by</h2>
           </div>

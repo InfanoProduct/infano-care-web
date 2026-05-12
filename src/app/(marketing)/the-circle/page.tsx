@@ -7,7 +7,7 @@ export default function TheCirclePage() {
     <div className="flex flex-col min-h-screen">
       {/* Section 6.1 — Hero */}
       <section className="pt-24 pb-20 bg-primary/5">
-        <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
+        <div className="max-w-4xl mx-auto px-6 md:px-12 lg:px-24 text-center">
           <h1 className="text-4xl md:text-6xl font-bold font-heading mb-6 text-foreground">
             Every girl needs a circle. <br className="hidden md:block" />
             <span className="text-primary">We help her build one.</span>
@@ -21,7 +21,7 @@ export default function TheCirclePage() {
 
       {/* Section 6.2 — Expert-Led Circles */}
       <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-bold font-heading mb-4">Expert-Led Circles</h2>
             <p className="text-lg text-muted-foreground">
@@ -71,7 +71,7 @@ export default function TheCirclePage() {
 
       {/* Section 6.3 — Peer Community */}
       <section className="py-24 bg-secondary/5">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
           <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold font-heading mb-6">Learning from each other is one of the most powerful things girls can do.</h2>

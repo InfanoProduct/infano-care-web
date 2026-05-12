@@ -27,7 +27,7 @@ export function getCategoryColor(categoryName: string | undefined): string {
     'Food': 'bg-[#56CCF2]',
     'Wildlife': 'bg-[#F2994A]',
     'Health & Wellness': 'bg-[#00D1C1]',
-    'Motivation': 'bg-[#7C3AED]',
+    'Motivation': 'bg-[#4a1e7f]',
     'Business': 'bg-[#1E293B]',
     'Beauty': 'bg-[#F43F5E]',
   };
@@ -37,7 +37,7 @@ export function getCategoryColor(categoryName: string | undefined): string {
 
   const palette = [
     'bg-[#FF385C]', 'bg-[#00D1C1]', 'bg-[#1D9BF0]', 'bg-[#FFB100]',
-    'bg-[#FF5A5F]', 'bg-[#7C3AED]', 'bg-[#EC4899]', 'bg-[#6366F1]',
+    'bg-[#FF5A5F]', 'bg-[#4a1e7f]', 'bg-[#EC4899]', 'bg-[#6366F1]',
     'bg-[#F43F5E]', 'bg-[#F97316]', 'bg-[#8B5CF6]', 'bg-[#0EA5E9]',
     'bg-[#059669]', 'bg-[#D946EF]', 'bg-[#F59E0B]', 'bg-[#3B82F6]',
     'bg-[#64748B]', 'bg-[#EF4444]', 'bg-[#84CC16]', 'bg-[#10B981]',

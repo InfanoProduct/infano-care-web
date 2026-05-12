@@ -23,7 +23,7 @@ export default function PeerLineOnboardingPage() {
 
       {/* Main Onboarding Flow */}
       <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="max-w-[1440px] mx-auto px-4 md:px-6">
           <div className="grid lg:grid-cols-3 gap-12">
             
             {/* Left: Process Overview */}

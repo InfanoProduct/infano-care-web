@@ -19,7 +19,7 @@ export default function ContactPage() {
 
       {/* Section 10.2 — Contact Pathways */}
       <section className="py-12 bg-white">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="max-w-[1440px] mx-auto px-4 md:px-6">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="p-6 border border-border rounded-2xl bg-slate-50 hover:border-primary transition-colors">
               <Building2 className="text-primary mb-4" size={32} />
@@ -166,7 +166,7 @@ export default function ContactPage() {
 
       {/* Section 10.5 — Office & Regional Contacts & 10.6 Newsletter */}
       <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="max-w-[1440px] mx-auto px-4 md:px-6">
           <div className="grid md:grid-cols-2 gap-16 items-start">
             <div>
               <h2 className="text-2xl font-bold font-heading mb-8">Office & Contacts</h2>

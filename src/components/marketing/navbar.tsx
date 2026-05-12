@@ -36,7 +36,7 @@ export function MarketingNavbar() {
         isScrolled ? 'bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-sm py-2' : 'bg-transparent py-4'
       }`}
     >
-      <div className="max-w-[1440px] mx-auto px-4 md:px-8 flex items-center justify-between gap-4">
+      <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 flex items-center justify-between gap-4">
         {/* Logo */}
         <Link href="/" className="flex flex-col z-50 shrink-0 group">
           <span className="font-heading font-bold text-xl md:text-2xl tracking-tight text-primary transition-transform group-hover:scale-105">

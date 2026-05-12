@@ -16,12 +16,36 @@ interface QuizQuestion {
   explanation?: string;
 }
 
+interface PeerModule {
+  id: string;
+  title: string;
+  detail: string;
+}
+
+interface SafeStep {
+  step: string;
+  action: string;
+  example: string;
+}
+
 interface CurriculumContent {
+  // Interactive (Teen) Format
   hook: { text: string };
   story: { pages: string[] };
   journal: { prompt: string };
   quiz: { questions: QuizQuestion[] };
   summary: { text: string };
+  
+  // Peer Training Format
+  overview?: string;
+  objectives?: string[];
+  modules?: PeerModule[];
+  reflection?: { title: string; prompt: string; isPrivate: boolean };
+  check?: string[];
+  nonNegotiable?: string;
+  safeProtocol?: SafeStep[];
+  practice?: { title: string; prompt: string };
+  activity?: { title: string; fields: string[] };
 }
 
 interface ActivityEditorProps {
@@ -37,7 +61,17 @@ const DEFAULT_CONTENT: CurriculumContent = {
   story: { pages: [] },
   journal: { prompt: '' },
   quiz: { questions: [] },
-  summary: { text: '' }
+  summary: { text: '' },
+  
+  overview: '',
+  objectives: [],
+  modules: [],
+  reflection: { title: '', prompt: '', isPrivate: true },
+  check: [],
+  nonNegotiable: '',
+  safeProtocol: [],
+  practice: { title: '', prompt: '' },
+  activity: { title: '', fields: [] }
 };
 
 const normalizeContent = (content: any): CurriculumContent => {
@@ -53,9 +87,20 @@ const normalizeContent = (content: any): CurriculumContent => {
     }
   }
 
-  // If already in new format
+  // Detect if it's Peer Training format
+  if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && (parsed.overview || parsed.objectives || parsed.modules || parsed.check)) {
+    return {
+      ...DEFAULT_CONTENT,
+      ...parsed,
+      // Ensure complex objects are merged correctly if needed, 
+      // but usually Peer Training is already in this format.
+    };
+  }
+
+  // If already in Interactive format
   if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && (parsed.hook || parsed.story || parsed.quiz || parsed.journal || parsed.summary)) {
     return {
+      ...DEFAULT_CONTENT,
       hook: { text: '', ...(typeof parsed.hook === 'object' ? parsed.hook : { text: parsed.hook || '' }) },
       story: { pages: [], ...(typeof parsed.story === 'object' ? parsed.story : { pages: [] }) },
       journal: { prompt: '', ...(typeof (parsed.journal || parsed.reflection) === 'object' ? (parsed.journal || parsed.reflection) : { prompt: (parsed.journal || parsed.reflection) || '' }) },
@@ -67,6 +112,7 @@ const normalizeContent = (content: any): CurriculumContent => {
   // If legacy format (object with different keys)
   if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
     return {
+      ...DEFAULT_CONTENT,
       hook: { text: parsed.hook?.text || (typeof parsed.hook === 'string' ? parsed.hook : '') },
       story: { pages: parsed.story?.pages || (parsed.story?.url ? [parsed.story.url] : (typeof parsed.story === 'string' ? [parsed.story] : [])) },
       journal: { prompt: parsed.reflection?.prompt || parsed.journal?.prompt || (typeof parsed.reflection === 'string' ? parsed.reflection : '') },

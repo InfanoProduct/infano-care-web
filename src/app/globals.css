@@ -12,9 +12,9 @@
   --color-foreground: #1c1917; /* Dark stone */
   
   /* Primary: Deep Purple */
-  --color-primary: #7B2D8B;
-  --color-primary-light: #9B42AF;
-  --color-primary-dark: #581C65;
+  --color-primary: #4a1e7f;
+  --color-primary-light: #7c4fb6;
+  --color-primary-dark: #2e1250;
   --color-primary-foreground: #ffffff;
   
   /* Secondary: Neutral Slate (Fixes pinkish fields) */
@@ -38,8 +38,8 @@
   --radius-2xl: 1.5rem;
   --radius-3xl: 2rem;
 
-  --shadow-premium: 0 10px 15px -3px rgba(123, 45, 139, 0.05), 0 4px 6px -2px rgba(123, 45, 139, 0.02);
-  --shadow-glow: 0 0 20px rgba(123, 45, 139, 0.15);
+  --shadow-premium: 0 10px 15px -3px rgba(74, 30, 127, 0.05), 0 4px 6px -2px rgba(74, 30, 127, 0.02);
+  --shadow-glow: 0 0 20px rgba(74, 30, 127, 0.15);
 }
 
 @layer base {
@@ -50,8 +50,8 @@
     @apply bg-background text-foreground font-sans selection:bg-primary/20 selection:text-primary-dark;
     font-feature-settings: "rlig" 1, "calt" 1;
     background-image: 
-      radial-gradient(at 0% 0%, rgba(123, 45, 139, 0.03) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(233, 30, 140, 0.03) 0px, transparent 50%);
+      radial-gradient(at 0% 0%, rgba(74, 30, 127, 0.03) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.03) 0px, transparent 50%);
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading tracking-tight;
@@ -156,5 +156,34 @@
 /* Global CTA Styles */
 .blog-cta-node {
   @apply shadow-2xl transform transition-transform hover:scale-[1.01];
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-blob-slow {
+  animation: blob 10s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
 }
 

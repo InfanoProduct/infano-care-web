@@ -204,7 +204,7 @@ function CheckoutContent() {
   return (
     <div className="min-h-screen bg-slate-50 pt-24 pb-20">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6">
         <Link href="/the-book" className="inline-flex items-center text-slate-500 hover:text-indigo-600 mb-10 transition-colors font-semibold group">
           <ArrowLeft size={20} className="mr-2 group-hover:-translate-x-1 transition-transform" /> Back to Product
         </Link>

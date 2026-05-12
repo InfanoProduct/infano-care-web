@@ -82,7 +82,7 @@ export default function BlogPostDetailPage() {
     <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
       <BlogHeader post={post} />
       
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="max-w-[1440px] mx-auto px-6 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
           <div className="lg:col-span-8">
             <BlogContent post={post} />
@@ -105,7 +105,7 @@ export default function BlogPostDetailPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 pb-24">
+      <div className="max-w-[1440px] mx-auto px-6 pb-24">
         <EditorsChoice posts={relatedPosts} />
       </div>
     </div>

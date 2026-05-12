@@ -18,24 +18,25 @@ const footerLinks = {
     { name: 'For Girls', href: '/girls' },
   ],
   legal: [
-    { name: 'Privacy Policy', href: '#' },
-    { name: 'Terms of Use', href: '#' },
-    { name: 'Child Safety Policy', href: '#' },
-    { name: 'Accessibility Statement', href: '#' },
+    { name: 'Terms and Conditions', href: '/legal#terms' },
+    { name: 'Privacy Policies', href: '/legal#privacy' },
+    { name: 'Cancellations and Refund', href: '/legal#refund' },
+    { name: 'Pricing Policy', href: '/legal#pricing' },
+    { name: 'Shipping Policy', href: '/legal#shipping' },
   ],
   contact: [
     { name: 'Contact Us', href: '/contact' },
     { name: 'hello@infano.care', href: 'mailto:hello@infano.care' },
     { name: 'support@infano.care', href: 'mailto:support@infano.care' },
+    { name: 'schools@infano.care', href: 'mailto:schools@infano.care' },
+  ],
+  social: [
+    { name: 'Instagram', href: 'https://www.instagram.com/infano.care/' },
+    { name: 'YouTube', href: 'https://www.youtube.com/channel/UCjJ06NX_nNaWoezl3-QeeLg' },
+    { name: 'LinkedIn', href: 'https://www.linkedin.com/company/infanocare/' },
+    { name: 'WhatsApp Community', href: '#' },
   ],
 };
-
-const socialLinks = [
-  { name: 'Instagram', icon: <Camera size={20} />, href: '#', color: 'hover:text-pink-500' },
-  { name: 'YouTube', icon: <Video size={20} />, href: '#', color: 'hover:text-red-500' },
-  { name: 'LinkedIn', icon: <Briefcase size={20} />, href: '#', color: 'hover:text-blue-500' },
-  { name: 'WhatsApp', icon: <MessageCircle size={20} />, href: '#', color: 'hover:text-green-500' },
-];
 
 export function MarketingFooter() {
   return (
@@ -51,7 +52,7 @@ export function MarketingFooter() {
 
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
         {/* Pre-footer CTA */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -86,12 +87,12 @@ export function MarketingFooter() {
             <p className="text-base text-slate-400 mb-8 max-w-sm leading-relaxed font-medium">
               India's most holistic ecosystem for adolescent and young adult girls—blending story-led learning, wellness tracking, and expert guidance.
             </p>
-            
+
             {/* Social Icons */}
             <div className="flex items-center gap-4">
               {socialLinks.map((social) => (
-                <Link 
-                  key={social.name} 
+                <Link
+                  key={social.name}
                   href={social.href}
                   className={`w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 border border-white/5 transition-all duration-300 ${social.color} hover:bg-white/10 hover:border-white/20`}
                   aria-label={social.name}
@@ -149,8 +150,11 @@ export function MarketingFooter() {
             <ul className="space-y-4">
               {footerLinks.legal.map((link) => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-sm font-medium text-slate-400 hover:text-white transition-colors flex items-center group">
-                    <span className="h-1 w-0 bg-primary mr-0 group-hover:w-2 group-hover:mr-2 transition-all rounded-full" />
+                  <Link
+                    href={link.href}
+                    scroll={false}
+                    className="text-sm hover:text-primary-light transition-colors"
+                  >
                     {link.name}
                   </Link>
                 </li>
@@ -165,24 +169,24 @@ export function MarketingFooter() {
               &copy; {new Date().getFullYear()} Infano.care. All rights reserved.
             </p>
             <div className="flex items-center gap-4">
-               <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full border border-white/5">
-                  <Shield size={12} className="text-primary-light" />
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Safe Space</span>
-               </div>
-               <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full border border-white/5">
-                  <Star size={12} className="text-yellow-500" />
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Expert Verified</span>
-               </div>
+              <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full border border-white/5">
+                <Shield size={12} className="text-primary-light" />
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Safe Space</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full border border-white/5">
+                <Star size={12} className="text-yellow-500" />
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Expert Verified</span>
+              </div>
             </div>
           </div>
-          
+
           <div className="bg-white/[0.02] backdrop-blur-md p-6 rounded-[2rem] border border-white/5 max-w-2xl relative group overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
               <Heart size={40} className="text-primary-light" />
             </div>
             <p className="text-[11px] leading-relaxed text-slate-400 text-center lg:text-left font-medium relative z-10">
-              <strong className="text-white uppercase tracking-widest text-[10px] mr-2">Disclaimer:</strong> 
-              Infano.care is a safe, moderated platform. All content is reviewed by qualified mental health and medical professionals. 
+              <strong className="text-white uppercase tracking-widest text-[10px] mr-2">Disclaimer:</strong>
+              Infano.care is a safe, moderated platform. All content is reviewed by qualified mental health and medical professionals.
               The platform is built to provide support and education, but is not a substitute for professional clinical advice.
             </p>
           </div>

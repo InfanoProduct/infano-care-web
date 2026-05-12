@@ -260,7 +260,7 @@ export default function FinalAssessmentPage() {
       if (res.lockUntil && new Date(res.lockUntil) > new Date()) {
         // Locked
       }
-      if (res.certificationStatus === 'submitted') {
+      if (res.certificationStatus === 'submitted' || res.certificationStatus === 'certified') {
         router.push('/peerline/dashboard/training');
       }
     } catch (err) {
@@ -300,11 +300,15 @@ export default function FinalAssessmentPage() {
     const finalScore = Math.round((score / ASSESSMENT_QUESTIONS.length) * 100);
     
     try {
-      await apiClient.post('/peerline/training/assessment', {
+      const res: any = await apiClient.post('/peerline/training/assessment', {
         score: finalScore,
         answers: answers
       });
       setResult({ score: finalScore, passed: finalScore >= 80 });
+      // Refresh status from server response to get the correct certificationStatus
+      if (res.result) {
+        setStatus(res.result);
+      }
     } catch (err) {
       console.error('Failed to submit assessment:', err);
       alert('Submission failed. Please try again.');
@@ -366,7 +370,9 @@ export default function FinalAssessmentPage() {
         
         <p className="text-lg text-slate-500 mb-10 max-w-md mx-auto leading-relaxed">
           {result.passed 
-            ? "Congratulations! You have passed the final assessment. Please complete the Code of Conduct agreement to submit your application."
+            ? status?.certificationStatus === 'submitted'
+              ? "Congratulations! You have passed the final assessment. Since you've already agreed to the Code of Conduct previously, your application has been submitted for review."
+              : "Congratulations! You have passed the final assessment. Please complete the Code of Conduct agreement to submit your application."
             : isNowLocked 
               ? "You've used all 2 attempts and didn't reach the 80% threshold. The assessment is now locked for 14 days."
               : "You didn't reach the 80% passing threshold. You have 1 attempt remaining. Please review the training carefully before trying again."}
@@ -375,15 +381,21 @@ export default function FinalAssessmentPage() {
         <button 
           onClick={() => {
             if (result.passed) {
-              setResult(null);
-              setStatus({ ...status, certificationStatus: 'pending_conduct' });
+              if (status?.certificationStatus === 'submitted') {
+                router.push('/peerline/dashboard/training');
+              } else {
+                setResult(null);
+                setStatus({ ...status, certificationStatus: 'pending_conduct' });
+              }
             } else {
               router.push('/peerline/dashboard/training');
             }
           }}
           className="bg-slate-900 text-white px-10 py-4 rounded-2xl font-bold flex items-center gap-3 mx-auto hover:bg-slate-800 transition-all shadow-xl"
         >
-          {result.passed ? 'Continue to Code of Conduct' : isNowLocked ? 'Return to Journey' : 'Review Training'} <ChevronRight size={20} />
+          {result.passed 
+            ? status?.certificationStatus === 'submitted' ? 'Return to Journey' : 'Continue to Code of Conduct' 
+            : isNowLocked ? 'Return to Journey' : 'Review Training'} <ChevronRight size={20} />
         </button>
       </div>
     );

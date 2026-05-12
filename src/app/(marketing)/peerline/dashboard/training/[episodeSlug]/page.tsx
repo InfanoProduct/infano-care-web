@@ -16,9 +16,11 @@ export default function MentorEpisodeViewer() {
   
   // Progress tracking
   const [lessonRead, setLessonRead] = useState(false);
-  const [reflectionAnswer, setReflectionAnswer] = useState('');
+  const [reflectionAnswers, setReflectionAnswers] = useState<Record<number, string>>({});
   const [checkAnswers, setCheckAnswers] = useState<Record<number, string>>({});
 
+  const [certificationStatus, setCertificationStatus] = useState<string>('');
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -28,11 +30,18 @@ export default function MentorEpisodeViewer() {
         
         const ep = epRes.episode || epRes;
         setEpisode(ep);
+        setCertificationStatus(statusRes.certificationStatus);
 
         // Pre-fill answers if they exist
         if (statusRes.episodeAnswers?.[ep.slug]) {
           const prev = statusRes.episodeAnswers[ep.slug];
-          if (prev.reflection) setReflectionAnswer(prev.reflection);
+          if (prev.reflection) {
+            if (typeof prev.reflection === 'object') {
+              setReflectionAnswers(prev.reflection);
+            } else {
+              setReflectionAnswers({ 0: prev.reflection });
+            }
+          }
           if (prev.checks) setCheckAnswers(prev.checks);
         }
       } catch (err) {
@@ -59,7 +68,7 @@ export default function MentorEpisodeViewer() {
     try {
       await apiClient.post('/peerline/training/progress', { 
         episodeSlug: episode.slug,
-        reflection: reflectionAnswer,
+        reflection: reflectionAnswers,
         checks: checkAnswers
       });
     } catch (err) {
@@ -80,8 +89,13 @@ export default function MentorEpisodeViewer() {
 
   const content = episode.content || {};
   
+  const isReadOnly = ['pending_conduct', 'submitted', 'certified'].includes(certificationStatus);
+  
   // Validation logic
-  const reflectionDone = reflectionAnswer.trim().length >= 20; // Require at least 20 chars
+  const reflectionDone = content.activity?.fields 
+    ? content.activity.fields.every((_: any, i: number) => reflectionAnswers[i]?.trim().length >= 10) // Lowered min chars for multi-fields
+    : (reflectionAnswers[0] || '').trim().length >= 20;
+
   const checkDone = content.check?.every((_: any, i: number) => checkAnswers[i]?.trim().length > 0) ?? true;
   const canComplete = lessonRead && reflectionDone && checkDone;
 
@@ -225,20 +239,22 @@ export default function MentorEpisodeViewer() {
                     <div key={i}>
                       <label className="block text-sm font-black text-slate-700 uppercase tracking-widest mb-3">{field}</label>
                       <textarea 
-                        value={reflectionAnswer}
-                        onChange={(e) => setReflectionAnswer(e.target.value)}
-                        className="w-full p-6 rounded-3xl border border-slate-100 bg-slate-50 min-h-[150px] outline-none focus:ring-4 focus:ring-purple-600/10 focus:bg-white focus:border-purple-600/30 transition-all text-slate-700 leading-relaxed" 
-                        placeholder="Type your response..." 
+                        value={reflectionAnswers[i] || ''}
+                        onChange={(e) => setReflectionAnswers(prev => ({ ...prev, [i]: e.target.value }))}
+                        readOnly={isReadOnly}
+                        className={`w-full p-6 rounded-3xl border border-slate-100 min-h-[150px] outline-none transition-all text-slate-700 leading-relaxed ${isReadOnly ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50 focus:ring-4 focus:ring-purple-600/10 focus:bg-white focus:border-purple-600/30'}`} 
+                        placeholder={isReadOnly ? "Response locked after certification." : "Type your response..."} 
                       />
                     </div>
                   ))}
                 </div>
               ) : (
                 <textarea 
-                  value={reflectionAnswer}
-                  onChange={(e) => setReflectionAnswer(e.target.value)}
-                  className="w-full p-8 rounded-[2.5rem] border border-slate-100 bg-slate-50 min-h-[350px] outline-none focus:ring-4 focus:ring-purple-600/10 focus:bg-white focus:border-purple-600/30 transition-all text-slate-700 text-lg leading-relaxed shadow-inner"
-                  placeholder="Share your thoughts here (minimum 20 characters)..."
+                  value={reflectionAnswers[0] || ''}
+                  onChange={(e) => setReflectionAnswers(prev => ({ ...prev, 0: e.target.value }))}
+                  readOnly={isReadOnly}
+                  className={`w-full p-8 rounded-[2.5rem] border border-slate-100 min-h-[350px] outline-none transition-all text-slate-700 text-lg leading-relaxed shadow-inner ${isReadOnly ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50 focus:ring-4 focus:ring-purple-600/10 focus:bg-white focus:border-purple-600/30'}`}
+                  placeholder={isReadOnly ? "Response locked after certification." : "Share your thoughts here (minimum 20 characters)..."}
                 />
               )}
             </div>
@@ -270,8 +286,9 @@ export default function MentorEpisodeViewer() {
                   <textarea 
                     value={checkAnswers[i] || ''}
                     onChange={(e) => handleCheckAnswerChange(i, e.target.value)}
-                    className="w-full p-5 rounded-2xl border border-slate-200 text-sm outline-none focus:ring-4 focus:ring-purple-600/10 bg-white min-h-[100px] transition-all"
-                    placeholder="Reflect on this question..."
+                    readOnly={isReadOnly}
+                    className={`w-full p-5 rounded-2xl border border-slate-200 text-sm outline-none transition-all ${isReadOnly ? 'bg-slate-100 cursor-not-allowed' : 'bg-white focus:ring-4 focus:ring-purple-600/10'} min-h-[100px]`}
+                    placeholder={isReadOnly ? "Response locked." : "Reflect on this question..."}
                   />
                 </div>
               ))}
@@ -287,12 +304,14 @@ export default function MentorEpisodeViewer() {
               <div className="flex justify-between items-center">
                 <button onClick={() => setActiveTab('activity')} className="px-8 py-4 font-bold text-slate-400 hover:text-slate-900 transition-colors">Back to Reflection</button>
                 <button 
-                  disabled={!canComplete || saving}
-                  onClick={handleComplete} 
+                  disabled={(!canComplete || saving) && !isReadOnly}
+                  onClick={isReadOnly ? () => router.push('/peerline/dashboard/training') : handleComplete} 
                   className="bg-purple-600 hover:bg-purple-700 text-white px-12 py-5 rounded-2xl flex items-center gap-3 text-lg font-bold shadow-2xl shadow-purple-300/40 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale"
                 >
                   {saving ? (
                     <><Loader2 size={22} className="animate-spin" /> Saving Progress...</>
+                  ) : isReadOnly ? (
+                    <><CheckCircle2 size={22} /> Return to Dashboard</>
                   ) : (
                     <><CheckCircle2 size={22} /> Complete Episode</>
                   )}

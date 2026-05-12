@@ -31,7 +31,7 @@ const CtaComponent = (props: any) => {
           position: 'relative',
           overflow: 'hidden',
           color: 'white',
-          backgroundImage: imageUrl ? `linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)), url('${imageUrl}')` : 'none',
+          backgroundImage: imageUrl ? `linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('${imageUrl}')` : 'none',
           backgroundColor: imageUrl ? 'transparent' : bg,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
@@ -131,10 +131,10 @@ export const GlobalCta = Node.create({
     const { id, title, description, buttonText, buttonLink, type, imageUrl } = HTMLAttributes;
     const bg = type === "secondary" ? "#d940af" : type === "info" ? "#3b82f6" : "#6344d4";
     
-    let containerStyle = `padding: 3rem 2rem; border-radius: 2rem; margin: 2.5rem 0; text-align: center; position: relative; overflow: hidden;`;
+    let containerStyle = `padding: 3.5rem 2rem; border-radius: 2.5rem; margin: 2.5rem 0; text-align: center; position: relative; overflow: hidden;`;
     
     if (imageUrl) {
-      containerStyle += `color: white; background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${imageUrl}'); background-size: cover; background-position: center;`;
+      containerStyle += `color: white; background-image: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('${imageUrl}'); background-size: cover; background-position: center;`;
     } else {
       containerStyle += `background-color:${bg}; color:white;`;
     }

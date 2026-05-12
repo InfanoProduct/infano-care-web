@@ -17,6 +17,13 @@ export default function BlogDashboard() {
   });
   const [recentPosts, setRecentPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [globalStats, setGlobalStats] = useState<any>({
+    instagramFollowers: '',
+    facebookFollowers: '',
+    linkedInFollowers: '',
+    youtubeSubscribers: ''
+  });
+  const [isUpdatingGlobal, setIsUpdatingGlobal] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
@@ -25,16 +32,31 @@ export default function BlogDashboard() {
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      const [statsData, postsData] = await Promise.all([
+      const [statsData, postsData, globalData] = await Promise.all([
         blogService.getStats(),
-        blogService.getAllPosts(1, 5)
-      ]) as [any, any];
+        blogService.getAllPosts(1, 5),
+        blogService.getGlobalStats()
+      ]) as [any, any, any];
       setStats(statsData);
       setRecentPosts(postsData.items);
+      setGlobalStats(globalData);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateGlobalStats = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsUpdatingGlobal(true);
+    try {
+      await blogService.updateGlobalStats(globalStats);
+      alert('Social metrics updated successfully!');
+    } catch (error) {
+      alert('Failed to update social metrics');
+    } finally {
+      setIsUpdatingGlobal(false);
     }
   };
 
@@ -181,6 +203,60 @@ export default function BlogDashboard() {
               </div>
               <ArrowUpRight className="text-muted-foreground group-hover:text-primary transition-colors" size={18} />
             </Link>
+
+            <div className="glass-card p-8 rounded-[2.5rem] border-primary/5 space-y-6 shadow-2xl">
+              <h3 className="text-xl font-black flex items-center gap-2">
+                <TrendingUp className="text-primary" size={20} />
+                Social Metrics
+              </h3>
+              <form onSubmit={handleUpdateGlobalStats} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Instagram</label>
+                    <input 
+                      className="w-full bg-secondary/50 border-none rounded-xl py-2 px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20"
+                      value={globalStats.instagramFollowers}
+                      onChange={(e) => setGlobalStats({...globalStats, instagramFollowers: e.target.value})}
+                      placeholder="4.2k+"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Facebook</label>
+                    <input 
+                      className="w-full bg-secondary/50 border-none rounded-xl py-2 px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20"
+                      value={globalStats.facebookFollowers}
+                      onChange={(e) => setGlobalStats({...globalStats, facebookFollowers: e.target.value})}
+                      placeholder="2.1k+"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">LinkedIn</label>
+                    <input 
+                      className="w-full bg-secondary/50 border-none rounded-xl py-2 px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20"
+                      value={globalStats.linkedInFollowers}
+                      onChange={(e) => setGlobalStats({...globalStats, linkedInFollowers: e.target.value})}
+                      placeholder="1.5k+"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">YouTube</label>
+                    <input 
+                      className="w-full bg-secondary/50 border-none rounded-xl py-2 px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20"
+                      value={globalStats.youtubeSubscribers}
+                      onChange={(e) => setGlobalStats({...globalStats, youtubeSubscribers: e.target.value})}
+                      placeholder="1.2k+"
+                    />
+                  </div>
+                </div>
+                <button 
+                  type="submit" 
+                  disabled={isUpdatingGlobal}
+                  className="w-full btn-primary py-3 rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2"
+                >
+                  {isUpdatingGlobal ? <Loader2 className="animate-spin" size={16} /> : 'Sync Metrics'}
+                </button>
+              </form>
+            </div>
 
             <div className="glass-card p-8 rounded-[2.5rem] bg-primary text-white space-y-4 shadow-2xl shadow-primary/30 relative overflow-hidden">
               <div className="relative z-10">

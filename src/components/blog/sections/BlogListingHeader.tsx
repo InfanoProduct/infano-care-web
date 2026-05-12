@@ -44,7 +44,7 @@ export function BlogListingHeader({
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search stories..."
-            className="w-full bg-muted/50 border border-transparent focus:border-primary/20 rounded-none py-4 pl-12 pr-10 text-sm font-medium outline-none transition-all"
+            className="w-full bg-muted/50 border border-transparent focus:border-primary/20 rounded-lg py-4 pl-12 pr-10 text-sm font-medium outline-none transition-all"
           />
           {search && (
             <button
@@ -62,7 +62,7 @@ export function BlogListingHeader({
         <div className="flex items-center gap-2 min-w-max">
           <button
             onClick={() => onCategorySelect(null)}
-            className={`px-6 py-2 text-xs font-black uppercase tracking-widest transition-all rounded-none ${
+            className={`px-6 py-2 text-xs font-black uppercase tracking-widest transition-all rounded-full ${
               selectedCategory === null
                 ? 'bg-black text-white'
                 : 'hover:bg-gray-100 text-muted-foreground'
@@ -74,7 +74,7 @@ export function BlogListingHeader({
             <button
               key={cat.id}
               onClick={() => onCategorySelect(cat.id)}
-              className={`px-6 py-2 text-xs font-black uppercase tracking-widest transition-all rounded-none ${
+              className={`px-6 py-2 text-xs font-black uppercase tracking-widest transition-all rounded-full ${
                 selectedCategory === cat.id
                   ? 'bg-primary text-white'
                   : 'hover:bg-gray-100 text-muted-foreground'

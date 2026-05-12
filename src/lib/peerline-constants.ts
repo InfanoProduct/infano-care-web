@@ -231,6 +231,25 @@ export const ONBOARDING_SCENARIOS = [
   "Scenario 2: \"I'm so stressed about my exams. I feel like failing is not an option.\""
 ];
 
+export const EPISODE_ORDER = [
+  'what-is-peer-support',
+  'listening-without-fixing',
+  'safeguarding-crisis',
+  'mentor-wellbeing'
+];
+
+export const EPISODE_REFLECTION_PROMPTS: Record<string, string | string[]> = {
+  'what-is-peer-support': "Write 150–200 words describing a moment when someone truly heard you—not fixed you, not advised you, just heard you.",
+  'listening-without-fixing': "Imagine a user says 'I feel like I'm failing at everything.' Write a response that validates their feeling without offering a solution.",
+  'safeguarding-crisis': "Walk through how you would apply the SAFE protocol if a user said: 'I don't think I can go on anymore.'",
+  'mentor-wellbeing': [
+    "Why I want to be a Peer Mentor",
+    "My early warning signs",
+    "My self-care commitments",
+    "Who I will talk to if I feel overwhelmed"
+  ]
+};
+
 export const EPISODE_QUESTIONS: Record<string, string[]> = {
   'what-is-peer-support': [
     "What is the primary difference between a Peer Mentor and a licensed counsellor?",

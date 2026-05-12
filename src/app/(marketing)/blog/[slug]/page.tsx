@@ -21,6 +21,7 @@ export default function BlogPostDetailPage() {
   const [relatedPosts, setRelatedPosts] = useState<any[]>([]);
   const [allPosts, setAllPosts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [globalStats, setGlobalStats] = useState<any>(null);
 
   useEffect(() => {
     if (slug) {
@@ -31,17 +32,21 @@ export default function BlogPostDetailPage() {
   const loadPost = async () => {
     setLoading(true);
     try {
-        const [data, postsData, categoriesData] = await Promise.all([
+        const [data, postsData, categoriesData, gStatsData] = await Promise.all([
           blogService.getPostBySlug(slug),
           blogService.getAllPosts(1, 50, ''),
-          blogService.getCategories()
-        ]) as [any, any, any];
+          blogService.getCategories(),
+          blogService.getGlobalStats().catch(() => null)
+        ]) as [any, any, any, any];
         
         if (!data || !data.isPublished) {
           router.push('/blog');
           return;
         }
       setPost(data);
+      setGlobalStats(gStatsData);
+      // Increment view count
+      blogService.incrementViews(data.id).catch(err => console.error('Failed to increment views:', err));
 
       const publishedPosts = postsData.items.filter((p: any) => p.isPublished);
       setAllPosts(publishedPosts);
@@ -98,7 +103,7 @@ export default function BlogPostDetailPage() {
             </div>
             <div className="space-y-6">
               <h3 className="blog-widget-title pl-1">Join Our Community</h3>
-              <SocialStats />
+              <SocialStats author={post.author} globalStats={globalStats} />
             </div>
             <PostTabsWidget posts={allPosts} />
           </aside>

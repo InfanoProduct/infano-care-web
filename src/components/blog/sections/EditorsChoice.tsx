@@ -20,7 +20,7 @@ export function EditorsChoice({ posts }: EditorsChoiceProps) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {posts.map((post) => (
-          <Link key={post.id} href={`/blog/${post.slug}`} className="group relative block aspect-square overflow-hidden rounded-none shadow-xl">
+          <Link key={post.id} href={`/blog/${post.slug}`} className="group relative block aspect-square overflow-hidden rounded-xl shadow-xl">
             {/* Background Image */}
             <Image
               src={getImageUrl(post.thumbnailUrl)}

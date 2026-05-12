@@ -150,7 +150,14 @@
 
 /* Blockquote */
 .prose blockquote {
-  @apply border-l-4 border-primary bg-primary/5 py-6 px-10 rounded-3xl not-italic font-extrabold text-slate-800 leading-relaxed shadow-sm my-8;
+  @apply border-none p-0 not-italic font-medium text-slate-600 leading-relaxed my-6;
+}
+.prose blockquote p {
+  @apply m-0;
+}
+.prose blockquote::before,
+.prose blockquote::after {
+  content: none !important;
 }
 
 /* Global CTA Styles */

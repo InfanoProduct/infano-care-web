@@ -73,7 +73,7 @@ export function FeaturedSection({ featuredPost, otherPosts, search, selectedCate
 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-          <h2 className="blog-section-title">Recent News</h2>
+          <h2 className="blog-section-title">Recent Blogs</h2>
           <TrendingUp size={18} />
         </div>
 

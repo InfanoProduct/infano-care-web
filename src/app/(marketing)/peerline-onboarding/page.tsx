@@ -49,15 +49,6 @@ export default function PeerLineOnboardingPage() {
                 </div>
               </div>
 
-              <div className="p-6 bg-slate-900 text-white rounded-3xl">
-                <h4 className="font-bold mb-2 flex items-center gap-2">
-                  <CheckCircle2 size={18} className="text-accent-light" /> 
-                  Automated Certification
-                </h4>
-                <p className="text-sm text-slate-300 leading-relaxed">
-                  Bypass manual admin approval! Once you pass the final assessment with 80%+, you are automatically certified to start accepting conversations.
-                </p>
-              </div>
             </div>
 
             {/* Right: The Form */}

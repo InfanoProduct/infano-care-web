@@ -25,7 +25,7 @@ export function TopStories({ posts }: TopStoriesProps) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Large Featured Story */}
         <div className="lg:col-span-8">
-          <Link href={`/blog/${mainStory.slug}`} className="group relative block aspect-[16/10] overflow-hidden rounded-none shadow-2xl">
+          <Link href={`/blog/${mainStory.slug}`} className="group relative block aspect-[16/10] overflow-hidden rounded-xl shadow-2xl">
             <Image
               src={getImageUrl(mainStory.thumbnailUrl)}
               alt={mainStory.title}
@@ -56,7 +56,7 @@ export function TopStories({ posts }: TopStoriesProps) {
         {/* Side Stories Stack */}
         <div className="lg:col-span-4 flex flex-col gap-8">
           {sideStories.map((story) => (
-            <Link key={story.id} href={`/blog/${story.slug}`} className="group relative block aspect-[16/10] overflow-hidden rounded-none shadow-xl">
+            <Link key={story.id} href={`/blog/${story.slug}`} className="group relative block aspect-[16/10] overflow-hidden rounded-xl shadow-xl">
               <Image
                 src={getImageUrl(story.thumbnailUrl)}
                 alt={story.title}

@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
-import { ASSESSMENT_QUESTIONS, EPISODE_QUESTIONS } from '@/lib/peerline-constants';
+import { ASSESSMENT_QUESTIONS, EPISODE_QUESTIONS, EPISODE_ORDER, EPISODE_REFLECTION_PROMPTS } from '@/lib/peerline-constants';
 import {
   ArrowLeft, Trophy, BookOpen, CheckCircle2, AlertCircle,
   Loader2, Award, Clock
@@ -64,6 +64,9 @@ export default function PeerAssessmentPage({ params }: { params: Promise<{ userI
   const app = user.peerApplication;
   const score = app.trainingScore ?? null;
   const passed = score !== null && score >= 80;
+
+  const trainingAnswers = typeof app.trainingAnswers === 'string' ? JSON.parse(app.trainingAnswers) : app.trainingAnswers;
+  const episodeAnswers = typeof app.episodeAnswers === 'string' ? JSON.parse(app.episodeAnswers) : app.episodeAnswers;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -161,7 +164,7 @@ export default function PeerAssessmentPage({ params }: { params: Promise<{ userI
       </div>
 
       {/* Quiz Breakdown */}
-      {app.trainingAnswers && (
+      {trainingAnswers && (
         <div className="glass-card rounded-2xl overflow-hidden border-white/40 shadow-xl">
           <div className="p-6 border-b border-border bg-slate-50/30">
             <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
@@ -171,7 +174,7 @@ export default function PeerAssessmentPage({ params }: { params: Promise<{ userI
             <p className="text-xs text-muted-foreground mt-1">Question-by-question candidate answers vs. correct answers</p>
           </div>
           <div className="p-6 space-y-3">
-            {Object.entries(app.trainingAnswers as Record<string, any>).map(([qIdx, aIdx], i) => {
+            {Object.entries(trainingAnswers as Record<string, any>).map(([qIdx, aIdx], i) => {
               const q = ASSESSMENT_QUESTIONS[parseInt(qIdx)];
               const isCorrect = aIdx === q?.answer;
               return (
@@ -205,7 +208,7 @@ export default function PeerAssessmentPage({ params }: { params: Promise<{ userI
       )}
 
       {/* Episode Reflections */}
-      {app.episodeAnswers && (
+      {episodeAnswers && (
         <div className="glass-card rounded-2xl overflow-hidden border-white/40 shadow-xl">
           <div className="p-6 border-b border-border bg-slate-50/30">
             <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
@@ -213,46 +216,73 @@ export default function PeerAssessmentPage({ params }: { params: Promise<{ userI
               Training Episodes & Reflections
             </h3>
           </div>
-          <div className="p-6 space-y-6">
-            {Object.entries(app.episodeAnswers as Record<string, any>).map(([slug, data], idx) => (
-              <div key={slug} className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center rounded-lg">
-                    {idx + 1}
+          <div className="p-6 space-y-8">
+            {EPISODE_ORDER.map((slug, idx) => {
+              const actualKey = Object.keys(episodeAnswers).find(k => k.includes(slug) || k.includes(`ep${idx + 1}`)) || slug;
+              const data = episodeAnswers[actualKey];
+              if (!data) return null;
+              
+              return (
+                <div key={slug} className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center rounded-lg">
+                      {idx + 1}
+                    </div>
+                    <h4 className="text-sm font-semibold text-slate-700">
+                      {slug.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                    </h4>
                   </div>
-                  <h4 className="text-sm font-semibold text-slate-700">
-                    {slug.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                  </h4>
+
+                  {data.reflection && (
+                    <div className="space-y-3">
+                      {typeof data.reflection === 'object' ? (
+                        Object.entries(data.reflection as Record<string, string>).map(([rKey, rValue], rIdx) => {
+                          const prompts = EPISODE_REFLECTION_PROMPTS[slug];
+                          const prompt = Array.isArray(prompts) ? prompts[parseInt(rKey)] : prompts;
+                          return (
+                            <div key={rKey} className="rounded-2xl border border-primary/10 overflow-hidden">
+                              <div className="px-5 py-3 bg-primary/5 border-b border-primary/10">
+                                <p className="text-[10px] font-semibold text-primary uppercase tracking-wider mb-1">Reflection Part {rIdx + 1}</p>
+                                <p className="text-xs font-medium text-slate-700">{prompt || 'Reflection Prompt'}</p>
+                              </div>
+                              <div className="p-5 bg-white">
+                                <p className="text-sm text-slate-600 italic leading-relaxed">"{rValue}"</p>
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="rounded-2xl border border-primary/10 overflow-hidden">
+                          <div className="px-5 py-3 bg-primary/5 border-b border-primary/10">
+                            <p className="text-[10px] font-semibold text-primary uppercase tracking-wider mb-1">Episode Reflection</p>
+                            <p className="text-xs font-medium text-slate-700">{(EPISODE_REFLECTION_PROMPTS[slug] as string) || 'Reflection Prompt'}</p>
+                          </div>
+                          <div className="p-5 bg-white">
+                            <p className="text-sm text-slate-600 italic leading-relaxed">"{data.reflection}"</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {data.checks && Object.keys(data.checks).length > 0 && (
+                    <div className="grid gap-2 pl-3">
+                      {Object.entries(data.checks as Record<string, string>).map(([qIdx, answer]) => (
+                        <div key={qIdx} className="rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+                          <div className="px-5 py-3 bg-slate-50 border-b border-slate-100">
+                            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Check Question {parseInt(qIdx) + 1}</p>
+                            <p className="text-xs font-medium text-slate-700">{EPISODE_QUESTIONS[slug]?.[parseInt(qIdx)] || 'Knowledge Check'}</p>
+                          </div>
+                          <div className="p-5 bg-white">
+                            <p className="text-sm text-slate-600 italic leading-relaxed">"{answer}"</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-
-                {data.reflection && (
-                  <div className="rounded-2xl border border-primary/10 overflow-hidden">
-                    <div className="px-5 py-3 bg-primary/5 border-b border-primary/10">
-                      <p className="text-[10px] font-semibold text-primary uppercase tracking-wider">Episode Reflection</p>
-                    </div>
-                    <div className="p-5 bg-white">
-                      <p className="text-sm text-slate-600 italic leading-relaxed">"{data.reflection}"</p>
-                    </div>
-                  </div>
-                )}
-
-                {data.checks && Object.keys(data.checks).length > 0 && (
-                  <div className="grid gap-2 pl-3">
-                    {Object.entries(data.checks as Record<string, string>).map(([qIdx, answer]) => (
-                      <div key={qIdx} className="rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
-                        <div className="px-5 py-3 bg-slate-50 border-b border-slate-100">
-                          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Check Question {parseInt(qIdx) + 1}</p>
-                          <p className="text-xs font-medium text-slate-700">{EPISODE_QUESTIONS[slug]?.[parseInt(qIdx)] || 'Reflection Question'}</p>
-                        </div>
-                        <div className="p-5 bg-white">
-                          <p className="text-sm text-slate-600 italic leading-relaxed">"{answer}"</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

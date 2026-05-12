@@ -196,7 +196,7 @@ export default function CTAsPage() {
                       className="absolute inset-0 w-full h-full object-cover"
                       onError={(e) => (e.currentTarget.style.display = 'none')}
                     />
-                    <div className="absolute inset-0 bg-black/60" />
+                    <div className="absolute inset-0 bg-black/75" />
                   </>
                 )}
 
@@ -236,8 +236,8 @@ export default function CTAsPage() {
                 </div>
                 
                 <div className="relative z-10 space-y-4">
-                  <h3 className="text-3xl font-black">{newCTA.title || 'Your Heading Here'}</h3>
-                  <p className={`mt-3 max-w-md font-medium ${newCTA.imageUrl || newCTA.type === 'primary' || newCTA.type === 'dark' ? 'text-white/80' : 'text-muted-foreground'}`}>
+                  <h3 className="text-4xl font-black tracking-tight leading-tight">{newCTA.title || 'Your Heading Here'}</h3>
+                  <p className={`mt-4 max-w-xl text-lg font-bold ${newCTA.imageUrl || newCTA.type === 'primary' || newCTA.type === 'dark' ? 'text-white/90' : 'text-muted-foreground'}`}>
                     {newCTA.description || 'Add a compelling description to engage your readers.'}
                   </p>
                   <div className="mt-8">
@@ -298,7 +298,7 @@ export default function CTAsPage() {
                 {cta.imageUrl && (
                   <>
                     <img src={cta.imageUrl} className="absolute inset-0 w-full h-full object-cover" alt="" />
-                    <div className="absolute inset-0 bg-black/50" />
+                    <div className="absolute inset-0 bg-black/75" />
                   </>
                 )}
                 

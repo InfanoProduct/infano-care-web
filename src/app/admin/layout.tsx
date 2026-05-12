@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { 
   LayoutDashboard, Users, Calendar, Settings, ShieldCheck, LogOut, 
   BookOpen, FileText, ShoppingBag, ChevronDown, Zap, Globe, 
-  UserCheck, Ticket, MapPin 
+  UserCheck, Ticket, MapPin, FileQuestion 
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 
@@ -46,6 +46,7 @@ export default function AdminLayout({
         { name: 'Manage Books', icon: BookOpen, href: '/admin/books' },
       ]
     },
+    { name: 'Enquiries', icon: FileQuestion, href: '/admin/enquiries' },
     { name: 'System Settings', icon: Settings, href: '/admin/settings' },
   ];
 

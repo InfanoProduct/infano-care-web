@@ -62,6 +62,8 @@ export default function PeerLineLoginPage() {
       
       // Check authorization specifically for PeerLine Dashboard
       const isAuthorized = data.role === 'PEER' ||
+                           data.role === 'ADMIN' ||
+                           data.role === 'EXPERT' ||
                            (data.role === 'TEEN' && data.peerApplicationStatus === 'approved');
 
       if (!isAuthorized) {
@@ -140,39 +142,73 @@ export default function PeerLineLoginPage() {
               </button>
             </form>
           ) : (
-            <form onSubmit={handleVerifyOtp} className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-              <div className="space-y-2">
+            <form onSubmit={handleVerifyOtp} className="space-y-8 animate-in slide-in-from-right-4 duration-300">
+              <div className="space-y-4 text-center">
                 <div className="flex justify-between items-center mb-1">
-                  <label className="text-sm font-black text-slate-700 pl-1 uppercase tracking-wider">Enter OTP</label>
+                  <label className="text-sm font-black text-slate-700 pl-1 uppercase tracking-wider">Enter 4-Digit OTP</label>
                   <button 
                     type="button" 
-                    onClick={() => setStep('PHONE')}
+                    onClick={() => {
+                      setStep('PHONE');
+                      setOtp('');
+                    }}
                     className="text-xs font-bold text-primary hover:underline"
                   >
                     Change Number
                   </button>
                 </div>
-                <div className="relative">
-                  <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/60" size={20} />
-                  <input
-                    type="text"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl py-3 pl-12 pr-4 focus:ring-4 focus:ring-primary/10 focus:border-primary/50 outline-none transition-all font-bold text-slate-800 tracking-widest"
-                    placeholder="Enter 4-digit code"
-                    maxLength={6}
-                    required
-                  />
+                
+                <div className="flex justify-center gap-4">
+                  {[0, 1, 2, 3].map((index) => (
+                    <input
+                      key={index}
+                      id={`otp-${index}`}
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      value={otp[index] || ''}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9]/g, '');
+                        if (!val) {
+                          // Backspace handling
+                          const newOtp = otp.split('');
+                          newOtp[index] = '';
+                          setOtp(newOtp.join(''));
+                          return;
+                        }
+                        
+                        const char = val.charAt(val.length - 1);
+                        const newOtp = otp.split('');
+                        newOtp[index] = char;
+                        const finalOtp = newOtp.join('');
+                        setOtp(finalOtp);
+                        
+                        // Auto-focus next
+                        if (index < 3) {
+                          document.getElementById(`otp-${index + 1}`)?.focus();
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Backspace' && !otp[index] && index > 0) {
+                          document.getElementById(`otp-${index - 1}`)?.focus();
+                        }
+                      }}
+                      className="w-16 h-20 text-3xl font-black text-center bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary/50 outline-none transition-all text-slate-800"
+                      maxLength={1}
+                      required
+                    />
+                  ))}
                 </div>
-                <p className="text-xs text-muted-foreground font-medium pl-1 mt-2 italic">
+                
+                <p className="text-xs text-muted-foreground font-medium italic">
                   OTP sent to +91 {phone}
                 </p>
               </div>
 
               <button
                 type="submit"
-                disabled={isLoading}
-                className="w-full py-4 bg-primary text-white font-bold rounded-xl flex items-center justify-center gap-2 group hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
+                disabled={isLoading || otp.length < 4}
+                className="w-full py-4 bg-primary text-white font-bold rounded-xl flex items-center justify-center gap-2 group hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale"
               >
                 {isLoading ? (
                   <Loader2 className="animate-spin" size={20} />

@@ -1,16 +1,18 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { CheckCircle2, PlayCircle, Lock, Trophy, ArrowRight, Loader2, BookOpen, Shield, AlertCircle } from 'lucide-react';
+import { CheckCircle2, PlayCircle, Lock, Trophy, ArrowRight, Loader2, BookOpen, Shield, AlertCircle, Download } from 'lucide-react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 import { useAuthStore } from '@/store/auth-store';
+import { getCertificateTemplate } from './certificate-template';
 
 export default function MentorTrainingPage() {
   const { token, user } = useAuthStore();
   const [episodes, setEpisodes] = useState<any[]>([]);
   const [completedEpisodes, setCompletedEpisodes] = useState<string[]>([]);
   const [certificationStatus, setCertificationStatus] = useState<string>('pending_training');
+  const [userName, setUserName] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
@@ -22,6 +24,7 @@ export default function MentorTrainingPage() {
       setEpisodes(journeyRes.episodes || []);
       setCompletedEpisodes(statusRes.completedEpisodes || []);
       setCertificationStatus(statusRes.certificationStatus || 'pending_training');
+      setUserName(statusRes.name || '');
     } catch (err) {
       console.error('Failed to fetch training data:', err);
     } finally {
@@ -32,6 +35,18 @@ export default function MentorTrainingPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const handleDownloadCertificate = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const date = new Date().toLocaleDateString(undefined, { dateStyle: 'long' });
+    const htmlContent = getCertificateTemplate(userName, date);
+    
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+;
 
   const validCompletedEpisodes = completedEpisodes.filter(slug => episodes.some(ep => ep.slug === slug));
   const progressPercentage = episodes.length > 0 ? Math.round((validCompletedEpisodes.length / episodes.length) * 100) : 0;
@@ -95,14 +110,36 @@ export default function MentorTrainingPage() {
         </div>
       )}
       {certificationStatus === 'certified' && (
-        <div className="mb-8 p-6 bg-purple-50 border border-purple-200 rounded-2xl flex items-center gap-4">
-          <CheckCircle2 className="text-purple-600 shrink-0" size={28} />
+        <div className="mb-8 p-6 bg-purple-50 border border-purple-200 rounded-2xl flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <CheckCircle2 className="text-purple-600 shrink-0" size={28} />
+            <div>
+              <div className="font-black text-purple-800">You are a Certified Peer Mentor! 🎉</div>
+              <div className="text-sm text-purple-600">Access your full dashboard from the sidebar.</div>
+            </div>
+          </div>
+          <button 
+            onClick={handleDownloadCertificate}
+            className="flex items-center gap-2 px-5 py-3 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition-all shadow-lg shadow-purple-200 active:scale-95"
+            title="Download Certification"
+          >
+            <Download size={20} />
+            Download Certificate
+          </button>
+        </div>
+      )}
+      {certificationStatus === 'unapproved' && (
+        <div className="mb-8 p-6 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-4 animate-in slide-in-from-top duration-500">
+          <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-500 shrink-0">
+            <AlertCircle size={28} />
+          </div>
           <div>
-            <div className="font-black text-purple-800">You are a Certified Peer Mentor! 🎉</div>
-            <div className="text-sm text-purple-600">Access your full dashboard from the sidebar.</div>
+            <div className="font-black text-amber-800">Action Required: Re-assessment Needed</div>
+            <div className="text-sm text-amber-600">Your certification was not approved by an admin. As per requirements, please re-complete all episodes and score 80% or above on the final assessment to proceed.</div>
           </div>
         </div>
       )}
+
       {certificationStatus === 'uncertified' && (
         <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-4">
           <AlertCircle className="text-red-500 shrink-0" size={28} />
@@ -112,6 +149,8 @@ export default function MentorTrainingPage() {
           </div>
         </div>
       )}
+
+
 
       {/* Episode List */}
       <div className="relative space-y-8 before:absolute before:left-12 before:top-12 before:bottom-12 before:w-0.5 before:bg-purple-100 before:-translate-x-1/2">
@@ -192,7 +231,7 @@ export default function MentorTrainingPage() {
         <div className="relative pl-24 pt-4">
           <div className={`absolute left-12 top-0 bottom-0 w-0.5 -translate-x-1/2 ${isAssessmentUnlocked ? 'bg-purple-400' : 'bg-purple-100'}`} />
 
-          {isAssessmentUnlocked && certificationStatus === 'pending_training' ? (
+          {isAssessmentUnlocked && (certificationStatus === 'pending_training' || certificationStatus === 'unapproved') ? (
             <Link
               href="/peerline/dashboard/assessment"
               className="p-10 bg-gradient-to-br from-purple-600 to-violet-700 rounded-[3rem] text-white flex items-center justify-between overflow-hidden relative shadow-2xl shadow-purple-300/40 hover:scale-[1.01] transition-transform group/assess"

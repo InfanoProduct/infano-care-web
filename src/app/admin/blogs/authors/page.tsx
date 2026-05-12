@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Users, User, Mail, Loader2, Edit, Trash2, CheckCircle2, X } from 'lucide-react';
-import { LinkedinIcon, TwitterIcon } from '@/components/icons';
+import { Plus, Users, User, Mail, Loader2, Edit, Trash2, CheckCircle2, X, Instagram } from 'lucide-react';
+import { LinkedinIcon, TwitterIcon, InstagramIcon, FacebookIcon } from '@/components/icons';
 import { blogService } from '@/services/blog.service';
 import ImageUploader from '@/components/upload/ImageUploader';
 
@@ -20,6 +20,11 @@ export default function AuthorsPage() {
     bio: '',
     linkedInUrl: '',
     twitterUrl: '',
+    instagramUrl: '',
+    facebookUrl: '',
+    instagramFollowers: '',
+    facebookFollowers: '',
+    linkedInFollowers: '',
     avatarUrl: ''
   });
 
@@ -50,7 +55,7 @@ export default function AuthorsPage() {
       }
       setIsAdding(false);
       setEditingId(null);
-      setNewAuthor({ name: '', role: '', email: '', bio: '', linkedInUrl: '', twitterUrl: '', avatarUrl: '' });
+      setNewAuthor({ name: '', role: '', email: '', bio: '', linkedInUrl: '', twitterUrl: '', instagramUrl: '', facebookUrl: '', instagramFollowers: '', facebookFollowers: '', linkedInFollowers: '', avatarUrl: '' });
       loadAuthors();
     } catch (error) {
       alert(editingId ? 'Failed to update author' : 'Failed to create author');
@@ -67,6 +72,11 @@ export default function AuthorsPage() {
       bio: author.bio || '',
       linkedInUrl: author.linkedInUrl || '',
       twitterUrl: author.twitterUrl || '',
+      instagramUrl: author.instagramUrl || '',
+      facebookUrl: author.facebookUrl || '',
+      instagramFollowers: author.instagramFollowers || '',
+      facebookFollowers: author.facebookFollowers || '',
+      linkedInFollowers: author.linkedInFollowers || '',
       avatarUrl: author.avatarUrl || ''
     });
     setEditingId(author.id);
@@ -96,7 +106,7 @@ export default function AuthorsPage() {
             setIsAdding(!isAdding);
             if (isAdding) {
               setEditingId(null);
-              setNewAuthor({ name: '', role: '', email: '', bio: '', linkedInUrl: '', twitterUrl: '', avatarUrl: '' });
+              setNewAuthor({ name: '', role: '', email: '', bio: '', linkedInUrl: '', twitterUrl: '', instagramUrl: '', facebookUrl: '', instagramFollowers: '', facebookFollowers: '', linkedInFollowers: '', avatarUrl: '' });
             }
           }}
           className="btn-primary flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg transition-all"
@@ -147,6 +157,49 @@ export default function AuthorsPage() {
                 className="w-full bg-secondary/30 border-none rounded-2xl py-3 px-6 font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                 value={newAuthor.linkedInUrl}
                 onChange={(e) => setNewAuthor({ ...newAuthor, linkedInUrl: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-1">Instagram Profile</label>
+              <input
+                className="w-full bg-secondary/30 border-none rounded-2xl py-3 px-6 font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                value={newAuthor.instagramUrl}
+                onChange={(e) => setNewAuthor({ ...newAuthor, instagramUrl: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-1">Facebook Profile</label>
+              <input
+                className="w-full bg-secondary/30 border-none rounded-2xl py-3 px-6 font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                value={newAuthor.facebookUrl}
+                onChange={(e) => setNewAuthor({ ...newAuthor, facebookUrl: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-1">IG Followers</label>
+              <input
+                className="w-full bg-secondary/30 border-none rounded-2xl py-3 px-6 font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                placeholder="e.g. 10k"
+                value={newAuthor.instagramFollowers}
+                onChange={(e) => setNewAuthor({ ...newAuthor, instagramFollowers: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-1">FB Followers</label>
+              <input
+                className="w-full bg-secondary/30 border-none rounded-2xl py-3 px-6 font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                placeholder="e.g. 5k"
+                value={newAuthor.facebookFollowers}
+                onChange={(e) => setNewAuthor({ ...newAuthor, facebookFollowers: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-1">LI Followers</label>
+              <input
+                className="w-full bg-secondary/30 border-none rounded-2xl py-3 px-6 font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                placeholder="e.g. 2k"
+                value={newAuthor.linkedInFollowers}
+                onChange={(e) => setNewAuthor({ ...newAuthor, linkedInFollowers: e.target.value })}
               />
             </div>
             <div className="space-y-2">
@@ -231,6 +284,16 @@ export default function AuthorsPage() {
                 {author.twitterUrl && (
                   <a href={author.twitterUrl} target="_blank" className="w-10 h-10 rounded-xl bg-secondary/50 flex items-center justify-center text-muted-foreground hover:bg-sky-500 hover:text-white transition-all">
                     <TwitterIcon size={18} />
+                  </a>
+                )}
+                {author.instagramUrl && (
+                  <a href={author.instagramUrl} target="_blank" className="w-10 h-10 rounded-xl bg-secondary/50 flex items-center justify-center text-muted-foreground hover:bg-pink-600 hover:text-white transition-all">
+                    <InstagramIcon size={18} />
+                  </a>
+                )}
+                {author.facebookUrl && (
+                  <a href={author.facebookUrl} target="_blank" className="w-10 h-10 rounded-xl bg-secondary/50 flex items-center justify-center text-muted-foreground hover:bg-blue-800 hover:text-white transition-all">
+                    <FacebookIcon size={18} />
                   </a>
                 )}
               </div>

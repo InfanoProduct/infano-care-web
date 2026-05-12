@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Loader2, CheckCircle2, Shield } from 'lucide-react';
 import Link from 'next/link';
+import { useAuthStore } from '@/store/auth-store';
 
 export function PeerLineOnboardingForm() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const { isAuthenticated } = useAuthStore();
 
   const [formData, setFormData] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -42,9 +44,12 @@ export function PeerLineOnboardingForm() {
   const [error, setError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<any[]>([]);
   const [applicationStatus, setApplicationStatus] = useState<string | null>(null);
+  const [certificationStatus, setCertificationStatus] = useState<string | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
 
   useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
     const checkStatus = async () => {
       try {
         const res: any = await apiClient.get('/peerline/training/status');
@@ -57,28 +62,42 @@ export function PeerLineOnboardingForm() {
           if (certStatus) localStorage.setItem('peerline_cert_status', certStatus);
 
           setApplicationStatus(status);
+          setCertificationStatus(certStatus);
           
           if (certStatus === 'certified') {
             window.location.href = '/peerline/login';
             return;
           }
           
-          if (status === 'pending' || status === 'approved' || ['training', 'pending_training', 'pending_conduct'].includes(certStatus)) {
+          if (status === 'pending' || status === 'approved' || ['training', 'pending_training', 'pending_conduct', 'uncertified'].includes(certStatus)) {
             setSuccess(true);
+          }
+
+          // If approved, we can stop polling
+          if (status === 'approved' || certStatus === 'certified') {
+            clearInterval(intervalId);
           }
         }
       } catch (err) {
         // Not logged in, check localStorage for previous submission state
         const savedStatus = localStorage.getItem('peerline_app_status');
+        const savedCert = localStorage.getItem('peerline_cert_status');
         if (savedStatus && savedStatus !== 'none') {
           setApplicationStatus(savedStatus);
+          setCertificationStatus(savedCert);
           setSuccess(true);
         }
       } finally {
         setInitialLoading(false);
       }
     };
+
     checkStatus();
+    
+    // Start polling if we are in the "pending" state
+    intervalId = setInterval(checkStatus, 5000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
   const handleApply = async () => {
@@ -86,7 +105,7 @@ export function PeerLineOnboardingForm() {
     setError(null);
     setValidationErrors([]);
     try {
-      await apiClient.post('/peerline/mentor/apply', {
+      const res: any = await apiClient.post('/peerline/mentor/apply', {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
@@ -94,6 +113,7 @@ export function PeerLineOnboardingForm() {
         scenarioResponses: [formData.scenario1, formData.scenario2],
         eligibility: formData.eligibility
       });
+      
       // Save info to local storage for certification step
       localStorage.setItem('peerline_mentor_details', JSON.stringify({
         name: formData.name,
@@ -117,6 +137,8 @@ export function PeerLineOnboardingForm() {
         if (certStatus) localStorage.setItem('peerline_cert_status', certStatus);
 
         setApplicationStatus(status);
+        setCertificationStatus(certStatus);
+        
         if (certStatus === 'certified') {
           window.location.href = '/peerline/login';
           return;
@@ -144,19 +166,31 @@ export function PeerLineOnboardingForm() {
   }
 
   if (success) {
-    const isPending = applicationStatus === 'pending';
-    const isApproved = ['approved', 'training', 'certified', 'pending_training'].includes(applicationStatus || '');
+    const isUncertified = certificationStatus === 'uncertified';
+    const isPending = applicationStatus === 'pending' && !isUncertified;
+    const isApproved = ['approved', 'training', 'certified', 'pending_training', 'pending_conduct'].includes(applicationStatus || '') && !isUncertified;
 
     return (
       <div className="bg-white p-12 rounded-[2rem] border border-slate-100 shadow-xl text-center animate-in fade-in zoom-in duration-500">
-        <div className={`w-20 h-20 ${isApproved ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'} rounded-full flex items-center justify-center mx-auto mb-6`}>
-          {isApproved ? <CheckCircle2 size={40} /> : <Loader2 className="animate-spin" size={40} />}
+        <div className={`w-20 h-20 ${isUncertified ? 'bg-red-100 text-red-600' : isApproved ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'} rounded-full flex items-center justify-center mx-auto mb-6`}>
+          {isUncertified ? <Shield size={40} /> : isApproved ? <CheckCircle2 size={40} /> : <Loader2 className="animate-spin" size={40} />}
         </div>
+        
         <h3 className="text-3xl font-bold text-slate-900 mb-4">
-          {isPending ? 'Application Under Review' : 'Application Successful!'}
+          {isUncertified 
+            ? 'You are Uncertified' 
+            : isPending 
+              ? 'Application Under Review' 
+              : 'Application Successful!'
+          }
         </h3>
+
         <div className="space-y-4 mb-8 max-w-md mx-auto text-slate-600">
-          {isPending ? (
+          {isUncertified ? (
+            <p>
+              Unfortunately, your recent assessment or review did not meet the certification criteria. You are currently not eligible to serve as a Peer Mentor.
+            </p>
+          ) : isPending ? (
             <p>
               Your application is currently being reviewed by our administration team. Please wait for approval before you can start your certification journey.
             </p>
@@ -165,22 +199,37 @@ export function PeerLineOnboardingForm() {
               Thank you. Your application has been processed. You can now proceed to the Certification Journey to begin your training.
             </p>
           )}
+          
           <p className="text-sm bg-slate-50 p-4 rounded-xl border border-slate-100">
-            {isPending 
-              ? "Next steps: Our team will contact you shortly for a video onboarding call. Once approved, the enrollment button will be enabled."
-              : "Next steps: Complete the episodes, pass the final assessment, and get certified as a PeerLine Mentor."
+            {isUncertified
+              ? "Next steps: Please contact the administration team for feedback on your assessment or to discuss potential re-application steps."
+              : isPending 
+                ? "Next steps: Our team will contact you shortly for a video onboarding call. Once approved, the enrollment button will be enabled."
+                : "Next steps: Complete the episodes, pass the final assessment, and get certified as a PeerLine Mentor."
             }
           </p>
         </div>
         
-        {isApproved ? (
-          <Link href="/peerline/dashboard" className="btn-primary text-lg px-10 py-4 inline-flex items-center">
-            Enroll in Certification Journey <ArrowRight className="ml-2" />
+        {isUncertified ? (
+          <Link href="/" className="btn-primary text-lg px-10 py-4 inline-flex items-center bg-slate-900 hover:bg-slate-800">
+            Return Home
+          </Link>
+        ) : isApproved ? (
+          <Link 
+            href={isAuthenticated ? "/peerline/dashboard" : "/peerline/login"} 
+            className="btn-primary text-lg px-10 py-4 inline-flex items-center"
+          >
+            {isAuthenticated ? "Go to Mentor Workspace" : "Login & Start Journey"} <ArrowRight className="ml-2" />
           </Link>
         ) : (
-          <button disabled className="btn-primary opacity-50 cursor-not-allowed text-lg px-10 py-4 inline-flex items-center">
-            Wait for Approval <ArrowRight className="ml-2" />
-          </button>
+          <div className="space-y-4">
+            <button disabled className="btn-primary opacity-50 cursor-not-allowed text-lg px-10 py-4 inline-flex items-center w-full justify-center">
+              Wait for Approval <ArrowRight className="ml-2" />
+            </button>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest animate-pulse">
+              Checking status in real-time...
+            </p>
+          </div>
         )}
       </div>
     );

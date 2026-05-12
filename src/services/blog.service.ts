@@ -45,6 +45,12 @@ class BlogService {
     });
   }
 
+  async incrementViews(id: string) {
+    return this.fetchWithAuth(`/blog/posts/${id}/view`, {
+      method: 'PATCH',
+    });
+  }
+
   // --- Authors ---
   async getAuthors() {
     return this.fetchWithAuth('/blog/authors');
@@ -123,6 +129,17 @@ class BlogService {
   // --- Stats ---
   async getStats() {
     return this.fetchWithAuth('/blog/stats');
+  }
+
+  async getGlobalStats() {
+    return this.fetchWithAuth('/blog/stats/global');
+  }
+
+  async updateGlobalStats(data: any) {
+    return this.fetchWithAuth('/blog/stats/global', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
   }
 
   // --- Image Upload ---

@@ -39,7 +39,11 @@ class ApiClient {
         });
 
         if (!response.ok) {
-          throw new Error('Refresh failed');
+          // If the server explicitly says no (401), it's a known expiry, not a crash
+          if (response.status === 401) {
+            return null; 
+          }
+          throw new Error(`Refresh failed with status ${response.status}`);
         }
 
         const data = await response.json();
@@ -51,8 +55,12 @@ class ApiClient {
         }
 
         return accessToken;
-      } catch (error) {
-        console.error('Token refresh error:', error);
+      } catch (error: any) {
+        // Only log serious errors, not routine auth failures
+        if (error.message !== 'Unauthorized' && !error.message?.includes('401')) {
+          console.warn('Token refresh system notice:', error.message || error);
+        }
+        
         useAuthStore.getState().clearAuth();
         return null;
       } finally {

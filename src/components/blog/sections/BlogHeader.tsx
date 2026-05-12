@@ -7,9 +7,11 @@ interface BlogHeaderProps {
 }
 
 // Custom icons since they were imported from @/components/icons
-const Twitter = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+const Instagram = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
   </svg>
 );
 
@@ -26,6 +28,19 @@ const Facebook = () => (
 );
 
 export function BlogHeader({ post }: BlogHeaderProps) {
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: post.title,
+        text: post.summary,
+        url: window.location.href,
+      }).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copied to clipboard!');
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-6 pt-12 md:pt-20 pb-12">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
@@ -80,16 +95,40 @@ export function BlogHeader({ post }: BlogHeaderProps) {
               </div>
 
               <div className="sm:ml-auto flex items-center gap-2">
-                <button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white transition-all shadow-sm">
-                  <Twitter />
-                </button>
-                <button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-[#0077b5] hover:text-white transition-all shadow-sm">
-                  <Linkedin />
-                </button>
-                <button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-[#1877f2] hover:text-white transition-all shadow-sm">
-                  <Facebook />
-                </button>
-                <button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-slate-900 hover:text-white transition-all shadow-sm ml-2">
+                {post.author?.instagramUrl && (
+                  <a 
+                    href={post.author.instagramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:text-white transition-all shadow-sm"
+                  >
+                    <Instagram />
+                  </a>
+                )}
+                {post.author?.linkedInUrl && (
+                  <a 
+                    href={post.author.linkedInUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-[#0077b5] hover:text-white transition-all shadow-sm"
+                  >
+                    <Linkedin />
+                  </a>
+                )}
+                {post.author?.facebookUrl && (
+                  <a 
+                    href={post.author.facebookUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-[#1877f2] hover:text-white transition-all shadow-sm"
+                  >
+                    <Facebook />
+                  </a>
+                )}
+                <button 
+                  onClick={handleShare}
+                  className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-slate-900 hover:text-white transition-all shadow-sm ml-2"
+                >
                   <Share2 size={14} />
                 </button>
               </div>
@@ -98,7 +137,7 @@ export function BlogHeader({ post }: BlogHeaderProps) {
         </div>
 
         {/* Right Image */}
-        <div className="relative aspect-[4/5] lg:aspect-square w-full rounded-none overflow-hidden shadow-2xl">
+        <div className="relative aspect-[4/5] lg:aspect-square w-full rounded-xl overflow-hidden shadow-2xl">
           <img 
             src={getImageUrl(post.thumbnailUrl)} 
             alt={post.title} 

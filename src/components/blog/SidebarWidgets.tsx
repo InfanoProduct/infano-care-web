@@ -5,7 +5,7 @@ import { getImageUrl, getCategoryColor } from '@/lib/utils';
 
 export function PromoBanner() {
   return (
-    <div className="group relative overflow-hidden rounded-none aspect-square shadow-2xl">
+    <div className="group relative overflow-hidden rounded-xl aspect-square shadow-2xl">
       <Image
         src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe"
         alt="Promotion"
@@ -15,19 +15,11 @@ export function PromoBanner() {
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
       <div className="absolute inset-0 p-8 flex flex-col justify-end items-center text-center space-y-4">
-        <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-none flex items-center justify-center">
-          <span className="text-white font-black text-xl">P</span>
-        </div>
-        <h3 className="blog-heading text-4xl text-white leading-tight">
-          Modern Wellness <br /> Magazine 2024
-        </h3>
-        <button className="px-10 py-4 bg-primary text-white text-[12px] font-black uppercase tracking-widest rounded-none hover:bg-white hover:text-primary transition-all">
+        <button className="px-10 py-4 bg-primary text-white text-[12px] font-black uppercase tracking-widest rounded-lg hover:bg-white hover:text-primary transition-all">
           Purchase Now
         </button>
       </div>
-      <div className="absolute top-4 right-4 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-none border border-white/10 text-[8px] font-black uppercase text-white tracking-widest">
-        Sponsored
-      </div>
+
     </div>
   );
 }
@@ -121,7 +113,7 @@ function CategoryCard({ cat }: { cat: any }) {
   return (
     <Link 
       href={`/blog?category=${cat.id}`}
-      className="group relative aspect-square rounded-none overflow-hidden shadow-lg border border-white/10"
+      className="group relative aspect-square rounded-xl overflow-hidden shadow-lg border border-white/10"
     >
       {/* Background Image Slideshow */}
       <div className="absolute inset-0 bg-gray-900">
@@ -155,22 +147,58 @@ function CategoryCard({ cat }: { cat: any }) {
   );
 }
 
-export function SocialStats() {
+export function SocialStats({ author, globalStats }: { author?: any; globalStats?: any }) {
   const platforms = [
-    { name: 'Fans', count: '2k+', icon: 'f', color: 'bg-[#3b5998]' },
-    { name: 'Followers', count: '4k+', icon: '𝕏', color: 'bg-black' },
-    { name: 'Subscribers', count: '1M+', icon: 'y', color: 'bg-[#ff0000]' },
-    { name: 'Connections', count: '600+', icon: 'in', color: 'bg-[#0077b5]' },
+    { 
+      name: 'Instagram', 
+      count: globalStats?.instagramFollowers || author?.instagramFollowers || '4.2k+', 
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+        </svg>
+      ), 
+      color: 'bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888]',
+      url: author?.instagramUrl || 'https://www.instagram.com/infano.care/'
+    },
+    { 
+      name: 'Facebook', 
+      count: globalStats?.facebookFollowers || author?.facebookFollowers || '2.1k+', 
+      icon: 'f', 
+      color: 'bg-[#3b5998]',
+      url: author?.facebookUrl || 'https://www.facebook.com/infano.wecare'
+    },
+    { 
+      name: 'LinkedIn', 
+      count: globalStats?.linkedInFollowers || author?.linkedInFollowers || '1.5k+', 
+      icon: 'in', 
+      color: 'bg-[#0077b5]',
+      url: author?.linkedInUrl || 'https://www.linkedin.com/company/infanocare/'
+    },
+    { 
+      name: 'YouTube', 
+      count: globalStats?.youtubeSubscribers || '1.2k+', 
+      icon: 'y', 
+      color: 'bg-[#ff0000]',
+      url: 'https://www.youtube.com/@InfanoCare'
+    },
   ];
 
   return (
     <div className="grid grid-cols-2 gap-3">
       {platforms.map((p) => (
-        <div key={p.name} className={`${p.color} p-4 rounded-none flex flex-col items-center justify-center text-white space-y-1 shadow-md hover:scale-105 transition-transform cursor-pointer`}>
+        <a 
+          key={p.name} 
+          href={p.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${p.color} p-4 rounded-lg flex flex-col items-center justify-center text-white space-y-1 shadow-md hover:scale-105 transition-transform cursor-pointer`}
+        >
           <span className="text-xs font-black">{p.icon}</span>
           <span className="text-sm font-black">{p.count}</span>
           <span className="text-[8px] font-black uppercase tracking-widest opacity-60">{p.name}</span>
-        </div>
+        </a>
       ))}
     </div>
   );
@@ -185,7 +213,7 @@ export function PostTabsWidget({ posts }: { posts: any[] }) {
   const displayPosts = activeTab === 'recent' ? recentPosts : popularPosts;
 
   return (
-    <div className="bg-white rounded-none border border-gray-100 shadow-xl overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-xl overflow-hidden">
       <div className="flex border-b border-gray-100">
         <button
           onClick={() => setActiveTab('recent')}
@@ -212,7 +240,7 @@ export function PostTabsWidget({ posts }: { posts: any[] }) {
       <div className="p-6 space-y-6">
         {displayPosts.map((post) => (
           <Link key={post.id} href={`/blog/${post.slug}`} className="group flex gap-4 items-center">
-            <div className="relative w-20 h-20 rounded-none overflow-hidden shadow-md shrink-0 border border-gray-50">
+            <div className="relative w-20 h-20 rounded-lg overflow-hidden shadow-md shrink-0 border border-gray-50">
               <Image
                 src={getImageUrl(post.thumbnailUrl)}
                 alt=""

@@ -8,15 +8,35 @@ import {
   UserCheck, Loader2, Search, MoreVertical,
   CheckCircle2, Clock, Eye, AlertCircle, Trophy, X
 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function PeerManagement() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [approvingPeer, setApprovingPeer] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [revoking, setRevoking] = useState<string | null>(null);
   const { data, isLoading, error, refetch } = useUsers(page, 20, true);
   const menuRef = useRef<HTMLDivElement | null>(null);
+
+  // Helper to update local cache instantly
+  const updateLocalUser = (userId: string, patch: any) => {
+    queryClient.setQueryData(['users', page, 20, true], (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        users: old.users.map((u: any) => {
+          if (u.id !== userId) return u;
+          // Merge top level and peerApplication specifically
+          const newPeerApp = patch.peerApplication 
+            ? { ...u.peerApplication, ...patch.peerApplication }
+            : u.peerApplication;
+          return { ...u, ...patch, peerApplication: newPeerApp };
+        })
+      };
+    });
+  };
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -33,6 +53,8 @@ export default function PeerManagement() {
     setApprovingPeer(userId);
     try {
       await UserApiService.approvePeer(userId);
+      // Optimistic update
+      updateLocalUser(userId, { peerApplication: { status: 'approved' } });
       refetch();
     } catch (err: any) {
       alert(err.message || 'Failed to approve peer');
@@ -47,6 +69,11 @@ export default function PeerManagement() {
     setOpenMenuId(null);
     try {
       await UserApiService.revokePeer(userId);
+      // Optimistic update: Role becomes TEEN, status uncertified
+      updateLocalUser(userId, { 
+        role: 'TEEN', 
+        peerApplication: { certificationStatus: 'uncertified', status: 'pending' } 
+      });
       refetch();
     } catch (err: any) {
       alert(err.message || 'Action failed');
@@ -57,10 +84,15 @@ export default function PeerManagement() {
 
   const handleUnapproveAssessment = async (userId: string) => {
     if (!confirm('This will unapprove the training/assessment part only. The candidate will need to re-do the assessment. Continue?')) return;
-    setRevoking(userId); // reusing revoking state for loading
+    setRevoking(userId);
     setOpenMenuId(null);
     try {
       await UserApiService.unapproveAssessment(userId);
+      // Optimistic update: Role becomes TEEN, status unapproved
+      updateLocalUser(userId, { 
+        role: 'TEEN', 
+        peerApplication: { certificationStatus: 'unapproved' } 
+      });
       refetch();
     } catch (err: any) {
       alert(err.message || 'Action failed');
@@ -79,6 +111,8 @@ export default function PeerManagement() {
         return <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-600 rounded-xl text-[10px] font-black border border-blue-200"><Clock size={11} /> Conduct Pending</span>;
       case 'uncertified':
         return <span className="inline-flex items-center gap-1 px-3 py-1 bg-red-50 text-red-600 rounded-xl text-[10px] font-black border border-red-200"><X size={11} /> Uncertified</span>;
+      case 'unapproved':
+        return <span className="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 text-amber-700 rounded-xl text-[10px] font-black border border-amber-200"><AlertCircle size={11} /> Unapproved</span>;
       case 'pending_training':
       default:
         return <span className="inline-flex items-center gap-1 px-3 py-1 bg-slate-100 text-slate-500 rounded-xl text-[10px] font-black"><Clock size={11} /> Training</span>;

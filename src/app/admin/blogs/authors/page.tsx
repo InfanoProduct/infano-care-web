@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Users, User, Mail, Loader2, Edit, Trash2, CheckCircle2, X, Instagram } from 'lucide-react';
+import { Plus, Users, User, Mail, Loader2, Edit, Trash2, CheckCircle2, X } from 'lucide-react';
 import { LinkedinIcon, TwitterIcon, InstagramIcon, FacebookIcon } from '@/components/icons';
 import { blogService } from '@/services/blog.service';
 import ImageUploader from '@/components/upload/ImageUploader';

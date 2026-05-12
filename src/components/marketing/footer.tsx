@@ -23,6 +23,11 @@ const footerLinks = {
     { name: 'Cancellations and Refund', href: '/legal#refund' },
     { name: 'Pricing Policy', href: '/legal#pricing' },
     { name: 'Shipping Policy', href: '/legal#shipping' },
+    { name: 'Terms and Conditions', href: '/legal#terms' },
+    { name: 'Privacy Policies', href: '/legal#privacy' },
+    { name: 'Cancellations and Refund', href: '/legal#refund' },
+    { name: 'Pricing Policy', href: '/legal#pricing' },
+    { name: 'Shipping Policy', href: '/legal#shipping' },
   ],
   contact: [
     { name: 'Contact Us', href: '/contact' },
@@ -31,6 +36,9 @@ const footerLinks = {
     { name: 'schools@infano.care', href: 'mailto:schools@infano.care' },
   ],
   social: [
+    { name: 'Instagram', href: 'https://www.instagram.com/infano.care/' },
+    { name: 'YouTube', href: 'https://www.youtube.com/channel/UCjJ06NX_nNaWoezl3-QeeLg' },
+    { name: 'LinkedIn', href: 'https://www.linkedin.com/company/infanocare/' },
     { name: 'Instagram', href: 'https://www.instagram.com/infano.care/' },
     { name: 'YouTube', href: 'https://www.youtube.com/channel/UCjJ06NX_nNaWoezl3-QeeLg' },
     { name: 'LinkedIn', href: 'https://www.linkedin.com/company/infanocare/' },

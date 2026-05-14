@@ -24,6 +24,7 @@ export function PartnerEditorialCard({ title, desc, features, image, link, icon,
           alt={title}
           fill
           className="object-cover transition-transform duration-1000 group-hover:scale-105"
+          sizes="(max-width: 768px) 100vw, 50vw"
         />
         <div className="absolute top-6 left-6 w-12 h-12 bg-white/95 backdrop-blur-md rounded-xl flex items-center justify-center text-2xl shadow-xl shadow-black/5 z-20">
            {icon}

@@ -67,6 +67,8 @@ export function SliderCard({ card, index, isFirst, onDragEnd, onClick }: SliderC
             alt={card.title}
             fill
             className="object-cover transition-transform duration-700 group-hover:scale-110"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority={isFirst}
           />
           <div className="absolute top-4 right-4 px-3 py-1.5 bg-white/95 backdrop-blur text-[9px] font-black rounded-xl text-primary shadow-sm uppercase tracking-wider z-10">
             -40% OFF

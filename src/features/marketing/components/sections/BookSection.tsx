@@ -132,7 +132,7 @@ export function BookSection() {
               </div>
 
               <div className="flex gap-4 w-full sm:w-auto">
-                <Link href="/the-book" className="flex-1 sm:flex-none inline-flex items-center justify-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-full font-bold text-base hover:bg-primary transition-all shadow-lg shadow-slate-900/5 active:scale-95 group">
+                <Link href="/checkout" className="flex-1 sm:flex-none inline-flex items-center justify-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-full font-bold text-base hover:bg-primary transition-all shadow-lg shadow-slate-900/5 active:scale-95 group">
                   Buy Now <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                 </Link>
                 <Link href="/the-book#read" className="flex-1 sm:flex-none inline-flex items-center justify-center gap-3 px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-full font-bold text-sm hover:bg-slate-50 transition-all active:scale-95">

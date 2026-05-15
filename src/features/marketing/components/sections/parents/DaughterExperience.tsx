@@ -74,14 +74,20 @@ export function DaughterExperience() {
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-white/40 via-transparent to-transparent opacity-60" />
+            </motion.div>
 
-              {/* Overlay Badge */}
-              <div className="absolute bottom-8 left-8 right-8 p-6 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/50 shadow-xl">
-                <span className="text-primary font-bold text-[10px] uppercase tracking-[0.2em] mb-2 block text-center">Safe Space</span>
-                <p className="text-slate-800 text-sm font-semibold leading-relaxed text-center italic">
-                  "I finally feel like there's a place where I can ask anything without being judged."
-                </p>
-              </div>
+            {/* Overlay Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: '60%' }}
+              whileInView={{ opacity: 1, y: '50%' }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="absolute bottom-0 left-8 right-8 p-6 bg-white/90 backdrop-blur-xl rounded-2xl border border-white shadow-2xl z-30"
+            >
+              <span className="text-primary font-bold text-[10px] uppercase tracking-[0.2em] mb-2 block text-center">Safe Space</span>
+              <p className="text-slate-800 text-sm font-semibold leading-relaxed text-center italic">
+                "I finally feel like there's a place where I can ask anything without being judged."
+              </p>
             </motion.div>
 
             {/* Floating Decorative Elements */}

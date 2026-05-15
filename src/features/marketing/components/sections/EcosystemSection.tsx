@@ -9,7 +9,7 @@ const SUPERPOWERS = [
   {
     title: "Story-Based Learning",
     desc: "Interactive journeys that teach essential life skills through engaging narratives.",
-    image: "/eco-1.png",
+    image: "/S3Img1.png",
     link: "/ecosystem",
     features: [
       { icon: <PlayCircle size={14} />, label: "Video Lessons" },
@@ -21,7 +21,7 @@ const SUPERPOWERS = [
   {
     title: "Menstrual Wellness",
     desc: "AI-powered, stigma-free tracking that demystifies cycles with medical accuracy.",
-    image: "/eco-2.png",
+    image: "/S3Img2.png",
     link: "/ecosystem",
     features: [
       { icon: <Calendar size={14} />, label: "Cycle Tracking" },
@@ -33,7 +33,7 @@ const SUPERPOWERS = [
   {
     title: "Mental Wellness",
     desc: "Safe tools for mood tracking, mindfulness, and professional mental health support.",
-    image: "/eco-3.png",
+    image: "/S3Img3.png",
     link: "/ecosystem",
     features: [
       { icon: <Brain size={14} />, label: "Mood Tracking" },
@@ -45,7 +45,7 @@ const SUPERPOWERS = [
   {
     title: "Gamified Education",
     desc: "Learning that feels like play, keeping girls engaged with rewards and challenges.",
-    image: "/eco-4.png",
+    image: "/S3Img4.png",
     link: "/ecosystem",
     features: [
       { icon: <Activity size={14} />, label: "Streaks" },
@@ -57,7 +57,7 @@ const SUPERPOWERS = [
   {
     title: "Expert-Led Circles",
     desc: "Live and async sessions with qualified doctors, counsellors, and mentors.",
-    image: "/eco-5.png",
+    image: "/S3Img5.png",
     link: "/ecosystem",
     features: [
       { icon: <Users size={14} />, label: "Mentors" },
@@ -69,7 +69,7 @@ const SUPERPOWERS = [
   {
     title: "Peer Community",
     desc: "A secure space to make friends, share stories, and learn from each other.",
-    image: "/eco-6.png",
+    image: "/S3Img6.png",
     link: "/ecosystem",
     features: [
       { icon: <Users size={14} />, label: "Safe Groups" },
@@ -87,18 +87,18 @@ export function EcosystemSection() {
       <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-accent/5 rounded-full blur-[150px] translate-y-1/3 -translate-x-1/4" />
-        
+
         {/* Subtle decorative shapes */}
-        <motion.div 
-          animate={{ 
+        <motion.div
+          animate={{
             rotate: 360,
             scale: [1, 1.1, 1],
           }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
           className="absolute top-1/4 left-10 w-24 h-24 border border-primary/10 rounded-[30%_70%_70%_30%/30%_30%_70%_70%]"
         />
-        <motion.div 
-          animate={{ 
+        <motion.div
+          animate={{
             rotate: -360,
             scale: [1, 1.2, 1],
           }}
@@ -114,8 +114,8 @@ export function EcosystemSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <span className="text-primary font-black uppercase tracking-[0.4em] text-xs mb-4 inline-block">The Infano Universe</span>
-            <h2 className="text-4xl md:text-6xl font-bold font-heading mb-6 tracking-tight">
+            <span className="text-primary font-black uppercase tracking-[0.3em] text-[10px] mb-4 inline-block">The Infano Universe</span>
+            <h2 className="text-4xl md:text-5xl font-bold font-heading mb-6 tracking-tight text-slate-900">
               One ecosystem. <br />
               <span className="text-primary">Six superpowers</span> for your girl.
             </h2>
@@ -124,15 +124,16 @@ export function EcosystemSection() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8 mb-16">
           {SUPERPOWERS.map((superpower, index) => (
-            <SuperpowerCard 
+            <SuperpowerCard
               key={index}
               {...superpower}
               index={index}
+              priority={index < 3}
             />
           ))}
         </div>
-        
-        <motion.div 
+
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}

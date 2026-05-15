@@ -14,17 +14,18 @@ export function WellnessPillar() {
       </div>
 
       <div className="mx-auto px-6 md:px-12 lg:px-24 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-20 items-center">
+        <div className="grid lg:grid-cols-2 gap-20 place-items-center  ">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
+
           >
-            <div className="flex items-center gap-6 mb-6">
+            <div className="flex items-center gap-6 mb-6 ">
               <div className="w-16 h-16 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center text-3xl shadow-lg shadow-rose-900/5 border border-rose-100 shrink-0">
                 <Activity size={28} />
               </div>
-              <h2 className="text-2xl md:text-4xl font-bold text-slate-900 tracking-tighter leading-none">AI Wellness <br /> & Cycle Tracker</h2>
+              <h2 className="text-2xl md:text-4xl font-bold font-heading text-slate-900 tracking-tighter leading-none">AI Wellness <br /> & Cycle Tracker</h2>
             </div>
             <div className="w-16 h-1 bg-rose-400 rounded-full mb-8" />
             <p className="text-sm md:text-base text-slate-500 mb-10 leading-relaxed font-medium max-w-xl">
@@ -42,7 +43,7 @@ export function WellnessPillar() {
                     <Zap size={18} />
                   </div>
                   <div>
-                    <h4 className="text-base font-bold text-slate-900 mb-1 tracking-tight">{item.title}</h4>
+                    <h4 className="text-base font-bold font-heading text-slate-900 mb-1 tracking-tight">{item.title}</h4>
                     <p className="text-sm text-slate-500 font-medium leading-relaxed">{item.desc}</p>
                   </div>
                 </div>
@@ -51,7 +52,7 @@ export function WellnessPillar() {
 
             <div className="bg-rose-500 text-white p-8 rounded-[2.5rem] shadow-xl shadow-rose-900/20 relative overflow-hidden group">
               <div className="absolute top-0 left-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-x-1/2 -translate-y-1/2 group-hover:scale-150 transition-transform duration-1000" />
-              <h4 className="font-bold text-white mb-3 text-lg tracking-tight flex items-center gap-3">
+              <h4 className="font-bold text-white mb-3 text-lg tracking-tight flex items-center gap-3 font-heading">
                 <Shield size={20} /> Privacy First
               </h4>
               <p className="text-sm text-rose-50 leading-relaxed font-medium">
@@ -61,19 +62,19 @@ export function WellnessPillar() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
+            initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="relative"
+            className="order-2 lg:order-1 relative  "
           >
-            <div className="absolute -inset-20 bg-rose-200/30 blur-[120px] rounded-full animate-pulse" />
-            <div className="relative mx-auto w-full max-w-[520px]">
+            <div className="absolute -inset-10 bg-emerald-100/50 blur-[100px] rounded-full scale-75" />
+            <div className="relative mx-auto w-full ">
               <Image
                 src="/Ecosystem3.png"
                 alt="Mobile interface"
-                width={520}
-                height={1060}
-                className="object-contain"
+                width={500}
+                height={500}
+                className="object-contain w-[920px]"
               />
             </div>
           </motion.div>

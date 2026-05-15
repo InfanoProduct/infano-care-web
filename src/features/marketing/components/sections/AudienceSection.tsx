@@ -64,7 +64,7 @@ export function AudienceSection() {
           >
             Every girl. Every school. <br /> <span className="text-primary">Every family.</span>
           </motion.h2>
-          <p className="text-base md:text-lg text-slate-500 font-medium leading-relaxed">
+          <p className="text-base md:text-md text-slate-500 leading-relaxed font-medium">
             We've built Infano.care to be the missing piece in the puzzle of adolescent growth,
             connecting the dots between education, wellness, and home.
           </p>

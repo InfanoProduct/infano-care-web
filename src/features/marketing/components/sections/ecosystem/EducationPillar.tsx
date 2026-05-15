@@ -20,14 +20,14 @@ export function EducationPillar() {
             viewport={{ once: true }}
             className="order-2 lg:order-1 relative"
           >
-            <div className="absolute -inset-10 bg-sky-100/50 blur-[100px] rounded-full scale-75" />
-            <div className="relative mx-auto w-full max-w-[520px]">
+            <div className="absolute -inset-10 bg-emerald-100/50 blur-[100px] rounded-full scale-75" />
+            <div className="relative mx-auto w-full ">
               <Image
                 src="/Ecosystem4.png"
                 alt="Mobile interface"
-                width={520}
-                height={1060}
-                className="object-contain"
+                width={500}
+                height={500}
+                className="object-contain w-[920px]"
               />
             </div>
           </motion.div>
@@ -42,7 +42,7 @@ export function EducationPillar() {
               <div className="w-16 h-16 rounded-2xl bg-sky-50 text-sky-500 flex items-center justify-center text-3xl shadow-lg shadow-sky-900/5 border border-sky-100 shrink-0">
                 <Zap size={28} />
               </div>
-              <h2 className="text-2xl md:text-4xl font-bold text-slate-900 tracking-tighter leading-none">Gamified <br /> Education</h2>
+              <h2 className="text-2xl md:text-4xl font-bold font-heading text-slate-900 tracking-tighter leading-none">Gamified <br /> Education</h2>
             </div>
             <div className="w-16 h-1 bg-sky-400 rounded-full mb-8" />
             <p className="text-sm md:text-base text-slate-500 mb-10 leading-relaxed font-medium max-w-xl">
@@ -53,14 +53,14 @@ export function EducationPillar() {
               {[
                 { title: 'Daily Quests', desc: 'Short modules (5–10 mins) that fit her daily routine.' },
                 { title: 'Achievement Badges', desc: 'Unlock milestones across 20+ life skill categories.' },
-                { title: 'Safe Competition', desc: 'Optional moderated school leaderboards to foster growth.' }
+                { title: 'Level Based Growth', desc: 'Different levels based on the age and learning ability.' }
               ].map((item, i) => (
                 <div key={i} className="flex gap-4 items-start group">
                   <div className="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-500 shrink-0 border border-sky-100 group-hover:bg-sky-500 group-hover:text-white transition-all duration-500">
                     <CheckCircle2 size={18} />
                   </div>
                   <div>
-                    <h4 className="text-base font-bold text-slate-900 mb-1 tracking-tight">{item.title}</h4>
+                    <h4 className="text-base font-bold font-heading text-slate-900 mb-1 tracking-tight">{item.title}</h4>
                     <p className="text-sm text-slate-500 font-medium leading-relaxed">{item.desc}</p>
                   </div>
                 </div>

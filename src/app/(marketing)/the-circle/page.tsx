@@ -8,11 +8,11 @@ export default function TheCirclePage() {
       {/* Section 6.1 — Hero */}
       <section className="pt-24 pb-20 bg-primary/5">
         <div className="max-w-4xl mx-auto px-6 md:px-12 lg:px-24 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold font-heading mb-6 text-foreground">
+          <h1 className="text-4xl md:text-6xl font-bold font-heading mb-6 tracking-tight text-slate-900">
             Every girl needs a circle. <br className="hidden md:block" />
             <span className="text-primary">We help her build one.</span>
           </h1>
-          <p className="text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-10">
+          <p className="text-xl text-slate-500 leading-relaxed max-w-3xl mx-auto mb-10 font-medium">
             The Infano Support Circle is where expertise meets community. From live sessions with qualified professionals to warm, peer-to-peer connection — it's the space where girls feel truly understood.
           </p>
           <PeerLineHeroAction />
@@ -23,8 +23,8 @@ export default function TheCirclePage() {
       <section className="py-24 bg-white">
         <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold font-heading mb-4">Expert-Led Circles</h2>
-            <p className="text-lg text-muted-foreground">
+            <h2 className="text-3xl md:text-4xl font-bold font-heading mb-4 tracking-tight text-slate-900">Expert-Led Circles</h2>
+            <p className="text-lg text-slate-500 font-medium leading-relaxed">
               Our Expert Circles are curated, moderated sessions — live and recorded — hosted by professionals who have dedicated their careers to adolescent wellbeing.
             </p>
           </div>
@@ -39,8 +39,8 @@ export default function TheCirclePage() {
             ].map((circle) => (
               <div key={circle.title} className={`p-8 rounded-3xl border ${circle.highlight ? 'bg-red-50 border-red-100' : 'bg-slate-50 border-border'} hover:-translate-y-1 transition-transform`}>
                 <div className="text-4xl mb-4">{circle.icon}</div>
-                <h3 className="text-xl font-bold mb-3">{circle.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">{circle.desc}</p>
+                <h3 className="text-xl font-bold font-heading mb-3 tracking-tight text-slate-900">{circle.title}</h3>
+                <p className="text-slate-500 text-sm leading-relaxed font-medium">{circle.desc}</p>
               </div>
             ))}
           </div>
@@ -74,8 +74,8 @@ export default function TheCirclePage() {
         <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
           <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold font-heading mb-6">Learning from each other is one of the most powerful things girls can do.</h2>
-              <p className="text-lg text-muted-foreground leading-relaxed mb-8">
+              <h2 className="text-3xl md:text-4xl font-bold font-heading mb-6 tracking-tight text-slate-900">Learning from each other is one of the most powerful things girls can do.</h2>
+              <p className="text-lg text-slate-500 leading-relaxed font-medium mb-8">
                 The Infano peer community is a warm, structured, and fully moderated space where girls connect around shared interests and experiences. Unlike social media, there are no follower counts, no viral loops, and no toxic comparison. Just girls supporting girls.
               </p>
               <div className="space-y-6">
@@ -88,8 +88,8 @@ export default function TheCirclePage() {
                   <div key={item.title} className="flex gap-4">
                     <div className="text-3xl shrink-0">{item.icon}</div>
                     <div>
-                      <h4 className="font-bold text-lg">{item.title}</h4>
-                      <p className="text-muted-foreground">{item.desc}</p>
+                      <h4 className="font-bold font-heading text-lg text-slate-900 tracking-tight">{item.title}</h4>
+                      <p className="text-slate-500 font-medium text-sm leading-relaxed">{item.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -98,7 +98,7 @@ export default function TheCirclePage() {
 
             <div className="relative">
               <div className="bg-white rounded-3xl p-8 shadow-xl border border-slate-100">
-                <h3 className="text-xl font-bold font-heading mb-6 flex items-center gap-2">
+                <h3 className="text-xl font-bold font-heading mb-6 flex items-center gap-2 text-slate-900 tracking-tight">
                   <ShieldAlert className="text-secondary" /> Safety Architecture
                 </h3>
                 <ul className="space-y-4">

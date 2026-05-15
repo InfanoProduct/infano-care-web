@@ -15,7 +15,7 @@ export function BookSection() {
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
           {/* Left: Book Image & Testimonial */}
-          <div className="flex flex-col gap-10">
+          <div className="flex flex-col ">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -29,7 +29,7 @@ export function BookSection() {
                 className="relative z-10 w-full max-w-xl mx-auto h-[400px] md:h-[550px]"
               >
                 <Image
-                  src="/S5Img1.png"
+                  src="/girl-standing-with-book.png"
                   alt="A story of Every Adolescent Girl - Book Bundle"
                   fill
                   className="object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.1)]"
@@ -76,10 +76,10 @@ export function BookSection() {
             </motion.div>
 
             <h2 className="text-4xl md:text-5xl font-bold font-heading mb-6 leading-tight tracking-tight text-slate-900">
-              A story of Every <br /> <span className="text-primary/40">Adolescent Girl</span>
+              A story of Every <br /> <span className="text-primary">Adolescent Girl</span>
             </h2>
 
-            <p className="text-base text-slate-500 leading-relaxed font-medium mb-10 max-w-lg">
+            <p className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-10 max-w-lg">
               A warm, illustrated guide to the adolescent journey—built to spark reflection, confidence, and conversations at home. Short chapters, friendly visuals, and practical prompts.
             </p>
 
@@ -114,7 +114,7 @@ export function BookSection() {
                   <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
                     <CheckCircle2 size={16} />
                   </div>
-                  <span className="text-base font-bold text-slate-700 tracking-tight">{text}</span>
+                  <span className="text-base font-bold text-slate-900 tracking-tight">{text}</span>
                 </motion.div>
               ))}
             </div>
@@ -124,7 +124,7 @@ export function BookSection() {
               <div className="flex flex-col">
                 <div className="flex items-baseline gap-2">
                   <span className="text-3xl font-bold text-slate-900 tracking-tighter">₹499</span>
-                  <span className="text-slate-300 line-through text-lg font-bold">₹999</span>
+                  <span className="text-slate-400 line-through text-lg font-bold">₹999</span>
                 </div>
                 <span className="text-emerald-500 font-bold text-[9px] uppercase tracking-widest mt-1">
                   Special 50% Launch Offer

@@ -49,11 +49,11 @@ export function ProblemSection() {
           >
             The Reality
           </motion.span>
-          <h2 className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-foreground">
+          <h2 className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900">
             Adolescence is the most <br /> <span className="text-primary">defining chapter</span> in a girl's life.
           </h2>
-          <p className="text-base md:text-lg text-muted-foreground leading-relaxed font-medium">
-            Yet, it is often the most neglected. Between ages 10 and 21, she navigates a world that often tells her to be <span className="text-foreground font-semibold">quieter, smaller, and less.</span>
+          <p className="text-base md:text-md text-slate-500 leading-relaxed font-medium">
+            Yet, it is often the most neglected. Between ages 10 and 21, she navigates a world that often tells her to be <span className="text-slate-900 font-semibold">quieter, smaller, and less.</span>
           </p>
           <div className="mt-12 h-1 w-24 bg-primary/20 mx-auto rounded-full" />
         </div>

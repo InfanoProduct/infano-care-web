@@ -30,7 +30,7 @@ export function SuperpowerCard({ title, desc, features, image, link, index, prio
     >
       <div className="relative z-10">
         <div className="max-w-[85%] mb-6">
-          <h3 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight group-hover:text-primary transition-colors duration-500 mb-4">{title}</h3>
+          <h3 className="text-xl md:text-2xl font-bold font-heading text-slate-900 tracking-tight leading-tight group-hover:text-primary transition-colors duration-500 mb-4">{title}</h3>
           <p className="text-slate-500 leading-relaxed text-xs md:text-sm font-medium">
             {desc}
           </p>

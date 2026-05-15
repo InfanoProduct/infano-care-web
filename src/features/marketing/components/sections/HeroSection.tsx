@@ -76,22 +76,22 @@ export function HeroSection() {
               </div>
               <span className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">The Leader in Girls' Wellness</span>
             </motion.div>
- 
+
             <motion.h1
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="text-4xl md:text-5xl font-bold font-heading text-slate-900 mb-6 leading-[1.1] tracking-tight"
+              className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900"
             >
               Build The Skills To <br />
               <span className="text-primary">Bloom With Confidence.</span>
             </motion.h1>
- 
+
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="text-base md:text-lg text-slate-500 mb-10 max-w-sm leading-relaxed font-medium mx-auto lg:mx-0"
+              className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-8"
             >
               Infano.care is India's most holistic ecosystem for girls—blending story-led learning, wellness tracking, and expert guidance into one safe space.
             </motion.p>
@@ -179,7 +179,7 @@ export function HeroSection() {
             className="relative z-10 h-full w-full"
           >
             <Image
-              src="/hero.png"
+              src="/heroImage1.png"
               alt="Student"
               fill
               className="object-contain object-bottom drop-shadow-[0_15px_40px_rgba(0,0,0,0.12)]"

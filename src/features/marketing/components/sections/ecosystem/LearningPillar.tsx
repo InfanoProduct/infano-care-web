@@ -17,7 +17,7 @@ export function LearningPillar() {
         </div>
       </div>
 
-      <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
+      <div className="mx-auto px-6 md:px-12 lg:px-24 relative z-10 ">
         <div className="grid lg:grid-cols-2 gap-20 items-center">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
@@ -26,13 +26,13 @@ export function LearningPillar() {
             className="order-2 lg:order-1 relative"
           >
             <div className="absolute -inset-10 bg-emerald-100/50 blur-[100px] rounded-full scale-75" />
-            <div className="relative mx-auto w-full max-w-[520px]">
+            <div className="relative mx-auto w-full ">
               <Image
                 src="/Ecosystem2.png"
                 alt="Mobile interface"
-                width={520}
-                height={1060}
-                className="object-contain"
+                width={500}
+                height={500}
+                className="object-contain w-[920px]"
               />
             </div>
           </motion.div>
@@ -47,7 +47,7 @@ export function LearningPillar() {
               <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-3xl shadow-lg shadow-emerald-900/5 border border-emerald-100 shrink-0">
                 <BookOpen size={28} />
               </div>
-              <h2 className="text-2xl md:text-4xl font-bold text-slate-900 tracking-tighter leading-none">Story-Based <br /> Learning Journeys</h2>
+              <h2 className="text-2xl md:text-4xl font-bold font-heading text-slate-900 tracking-tighter leading-none">Story-Based <br /> Learning Journeys</h2>
             </div>
             <div className="w-16 h-1 bg-emerald-400 rounded-full mb-8" />
             <p className="text-sm md:text-base text-slate-500 mb-10 leading-relaxed font-medium max-w-xl">
@@ -57,7 +57,7 @@ export function LearningPillar() {
             <div className="grid gap-6 mb-12">
               {[
                 { title: 'Interactive Choices', desc: 'Branching narratives where her choices shape the outcome.' },
-                { title: '12+ Unique Worlds', desc: 'Designed for ages 10–21 with age-appropriate themes.' },
+                { title: 'Unique Journeys', desc: 'Designed for ages 10–21 with age-appropriate themes.' },
                 { title: 'Progress Rewards', desc: 'Badges and unlocks that celebrate every chapter finished.' }
               ].map((item, i) => (
                 <div key={i} className="flex gap-4 items-start group">
@@ -65,19 +65,19 @@ export function LearningPillar() {
                     <CheckCircle2 size={18} />
                   </div>
                   <div>
-                    <h4 className="text-base font-bold text-slate-900 mb-1 tracking-tight">{item.title}</h4>
+                    <h4 className="text-base font-bold font-heading text-slate-900 mb-1 tracking-tight">{item.title}</h4>
                     <p className="text-sm text-slate-500 font-medium leading-relaxed">{item.desc}</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="bg-slate-900 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
+            <div className="bg-emerald-50 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl translate-x-1/2 -translate-y-1/2 group-hover:scale-150 transition-transform duration-1000" />
-              <h4 className="font-bold mb-4 text-[10px] uppercase tracking-[0.3em] text-white/40">Popular Collections</h4>
+              <h4 className="font-bold mb-4 text-[10px] uppercase tracking-[0.3em] ">Popular Collections</h4>
               <div className="flex flex-wrap gap-2">
-                {['Body Talks', 'Her Money Mind', 'Unfiltered', 'Friendship Lab'].map((tag) => (
-                  <span key={tag} className="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-xs font-bold text-white hover:bg-primary hover:border-primary transition-all cursor-pointer">
+                {['Decode Puberty', 'Digital Literacy', 'Peer Pressure', 'Safety & POCSO'].map((tag) => (
+                  <span key={tag} className="px-4 py-2 bg-emerald-500 border border-emerald-100 rounded-full text-xs font-bold text-white hover:bg-primary hover:border-primary transition-all cursor-pointer">
                     {tag}
                   </span>
                 ))}

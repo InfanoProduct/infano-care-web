@@ -34,7 +34,7 @@ export function PartnerEditorialCard({ title, desc, features, image, link, icon,
 
       {/* Content Area */}
       <div className="p-8 md:p-10 flex flex-col flex-grow">
-        <h3 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4 tracking-tight leading-none group-hover:text-primary transition-colors duration-500">{title}</h3>
+        <h3 className="text-2xl md:text-3xl font-bold font-heading text-slate-900 mb-4 tracking-tight leading-none group-hover:text-primary transition-colors duration-500">{title}</h3>
         <p className="text-slate-500 mb-8 leading-relaxed font-medium text-base">
           {desc}
         </p>

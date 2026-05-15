@@ -5,24 +5,24 @@ import { motion } from 'framer-motion';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 
 const TIERS = [
-  { 
-    tier: 'Tier 01', 
-    title: 'Digital', 
+  {
+    tier: 'Tier 01',
+    title: 'Digital',
     features: ['Standard App Access', 'Basic Reporting', 'Self-Serve Portal'],
     desc: 'Empower students with self-paced digital wellness tools.',
     color: 'border-slate-100'
   },
-  { 
-    tier: 'Tier 02', 
-    title: 'Blended', 
+  {
+    tier: 'Tier 02',
+    title: 'Blended',
     features: ['Expert-led Circles', 'Infano Book copies', 'Parent Workshops'],
     desc: 'A mix of digital tools and live expert guidance.',
     color: 'border-primary/20 bg-primary/[0.02]',
     popular: true
   },
-  { 
-    tier: 'Tier 03', 
-    title: 'Full', 
+  {
+    tier: 'Tier 03',
+    title: 'Full',
     features: ['On-campus Orientation', 'Custom Content', 'Priority Support'],
     desc: 'Deep integration with on-ground support and custom curriculum.',
     color: 'border-accent/20 bg-accent/[0.02]'
@@ -34,22 +34,22 @@ export function PartnershipTiers() {
     <section className="py-32 bg-white">
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
         <div className="text-center max-w-3xl mx-auto mb-20">
-          <motion.h2 
+          <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-4xl md:text-6xl font-bold font-heading text-slate-900 mb-6 tracking-tight"
+            className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900"
           >
             Partnership Structures.
           </motion.h2>
-          <p className="text-lg text-slate-500 font-medium">
+          <p className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-8">
             Choose the level of integration that fits your institution's goals and infrastructure.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
           {TIERS.map((item, i) => (
-            <motion.div 
+            <motion.div
               key={i}
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
@@ -67,27 +67,26 @@ export function PartnershipTiers() {
               <p className="text-slate-500 mb-10 leading-relaxed font-medium">
                 {item.desc}
               </p>
-              
+
               <div className="space-y-5 mb-12 flex-1">
-                 {item.features.map((f, idx) => (
-                   <div key={idx} className="flex items-center gap-4">
-                      <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                        <CheckCircle2 size={14} className="text-slate-300 group-hover:text-primary transition-colors" />
-                      </div>
-                      <span className="text-sm font-bold text-slate-700">{f}</span>
-                   </div>
-                 ))}
+                {item.features.map((f, idx) => (
+                  <div key={idx} className="flex items-center gap-4">
+                    <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                      <CheckCircle2 size={14} className="text-slate-300 group-hover:text-primary transition-colors" />
+                    </div>
+                    <span className="text-sm font-bold text-slate-700">{f}</span>
+                  </div>
+                ))}
               </div>
 
-              <Link 
-                href="/contact" 
-                className={`w-full py-5 rounded-full text-center font-bold text-sm tracking-widest uppercase transition-all duration-300 flex items-center justify-center gap-3 ${
-                  item.popular 
-                  ? 'bg-primary text-white shadow-xl shadow-primary/20 hover:bg-primary-dark' 
+              <Link
+                href="/contact"
+                className={`w-full py-5 rounded-full text-center font-bold text-sm tracking-widest uppercase transition-all duration-300 flex items-center justify-center gap-3 ${item.popular
+                  ? 'bg-primary text-white shadow-xl shadow-primary/20 hover:bg-primary-dark'
                   : 'bg-slate-900 text-white hover:bg-primary'
-                }`}
+                  }`}
               >
-                 Inquire Now <ArrowRight size={16} />
+                Inquire Now <ArrowRight size={16} />
               </Link>
             </motion.div>
           ))}

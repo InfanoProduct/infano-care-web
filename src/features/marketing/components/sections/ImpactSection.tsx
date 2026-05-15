@@ -59,16 +59,16 @@ function TestimonialCard({ quote, author, location, bgColor, span, isLarge }: {
       className={`${span} ${bgColor} rounded-[2.5rem] ${isLarge ? 'p-10 md:p-16 min-h-[440px]' : 'p-10 min-h-[300px]'} flex flex-col justify-between relative overflow-hidden group`}
     >
       <div className={`absolute top-8 left-8 ${isLarge ? 'text-[12rem]' : 'text-[8rem]'} font-serif text-white/40 select-none leading-none opacity-50`}>“</div>
-      <p className={`${isLarge ? 'text-2xl md:text-3xl' : 'text-xl'} font-medium text-[#111827] leading-[1.4] relative z-10 tracking-tight max-w-[90%] mt-8`}>
+      <p className={`${isLarge ? 'text-2xl md:text-3xl' : 'text-xl'} font-medium text-slate-900 leading-[1.4] relative z-10 tracking-tight max-w-[90%] mt-8`}>
          "{quote}"
       </p>
       <div className="flex items-center gap-4 relative z-10 mt-8">
-         <div className="w-16 h-16 rounded-full bg-[#111827]/5 flex items-center justify-center">
-            <Users size={28} className="text-[#111827]/40" />
+         <div className="w-16 h-16 rounded-full bg-slate-900/5 flex items-center justify-center">
+            <Users size={28} className="text-slate-400" />
          </div>
          <div>
-            <p className="font-bold text-[#111827] text-lg">{author}</p>
-            <p className="text-[10px] text-[#111827]/40 font-bold uppercase tracking-[0.2em]">{location}</p>
+            <p className="font-bold text-slate-900 text-lg">{author}</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">{location}</p>
          </div>
       </div>
     </motion.div>
@@ -90,7 +90,7 @@ export function ImpactSection() {
 
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
         <div className="text-center mb-16 md:mb-20">
-           <h2 className="text-4xl md:text-5xl font-bold font-heading tracking-tight text-[#111827]">
+           <h2 className="text-4xl md:text-5xl font-bold font-heading tracking-tight text-slate-900">
               Real girls. <span className="text-primary">Real change.</span>
            </h2>
         </div>

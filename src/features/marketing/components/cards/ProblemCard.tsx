@@ -42,9 +42,9 @@ export function ProblemCard({ title, desc, color, image, link, index, tags }: Pr
       </span>
 
       <div className='flex flex-col relative z-10 gap-6 md:gap-8 h-full'>
-        <h3 className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight leading-tight">{title}</h3>
+        <h3 className="text-4xl md:text-5xl font-bold font-heading text-slate-900 tracking-tight leading-tight">{title}</h3>
         
-        <p className="text-slate-800/70 leading-relaxed text-base md:text-lg font-medium">
+        <p className="text-slate-500 leading-relaxed text-base md:text-lg font-medium">
           {desc}
         </p>
 

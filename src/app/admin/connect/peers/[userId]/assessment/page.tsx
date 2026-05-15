@@ -26,8 +26,20 @@ export default function PeerAssessmentPage({ params }: { params: Promise<{ userI
   const handleApproveCertification = async () => {
     setApprovingCert(true);
     try {
-      await apiClient.patch(`/admin/users/${userId}/approve-certification`, {});
-      router.push('/admin/connect/peers');
+      const res: any = await apiClient.patch(`/admin/users/${userId}/approve-certification`, {});
+      // Optimistic/Local update before navigation
+      if (user) {
+        setUser({
+          ...user,
+          role: 'PEER',
+          peerApplication: {
+            ...user.peerApplication,
+            certificationStatus: 'certified',
+            certificateId: res.certificateId
+          }
+        });
+      }
+      setTimeout(() => router.push('/admin/connect/peers'), 500);
     } catch (err: any) {
       alert(err.message || 'Failed to approve certification');
     } finally {
@@ -40,7 +52,18 @@ export default function PeerAssessmentPage({ params }: { params: Promise<{ userI
     setApprovingCert(true);
     try {
       await apiClient.patch(`/admin/users/${userId}/unapprove-assessment`, {});
-      router.push('/admin/connect/peers');
+      // Optimistic update
+      if (user) {
+        setUser({
+          ...user,
+          role: 'TEEN',
+          peerApplication: {
+            ...user.peerApplication,
+            certificationStatus: 'unapproved'
+          }
+        });
+      }
+      setTimeout(() => router.push('/admin/connect/peers'), 500);
     } catch (err: any) {
       alert(err.message || 'Failed to unapprove');
     } finally {
@@ -85,6 +108,11 @@ export default function PeerAssessmentPage({ params }: { params: Promise<{ userI
           <p className="text-sm text-muted-foreground mt-1">
             {user.profile?.displayName || 'Candidate'} — Detailed Review
           </p>
+          {app.certificateId && (
+            <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 text-slate-500 rounded-lg border border-slate-200 text-[10px] font-bold uppercase tracking-wider">
+              ID: {app.certificateId}
+            </div>
+          )}
         </div>
         <div className="ml-auto flex gap-3">
           {app.certificationStatus === 'submitted' && (

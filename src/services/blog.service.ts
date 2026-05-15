@@ -161,6 +161,18 @@ class BlogService {
       }
     });
   }
+
+  // --- Comments ---
+  async getPostComments(postId: string) {
+    return this.fetchWithAuth<any[]>(`/blog/posts/${postId}/comments`);
+  }
+
+  async createComment(postId: string, data: { name: string; email: string; content: string }) {
+    return this.fetchWithAuth(`/blog/posts/${postId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 export const blogService = new BlogService();

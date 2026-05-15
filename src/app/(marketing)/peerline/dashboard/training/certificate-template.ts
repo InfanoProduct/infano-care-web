@@ -1,4 +1,4 @@
-export const getCertificateTemplate = (userName: string, date: string) => `
+export const getCertificateTemplate = (userName: string, date: string, certificateId?: string) => `
 <!DOCTYPE html>
 <html>
   <head>
@@ -175,6 +175,18 @@ export const getCertificateTemplate = (userName: string, date: string) => `
         font-size: 40px;
         font-weight: 900;
       }
+      .cert-id {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 9px;
+        color: #94A3B8;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        z-index: 20;
+      }
       @media print {
         body { background: none; }
         .cert-wrapper { 
@@ -228,6 +240,11 @@ export const getCertificateTemplate = (userName: string, date: string) => `
                 <div class="sign-name">Program Director</div>
                 <div class="sign-title">PeerLine Administration</div>
               </div>
+              </div>
+            </div>
+            
+            <div class="cert-id">
+              Certificate ID: ${certificateId || 'INF-PR-TEMP-XXXX'}
             </div>
           </div>
         </div>

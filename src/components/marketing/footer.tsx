@@ -24,11 +24,6 @@ const footerLinks = {
     { name: 'Cancellations and Refund', href: '/legal#refund' },
     { name: 'Pricing Policy', href: '/legal#pricing' },
     { name: 'Shipping Policy', href: '/legal#shipping' },
-    { name: 'Terms and Conditions', href: '/legal#terms' },
-    { name: 'Privacy Policies', href: '/legal#privacy' },
-    { name: 'Cancellations and Refund', href: '/legal#refund' },
-    { name: 'Pricing Policy', href: '/legal#pricing' },
-    { name: 'Shipping Policy', href: '/legal#shipping' },
   ],
   contact: [
     { name: 'Contact Us', href: '/contact' },
@@ -212,11 +207,12 @@ export function MarketingFooter() {
             <ul className="space-y-4">
               {footerLinks.legal.map((link) => (
                 <li key={link.name}>
-                  <Link
-                    href={link.href}
+                  <Link 
+                    href={link.href} 
                     scroll={false}
-                    className="text-sm hover:text-primary-light transition-colors"
+                    className="text-sm font-medium text-slate-400 hover:text-white transition-colors flex items-center group"
                   >
+                    <span className="h-1 w-0 bg-primary mr-0 group-hover:w-2 group-hover:mr-2 transition-all rounded-full" />
                     {link.name}
                   </Link>
                 </li>

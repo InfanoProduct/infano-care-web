@@ -260,6 +260,11 @@ export default function PeerManagement() {
                             <Eye size={12} /> Review Assessment
                           </button>
                         )}
+                        {user.peerApplication.certificateId && (
+                          <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 bg-slate-50 text-slate-400 border border-slate-100 rounded text-[9px] font-bold uppercase tracking-tighter">
+                            ID: {user.peerApplication.certificateId}
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <span className="text-xs text-muted-foreground">—</span>

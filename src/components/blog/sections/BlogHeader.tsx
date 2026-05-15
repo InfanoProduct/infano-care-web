@@ -27,6 +27,12 @@ const Facebook = () => (
   </svg>
 );
 
+const Youtube = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+  </svg>
+);
+
 export function BlogHeader({ post }: BlogHeaderProps) {
   const handleShare = () => {
     if (navigator.share) {
@@ -94,40 +100,48 @@ export function BlogHeader({ post }: BlogHeaderProps) {
                 </div>
               </div>
 
-              <div className="sm:ml-auto flex items-center gap-2">
-                {post.author?.instagramUrl && (
-                  <a 
-                    href={post.author.instagramUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:text-white transition-all shadow-sm"
-                  >
-                    <Instagram />
-                  </a>
-                )}
-                {post.author?.linkedInUrl && (
-                  <a 
-                    href={post.author.linkedInUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-[#0077b5] hover:text-white transition-all shadow-sm"
-                  >
-                    <Linkedin />
-                  </a>
-                )}
-                {post.author?.facebookUrl && (
-                  <a 
-                    href={post.author.facebookUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-[#1877f2] hover:text-white transition-all shadow-sm"
-                  >
-                    <Facebook />
-                  </a>
-                )}
+              <div className="sm:ml-auto flex items-center gap-3">
+                <a 
+                  href="https://www.instagram.com/infano.care/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:text-white transition-all shadow-sm"
+                  title="Follow on Instagram"
+                >
+                  <Instagram />
+                </a>
+                <a 
+                  href="https://www.youtube.com/@InfanoCare"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-[#ff0000] hover:text-white transition-all shadow-sm"
+                  title="Subscribe on YouTube"
+                >
+                  <Youtube />
+                </a>
+                <a 
+                  href="https://www.linkedin.com/company/infanocare/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-[#0077b5] hover:text-white transition-all shadow-sm"
+                  title="Connect on LinkedIn"
+                >
+                  <Linkedin />
+                </a>
+                <a 
+                  href="https://www.facebook.com/infano.wecare"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-[#1877f2] hover:text-white transition-all shadow-sm"
+                  title="Follow on Facebook"
+                >
+                  <Facebook />
+                </a>
+                <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
                 <button 
                   onClick={handleShare}
-                  className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-slate-900 hover:text-white transition-all shadow-sm ml-2"
+                  className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-slate-900 hover:text-white transition-all shadow-sm"
+                  title="Share Article"
                 >
                   <Share2 size={14} />
                 </button>
@@ -136,7 +150,6 @@ export function BlogHeader({ post }: BlogHeaderProps) {
           </div>
         </div>
 
-        {/* Right Image */}
         <div className="relative aspect-[4/5] lg:aspect-square w-full rounded-xl overflow-hidden shadow-2xl">
           <img 
             src={getImageUrl(post.thumbnailUrl)} 

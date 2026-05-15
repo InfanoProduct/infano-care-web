@@ -52,17 +52,21 @@ export default function BlogPostDetailPage() {
       setAllPosts(publishedPosts);
       setCategories(categoriesData);
 
-      // Load Editor's Choice posts (Posts with 'choice' or 'editor' tag, or latest)
-      const ecPosts = publishedPosts
-        .filter((p: any) => p.id !== data.id)
-        .sort((a: any, b: any) => {
-          const aChoice = a.tags?.some((t: string) => ['choice', 'editor'].includes(t.toLowerCase()));
-          const bChoice = b.tags?.some((t: string) => ['choice', 'editor'].includes(t.toLowerCase()));
-          if (aChoice && !bChoice) return -1;
-          if (!aChoice && bChoice) return 1;
-          return 0;
-        })
-        .slice(0, 4);
+      // Load Editor's Choice posts (Prioritize tagged posts, fallback to available posts)
+      const taggedPosts = publishedPosts.filter((p: any) => 
+        p.id !== data.id &&
+        p.tags?.some((t: string) => ['choice', 'editor', 'editors-choice'].includes(t.toLowerCase()))
+      );
+      
+      let ecPosts = [];
+      if (taggedPosts.length > 0) {
+        ecPosts = taggedPosts.slice(0, 4);
+      } else {
+        // Fallback to general list (excluding current post)
+        ecPosts = publishedPosts
+          .filter((p: any) => p.id !== data.id)
+          .slice(0, 4);
+      }
       setRelatedPosts(ecPosts);
     } catch (error: any) {
       console.error('Failed to load post:', error);
@@ -92,7 +96,7 @@ export default function BlogPostDetailPage() {
           <div className="lg:col-span-8">
             <BlogContent post={post} />
           </div>
-          <aside className="lg:col-span-4 space-y-12" style={{ fontFamily: 'var(--blog-font-main)' }}>
+          <aside className="lg:col-span-4 space-y-12 sticky top-24 self-start" style={{ fontFamily: 'var(--blog-font-main)' }}>
             <div className="space-y-6">
               <h3 className="blog-widget-title pl-1">Don't Miss</h3>
               <PromoBanner />

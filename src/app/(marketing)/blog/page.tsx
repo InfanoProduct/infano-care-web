@@ -25,6 +25,7 @@ function BlogPageContent() {
   const [search, setSearch] = useState('');
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(categoryParam);
+  const [globalStats, setGlobalStats] = useState<any>(null);
 
   useEffect(() => {
     setSelectedCategory(categoryParam);
@@ -37,13 +38,15 @@ function BlogPageContent() {
   const loadData = async () => {
     setLoading(true);
     try {
-        const [postsData, categoriesData] = await Promise.all([
+        const [postsData, categoriesData, statsData] = await Promise.all([
           blogService.getAllPosts(1, 50, ''),
-          blogService.getCategories()
-        ]) as [any, any];
+          blogService.getCategories(),
+          blogService.getGlobalStats().catch(() => null)
+        ]) as [any, any, any];
       // Only show published posts for public view
       setPosts(postsData.items.filter((p: any) => p.isPublished));
       setCategories(categoriesData);
+      setGlobalStats(statsData);
     } catch (error) {
       console.error('Failed to load blog data:', error);
     } finally {
@@ -111,16 +114,19 @@ function BlogPageContent() {
       latestUpdates = latestUpdates.slice(fillCount);
     }
 
-    // 5. Editor's Choice (Posts with 'choice' or 'editor' tag, or next in line)
-    const editorsChoice = [...latestUpdates]
-      .sort((a: any, b: any) => {
-        const aChoice = a.tags?.some((t: string) => ['choice', 'editor'].includes(t.toLowerCase()));
-        const bChoice = b.tags?.some((t: string) => ['choice', 'editor'].includes(t.toLowerCase()));
-        if (aChoice && !bChoice) return -1;
-        if (!aChoice && bChoice) return 1;
-        return 0;
-      })
-      .slice(0, 4);
+    // 5. Editor's Choice (Prioritize tagged posts, fallback to available posts)
+    const taggedPosts = posts.filter(p => 
+      p.tags?.some((t: string) => ['choice', 'editor', 'editors-choice'].includes(t.toLowerCase()))
+    );
+    
+    let editorsChoice = [];
+    if (taggedPosts.length > 0) {
+      editorsChoice = taggedPosts.slice(0, 4);
+    } else {
+      // Fallback to all available posts (excluding the currently featured one if any)
+      const fallbackPool = posts.filter(p => p.id !== featuredPost?.id);
+      editorsChoice = fallbackPool.slice(0, 4);
+    }
 
     // Allow duplicates in the list view to ensure it looks full as requested
     const finalLatestUpdates = filteredPosts.slice(1);
@@ -151,12 +157,7 @@ function BlogPageContent() {
       {loading ? (
         <div className="py-40 flex flex-col items-center justify-center gap-6">
           <div className="w-12 h-12 border-4 border-primary/10 border-t-primary rounded-full animate-spin" />
-          <p className="text-sm font-black text-muted-foreground uppercase tracking-widest">Loading latest news...</p>
-        </div>
-      ) : filteredPosts.length === 0 ? (
-        <div className="py-40 text-center opacity-50">
-          <FileText size={64} className="mx-auto mb-4 text-muted-foreground" />
-          <h2 className="text-2xl font-black">No articles found</h2>
+          <p className="text-sm font-black text-muted-foreground uppercase tracking-widest">Loading latest blogs...</p>
         </div>
       ) : (
         <div className="max-w-[1440px] mx-auto px-6 py-12">
@@ -168,8 +169,19 @@ function BlogPageContent() {
             onSearchChange={setSearch}
           />
 
-          <div className="space-y-24 mt-16">
-            {!selectedCategory ? (
+          {filteredPosts.length === 0 ? (
+            <div className="py-40 text-center opacity-50">
+              <FileText size={64} className="mx-auto mb-4 text-muted-foreground" />
+              <h2 className="text-2xl font-black">
+                {search ? `No articles matching "${search}"` : 'No articles found'}
+              </h2>
+              <p className="text-muted-foreground mt-2">
+                {search ? 'Try using different keywords or clear the search.' : 'Check back later for more stories.'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-24 mt-16">
+            {!selectedCategory && !search ? (
               <>
                 {/* Section 1: Top Featured & Recent */}
                 <FeaturedSection
@@ -212,7 +224,7 @@ function BlogPageContent() {
 
                     <div className="space-y-6">
                       <h3 className="blog-widget-title pl-1">Join Our Community</h3>
-                      <SocialStats />
+                      <SocialStats globalStats={globalStats} />
                     </div>
 
                     <PostTabsWidget posts={posts} />
@@ -220,17 +232,27 @@ function BlogPageContent() {
                 </div>
 
                 {/* Section 5: Editor's Choice */}
-                <EditorsChoice posts={editorsChoice} />
+                <div className="mt-24 pt-12 border-t border-gray-50">
+                  <EditorsChoice posts={editorsChoice} />
+                </div>
+
+
               </>
             ) : (
               <>
                 {/* Category Filtered View */}
                 <div className="mb-8 border-b border-gray-100 pb-8">
                   <h1 className="blog-heading text-4xl lg:text-5xl capitalize">
-                    {categories.find(c => c.id === selectedCategory)?.name || 'Category'} Articles
+                    {selectedCategory 
+                      ? (categories.find(c => c.id === selectedCategory)?.name || 'Category') + ' Articles'
+                      : 'Search Results'
+                    }
                   </h1>
                   <p className="blog-meta-text mt-4 text-lg">
-                    Explore all our stories and guides about {categories.find(c => c.id === selectedCategory)?.name || 'this topic'}.
+                    {selectedCategory
+                      ? `Explore all our stories and guides about ${categories.find(c => c.id === selectedCategory)?.name || 'this topic'}.`
+                      : `Showing results for "${search}"`
+                    }
                   </p>
                 </div>
                 
@@ -254,7 +276,7 @@ function BlogPageContent() {
 
                     <div className="space-y-6">
                       <h3 className="blog-widget-title pl-1">Join Our Community</h3>
-                      <SocialStats />
+                      <SocialStats globalStats={globalStats} />
                     </div>
 
                     <PostTabsWidget posts={posts} />
@@ -262,14 +284,18 @@ function BlogPageContent() {
                 </div>
 
                 {/* Section 5: Editor's Choice */}
-                <EditorsChoice posts={filteredPosts.slice(0, 4)} />
+                <div className="mt-24 pt-12 border-t border-gray-50">
+                  <EditorsChoice posts={editorsChoice} />
+                </div>
+
+
               </>
             )}
-
 
             {/* Section 5: Newsletter */}
             <Newsletter />
           </div>
+          )}
         </div>
       )}
     </div>
@@ -281,7 +307,7 @@ export default function BlogListingPage() {
     <Suspense fallback={
       <div className="bg-white min-h-screen py-40 flex flex-col items-center justify-center gap-6">
         <div className="w-12 h-12 border-4 border-primary/10 border-t-primary rounded-full animate-spin" />
-        <p className="text-sm font-black text-muted-foreground uppercase tracking-widest">Loading...</p>
+        <p className="text-sm font-black text-muted-foreground uppercase tracking-widest">Loading blogs...</p>
       </div>
     }>
       <BlogPageContent />

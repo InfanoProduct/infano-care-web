@@ -217,4 +217,33 @@
   transform: translateY(-2px);
   box-shadow: 0 15px 30px rgba(0,0,0,0.2) !important;
 }
+
+/* Fix for quoted text looking like code or different font */
+.blog-content-rich-text code {
+  font-family: var(--blog-font-main) !important;
+  font-weight: 500;
+  color: var(--blog-text-main);
+  background-color: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+
+.blog-content-rich-text code::before,
+.blog-content-rich-text code::after {
+  content: none !important;
+}
+
+.blog-content-rich-text blockquote {
+  font-family: var(--blog-font-main) !important;
+  font-style: normal !important;
+  border-left: 4px solid var(--primary);
+  padding-left: 1.5rem;
+  color: var(--blog-text-main);
+  font-weight: 500;
+}
+
+.blog-content-rich-text blockquote p::before,
+.blog-content-rich-text blockquote p::after {
+  content: none !important;
+}
 

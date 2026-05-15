@@ -13,6 +13,8 @@ export default function MentorTrainingPage() {
   const [completedEpisodes, setCompletedEpisodes] = useState<string[]>([]);
   const [certificationStatus, setCertificationStatus] = useState<string>('pending_training');
   const [userName, setUserName] = useState<string>('');
+  const [certificateId, setCertificateId] = useState<string>('');
+  const [certifiedAt, setCertifiedAt] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
@@ -25,6 +27,8 @@ export default function MentorTrainingPage() {
       setCompletedEpisodes(statusRes.completedEpisodes || []);
       setCertificationStatus(statusRes.certificationStatus || 'pending_training');
       setUserName(statusRes.name || '');
+      setCertificateId(statusRes.certificateId || '');
+      setCertifiedAt(statusRes.certifiedAt || '');
     } catch (err) {
       console.error('Failed to fetch training data:', err);
     } finally {
@@ -40,8 +44,8 @@ export default function MentorTrainingPage() {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
-    const date = new Date().toLocaleDateString(undefined, { dateStyle: 'long' });
-    const htmlContent = getCertificateTemplate(userName, date);
+    const dateStr = certifiedAt ? new Date(certifiedAt).toLocaleDateString(undefined, { dateStyle: 'long' }) : new Date().toLocaleDateString(undefined, { dateStyle: 'long' });
+    const htmlContent = getCertificateTemplate(userName, dateStr, certificateId);
     
     printWindow.document.write(htmlContent);
     printWindow.document.close();

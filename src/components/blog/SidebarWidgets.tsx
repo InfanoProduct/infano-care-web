@@ -15,9 +15,12 @@ export function PromoBanner() {
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
       <div className="absolute inset-0 p-8 flex flex-col justify-end items-center text-center space-y-4">
-        <button className="px-10 py-4 bg-primary text-white text-[12px] font-black uppercase tracking-widest rounded-lg hover:bg-white hover:text-primary transition-all">
+        <Link 
+          href="/checkout"
+          className="px-10 py-4 bg-primary text-white text-[12px] font-black uppercase tracking-widest rounded-lg hover:bg-white hover:text-primary transition-all text-center inline-block"
+        >
           Purchase Now
-        </button>
+        </Link>
       </div>
 
     </div>
@@ -25,7 +28,7 @@ export function PromoBanner() {
 }
 
 export function CategoryWidget({ categories }: { categories: any[] }) {
-  const displayCategories = categories
+  const displayCategories = [...categories]
     .sort((a: any, b: any) => (b._count?.posts || 0) - (a._count?.posts || 0))
     .slice(0, 4);
 

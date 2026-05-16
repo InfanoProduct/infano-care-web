@@ -109,17 +109,17 @@ export function MarketingFooter() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="bg-[#111827] rounded-[3rem] p-8 md:p-16 mb-20 border border-white/5 backdrop-blur-sm flex flex-col lg:flex-row items-center justify-between gap-10 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.3)]"
+          className="bg-[#ff1f56] rounded-[3rem] p-8 md:p-16 mb-20 border border-white/10 backdrop-blur-sm flex flex-col lg:flex-row items-center justify-between gap-10 shadow-[0_40px_80px_-20px_rgba(255,31,86,0.4)]"
         >
           <div className="max-w-2xl text-center lg:text-left">
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">
-              Build the skills to <span className="premium-gradient-text">bloom with confidence.</span>
+              Build the skills to <span className="">bloom with confidence.</span>
             </h2>
-            <p className="text-slate-400 text-lg">
+            <p className="text-white/80 text-lg">
               Join 10,000+ girls and families on the journey to holistic wellness.
             </p>
           </div>
-          <Link href="/contact" className="btn-primary group whitespace-nowrap text-lg px-10 py-5">
+          <Link href="/contact" className=" bg-white text-pink-500 hover:text-pink-600 font-semibold item-center justify-center  flex flex-row px-10 py-5 rounded-full transition-all duration-300 group whitespace-nowrap ">
             Get Started Now <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1" size={20} />
           </Link>
         </motion.div>

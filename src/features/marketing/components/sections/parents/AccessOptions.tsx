@@ -10,6 +10,7 @@ const OPTIONS = [
     desc: "If your daughter's school is an Infano partner, she may already have access. Ask your school's wellness coordinator.",
     icon: <School size={32} />,
     linkText: 'Contact Coordinator',
+    href: '/contact',
     color: 'bg-emerald-50/60',
     borderColor: 'border-emerald-100',
     iconColor: 'text-emerald-500'
@@ -19,6 +20,7 @@ const OPTIONS = [
     desc: "Enrol directly through the website or app. Includes full app access for your daughter and the parent dashboard.",
     icon: <Home size={32} />,
     linkText: 'Enrol Now',
+    href: '/contact',
     color: 'bg-primary/10',
     borderColor: 'border-primary/20',
     iconColor: 'text-primary',
@@ -29,6 +31,7 @@ const OPTIONS = [
     desc: "Start the conversation with the Infano book — a beautiful, honest guide for adolescent girls.",
     icon: <Gift size={32} />,
     linkText: 'Buy the Book',
+    href: '/the-book',
     color: 'bg-amber-50/60',
     borderColor: 'border-amber-100',
     iconColor: 'text-amber-500'
@@ -68,7 +71,7 @@ export function AccessOptions() {
                 {item.desc}
               </p>
               <Link
-                href="/contact"
+                href={item.href}
                 className={`inline-flex items-center gap-3 font-bold uppercase tracking-widest text-[10px] py-4 px-10 rounded-2xl transition-all shadow-xl ${item.featured
                     ? 'bg-primary text-white hover:bg-primary/90 shadow-primary/20'
                     : 'bg-slate-900 text-white hover:bg-primary shadow-slate-900/10'

@@ -1,14 +1,15 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { ArrowRight, Heart, Sparkles, Quote } from 'lucide-react';
+import { ArrowRight, Heart, Sparkles, Quote, Beaker, Users, ShieldCheck, Globe } from 'lucide-react';
 
 export default function AboutPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       {/* Section 2.1 — Premium Hero */}
-      <section className="relative pt-20 pb-24 lg:pt-20 lg:pb-40 overflow-hidden bg-[#FAF9FF]">
+      <section className="relative pt-20 pb-24 lg:pt-20 lg:pb-20 overflow-hidden bg-[#FAF9FF]">
         {/* Decorative Background Graphics */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           {/* Large Soft Circles */}
@@ -38,36 +39,53 @@ export default function AboutPage() {
         </div>
 
         <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
-          <div className="max-w-4xl">
+          <div className="grid lg:grid-cols-2 gap-2 items-center">
+            <div className="max-w-2xl">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="inline-flex items-center gap-3 px-4 py-1.5 bg-white border border-slate-100 rounded-full mb-12 shadow-sm"
+              >
+                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Sparkles size={10} className="text-primary" />
+                </div>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Our Founding Philosophy</span>
+              </motion.div>
+
+              <motion.h1
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900"
+              >
+                We started because we <br />
+                <span className="text-primary">remembered</span> what it <br /> felt like.
+              </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.1 }}
+                className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-8 max-w-lg"
+              >
+                Infano.care was born from a deeply personal understanding of what adolescent girls go through—and a fierce belief that they deserve better tools, better conversations, and better support.
+              </motion.p>
+            </div>
+
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="inline-flex items-center gap-3 px-4 py-1.5 bg-white border border-slate-100 rounded-full mb-12 shadow-sm"
+              initial={{ opacity: 0, scale: 0.95, x: 20 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="relative aspect-video lg:aspect-video rounded-3xl overflow-hidden shadow-xl"
             >
-              <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
-                <Sparkles size={10} className="text-primary" />
-              </div>
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Our Founding Philosophy</span>
+              <Image
+                src="/aboutUs.png"
+                alt="Our founding story"
+                fill
+                className="object-cover"
+                priority
+              />
             </motion.div>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900t"
-            >
-              We started because we <br />
-              <span className="text-primary">remembered</span> what it <br />              felt like.
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.1 }}
-              className="xt-base md:text-md text-slate-500 leading-relaxed font-medium mb-8 max-w-2xl"
-            >
-              Infano.care was born from a deeply personal understanding of what adolescent girls go through—and a fierce belief that they deserve better tools, better conversations, and better support.
-            </motion.p>
           </div>
         </div>
       </section>
@@ -96,7 +114,7 @@ export default function AboutPage() {
                   </div>
                   <div>
                     <p className="font-bold text-slate-900">The Infano Team</p>
-                    <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">Mumbai, India</p>
+                    <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">Banglore, India</p>
                   </div>
                 </div>
               </div>
@@ -225,21 +243,24 @@ export default function AboutPage() {
                 qual: 'MBBS, MD (Gynaecology)',
                 spec: 'Menstrual Health Specialist',
                 quote: 'I joined Infano because I was tired of girls arriving in my clinic ashamed of questions they should have felt free to ask.',
-                icon: "🩺"
+                profileImage: "/experts/expert.jpeg",
+                bgColor: 'bg-[#F2A7C3]',
               },
               {
                 name: 'Preethi Nair',
                 qual: 'M.Phil, Clinical Psychology',
                 spec: 'Adolescent Mental Health',
                 quote: 'Adolescence is not a problem to be solved—it is a chapter to be supported. Infano makes that support accessible.',
-                icon: "🧠"
+                profileImage: "/experts/expert.jpeg",
+                bgColor: 'bg-[#B5D8F7]',
               },
               {
                 name: 'Ritu Mehrotra',
                 qual: 'MEd, Curriculum Design',
                 spec: 'Holistic Education Lead',
                 quote: 'We designed the learning journeys to feel like stories, not lessons—because girls learn best when they feel seen.',
-                icon: "📚"
+                profileImage: "/experts/expert.jpeg",
+                bgColor: 'bg-[#C3E8C8]',
               },
             ].map((expert, idx) => (
               <motion.div
@@ -248,20 +269,32 @@ export default function AboutPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                whileHover={{ y: -10 }}
-                className="bg-white rounded-[2.5rem] p-10 shadow-[0_20px_50px_rgba(0,0,0,0.03)] border border-slate-100 group transition-all"
+                whileHover={{ y: -8 }}
+                className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.06)] group transition-all duration-500"
               >
-                <div className="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center text-3xl mb-8 group-hover:bg-primary group-hover:text-white transition-colors duration-500">
-                  {expert.icon}
+                {/* Image area with colored background */}
+                <div className={`relative ${expert.bgColor} flex items-end justify-center pt-6 overflow-hidden`} style={{ height: '260px' }}>
+                  {/* Role badge — top right */}
+                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
+                    <span className="text-[11px] font-bold text-slate-700">{expert.spec}</span>
+                  </div>
+                  {/* Expert photo */}
+                  <div className="relative w-48 h-56 flex-shrink-0">
+                    <Image
+                      src={expert.profileImage}
+                      alt={expert.name}
+                      fill
+                      className="object-cover object-top group-hover:scale-105 transition-transform duration-700"
+                    />
+                  </div>
                 </div>
-                <h4 className="text-2xl font-bold font-heading text-slate-900 mb-2 tracking-tight">{expert.name}</h4>
-                <div className="flex flex-col mb-8">
-                  <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">{expert.qual}</span>
-                  <span className="text-sm font-bold text-slate-500">{expert.spec}</span>
-                </div>
-                <div className="relative">
-                  <Quote size={20} className="text-primary/20 absolute -top-4 -left-2" />
-                  <p className="text-slate-500 leading-relaxed font-medium italic relative z-10 pl-4 border-l-2 border-primary/10">
+
+                {/* Content area */}
+                <div className="p-6">
+                  <h4 className="text-lg font-bold font-heading text-slate-900 mb-0.5 tracking-tight">
+                    {expert.name}, <span className="font-medium text-slate-500">{expert.qual.split(',')[0]}</span>
+                  </h4>
+                  <p className="text-sm text-slate-400 leading-relaxed mt-2">
                     {expert.quote}
                   </p>
                 </div>
@@ -286,25 +319,118 @@ export default function AboutPage() {
             </motion.h2>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-0 border-y border-slate-100">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { icon: "🧪", title: "Evidence-Based", desc: "Grounded in adolescent psychology and trauma-informed care principles." },
-              { icon: "🗣️", title: "Co-Created", desc: "Every feature is tested with real girls to ensure it speaks their language." },
-              { icon: "🛡️", title: "Safety First", desc: "End-to-end encrypted and COPPA-aligned with strict moderation." },
-              { icon: "🌍", title: "Local Context", desc: "Designed for the Indian context, sensitive to regional and cultural norms." }
+              {
+                icon: Beaker,
+                title: "Evidence-Based",
+                desc: "Grounded in adolescent psychology and trauma-informed care principles.",
+                color: "bg-[#F3F0FF]",
+                iconColor: "text-indigo-600"
+              },
+              {
+                icon: Users,
+                title: "Co-Created",
+                desc: "Every feature is tested with real girls to ensure it speaks their language.",
+                color: "bg-[#FFF0F3]",
+                iconColor: "text-rose-600"
+              },
+              {
+                icon: ShieldCheck,
+                title: "Safety First",
+                desc: "End-to-end encrypted and COPPA-aligned with strict moderation.",
+                color: "bg-[#F0FFF4]",
+                iconColor: "text-emerald-600"
+              },
+              {
+                icon: Globe,
+                title: "Local Context",
+                desc: "Designed for the Indian context, sensitive to regional and cultural norms.",
+                color: "bg-[#FFF9F0]",
+                iconColor: "text-amber-600"
+              }
             ].map((item, idx) => (
-              <div key={idx} className={`p-12 ${idx !== 3 ? 'md:border-r border-slate-100' : ''} group hover:bg-slate-50 transition-colors duration-500`}>
-                <div className="text-4xl mb-8 group-hover:scale-110 transition-transform">{item.icon}</div>
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className={`p-10 rounded-[2.5rem] ${item.color} group hover:scale-[1.02] transition-all duration-500`}
+              >
+                <div className={`w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-8 group-hover:scale-110 transition-transform ${item.iconColor}`}>
+                  <item.icon size={32} />
+                </div>
                 <h4 className="text-xl font-bold font-heading text-slate-900 mb-4 tracking-tight">{item.title}</h4>
                 <p className="text-sm text-slate-500 leading-relaxed font-medium">{item.desc}</p>
-              </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Section 2.5 — Crew Behind the Scene */}
+      <section className="py-32 bg-slate-50/80">
+        <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
+          <div className="mb-20">
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-4xl md:text-5xl font-bold font-heading mb-6 tracking-tight text-slate-900"
+            >
+              Crew <span className="text-primary italic">Behind the Scene</span>
+            </motion.h2>
+            <p className="text-lg text-slate-500 font-medium max-w-2xl">
+              Meet the dreamers, builders, and believers working tirelessly to create a safer, kinder world for every girl.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            {[
+              { name: 'Sanat Kumar', role: 'Founder & CEO', image: '/experts/roushi.jpeg' },
+              { name: 'Priya Verma', role: 'Operations Head', image: '/experts/nikhil.jpeg' },
+              { name: 'Dr. Sameer', role: 'Medical Director', image: '/experts/expert.jpg' },
+              { name: 'Ananya Rao', role: 'Community Manager', image: '/experts/expert.jpg' },
+              { name: 'Rohan Gupta', role: 'Tech Lead', image: '/experts/expert.jpg' },
+              { name: 'Sonal Singh', role: 'Content Strategist', image: '/experts/expert.jpg' },
+              { name: 'Vikram Mehra', role: 'Product Designer', image: '/experts/expert.jpg' },
+              { name: 'Nisha Kapoor', role: 'User Research', image: '/experts/expert.jpg' },
+              { name: 'Arjun Das', role: 'Growth Lead', image: '/experts/expert.jpg' },
+              { name: 'Meera Iyer', role: 'Partnerships', image: '/experts/expert.jpg' },
+            ].map((member, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.05 }}
+                className="group bg-white rounded-[2rem] overflow-hidden border border-slate-200 shadow-[0_10px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] transition-all duration-500"
+              >
+                <div className="p-3 pb-0">
+                  <div className="relative aspect-square rounded-2xl overflow-hidden">
+                    <Image
+                      src={member.image}
+                      alt={member.name}
+                      fill
+                      className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                    />
+                  </div>
+                </div>
+                <div className="p-5">
+                  <h4 className="text-sm font-bold text-slate-900 mb-0.5 leading-tight">{member.name}</h4>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-primary uppercase tracking-widest">{member.role}</span>
+                  </div>
+                </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* Section 2.6 — Why Now? (Pastel CTA) */}
-      <section className="py-40 bg-[#FFFBF7] relative overflow-hidden">
+      <section className="py-20 bg-[#FFFBF7] relative overflow-hidden">
         <div className="absolute inset-0 z-0 pointer-events-none">
           <div className="absolute top-0 right-0 w-1/3 h-1/2 bg-[#FEF3E2] blur-[120px] rounded-full opacity-50" />
           <div className="absolute bottom-0 left-0 w-1/4 h-1/3 bg-primary/5 blur-[100px] rounded-full opacity-50" />

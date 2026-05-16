@@ -7,8 +7,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
 import { ShopService, Book } from '@/services/shop.service';
-import { 
-  ArrowLeft, CheckCircle2, ShoppingBag, Tag, 
+import {
+  ArrowLeft, CheckCircle2, ShoppingBag, Tag,
   Loader2, CreditCard, Truck, AlertCircle, ShieldCheck
 } from 'lucide-react';
 
@@ -42,6 +42,7 @@ function CheckoutContent() {
   const [validatingCoupon, setValidatingCoupon] = useState(false);
   const [pincodeLoading, setPincodeLoading] = useState(false);
 
+  const [quantity, setQuantity] = useState(1);
   const [formData, setFormData] = useState({
     guestName: '',
     guestEmail: '',
@@ -59,13 +60,37 @@ function CheckoutContent() {
       try {
         if (bookId) {
           const data = await ShopService.getBook(bookId);
-          setBook(data);
+          if (data) {
+            setBook(data);
+          } else {
+            throw new Error('Book not found');
+          }
         } else {
           const books = await ShopService.getBooks();
-          if (books.length > 0) setBook(books[0]);
+          if (books && books.length > 0) {
+            setBook(books[0]);
+          } else {
+            // Fallback if no books are active or found
+            setBook({
+              id: 'default',
+              title: 'The Awkward Age',
+              description: 'A story of Every Adolescent Girl',
+              price: 499,
+              stock: 100,
+              isActive: true
+            });
+          }
         }
       } catch (err) {
-        setBook({ id: 'default', title: 'The Awkward Age', description: 'A story of Every Adolescent Girl', price: 499, stock: 100, isActive: true });
+        console.error('Error loading checkout book:', err);
+        setBook({
+          id: 'default',
+          title: 'The Awkward Age',
+          description: 'A story of Every Adolescent Girl',
+          price: 499,
+          stock: 100,
+          isActive: true
+        });
       } finally {
         setLoading(false);
       }
@@ -122,12 +147,13 @@ function CheckoutContent() {
 
   const calculateTotal = () => {
     if (!book) return { subtotal: 0, gst: 0, delivery: 0, total: 0 };
-    const priceAfterDiscount = book.price - discountAmount;
-    const delivery = priceAfterDiscount < 500 ? 50 : 0;
+    const baseSubtotal = book.price * quantity;
+    const priceAfterDiscount = baseSubtotal - discountAmount;
+    const delivery = 0; // Free delivery for all orders
     const taxableValue = Math.round((priceAfterDiscount / 1.05) * 100) / 100;
     const gst = Math.round((priceAfterDiscount - taxableValue) * 100) / 100;
     const total = priceAfterDiscount + delivery;
-    return { subtotal: book.price, gst, delivery, total };
+    return { subtotal: baseSubtotal, gst, delivery, total };
   };
 
   const { subtotal, gst, delivery, total } = calculateTotal();
@@ -142,7 +168,7 @@ function CheckoutContent() {
       const orderData = {
         ...formData,
         userId: user?.id,
-        items: [{ bookId: book.id, quantity: 1 }],
+        items: [{ bookId: book.id, quantity }],
         couponCode: appliedCoupon?.code,
       };
 
@@ -217,318 +243,313 @@ function CheckoutContent() {
   }
 
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900 pt-24 pb-20">
+    <div className="min-h-screen bg-[#FDFCFB] font-sans text-slate-900 pt-16 pb-24">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
-      <div className="max-w-7xl mx-auto px-6">
-        <Link href="/the-book" className="inline-flex items-center text-slate-500 hover:text-primary mb-10 transition-colors font-semibold group">
-          <ArrowLeft size={20} className="mr-2 group-hover:-translate-x-1 transition-transform" /> Back to Product
+      <div className="max-w-6xl mx-auto px-6">
+        <Link href="/the-book" className="inline-flex items-center text-slate-500 hover:text-primary mb-12 transition-colors text-sm font-medium group">
+          <ArrowLeft size={16} className="mr-2 group-hover:-translate-x-1 transition-transform" /> Back to product
         </Link>
 
-        <div className="grid lg:grid-cols-12 gap-16 items-start">
+        <div className="grid lg:grid-cols-12 gap-10 items-start">
           
-          {/* Left: Product Gallery */}
+          {/* Left: Product Gallery & Summary */}
           <div className="lg:col-span-5 space-y-8 sticky top-32">
-            <div className="px-8 lg:px-12">
-              <div className="relative aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl bg-slate-50 border border-slate-100">
-                <Image 
-                  src={selectedImage} 
-                  alt="Book Page" 
-                  fill 
-                  sizes="(max-width: 768px) 100vw, 50vw"
+            <div className="space-y-6">
+              <div className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl bg-white border border-slate-100 w-full max-w-[400px]">
+                <Image
+                  src={selectedImage}
+                  alt="Book preview"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 400px"
                   className="object-cover transition-all duration-700"
                   priority
                 />
               </div>
-            </div>
-            
-            <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar px-2">
-              {bookImages.map((img, idx) => (
-                <button 
-                  key={idx}
-                  onClick={() => setSelectedImage(img)}
-                  className={`relative w-20 aspect-[3/4] rounded-xl overflow-hidden flex-shrink-0 transition-all ${
-                    selectedImage === img ? 'ring-2 ring-primary ring-offset-2' : 'opacity-60 hover:opacity-100'
-                  }`}
-                >
-                  <Image src={img} alt={`Thumbnail ${idx}`} fill sizes="80px" className="object-cover" />
-                </button>
-              ))}
-            </div>
-
-            <div className="text-center space-y-2">
-              <h1 className="text-3xl font-black tracking-tight">{book?.title || 'The Awkward Age'}</h1>
-              <p className="text-slate-500 font-bold italic">{book?.description || 'A story of Every Adolescent Girl'}</p>
-            </div>
-
-            <div className="pt-6 border-t border-slate-100 space-y-4">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-500 font-bold">Unit Price</span>
-                <span className="font-bold text-slate-900">₹{book?.price || 499}</span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-500 font-bold">Quantity</span>
-                <div className="flex items-center gap-4 bg-slate-50 rounded-xl px-4 py-2 border border-slate-100 font-bold">
-                  <button type="button" className="text-slate-400 hover:text-slate-900 transition-colors">-</button>
-                  <span className="text-slate-900">1</span>
-                  <button type="button" className="text-slate-400 hover:text-slate-900 transition-colors">+</button>
-                </div>
-              </div>
               
-              {discountAmount > 0 && (
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-green-600 font-bold">Discount ({appliedCoupon?.code})</span>
-                  <span className="font-bold text-green-600">-₹{discountAmount}</span>
-                </div>
-              )}
+              <div className="flex gap-2 flex-wrap max-w-[400px]">
+                {bookImages.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImage(img)}
+                    className={`relative w-11 aspect-[3/4] rounded-md overflow-hidden flex-shrink-0 transition-all border-2 ${selectedImage === img ? 'border-primary ring-1 ring-primary/20' : 'border-transparent opacity-50 hover:opacity-100'
+                      }`}
+                  >
+                    <Image src={img} alt={`Thumbnail ${idx}`} fill sizes="44px" className="object-cover" />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2 max-w-[400px]">
+              <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 leading-tight">{book?.title || 'The Awkward Age'}</h1>
+              <p className="text-slate-500 font-medium text-sm italic">{book?.description || 'A story of every adolescent girl'}</p>
+            </div>
+
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xl shadow-slate-200/30 space-y-6 max-w-[400px]">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <ShoppingBag size={16} className="text-primary" />
+                Order summary
+              </h3>
               
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-500 font-bold">Delivery Fee</span>
-                <span className="font-bold text-slate-900">{delivery === 0 ? <span className="text-green-600">FREE</span> : `₹${delivery}`}</span>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 text-sm font-medium">Unit price</span>
+                  <span className="font-bold text-slate-900 text-sm">₹{book?.price || 499}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 text-sm font-medium">Quantity</span>
+                  <div className="flex items-center gap-3 bg-slate-50 rounded-xl px-3 py-1.5 border border-slate-200 text-xs">
+                    <button 
+                      type="button" 
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="text-slate-400 hover:text-slate-900 transition-colors font-bold"
+                    >
+                      -
+                    </button>
+                    <span className="text-slate-900 font-extrabold min-w-[12px] text-center">{quantity}</span>
+                    <button 
+                      type="button" 
+                      onClick={() => setQuantity(Math.min(book?.stock || 10, quantity + 1))}
+                      className="text-slate-400 hover:text-slate-900 transition-colors font-bold"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                
+                {discountAmount > 0 && (
+                  <div className="flex justify-between items-center pt-2">
+                    <span className="text-emerald-600 text-sm font-bold flex items-center gap-1.5">
+                      <Tag size={14} /> Discount
+                    </span>
+                    <span className="font-bold text-emerald-600 text-sm">-₹{discountAmount}</span>
+                  </div>
+                )}
               </div>
 
-              <div className="flex justify-between items-center pt-2 border-t border-slate-100">
-                <span className="font-black text-lg text-slate-900">Total Amount</span>
-                <span className="text-2xl font-black text-[#9333EA]">₹{total}</span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 pt-4">
-                <div className="border border-slate-100 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 text-center shadow-sm bg-white">
-                  <ShieldCheck size={24} className="text-green-500" />
-                  <span className="text-[11px] font-bold text-slate-600">Secure Payment</span>
+              <div className="flex justify-between items-end pt-5 border-t border-slate-100">
+                <div className="space-y-0.5">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total amount</span>
+                  <p className="text-[10px] text-slate-400 font-medium">Incl. of all taxes</p>
                 </div>
-                <div className="border border-slate-100 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 text-center shadow-sm bg-white">
-                  <Truck size={24} className="text-blue-500" />
-                  <span className="text-[11px] font-bold text-slate-600">Fast Delivery</span>
-                </div>
+                <span className="text-3xl font-black text-primary tracking-tighter">₹{total}</span>
               </div>
             </div>
           </div>
 
           {/* Right: Checkout Form */}
-          <div className="lg:col-span-7 bg-white rounded-[2.5rem] border border-slate-100 p-8 md:p-12 shadow-sm">
-            <form onSubmit={handleSubmit} className="space-y-12">
-              
+          <div className="lg:col-span-7 bg-white rounded-[2.5rem] border border-slate-200 p-8 md:p-12 shadow-2xl shadow-slate-200/50">
+            <form onSubmit={handleSubmit} className="space-y-10">
+
               {/* Step 1: Personal Details */}
-              <div className="space-y-8">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black">
-                    1
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
+                    01
                   </div>
-                  <h2 className="text-xl font-black">Personal Details</h2>
+                  <h2 className="text-base font-bold text-slate-800 tracking-tight">Personal details</h2>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <label className="text-sm font-black text-slate-700 ml-1">Full Name</label>
-                    <input 
-                      required 
-                      name="guestName" 
-                      value={formData.guestName} 
+                <div className="grid md:grid-cols-2 gap-5">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">Full name</label>
+                    <input
+                      required
+                      name="guestName"
+                      value={formData.guestName}
                       onChange={handleInputChange}
-                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-primary/10 outline-none transition-all font-semibold placeholder:text-slate-300" 
-                      placeholder="e.g. Ananya Sharma" 
+                      className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-primary/60 focus:ring-4 focus:ring-primary/5 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
+                      placeholder="e.g. Ananya Sharma"
                     />
                   </div>
-                  <div className="space-y-3">
-                    <label className="text-sm font-black text-slate-700 ml-1">Phone Number</label>
-                    <input 
-                      required 
-                      name="guestPhone" 
-                      value={formData.guestPhone} 
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">Phone number</label>
+                    <input
+                      required
+                      name="guestPhone"
+                      value={formData.guestPhone}
                       onChange={handleInputChange}
-                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-primary/10 outline-none transition-all font-semibold placeholder:text-slate-300" 
-                      placeholder="10-digit mobile number" 
+                      className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-primary/60 focus:ring-4 focus:ring-primary/5 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
+                      placeholder="10-digit mobile number"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <label className="text-sm font-black text-slate-700 ml-1">Email (optional)</label>
-                  <input 
-                    type="email" 
-                    name="guestEmail" 
-                    value={formData.guestEmail} 
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-600 ml-0.5">Email address (optional)</label>
+                  <input
+                    type="email"
+                    name="guestEmail"
+                    value={formData.guestEmail}
                     onChange={handleInputChange}
-                    className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-primary/10 outline-none transition-all font-semibold placeholder:text-slate-300" 
-                    placeholder="your@email.com" 
+                    className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-primary/60 focus:ring-4 focus:ring-primary/5 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
+                    placeholder="your@email.com"
                   />
                 </div>
               </div>
 
               {/* Step 2: Shipping Address */}
-              <div className="space-y-8">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black">
-                    2
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
+                    02
                   </div>
-                  <h2 className="text-xl font-black">Shipping Address</h2>
+                  <h2 className="text-base font-bold text-slate-800 tracking-tight">Shipping address</h2>
                 </div>
 
-                <div className="space-y-3">
-                  <label className="text-sm font-black text-slate-700 ml-1">Street Address</label>
-                  <input 
-                    required 
-                    name="shippingAddress" 
-                    value={formData.shippingAddress} 
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-600 ml-0.5">Street address</label>
+                  <input
+                    required
+                    name="shippingAddress"
+                    value={formData.shippingAddress}
                     onChange={handleInputChange}
-                    className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-primary/10 outline-none transition-all font-semibold placeholder:text-slate-300" 
-                    placeholder="Flat / House No / Street" 
+                    className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-primary/60 focus:ring-4 focus:ring-primary/5 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
+                    placeholder="Flat / House No / Street"
                   />
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <label className="text-sm font-black text-slate-700 ml-1">City</label>
-                    <input 
-                      required 
-                      name="city" 
-                      value={formData.city} 
+                <div className="grid md:grid-cols-2 gap-5">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">City</label>
+                    <input
+                      required
+                      name="city"
+                      value={formData.city}
                       onChange={handleInputChange}
-                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-primary/10 outline-none transition-all font-semibold placeholder:text-slate-300" 
-                      placeholder="City" 
+                      className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-primary/60 focus:ring-4 focus:ring-primary/5 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
+                      placeholder="City"
                     />
                   </div>
-                  <div className="space-y-3">
-                    <label className="text-sm font-black text-slate-700 ml-1">State</label>
-                    <input 
-                      required 
-                      name="state" 
-                      value={formData.state} 
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">State</label>
+                    <input
+                      required
+                      name="state"
+                      value={formData.state}
                       onChange={handleInputChange}
-                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-primary/10 outline-none transition-all font-semibold placeholder:text-slate-300" 
-                      placeholder="State" 
+                      className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-primary/60 focus:ring-4 focus:ring-primary/5 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
+                      placeholder="State"
                     />
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <label className="text-sm font-black text-slate-700 ml-1">Pincode</label>
+                <div className="grid md:grid-cols-2 gap-5">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">Pincode</label>
                     <div className="relative">
-                      <input 
-                        required 
-                        name="pincode" 
-                        value={formData.pincode} 
+                      <input
+                        required
+                        name="pincode"
+                        value={formData.pincode}
                         onChange={handleInputChange}
                         maxLength={6}
-                        className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-primary/10 outline-none transition-all font-semibold placeholder:text-slate-300" 
-                        placeholder="6-digit pincode" 
+                        className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-primary/60 focus:ring-4 focus:ring-primary/5 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
+                        placeholder="6-digit pincode"
                       />
-                      {pincodeLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-primary" size={18} />}
+                      {pincodeLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-primary" size={16} />}
                     </div>
                   </div>
-                  <div className="space-y-3">
-                    <label className="text-sm font-black text-slate-700 ml-1">Country</label>
-                    <input 
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">Country</label>
+                    <input
                       readOnly
-                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent font-semibold text-slate-400 cursor-not-allowed" 
-                      value="India" 
+                      className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 font-medium text-slate-500 cursor-not-allowed text-sm"
+                      value="India"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Coupon Code Section */}
-              <div className="space-y-4 pt-4 border-t border-slate-100">
-                <label className="text-sm font-black text-slate-700 ml-1">Have a coupon code?</label>
+              {/* Promo Code Section */}
+              <div className="space-y-3 pt-2">
+                <label className="text-[11px] font-bold text-slate-600 ml-0.5">Promo code</label>
                 <div className="flex gap-2">
-                  <input 
+                  <input
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                     placeholder="Enter code"
-                    className="flex-1 px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-primary/10 outline-none transition-all font-semibold placeholder:text-slate-300"
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-primary/60 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
                   />
-                  <button 
+                  <button
                     type="button"
                     onClick={applyCoupon}
                     disabled={!couponCode || validatingCoupon}
-                    className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-black transition-colors disabled:opacity-50"
+                    className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-black transition-colors disabled:opacity-50"
                   >
-                    {validatingCoupon ? <Loader2 className="animate-spin" size={20} /> : 'Apply'}
+                    {validatingCoupon ? <Loader2 className="animate-spin" size={14} /> : 'Apply'}
                   </button>
                 </div>
                 {appliedCoupon && (
-                  <p className="text-green-600 text-sm font-bold flex items-center gap-1 ml-1">
-                    <Tag size={16} /> Coupon '{appliedCoupon.code}' applied!
+                  <p className="text-emerald-600 text-[10px] font-bold flex items-center gap-1 ml-0.5">
+                    <Tag size={12} /> Coupon '{appliedCoupon.code}' applied!
                   </p>
                 )}
               </div>
 
-              {/* Payment Selection */}
+              {/* Step 3: Payment Selection */}
               <div className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black">
-                    3
+                <div className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
+                    03
                   </div>
-                  <h2 className="text-xl font-black">Payment Method</h2>
+                  <h2 className="text-base font-bold text-slate-800 tracking-tight">Payment method</h2>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                  <button 
-                    type="button" 
+                <div className="grid md:grid-cols-2 gap-4">
+                  <button
+                    type="button"
                     onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'ONLINE' }))}
-                    className={`relative p-8 rounded-3xl border-2 transition-all flex flex-col items-center gap-3 ${
-                      formData.paymentMethod === 'ONLINE' ? 'border-[#9333EA] bg-[#9333EA]/5' : 'border-slate-100 hover:border-slate-200 bg-slate-50/50'
-                    }`}
+                    className={`relative p-5 rounded-2xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'ONLINE' ? 'border-primary bg-primary/[0.03]' : 'border-slate-100 hover:border-slate-200 bg-white'
+                      }`}
                   >
-                    {formData.paymentMethod === 'ONLINE' && (
-                       <div className="absolute top-4 right-4 text-[#9333EA]">
-                         <CheckCircle2 size={20} />
-                       </div>
-                    )}
-                    <CreditCard size={32} className={formData.paymentMethod === 'ONLINE' ? 'text-[#9333EA]' : 'text-slate-400'} />
-                    <div className="space-y-1 text-center">
-                      <div className={`font-black ${formData.paymentMethod === 'ONLINE' ? 'text-[#9333EA]' : 'text-slate-900'}`}>Pay Online</div>
-                      <div className="text-[11px] font-bold text-slate-400">Cards, UPI, NetBanking</div>
+                    <CreditCard size={20} className={formData.paymentMethod === 'ONLINE' ? 'text-primary' : 'text-slate-400'} />
+                    <div className="space-y-0 text-center">
+                      <div className={`text-sm font-bold ${formData.paymentMethod === 'ONLINE' ? 'text-primary' : 'text-slate-800'}`}>Pay online</div>
+                      <div className="text-[10px] font-medium text-slate-500">Cards, UPI, NetBanking</div>
                     </div>
                   </button>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'COD' }))}
-                    className={`relative p-8 rounded-3xl border-2 transition-all flex flex-col items-center gap-3 ${
-                      formData.paymentMethod === 'COD' ? 'border-[#9333EA] bg-[#9333EA]/5' : 'border-slate-100 hover:border-slate-200 bg-slate-50/50'
-                    }`}
+                    className={`relative p-5 rounded-2xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'COD' ? 'border-primary bg-primary/[0.03]' : 'border-slate-100 hover:border-slate-200 bg-white'
+                      }`}
                   >
-                    {formData.paymentMethod === 'COD' && (
-                       <div className="absolute top-4 right-4 text-[#9333EA]">
-                         <CheckCircle2 size={20} />
-                       </div>
-                    )}
-                    <Truck size={32} className={formData.paymentMethod === 'COD' ? 'text-[#9333EA]' : 'text-slate-400'} />
-                    <div className="space-y-1 text-center">
-                      <div className={`font-black ${formData.paymentMethod === 'COD' ? 'text-[#9333EA]' : 'text-slate-900'}`}>COD</div>
-                      <div className="text-[11px] font-bold text-slate-400">Cash on Delivery</div>
+                    <Truck size={20} className={formData.paymentMethod === 'COD' ? 'text-primary' : 'text-slate-400'} />
+                    <div className="space-y-0 text-center">
+                      <div className={`text-sm font-bold ${formData.paymentMethod === 'COD' ? 'text-primary' : 'text-slate-800'}`}>Cash on delivery</div>
+                      <div className="text-[10px] font-medium text-slate-500">Pay when you receive</div>
                     </div>
                   </button>
                 </div>
               </div>
 
               {error && (
-                <div className="p-4 bg-rose-50 border border-rose-100 text-rose-600 rounded-2xl text-xs font-bold flex items-center gap-3">
+                <div className="p-4 bg-rose-50 border border-rose-100 text-rose-600 rounded-xl text-xs font-semibold flex items-center gap-3">
                   <AlertCircle size={18} /> {error}
                 </div>
               )}
 
-              <div className="pt-8">
-                <button 
+              <div className="pt-6">
+                <button
                   type="submit"
                   disabled={processing || pincodeLoading}
-                  className="w-full py-5 bg-[#9333EA] text-white rounded-[1.5rem] font-bold text-lg hover:bg-[#7e22ce] transition-all shadow-[0_8px_30px_rgb(147,51,234,0.3)] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                  className="w-full py-4 bg-primary text-white rounded-xl font-bold text-base hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                 >
                   {processing ? (
                     <>
-                      <Loader2 className="animate-spin" size={24} />
+                      <Loader2 className="animate-spin" size={20} />
                       Processing...
                     </>
                   ) : (
                     <>
                       <ShoppingBag size={20} />
-                      {formData.paymentMethod === 'ONLINE' ? `Pay ₹${total} & Place Order` : 'Place Order via COD'}
+                      {formData.paymentMethod === 'ONLINE' ? `Pay ₹${total} & place order` : 'Place order via COD'}
                     </>
                   )}
                 </button>
-                <p className="text-center text-slate-400 text-[11px] font-bold mt-6">
-                  By placing order, you agree to our Terms and Privacy Policy.
+                <p className="text-center text-slate-500 text-[10px] font-medium mt-6">
+                  By placing order, you agree to our <Link href="/legal/terms" className="underline underline-offset-2 hover:text-primary transition-colors">Terms</Link> and <Link href="/legal/privacy" className="underline underline-offset-2 hover:text-primary transition-colors">Privacy Policy</Link>.
                 </p>
               </div>
             </form>

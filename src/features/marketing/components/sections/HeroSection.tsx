@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Shield, Users, Star } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { SliderCard } from '../cards/SliderCard';
 import { SLIDER_DATA } from '../../data/marketing';
 
@@ -13,7 +13,7 @@ export function HeroSection() {
   const [activeTab, setActiveTab] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
-  const moveToEnd = (from: number) => {
+  const moveToEnd = useCallback((from: number) => {
     setCards((prev) => {
       const newCards = [...prev];
       const card = newCards.splice(from, 1)[0];
@@ -21,44 +21,23 @@ export function HeroSection() {
       return newCards;
     });
     setActiveTab((prev) => (prev + 1) % SLIDER_DATA.length);
-  };
+  }, []);
 
   useEffect(() => {
     if (isPaused) return;
-    const interval = setInterval(() => {
-      moveToEnd(0);
-    }, 5000);
+    const interval = setInterval(() => moveToEnd(0), 5000);
     return () => clearInterval(interval);
-  }, [isPaused]);
+  }, [isPaused, moveToEnd]);
 
   return (
     <section className="relative pt-6 pb-12 lg:pt-10 lg:pb-24 overflow-hidden bg-white">
-      {/* Advanced Background Graphics */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[10%] right-[-10%] w-[45%] h-[45%] bg-accent/10 rounded-full blur-[100px] animate-pulse" />
-
+      {/* Background Graphics — GPU-promoted, no JS animations */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none" style={{ contain: 'strict' }}>
+        <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[80px]" style={{ willChange: 'transform' }} />
+        <div className="absolute bottom-[5%] right-[-5%] w-[35%] h-[35%] bg-accent/10 rounded-full blur-[80px]" style={{ willChange: 'transform' }} />
         {/* Subtle Grid Pattern Overlay */}
         <div className="absolute inset-0 opacity-[0.03]"
           style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #4a1e7f 1px, transparent 0)', backgroundSize: '40px 40px' }} />
-
-        {/* Floating Decorative Particles */}
-        <motion.div
-          animate={{
-            y: [0, -20, 0],
-            rotate: [0, 5, 0]
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/4 right-[15%] w-10 h-10 border-2 border-primary/20 rounded-xl"
-        />
-        <motion.div
-          animate={{
-            y: [0, 20, 0],
-            rotate: [0, -5, 0]
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute bottom-1/4 left-[5%] w-6 h-6 border-2 border-accent/20 rounded-full"
-        />
       </div>
 
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-20">
@@ -67,8 +46,9 @@ export function HeroSection() {
           {/* Left Column: Content */}
           <div className="lg:col-span-4 text-center lg:text-left z-30">
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
               className="inline-flex items-center gap-2 px-3 py-1 bg-slate-50/80 backdrop-blur-sm border border-slate-100 rounded-full mb-6"
             >
               <div className="w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center">
@@ -78,9 +58,9 @@ export function HeroSection() {
             </motion.div>
 
             <motion.h1
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
               className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900"
             >
               Build The Skills To <br />
@@ -88,28 +68,23 @@ export function HeroSection() {
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.1 }}
+              transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
               className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-8"
             >
               Infano.care is India's most holistic ecosystem for girls—blending story-led learning, wellness tracking, and expert guidance into one safe space.
             </motion.p>
 
             {/* Desktop CTA: Visible only on LG+ */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="hidden lg:flex flex-col sm:flex-row items-center justify-start gap-4"
-            >
+            <div className="hidden lg:flex flex-col sm:flex-row items-center justify-start gap-4">
               <Link href="/contact" className="btn-primary w-full sm:w-auto text-sm px-8 py-3.5 group shadow-lg shadow-primary/20">
                 Explore Journeys <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1" size={16} />
               </Link>
-              <Link href="/parents" className="btn-outline w-full sm:w-auto text-sm px-8 py-3.5 backdrop-blur-md bg-white/50 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300">
+              <Link href="/parents" className="btn-outline w-full sm:w-auto text-sm px-8 py-3.5 bg-white/50 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300">
                 For Parents
               </Link>
-            </motion.div>
+            </div>
           </div>
 
           {/* Center Column: Spacer for Image (hidden on mobile) */}
@@ -118,7 +93,7 @@ export function HeroSection() {
           {/* Right Column: Cards & Slider (4 cols) */}
           <div className="lg:col-span-4 flex flex-col relative h-auto lg:h-[500px] items-center justify-center lg:justify-end z-30 mt-10 lg:mt-0">
             <div className="relative w-full max-w-[280px] sm:max-w-[340px] h-[380px] sm:h-[420px] lg:h-[450px] flex items-center justify-center">
-              <AnimatePresence mode="popLayout">
+              <AnimatePresence mode="sync">
                 {cards.map((card, index) => {
                   const isFirst = index === 0;
                   return (
@@ -136,7 +111,7 @@ export function HeroSection() {
             </div>
 
             {/* Slider Progress Indicators - Attached below slider */}
-            <div className="mt-4 lg:mt-8 flex gap-2 z-40 bg-white/60 backdrop-blur-md px-3 py-1.5 lg:px-4 lg:py-2 rounded-2xl border border-slate-100 shadow-sm">
+            <div className="mt-4 lg:mt-8 flex gap-2 z-40 bg-white/80 px-3 py-1.5 lg:px-4 lg:py-2 rounded-2xl border border-slate-100 shadow-sm">
               {SLIDER_DATA.map((_, index) => (
                 <div key={index} className="relative h-1 lg:h-1.5 w-8 lg:w-10 bg-slate-100/50 rounded-full overflow-hidden">
                   <motion.div
@@ -151,19 +126,14 @@ export function HeroSection() {
             </div>
 
             {/* Mobile CTA: Visible only below LG */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="flex lg:hidden flex-col items-center gap-4 w-full max-w-[280px] mt-20"
-            >
+            <div className="flex lg:hidden flex-col items-center gap-4 w-full max-w-[280px] mt-20">
               <Link href="/contact" className="btn-primary w-full text-sm px-8 py-3.5 group shadow-lg shadow-primary/20 text-center">
                 Explore Journeys <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1" size={16} />
               </Link>
-              <Link href="/parents" className="btn-outline w-full text-sm px-8 py-3.5 backdrop-blur-md bg-white/50 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 text-center">
+              <Link href="/parents" className="btn-outline w-full text-sm px-8 py-3.5 bg-white/50 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 text-center">
                 For Parents
               </Link>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
@@ -171,11 +141,11 @@ export function HeroSection() {
       {/* Layered Absolute Subject Image (The Girl) */}
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 z-10 w-full max-w-[700px] h-[65%] lg:h-[95%] pointer-events-none">
         <div className="relative w-full h-full flex items-end justify-center">
-          <div className="absolute bottom-[10%] w-[80%] h-[30%] bg-primary/10 rounded-full blur-3xl z-0" />
+          <div className="absolute bottom-[10%] w-[70%] h-[20%] bg-primary/10 rounded-full blur-2xl z-0" />
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", duration: 1.5, delay: 0.3 }}
+            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
             className="relative z-10 h-full w-full"
           >
             <Image

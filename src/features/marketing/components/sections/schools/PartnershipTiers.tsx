@@ -1,93 +1,119 @@
 'use client';
 
-import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { CheckCircle2, ArrowRight } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 
 const TIERS = [
   {
-    tier: 'Tier 01',
-    title: 'Digital',
-    features: ['Standard App Access', 'Basic Reporting', 'Self-Serve Portal'],
-    desc: 'Empower students with self-paced digital wellness tools.',
-    color: 'border-slate-100'
+    name: 'Seeding',
+    students: '100 students',
+    highlight: false,
+    features: [
+      'Grades 5–6 (2 grades)',
+      '1 physical session / grade',
+      'Teacher training (half day)',
+      'Platform: Grades 5–6 app',
+      'Parent Welcome Packet',
+      'Quarterly report',
+      'Certified School badge',
+    ],
   },
   {
-    tier: 'Tier 02',
-    title: 'Blended',
-    features: ['Expert-led Circles', 'Infano Book copies', 'Parent Workshops'],
-    desc: 'A mix of digital tools and live expert guidance.',
-    color: 'border-primary/20 bg-primary/[0.02]',
-    popular: true
+    name: 'Grow',
+    students: '150 students',
+    highlight: true,
+    features: [
+      'Grades 5–7 (3 grades)',
+      '1 session per grade',
+      'Teacher training + handbook',
+      'Platform: 3 grades',
+      'Parent app + onboarding',
+      'Quarterly & annual report',
+      'Media coverage support',
+      'School dashboard access',
+    ],
   },
   {
-    tier: 'Tier 03',
-    title: 'Full',
-    features: ['On-campus Orientation', 'Custom Content', 'Priority Support'],
-    desc: 'Deep integration with on-ground support and custom curriculum.',
-    color: 'border-accent/20 bg-accent/[0.02]'
-  }
+    name: 'Thrive',
+    students: '200 students',
+    highlight: false,
+    features: [
+      'All Grades 5–9 (5 grades)',
+      '1 session per grade',
+      'Full teacher training',
+      'Platform: all 5 grades',
+      'Parent full program',
+      'Quarterly & annual report',
+      'PR + social media pack',
+      'Dashboard + alerts',
+      'Annual Wellness Day event',
+    ],
+  },
 ];
 
 export function PartnershipTiers() {
   return (
-    <section className="py-32 bg-white">
-      <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
-        <div className="text-center max-w-3xl mx-auto mb-20">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900"
-          >
-            Partnership Structures.
-          </motion.h2>
-          <p className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-8">
-            Choose the level of integration that fits your institution's goals and infrastructure.
-          </p>
-        </div>
+    <section className="py-20 bg-[#F8F4FF] relative">
+      {/* Decorative arc - top right */}
+      <div className="absolute top-0 right-0 w-24 h-24 pointer-events-none opacity-50">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="0" r="70" stroke="#C084FC" strokeWidth="20" fill="none" />
+          <circle cx="100" cy="0" r="80" stroke="#E67E22" strokeWidth="1.5" fill="none" />
+        </svg>
+      </div>
+      {/* Decorative arc - left */}
+      <div className="absolute top-1/4 left-0 w-16 h-48 pointer-events-none opacity-20">
+        <svg viewBox="0 0 70 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="0" cy="100" r="90" stroke="#C084FC" strokeWidth="35" fill="none" />
+        </svg>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
-          {TIERS.map((item, i) => (
+      <div className="max-w-6xl mx-auto px-6 relative z-10">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-12"
+        >
+          <h2 className="text-3xl font-black text-[#4A1E7F] mb-2 font-heading">
+            The Partnership
+          </h2>
+          <p className="text-sm font-semibold text-slate-500">
+            Three Ways To Join
+          </p>
+        </motion.div>
+
+        {/* Tier Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-end">
+          {TIERS.map((tier, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className={`relative p-10 lg:p-14 rounded-[3rem] border ${item.color} flex flex-col h-full group hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-700`}
+              className={`rounded-2xl p-6 border transition-all duration-300 hover:shadow-md ${
+                tier.highlight
+                  ? 'bg-[#FDE8DC] border-orange-200'
+                  : 'bg-white border-slate-100 hover:border-[#4A1E7F]/15'
+              }`}
             >
-              {item.popular && (
-                <div className="absolute top-8 right-8 px-4 py-1.5 bg-primary text-white text-[10px] font-black rounded-full uppercase tracking-widest">
-                  Most Popular
-                </div>
-              )}
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-4">{item.tier}</span>
-              <h3 className="text-3xl font-bold text-slate-900 mb-6">{item.title}</h3>
-              <p className="text-slate-500 mb-10 leading-relaxed font-medium">
-                {item.desc}
-              </p>
+              <h3 className={`text-2xl font-black mb-1 font-heading ${
+                tier.highlight ? 'text-[#E67E22]' : 'text-[#E67E22]'
+              }`}>
+                {tier.name}
+              </h3>
+              <p className="text-xs text-slate-500 mb-5">({tier.students})</p>
 
-              <div className="space-y-5 mb-12 flex-1">
-                {item.features.map((f, idx) => (
-                  <div key={idx} className="flex items-center gap-4">
-                    <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                      <CheckCircle2 size={14} className="text-slate-300 group-hover:text-primary transition-colors" />
-                    </div>
-                    <span className="text-sm font-bold text-slate-700">{f}</span>
-                  </div>
+              <ul className="space-y-2.5">
+                {tier.features.map((feature, j) => (
+                  <li key={j} className="flex items-center gap-2.5">
+                    <CheckCircle2 size={15} className="text-green-500 shrink-0" />
+                    <span className="text-xs text-slate-700 font-medium">{feature}</span>
+                  </li>
                 ))}
-              </div>
-
-              <Link
-                href="/contact"
-                className={`w-full py-5 rounded-full text-center font-bold text-sm tracking-widest uppercase transition-all duration-300 flex items-center justify-center gap-3 ${item.popular
-                  ? 'bg-primary text-white shadow-xl shadow-primary/20 hover:bg-primary-dark'
-                  : 'bg-slate-900 text-white hover:bg-primary'
-                  }`}
-              >
-                Inquire Now <ArrowRight size={16} />
-              </Link>
+              </ul>
             </motion.div>
           ))}
         </div>

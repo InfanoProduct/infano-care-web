@@ -78,7 +78,7 @@ export function HeroSection() {
 
             {/* Desktop CTA: Visible only on LG+ */}
             <div className="hidden lg:flex flex-col sm:flex-row items-center justify-start gap-4">
-              <Link href="/contact" className="btn-primary w-full sm:w-auto text-sm px-8 py-3.5 group shadow-lg shadow-primary/20">
+              <Link href="/parents-enquiry" className="btn-primary w-full sm:w-auto text-sm px-8 py-3.5 group shadow-lg shadow-primary/20">
                 Explore Journeys <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1" size={16} />
               </Link>
               <Link href="/parents" className="btn-outline w-full sm:w-auto text-sm px-8 py-3.5 bg-white/50 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300">
@@ -127,7 +127,7 @@ export function HeroSection() {
 
             {/* Mobile CTA: Visible only below LG */}
             <div className="flex lg:hidden flex-col items-center gap-4 w-full max-w-[280px] mt-20">
-              <Link href="/contact" className="btn-primary w-full text-sm px-8 py-3.5 group shadow-lg shadow-primary/20 text-center">
+              <Link href="/parents-enquiry" className="btn-primary w-full text-sm px-8 py-3.5 group shadow-lg shadow-primary/20 text-center">
                 Explore Journeys <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1" size={16} />
               </Link>
               <Link href="/parents" className="btn-outline w-full text-sm px-8 py-3.5 bg-white/50 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 text-center">

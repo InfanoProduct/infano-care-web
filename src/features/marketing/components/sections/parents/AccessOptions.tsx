@@ -20,7 +20,7 @@ const OPTIONS = [
     desc: "Enrol directly through the website or app. Includes full app access for your daughter and the parent dashboard.",
     icon: <Home size={32} />,
     linkText: 'Enrol Now',
-    href: '/contact',
+    href: '/parents-enquiry',
     color: 'bg-primary/10',
     borderColor: 'border-primary/20',
     iconColor: 'text-primary',
@@ -73,8 +73,8 @@ export function AccessOptions() {
               <Link
                 href={item.href}
                 className={`inline-flex items-center gap-3 font-bold uppercase tracking-widest text-[10px] py-4 px-10 rounded-2xl transition-all shadow-xl ${item.featured
-                    ? 'bg-primary text-white hover:bg-primary/90 shadow-primary/20'
-                    : 'bg-slate-900 text-white hover:bg-primary shadow-slate-900/10'
+                  ? 'bg-primary text-white hover:bg-primary/90 shadow-primary/20'
+                  : 'bg-slate-900 text-white hover:bg-primary shadow-slate-900/10'
                   }`}
               >
                 {item.linkText} <ArrowRight size={16} />

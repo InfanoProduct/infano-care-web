@@ -1,13 +1,20 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Smartphone, ArrowRight, Download, X, Sparkles } from 'lucide-react';
 
 export function EcosystemHero() {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleNavigate = () => {
+    setIsModalOpen(false);
+    router.push('/parents-enquiry');
+  };
 
   return (
     <>
@@ -168,10 +175,10 @@ export function EcosystemHero() {
                 </div>
 
                 <button
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => handleNavigate()}
                   className="w-full mt-8 py-4 bg-primary text-white rounded-full font-bold text-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-[0.98]"
                 >
-                  Got it
+                  Explore Journey
                 </button>
               </div>
             </motion.div>

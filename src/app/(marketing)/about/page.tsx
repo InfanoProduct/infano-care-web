@@ -243,21 +243,24 @@ export default function AboutPage() {
                 qual: 'MBBS, MD (Gynaecology)',
                 spec: 'Menstrual Health Specialist',
                 quote: 'I joined Infano because I was tired of girls arriving in my clinic ashamed of questions they should have felt free to ask.',
-                profileImage: "/experts/expert.jpeg"
+                profileImage: "/experts/expert.jpeg",
+                bgColor: 'bg-[#F2A7C3]',
               },
               {
                 name: 'Preethi Nair',
                 qual: 'M.Phil, Clinical Psychology',
                 spec: 'Adolescent Mental Health',
                 quote: 'Adolescence is not a problem to be solved—it is a chapter to be supported. Infano makes that support accessible.',
-                profileImage: "/experts/expert.jpeg"
+                profileImage: "/experts/expert.jpeg",
+                bgColor: 'bg-[#B5D8F7]',
               },
               {
                 name: 'Ritu Mehrotra',
                 qual: 'MEd, Curriculum Design',
                 spec: 'Holistic Education Lead',
                 quote: 'We designed the learning journeys to feel like stories, not lessons—because girls learn best when they feel seen.',
-                profileImage: "/experts/expert.jpeg"
+                profileImage: "/experts/expert.jpeg",
+                bgColor: 'bg-[#C3E8C8]',
               },
             ].map((expert, idx) => (
               <motion.div
@@ -266,29 +269,32 @@ export default function AboutPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                whileHover={{ y: -10 }}
-                className="bg-white rounded-[2.5rem] p-10 shadow-[0_20px_50px_rgba(0,0,0,0.03)] border border-slate-100 group transition-all"
+                whileHover={{ y: -8 }}
+                className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.06)] group transition-all duration-500"
               >
-                <div className="flex items-center gap-6 mb-8">
-                  <div className="relative w-20 h-20 rounded-[1.25rem] overflow-hidden shadow-lg border border-slate-100 flex-shrink-0 group-hover:shadow-primary/20 transition-all duration-500">
+                {/* Image area with colored background */}
+                <div className={`relative ${expert.bgColor} flex items-end justify-center pt-6 overflow-hidden`} style={{ height: '260px' }}>
+                  {/* Role badge — top right */}
+                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
+                    <span className="text-[11px] font-bold text-slate-700">{expert.spec}</span>
+                  </div>
+                  {/* Expert photo */}
+                  <div className="relative w-48 h-56 flex-shrink-0">
                     <Image
                       src={expert.profileImage}
                       alt={expert.name}
                       fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-700"
+                      className="object-cover object-top group-hover:scale-105 transition-transform duration-700"
                     />
                   </div>
-                  <div>
-                    <h4 className="text-xl font-bold font-heading text-slate-900 mb-1 tracking-tight">{expert.name}</h4>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-0.5">{expert.qual}</span>
-                      <span className="text-xs font-bold text-slate-500">{expert.spec}</span>
-                    </div>
-                  </div>
                 </div>
-                <div className="relative">
-                  <Quote size={20} className="text-primary/20 absolute -top-4 -left-2" />
-                  <p className="text-slate-500 leading-relaxed font-medium italic relative z-10 pl-4 border-l-2 border-primary/10">
+
+                {/* Content area */}
+                <div className="p-6">
+                  <h4 className="text-lg font-bold font-heading text-slate-900 mb-0.5 tracking-tight">
+                    {expert.name}, <span className="font-medium text-slate-500">{expert.qual.split(',')[0]}</span>
+                  </h4>
+                  <p className="text-sm text-slate-400 leading-relaxed mt-2">
                     {expert.quote}
                   </p>
                 </div>

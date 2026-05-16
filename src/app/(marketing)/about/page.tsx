@@ -8,38 +8,38 @@ export default function AboutPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       {/* Section 2.1 — Premium Hero */}
-      <section className="relative pt-32 pb-24 lg:pt-48 lg:pb-40 overflow-hidden bg-[#FAF9FF]">
+      <section className="relative pt-20 pb-24 lg:pt-20 lg:pb-40 overflow-hidden bg-[#FAF9FF]">
         {/* Decorative Background Graphics */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           {/* Large Soft Circles */}
           <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-white rounded-full opacity-50" />
           <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-white rounded-full opacity-50" />
-          
+
           {/* Geometric Graphic Elements */}
           <div className="absolute top-[15%] right-[10%] w-32 h-32 border border-primary/10 rounded-full flex items-center justify-center">
-             <div className="w-16 h-16 border border-primary/5 rounded-full" />
+            <div className="w-16 h-16 border border-primary/5 rounded-full" />
           </div>
-          
+
           <div className="absolute bottom-[20%] left-[15%] flex gap-4">
-             {[...Array(3)].map((_, i) => (
-               <div key={i} className="w-1.5 h-12 bg-primary/10 rounded-full" style={{ opacity: 1 - i * 0.3 }} />
-             ))}
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="w-1.5 h-12 bg-primary/10 rounded-full" style={{ opacity: 1 - i * 0.3 }} />
+            ))}
           </div>
 
           <div className="absolute top-[40%] right-[15%] grid grid-cols-4 gap-4 opacity-20">
-             {[...Array(16)].map((_, i) => (
-               <div key={i} className="w-1.5 h-1.5 rounded-full bg-primary" />
-             ))}
+            {[...Array(16)].map((_, i) => (
+              <div key={i} className="w-1.5 h-1.5 rounded-full bg-primary" />
+            ))}
           </div>
 
           {/* Subtle Grid Pattern Overlay */}
-          <div className="absolute inset-0 opacity-[0.03]" 
-               style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #6366f1 1px, transparent 0)', backgroundSize: '40px 40px' }} />
+          <div className="absolute inset-0 opacity-[0.03]"
+            style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #6366f1 1px, transparent 0)', backgroundSize: '40px 40px' }} />
         </div>
 
         <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
           <div className="max-w-4xl">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               className="inline-flex items-center gap-3 px-4 py-1.5 bg-white border border-slate-100 rounded-full mb-12 shadow-sm"
@@ -49,23 +49,22 @@ export default function AboutPage() {
               </div>
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Our Founding Philosophy</span>
             </motion.div>
-            
-            <motion.h1 
+
+            <motion.h1
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="text-5xl md:text-7xl font-bold font-heading text-slate-900 mb-12 leading-[1.1] tracking-tight"
+              className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900t"
             >
               We started because we <br />
-              <span className="text-primary">remembered</span> what it <br />
-              felt like.
+              <span className="text-primary">remembered</span> what it <br />              felt like.
             </motion.h1>
-            
-            <motion.p 
+
+            <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="text-lg md:text-xl text-slate-500 max-w-2xl leading-relaxed font-medium"
+              className="xt-base md:text-md text-slate-500 leading-relaxed font-medium mb-8 max-w-2xl"
             >
               Infano.care was born from a deeply personal understanding of what adolescent girls go through—and a fierce belief that they deserve better tools, better conversations, and better support.
             </motion.p>
@@ -78,7 +77,7 @@ export default function AboutPage() {
         <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
           <div className="grid lg:grid-cols-12 gap-20 items-start">
             {/* Left Column: High-impact Quote */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -88,7 +87,7 @@ export default function AboutPage() {
                 <Quote size={120} />
               </div>
               <div className="relative z-10">
-                <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-8 leading-tight">
+                <h2 className="text-3xl md:text-4xl font-bold font-heading text-slate-900 mb-8 leading-tight tracking-tight">
                   "We are not a one-size-fits-all solution. We are a living, breathing community."
                 </h2>
                 <div className="flex items-center gap-4">
@@ -104,14 +103,14 @@ export default function AboutPage() {
             </motion.div>
 
             {/* Right Column: Narrative */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
               className="lg:col-span-7 prose prose-lg prose-slate"
             >
-              <p className="text-xl text-slate-700 font-medium leading-relaxed mb-8">
+              <p className="text-xl text-slate-500 font-medium leading-relaxed mb-8">
                 Infano.care started with a simple observation: the journey from girlhood to womanhood is one of the most complex transitions a human being can make—and yet most girls make it almost entirely alone.
               </p>
               <div className="space-y-6 text-slate-500">
@@ -135,7 +134,7 @@ export default function AboutPage() {
         <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[240px]">
             {/* Our Mission - Large Feature Card */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
@@ -144,13 +143,13 @@ export default function AboutPage() {
               <div className="absolute top-10 right-10 w-24 h-24 bg-white/40 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
               <div className="text-5xl mb-8">🎯</div>
               <h3 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 tracking-tight">Our Mission</h3>
-              <p className="text-lg md:text-xl text-slate-600 leading-relaxed max-w-2xl font-medium">
+              <p className="text-lg md:text-xl text-slate-500 leading-relaxed max-w-2xl font-medium">
                 To empower every adolescent and young adult girl to become an independent, confident, and empowered woman—through knowledge, community, and care.
               </p>
             </motion.div>
 
             {/* Our Vision - Tall Card */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
@@ -159,7 +158,7 @@ export default function AboutPage() {
               <div>
                 <div className="text-4xl mb-6">🔭</div>
                 <h3 className="text-2xl font-bold text-slate-900 mb-4">Our Vision</h3>
-                <p className="text-slate-600 font-medium leading-relaxed">
+                <p className="text-slate-500 font-medium leading-relaxed">
                   A world where no girl grows up feeling alone in her journey—where every question is welcomed and every emotion is valid.
                 </p>
               </div>
@@ -167,7 +166,7 @@ export default function AboutPage() {
             </motion.div>
 
             {/* Our Philosophy - Wide Card */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -175,15 +174,15 @@ export default function AboutPage() {
             >
               <div className="text-4xl">💜</div>
               <div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">Girl-First Design</h3>
-                <p className="text-sm text-slate-600 font-medium leading-relaxed">
+                <h3 className="text-xl font-bold font-heading text-slate-900 mb-2 tracking-tight">Girl-First Design</h3>
+                <p className="text-sm text-slate-500 font-medium leading-relaxed">
                   Every product and piece of content is created with her dignity and agency at the centre.
                 </p>
               </div>
             </motion.div>
 
             {/* Our Promise - Wide Card */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -192,8 +191,8 @@ export default function AboutPage() {
             >
               <div className="text-4xl">🔒</div>
               <div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">Our Promise</h3>
-                <p className="text-sm text-slate-600 font-medium leading-relaxed">
+                <h3 className="text-xl font-bold font-heading text-slate-900 mb-2 tracking-tight">Our Promise</h3>
+                <p className="text-sm text-slate-500 font-medium leading-relaxed">
                   Safe. Expert-backed. Stigma-free. A space where her questions are celebrated.
                 </p>
               </div>
@@ -206,7 +205,7 @@ export default function AboutPage() {
       <section className="py-32 bg-slate-50/50">
         <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
           <div className="text-center max-w-2xl mx-auto mb-20">
-            <motion.h2 
+            <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -243,7 +242,7 @@ export default function AboutPage() {
                 icon: "📚"
               },
             ].map((expert, idx) => (
-              <motion.div 
+              <motion.div
                 key={expert.name}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -255,14 +254,14 @@ export default function AboutPage() {
                 <div className="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center text-3xl mb-8 group-hover:bg-primary group-hover:text-white transition-colors duration-500">
                   {expert.icon}
                 </div>
-                <h4 className="text-2xl font-bold text-slate-900 mb-2">{expert.name}</h4>
+                <h4 className="text-2xl font-bold font-heading text-slate-900 mb-2 tracking-tight">{expert.name}</h4>
                 <div className="flex flex-col mb-8">
                   <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">{expert.qual}</span>
                   <span className="text-sm font-bold text-slate-500">{expert.spec}</span>
                 </div>
                 <div className="relative">
                   <Quote size={20} className="text-primary/20 absolute -top-4 -left-2" />
-                  <p className="text-slate-600 leading-relaxed font-medium italic relative z-10 pl-4 border-l-2 border-primary/10">
+                  <p className="text-slate-500 leading-relaxed font-medium italic relative z-10 pl-4 border-l-2 border-primary/10">
                     {expert.quote}
                   </p>
                 </div>
@@ -276,7 +275,7 @@ export default function AboutPage() {
       <section className="py-32 bg-white">
         <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
           <div className="text-center mb-24">
-            <motion.h2 
+            <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -296,7 +295,7 @@ export default function AboutPage() {
             ].map((item, idx) => (
               <div key={idx} className={`p-12 ${idx !== 3 ? 'md:border-r border-slate-100' : ''} group hover:bg-slate-50 transition-colors duration-500`}>
                 <div className="text-4xl mb-8 group-hover:scale-110 transition-transform">{item.icon}</div>
-                <h4 className="text-xl font-bold text-slate-900 mb-4">{item.title}</h4>
+                <h4 className="text-xl font-bold font-heading text-slate-900 mb-4 tracking-tight">{item.title}</h4>
                 <p className="text-sm text-slate-500 leading-relaxed font-medium">{item.desc}</p>
               </div>
             ))}
@@ -312,7 +311,7 @@ export default function AboutPage() {
         </div>
 
         <div className="max-w-4xl mx-auto px-6 relative z-10 text-center">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
@@ -320,25 +319,25 @@ export default function AboutPage() {
           >
             🇮🇳
           </motion.div>
-          <motion.h2 
+          <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-bold font-heading mb-10 tracking-tight text-slate-900 leading-tight"
+            className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900"
           >
             India has over 120 million <br /> adolescent girls.
           </motion.h2>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-xl text-slate-500 mb-16 leading-relaxed font-medium"
+            className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-8"
           >
-            Most navigate puberty, body image, and mental health without safe, accurate support. 
+            Most navigate puberty, body image, and mental health without safe, accurate support.
             Infano.care is the responsible, expert-backed alternative that parents trust, schools adopt, and girls love.
           </motion.p>
-          
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

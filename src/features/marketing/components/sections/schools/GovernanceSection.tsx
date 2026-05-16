@@ -7,7 +7,7 @@ import { SCHOOL_FAQS } from '../../../data/faqs';
 export function GovernanceSection() {
   const sideContent = (
     <div>
-      <motion.span 
+      <motion.span
         initial={{ opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
@@ -15,13 +15,14 @@ export function GovernanceSection() {
       >
         Security & Compliance
       </motion.span>
-      <h2 className="text-4xl md:text-6xl font-bold font-heading text-slate-900 mb-8 leading-tight tracking-tight">
+      <h2 className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900
+">
         Governance & <br /> Safeguarding.
       </h2>
-      <p className="text-lg text-slate-500 leading-relaxed font-medium max-w-lg mb-12">
+      <p className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-8">
         Student safety is our highest priority. We maintain enterprise-grade security protocols and rigorous content moderation.
       </p>
-      
+
       <div className="flex flex-wrap gap-10">
         <div className="flex flex-col">
           <span className="text-2xl font-bold text-slate-900 mb-1">DPDP</span>
@@ -42,7 +43,7 @@ export function GovernanceSection() {
   return (
     <div className="relative">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,_var(--color-primary-light)_0%,_transparent_70%)] opacity-[0.03] pointer-events-none" />
-      <FaqSection 
+      <FaqSection
         items={SCHOOL_FAQS}
         theme="transparent"
         layout="split"

@@ -86,6 +86,14 @@
   .premium-gradient-text {
     @apply text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-accent font-bold;
   }
+
+  .section-title {
+    @apply text-4xl md:text-5xl font-bold font-heading text-slate-900 mb-6 tracking-tight leading-tight;
+  }
+
+  .section-subtitle {
+    @apply text-base md:text-lg text-slate-500 font-medium leading-relaxed mb-10;
+  }
 }
 
 /* Tiptap Editor Styles */

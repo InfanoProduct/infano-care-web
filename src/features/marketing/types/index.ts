@@ -18,6 +18,7 @@ export interface ProblemItem {
   color: string;
   image: string;
   link: string;
+  tags?: string[];
 }
 
 export interface FeatureItem {

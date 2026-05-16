@@ -52,17 +52,17 @@ export function PartnershipBanner() {
       <section className="py-32 relative overflow-hidden bg-[#2D1B4D]">
         {/* Thematic Image Overlay with Gradient */}
         <div className="absolute inset-0 z-0">
-           <div className="absolute inset-0 bg-gradient-to-br from-[#2D1B4D] via-[#4A2B8A] to-[#2D1B4D] mix-blend-multiply opacity-90" />
-           <Image 
-            src="https://images.unsplash.com/photo-1523050853063-880693006d0a?auto=format&fit=crop&q=80" 
+          <div className="absolute inset-0 bg-gradient-to-br from-[#2D1B4D] via-[#4A2B8A] to-[#2D1B4D] mix-blend-multiply opacity-90" />
+          <Image
+            src="https://images.unsplash.com/photo-1523050853063-880693006d0a?auto=format&fit=crop&q=80"
             alt="School environment"
             fill
             className="object-cover mix-blend-overlay opacity-30"
-           />
+          />
         </div>
 
         <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
@@ -70,16 +70,16 @@ export function PartnershipBanner() {
           >
             {/* Highlight Badges */}
             <div className="flex flex-wrap justify-center gap-12 mb-16">
-               {[
-                 { label: "India-Wide", value: "20+ Schools" },
-                 { label: "Expert-Backed", value: "Verified Impact" },
-                 { label: "Curriculum", value: "Ready to Use" }
-               ].map((item, idx) => (
-                 <div key={idx} className="flex flex-col items-center">
-                    <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-black mb-3 opacity-60">{item.label}</span>
-                    <span className="text-slate-900 font-bold text-lg">{item.value}</span>
-                 </div>
-               ))}
+              {[
+                { label: "India-Wide", value: "20+ Schools" },
+                { label: "Expert-Backed", value: "Verified Impact" },
+                { label: "Curriculum", value: "Ready to Use" }
+              ].map((item, idx) => (
+                <div key={idx} className="flex flex-col items-center">
+                  <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-black mb-3 opacity-60">{item.label}</span>
+                  <span className="text-slate-900 font-bold text-lg">{item.value}</span>
+                </div>
+              ))}
             </div>
 
             <h2 className="text-4xl md:text-7xl font-bold font-heading mb-10 text-slate-900 leading-[1.1] tracking-tight">
@@ -93,7 +93,7 @@ export function PartnershipBanner() {
               <Link href="/contact" className="px-12 py-6 bg-slate-900 text-white rounded-full font-bold text-lg hover:bg-primary transition-all shadow-2xl active:scale-95 group">
                 Apply for Partnership <ArrowRight className="inline-block ml-2 transition-transform group-hover:translate-x-1" />
               </Link>
-              <button 
+              <button
                 onClick={() => setIsModalOpen(true)}
                 className="px-12 py-6 bg-transparent border-2 border-slate-200 text-slate-900 rounded-full font-bold text-lg hover:bg-slate-50 transition-all active:scale-95"
               >
@@ -108,14 +108,14 @@ export function PartnershipBanner() {
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }} 
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               onClick={() => setIsModalOpen(false)}
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             />
-            
+
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -124,7 +124,7 @@ export function PartnershipBanner() {
             >
               {/* Header */}
               <div className="bg-primary p-8 text-center relative">
-                <button 
+                <button
                   onClick={() => setIsModalOpen(false)}
                   className="absolute top-4 right-4 p-2 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors"
                 >
@@ -152,8 +152,8 @@ export function PartnershipBanner() {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Full Name</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           placeholder="Jane Doe"
                           value={formData.name}
@@ -163,8 +163,8 @@ export function PartnershipBanner() {
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Phone Number</label>
-                        <input 
-                          type="tel" 
+                        <input
+                          type="tel"
                           required
                           placeholder="+91 00000 00000"
                           value={formData.phone}
@@ -174,7 +174,7 @@ export function PartnershipBanner() {
                       </div>
                     </div>
 
-                    <button 
+                    <button
                       type="submit"
                       disabled={isSubmitting}
                       className="w-full py-4 bg-primary text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-primary-dark transition-colors active:scale-95 shadow-lg shadow-primary/20 disabled:opacity-70"
@@ -185,7 +185,7 @@ export function PartnershipBanner() {
                         <><Download size={20} /> Download PDF</>
                       )}
                     </button>
-                    
+
                     <p className="text-xs text-center text-slate-400">
                       By downloading, you agree to receive communication from us regarding the partnership.
                     </p>

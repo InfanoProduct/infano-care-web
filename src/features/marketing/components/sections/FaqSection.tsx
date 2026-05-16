@@ -63,7 +63,7 @@ export function FaqSection({
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  className="mt-6 text-lg opacity-70 font-medium"
+                  className="mt-6 text-lg text-slate-500 font-medium"
                 >
                   {description}
                 </motion.p>
@@ -82,7 +82,7 @@ export function FaqSection({
               {sideContent || (
                 <>
                   <h2 className="text-4xl md:text-6xl font-bold font-heading mb-8 tracking-tight">{title}</h2>
-                  <p className="text-lg opacity-70 font-medium leading-relaxed max-w-lg">{description}</p>
+                  <p className="text-lg text-slate-500 font-medium leading-relaxed max-w-lg">{description}</p>
                 </>
               )}
             </div>
@@ -107,7 +107,7 @@ function FaqCard({ faq, index, itemTheme, answerTheme }: { faq: FaqItem, index: 
       transition={{ delay: index * 0.1 }}
       className={`p-8 rounded-xl border transition-all duration-300 ${itemTheme}`}
     >
-      <h4 className="text-lg font-bold mb-4 tracking-tight">{faq.question}</h4>
+      <h4 className="text-lg font-bold font-heading mb-4 tracking-tight">{faq.question}</h4>
       <p className={`leading-relaxed font-medium text-sm md:text-base ${answerTheme}`}>{faq.answer}</p>
     </motion.div>
   );

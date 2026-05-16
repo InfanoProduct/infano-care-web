@@ -41,7 +41,7 @@ export const ECOSYSTEM_FAQS: FaqItem[] = [
   },
   {
     question: "In which languages is Infano available?",
-    answer: "Infano is currently available in English, Hindi, Tamil, Telugu, Marathi, and Kannada. We are actively developing content in several other regional languages."
+    answer: "Infano is currently available in English and Hindi."
   },
   {
     question: "Is Infano available on iOS and Android?",

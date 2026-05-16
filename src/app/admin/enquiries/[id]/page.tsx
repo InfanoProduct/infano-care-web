@@ -3,15 +3,32 @@
 import { useEnquiry } from '@/features/enquiries/hooks/use-enquiries';
 import { 
   Loader2, Mail, Phone, Building2, User, Clock, 
-  MessageSquare, ChevronLeft, Calendar, MapPin
+  MessageSquare, ChevronLeft, Calendar, MapPin, UserCircle, Handshake
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
 export default function EnquiryDetailPage() {
   const { id } = useParams() as { id: string };
-  const { data: enquiry, isLoading, error } = useEnquiry(id);
+  const { data: realEnquiry, isLoading, error } = useEnquiry(id);
 
+  // Fallback to empty data to ensure instant UI layout rendering while loading
+  const enquiry = realEnquiry || {
+    id: id as string,
+    type: 'school',
+    schoolName: '',
+    contactName: '',
+    email: '',
+    phone: '',
+    createdAt: new Date().toISOString(),
+    schoolType: '',
+    totalGirls: 0,
+    cityState: '',
+    preferredTime: '',
+    goals: '',
+    details: '',
+    ngoDetail: ''
+  };
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
@@ -27,6 +44,24 @@ export default function EnquiryDetailPage() {
     return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   };
 
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'school': return 'bg-primary text-white shadow-primary/20';
+      case 'parent': return 'bg-emerald-500 text-white shadow-emerald-500/20';
+      case 'partner': return 'bg-blue-500 text-white shadow-blue-500/20';
+      default: return 'bg-slate-500 text-white shadow-slate-500/20';
+    }
+  };
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case 'school': return 'School Partnership';
+      case 'parent': return 'Parent/Carer Enquiry';
+      case 'partner': return 'NGO/Partner Enquiry';
+      default: return 'Enquiry';
+    }
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Page Header - Always Visible */}
@@ -38,14 +73,16 @@ export default function EnquiryDetailPage() {
         {enquiry && (
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="flex items-center gap-5">
-              <div className="w-14 h-14 bg-primary rounded-[1.25rem] flex items-center justify-center text-white shadow-xl shadow-primary/20">
-                <Building2 size={28} />
+              <div className={`w-14 h-14 rounded-[1.25rem] flex items-center justify-center shadow-xl ${getTypeColor(enquiry.type)}`}>
+                {enquiry.type === 'school' ? <Building2 size={28} /> : enquiry.type === 'parent' ? <UserCircle size={28} /> : <Handshake size={28} />}
               </div>
               <div>
-                <h1 className="text-3xl font-bold tracking-tight text-slate-800">{enquiry.schoolName}</h1>
+                <h1 className="text-3xl font-bold tracking-tight text-slate-800">
+                  {enquiry.type === 'school' ? enquiry.schoolName : enquiry.contactName}
+                </h1>
                 <div className="flex items-center gap-3 mt-1">
-                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-black uppercase tracking-wider border border-primary/20">
-                    {enquiry.schoolType || 'General Enquiry'}
+                  <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${enquiry.type === 'school' ? 'bg-primary/10 text-primary border-primary/20' : enquiry.type === 'parent' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-blue-500/10 text-blue-600 border-blue-500/20'}`}>
+                    {getTypeLabel(enquiry.type)}
                   </span>
                   <span className="text-xs text-muted-foreground font-medium flex items-center gap-1">
                     <Calendar size={14} /> Submitted {formatDate(enquiry.createdAt)}
@@ -58,22 +95,15 @@ export default function EnquiryDetailPage() {
       </div>
 
       <div className="relative min-h-[400px]">
-        {isLoading && (
-          <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center gap-4 rounded-[2.5rem]">
-            <Loader2 className="animate-spin text-primary" size={40} />
-            <p className="text-sm font-bold text-primary/60 italic tracking-widest uppercase">Loading Details...</p>
-          </div>
-        )}
-
-        {error || (!enquiry && !isLoading) ? (
+        {error ? (
           <div className="p-12 text-center text-red-500 bg-red-50 rounded-[2.5rem] border border-red-100">
             <p className="font-bold">Error loading enquiry details. It may not exist or has been removed.</p>
             <Link href="/admin/enquiries" className="mt-4 inline-flex items-center gap-2 text-primary font-bold hover:underline">
               <ChevronLeft size={20} /> Back to Enquiries
             </Link>
           </div>
-        ) : enquiry && (
-          <div className={`grid lg:grid-cols-3 gap-8 transition-opacity duration-300 ${isLoading ? 'opacity-20' : 'opacity-100'}`}>
+        ) : (
+          <div className={`grid lg:grid-cols-3 gap-8 transition-opacity duration-300 ${isLoading && !realEnquiry ? 'opacity-50 animate-pulse' : 'opacity-100'}`}>
             {/* Left Column: Details Cards */}
             <div className="lg:col-span-2 space-y-8">
               {/* Main Info Grid */}
@@ -81,7 +111,7 @@ export default function EnquiryDetailPage() {
                 {/* Contact Card */}
                 <div className="glass-card p-8 rounded-[2rem] border-white/40 shadow-xl space-y-6">
                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2">
-                    <User size={16} /> Contact Representative
+                    <User size={16} /> Contact Information
                   </h3>
                   <div className="space-y-5">
                     <div className="flex items-start gap-4">
@@ -89,8 +119,8 @@ export default function EnquiryDetailPage() {
                         <User size={20} />
                       </div>
                       <div>
-                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-0.5">Name & Position</p>
-                        <p className="text-lg font-black text-slate-700">{enquiry.contactName || 'Not Provided'}</p>
+                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-0.5">Full Name</p>
+                        <p className="text-lg font-black text-slate-700">{enquiry.contactName || '—'}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-4">
@@ -114,51 +144,79 @@ export default function EnquiryDetailPage() {
                   </div>
                 </div>
 
-                {/* School Detail Card */}
+                {/* Specific Detail Card */}
                 <div className="glass-card p-8 rounded-[2rem] border-white/40 shadow-xl space-y-6">
                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2">
-                    <Building2 size={16} /> School Statistics
+                    {enquiry.type === 'school' ? <Building2 size={16} /> : enquiry.type === 'partner' ? <Handshake size={16} /> : <MapPin size={16} />}
+                    {enquiry.type === 'school' ? 'School Statistics' : enquiry.type === 'partner' ? 'Organization Detail' : 'Location Details'}
                   </h3>
                   <div className="space-y-5">
+                    {enquiry.type === 'school' ? (
+                      <>
+                        <div className="flex items-start gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                            <Building2 size={20} />
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-0.5">School Type</p>
+                            <p className="text-sm font-bold text-slate-700">{enquiry.schoolType || '—'}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                            <User size={20} />
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-0.5">Total Girls (6–12)</p>
+                            <p className="text-lg font-black text-slate-700">{enquiry.totalGirls || '—'}</p>
+                          </div>
+                        </div>
+                      </>
+                    ) : enquiry.type === 'partner' ? (
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                          <Handshake size={20} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-0.5">Organization Info</p>
+                          <p className="text-sm font-bold text-slate-700">{enquiry.ngoDetail || '—'}</p>
+                        </div>
+                      </div>
+                    ) : null}
+                    
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
                         <MapPin size={20} />
                       </div>
                       <div>
-                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-0.5">Location</p>
+                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-0.5">City & State</p>
                         <p className="text-sm font-bold text-slate-700">{enquiry.cityState || '—'}</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
-                        <User size={20} />
+
+                    {enquiry.type === 'school' && (
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                          <Clock size={20} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-0.5">Preferred Consult Time</p>
+                          <p className="text-sm font-bold text-slate-700">{enquiry.preferredTime || '—'}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-0.5">Total Girls (Grades 6–12)</p>
-                        <p className="text-lg font-black text-slate-700">{enquiry.totalGirls || '—'}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
-                        <Clock size={20} />
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-0.5">Preferred Consult Time</p>
-                        <p className="text-sm font-bold text-slate-700">{enquiry.preferredTime || '—'}</p>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Goals Card */}
+              {/* Message / Goals Card */}
               <div className="glass-card p-10 rounded-[2.5rem] border-white/40 shadow-xl space-y-6">
                 <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2">
-                  <MessageSquare size={18} /> Strategic Programme Goals
+                  <MessageSquare size={18} /> {enquiry.type === 'parent' ? 'Enquiry Details' : 'Strategic Programme Goals'}
                 </h3>
                 <div className="p-8 bg-slate-50/50 rounded-[1.5rem] border border-slate-100">
                   <p className="text-lg text-slate-600 leading-relaxed italic font-medium">
-                    "{enquiry.goals || "The applicant did not provide specific goals for this enquiry."}"
+                    "{enquiry.type === 'parent' ? (enquiry.details || 'No details provided.') : (enquiry.goals || "No specific goals provided.")}"
                   </p>
                 </div>
               </div>
@@ -210,3 +268,4 @@ export default function EnquiryDetailPage() {
     </div>
   );
 }
+

@@ -7,7 +7,6 @@ import { Menu, X } from 'lucide-react';
 
 const navLinks = [
   { name: 'Home', href: '/' },
-  { name: 'About', href: '/about' },
   { name: 'Ecosystem', href: '/ecosystem' },
   { name: 'Schools', href: '/schools' },
   { name: 'Parents', href: '/parents' },
@@ -15,6 +14,7 @@ const navLinks = [
   { name: 'Book', href: '/the-book' },
   { name: 'Impact', href: '/impact' },
   { name: 'Blog', href: '/blog' },
+  { name: 'About', href: '/about' },
 ];
 
 export function MarketingNavbar() {

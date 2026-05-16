@@ -18,15 +18,11 @@ export default function ContactPage() {
     email: '',
     phone: '',
     preferredTime: 'Morning (9AM - 12PM)',
-    goals: ''
+    goals: '',
+    details: '',
+    ngoDetail: ''
   });
 
-  const [newsletterData, setNewsletterData] = useState({
-    name: '',
-    email: '',
-    role: ''
-  });
-  const [isSubscribing, setIsSubscribing] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -40,6 +36,7 @@ export default function ContactPage() {
     try {
       await apiClient.post('/enquiry/submit', {
         ...formData,
+        type: selectedCard,
         totalGirls: formData.totalGirls ? parseInt(formData.totalGirls) : undefined
       });
       toast.success('Enquiry submitted successfully! We\'ll be in touch soon.');
@@ -52,7 +49,9 @@ export default function ContactPage() {
         email: '',
         phone: '',
         preferredTime: 'Morning (9AM - 12PM)',
-        goals: ''
+        goals: '',
+        details: '',
+        ngoDetail: ''
       });
     } catch (error: any) {
       toast.error(error.message || 'Failed to submit enquiry. Please try again.');
@@ -61,17 +60,22 @@ export default function ContactPage() {
     }
   };
 
-  const handleNewsletterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubscribing(true);
-    try {
-      await apiClient.post('/enquiry/subscribe', newsletterData);
-      toast.success('Subscribed successfully!');
-      setNewsletterData({ name: '', email: '', role: '' });
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to subscribe.');
-    } finally {
-      setIsSubscribing(false);
+
+  const getFormTitle = () => {
+    switch (selectedCard) {
+      case 'school': return 'School Enquiry Form';
+      case 'parent': return 'Parent/Carer Enquiry Form';
+      case 'partner': return 'Partnership Enquiry Form';
+      default: return 'Enquiry Form';
+    }
+  };
+
+  const getButtonText = () => {
+    switch (selectedCard) {
+      case 'school': return 'Request a School Consultation';
+      case 'parent': return 'Send Parent Enquiry';
+      case 'partner': return 'Submit Partnership Request';
+      default: return 'Submit Enquiry';
     }
   };
 
@@ -85,7 +89,7 @@ export default function ContactPage() {
             <span className="text-primary">Every great partnership starts with a conversation.</span>
           </h1>
           <p className="text-xl text-muted-foreground leading-relaxed">
-            Whether you're a school ready to partner, a parent ready to enrol, or simply curious about what Infano.care is — reach out. Our team responds within one working day.
+            Whether you're a school ready to partner, a parent ready to enrol, or a potential partner — reach out. Our team responds within one working day.
           </p>
         </div>
       </section>
@@ -104,39 +108,24 @@ export default function ContactPage() {
               <Building2 className="text-primary mb-4" size={32} />
               <h3 className="font-bold text-lg mb-2">I Represent a School</h3>
               <p className="text-sm text-muted-foreground mb-4">Book a 45-minute consultation with our School Partnerships team.</p>
-              <a href="mailto:schools@infano.care" className="text-primary font-semibold text-sm flex items-center hover:underline">
-                schools@infano.care <ArrowRight size={16} className="ml-1" />
-              </a>
+              <div className="text-primary font-semibold text-sm flex items-center">
+                Fill the form below <ArrowRight size={16} className="ml-1" />
+              </div>
             </div>
 
             <div 
               onClick={() => setSelectedCard('parent')}
               className={`p-6 border-2 rounded-2xl cursor-pointer transition-all relative ${
-                selectedCard === 'parent' ? 'border-secondary bg-white shadow-lg scale-[1.02]' : 'border-border bg-slate-50 hover:border-secondary/50'
+                selectedCard === 'parent' ? 'border-emerald-500 bg-white shadow-lg scale-[1.02]' : 'border-border bg-slate-50 hover:border-emerald-500/50'
               }`}
             >
-              {selectedCard === 'parent' && <CheckCircle2 className="absolute top-4 right-4 text-secondary" size={20} />}
-              <UserCircle className="text-secondary mb-4" size={32} />
+              {selectedCard === 'parent' && <CheckCircle2 className="absolute top-4 right-4 text-emerald-500" size={20} />}
+              <UserCircle className="text-emerald-500 mb-4" size={32} />
               <h3 className="font-bold text-lg mb-2">I'm a Parent or Carer</h3>
               <p className="text-sm text-muted-foreground mb-4">Enrol your daughter or ask a question.</p>
-              <a href="mailto:parents@infano.care" className="text-secondary font-semibold text-sm flex items-center hover:underline">
-                parents@infano.care <ArrowRight size={16} className="ml-1" />
-              </a>
-            </div>
-
-            <div 
-              onClick={() => setSelectedCard('book')}
-              className={`p-6 border-2 rounded-2xl cursor-pointer transition-all relative ${
-                selectedCard === 'book' ? 'border-accent bg-white shadow-lg scale-[1.02]' : 'border-border bg-slate-50 hover:border-accent/50'
-              }`}
-            >
-              {selectedCard === 'book' && <CheckCircle2 className="absolute top-4 right-4 text-accent" size={20} />}
-              <BookOpen className="text-accent mb-4" size={32} />
-              <h3 className="font-bold text-lg mb-2">I Want the Book</h3>
-              <p className="text-sm text-muted-foreground mb-4">Order online or enquire about bulk school adoption.</p>
-              <a href="mailto:books@infano.care" className="text-accent font-semibold text-sm flex items-center hover:underline">
-                books@infano.care <ArrowRight size={16} className="ml-1" />
-              </a>
+              <div className="text-emerald-500 font-semibold text-sm flex items-center">
+                Fill the form below <ArrowRight size={16} className="ml-1" />
+              </div>
             </div>
 
             <div 
@@ -149,98 +138,90 @@ export default function ContactPage() {
               <Handshake className="text-blue-500 mb-4" size={32} />
               <h3 className="font-bold text-lg mb-2">I Want to Partner</h3>
               <p className="text-sm text-muted-foreground mb-4">Corporate CSR, NGO collaboration, or media.</p>
-              <a href="mailto:partnerships@infano.care" className="text-blue-500 font-semibold text-sm flex items-center hover:underline">
-                partnerships@infano.care <ArrowRight size={16} className="ml-1" />
-              </a>
-            </div>
-
-            <div 
-              onClick={() => setSelectedCard('general')}
-              className={`p-6 border-2 rounded-2xl cursor-pointer transition-all relative ${
-                selectedCard === 'general' ? 'border-slate-800 bg-white shadow-lg scale-[1.02]' : 'border-border bg-slate-50 hover:border-slate-800/50'
-              }`}
-            >
-              {selectedCard === 'general' && <CheckCircle2 className="absolute top-4 right-4 text-slate-800" size={20} />}
-              <MessageSquare className="text-slate-700 mb-4" size={32} />
-              <h3 className="font-bold text-lg mb-2">General Enquiry</h3>
-              <p className="text-sm text-muted-foreground mb-4">Anything else.</p>
-              <a href="mailto:hello@infano.care" className="text-slate-800 font-semibold text-sm flex items-center hover:underline">
-                hello@infano.care <ArrowRight size={16} className="ml-1" />
-              </a>
+              <div className="text-blue-500 font-semibold text-sm flex items-center">
+                Fill the form below <ArrowRight size={16} className="ml-1" />
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Section 10.3 — School Enquiry Form */}
-      <section className="py-24 bg-slate-50">
+      {/* Section 10.3 — Dynamic Enquiry Form */}
+      <section className="py-24 bg-slate-50" id="enquiry-form">
         <div className="max-w-3xl mx-auto px-4 md:px-6">
           <div className="glass-card bg-white p-8 md:p-12 rounded-3xl shadow-lg border border-slate-100">
-            <h2 className="text-3xl font-bold font-heading mb-2 text-center">School Enquiry Form</h2>
+            <h2 className="text-3xl font-bold font-heading mb-2 text-center">{getFormTitle()}</h2>
             <p className="text-center text-muted-foreground mb-8">Fill out the form below and we'll be in touch within one working day.</p>
 
             <form className="space-y-6" onSubmit={handleSubmit}>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">School Name *</label>
-                  <input 
-                    type="text" 
-                    name="schoolName"
-                    value={formData.schoolName}
-                    onChange={handleInputChange}
-                    className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/50" 
-                    required 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">School Type</label>
-                  <select 
-                    name="schoolType"
-                    value={formData.schoolType}
-                    onChange={handleInputChange}
-                    className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  >
-                    <option>CBSE</option>
-                    <option>ICSE</option>
-                    <option>IB</option>
-                    <option>State Board</option>
-                    <option>Other</option>
-                  </select>
-                </div>
-              </div>
+              {selectedCard === 'school' && (
+                <>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">School Name *</label>
+                      <input 
+                        type="text" 
+                        name="schoolName"
+                        value={formData.schoolName}
+                        onChange={handleInputChange}
+                        className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/50" 
+                        required 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">School Type</label>
+                      <select 
+                        name="schoolType"
+                        value={formData.schoolType}
+                        onChange={handleInputChange}
+                        className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      >
+                        <option>CBSE</option>
+                        <option>ICSE</option>
+                        <option>IB</option>
+                        <option>State Board</option>
+                        <option>Other</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">City and State</label>
+                      <input 
+                        type="text" 
+                        name="cityState"
+                        value={formData.cityState}
+                        onChange={handleInputChange}
+                        className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/50" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">Total Number of Girls (Grades 6–12)</label>
+                      <input 
+                        type="number" 
+                        name="totalGirls"
+                        value={formData.totalGirls}
+                        onChange={handleInputChange}
+                        className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/50" 
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
 
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">City and State</label>
-                  <input 
-                    type="text" 
-                    name="cityState"
-                    value={formData.cityState}
-                    onChange={handleInputChange}
-                    className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/50" 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Total Number of Girls (Grades 6–12)</label>
-                  <input 
-                    type="number" 
-                    name="totalGirls"
-                    value={formData.totalGirls}
-                    onChange={handleInputChange}
-                    className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/50" 
-                  />
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Your Name and Role</label>
+                  <label className="text-sm font-medium text-foreground">
+                    {selectedCard === 'school' ? 'Your Name and Role' : 'Your Full Name *'}
+                  </label>
                   <input 
                     type="text" 
                     name="contactName"
                     value={formData.contactName}
                     onChange={handleInputChange}
                     className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/50" 
+                    required={selectedCard !== 'school'}
                   />
                 </div>
                 <div className="space-y-2">
@@ -258,40 +239,75 @@ export default function ContactPage() {
 
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Phone Number</label>
+                  <label className="text-sm font-medium text-foreground">Phone Number *</label>
                   <input 
                     type="tel" 
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
                     className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/50" 
+                    required
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Preferred Consultation Time</label>
-                  <select 
-                    name="preferredTime"
-                    value={formData.preferredTime}
-                    onChange={handleInputChange}
-                    className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  >
-                    <option>Morning (9AM - 12PM)</option>
-                    <option>Afternoon (12PM - 4PM)</option>
-                    <option>Evening (4PM - 6PM)</option>
-                  </select>
-                </div>
+                {selectedCard === 'school' ? (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Preferred Consultation Time</label>
+                    <select 
+                      name="preferredTime"
+                      value={formData.preferredTime}
+                      onChange={handleInputChange}
+                      className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    >
+                      <option>Morning (9AM - 12PM)</option>
+                      <option>Afternoon (12PM - 4PM)</option>
+                      <option>Evening (4PM - 6PM)</option>
+                    </select>
+                  </div>
+                ) : selectedCard === 'partner' ? (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Organization/NGO Detail *</label>
+                    <input 
+                      type="text" 
+                      name="ngoDetail"
+                      value={formData.ngoDetail}
+                      onChange={handleInputChange}
+                      className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/50" 
+                      required
+                    />
+                  </div>
+                ) : null}
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">What are your main goals for this programme?</label>
-                <textarea 
-                  name="goals"
-                  value={formData.goals}
-                  onChange={handleInputChange}
-                  rows={3} 
-                  className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                ></textarea>
-              </div>
+              {(selectedCard === 'school' || selectedCard === 'partner') && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">
+                    {selectedCard === 'partner' ? 'What are your partnership goals? *' : 'What are your main goals for this programme?'}
+                  </label>
+                  <textarea 
+                    name="goals"
+                    value={formData.goals}
+                    onChange={handleInputChange}
+                    rows={3} 
+                    className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    required={selectedCard === 'partner'}
+                  ></textarea>
+                </div>
+              )}
+
+              {selectedCard === 'parent' && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Tell us more about your enquiry *</label>
+                  <textarea 
+                    name="details"
+                    value={formData.details}
+                    onChange={handleInputChange}
+                    rows={4} 
+                    placeholder="E.g. I want to enrol my daughter, I have a question about the curriculum..."
+                    className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    required
+                  ></textarea>
+                </div>
+              )}
 
               <div className="pt-4 text-center">
                 <button 
@@ -306,7 +322,7 @@ export default function ContactPage() {
                     </>
                   ) : (
                     <>
-                      Request a School Consultation &rarr;
+                      {getButtonText()} &rarr;
                     </>
                   )}
                 </button>
@@ -334,87 +350,54 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Section 10.5 — Office & Regional Contacts & 10.6 Newsletter */}
+      {/* Section 10.5 — Office & Regional Contacts */}
       <section className="py-24 bg-white">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-6">
-          <div className="grid md:grid-cols-2 gap-16 items-start">
-            <div>
-              <h2 className="text-2xl font-bold font-heading mb-8">Office & Contacts</h2>
-              <div className="space-y-6">
-                <div className="flex items-start gap-4">
-                  <MapPin className="text-muted-foreground mt-1" />
-                  <div>
-                    <h4 className="font-bold">Head Office</h4>
-                    <p className="text-muted-foreground">Bengaluru, India</p>
-                  </div>
+        <div className="max-w-3xl mx-auto px-4 md:px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold font-heading mb-4">Office & Contacts</h2>
+            <p className="text-muted-foreground">Reach out to us directly through any of the channels below.</p>
+          </div>
+          <div className="bg-slate-50 p-10 rounded-3xl border border-border space-y-8 shadow-sm">
+            
+            <div className="grid sm:grid-cols-2 gap-8">
+              <div className="flex items-start gap-4">
+                <MapPin className="text-primary mt-1 shrink-0" />
+                <div>
+                  <h4 className="font-bold text-slate-800">Address 1</h4>
+                  <p className="text-muted-foreground mt-1">Naya Raipur, Chhattishgarh</p>
                 </div>
-                <div className="flex items-start gap-4">
-                  <Mail className="text-muted-foreground mt-1" />
-                  <div>
-                    <h4 className="font-bold">Schools Enquiries</h4>
-                    <p className="text-muted-foreground">schools@infano.care</p>
-                    <p className="text-sm text-slate-400">Mon–Fri, 9am–6pm IST</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <Phone className="text-muted-foreground mt-1" />
-                  <div>
-                    <h4 className="font-bold">Parent Support</h4>
-                    <p className="text-muted-foreground">support@infano.care</p>
-                    <p className="text-sm text-slate-400">Mon–Sat, 9am–8pm IST</p>
-                  </div>
+              </div>
+              
+              <div className="flex items-start gap-4">
+                <MapPin className="text-primary mt-1 shrink-0" />
+                <div>
+                  <h4 className="font-bold text-slate-800">Address 2</h4>
+                  <p className="text-muted-foreground mt-1">Sarjapur, Bangalore</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-slate-50 p-8 rounded-3xl border border-border">
-              <h2 className="text-2xl font-bold font-heading mb-4">Stay in the loop.</h2>
-              <p className="text-muted-foreground mb-8">
-                Monthly updates on adolescent girl wellness, new features, expert insights, and stories from the Infano community.
-              </p>
-              <form className="space-y-4" onSubmit={handleNewsletterSubmit}>
-                <input 
-                  type="text" 
-                  placeholder="Your Name" 
-                  value={newsletterData.name}
-                  onChange={(e) => setNewsletterData({ ...newsletterData, name: e.target.value })}
-                  className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/50" 
-                />
-                <input 
-                  type="email" 
-                  placeholder="Your Email" 
-                  required
-                  value={newsletterData.email}
-                  onChange={(e) => setNewsletterData({ ...newsletterData, email: e.target.value })}
-                  className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/50" 
-                />
-                <select 
-                  value={newsletterData.role}
-                  onChange={(e) => setNewsletterData({ ...newsletterData, role: e.target.value })}
-                  className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 text-muted-foreground"
-                >
-                  <option value="" disabled>I am a...</option>
-                  <option value="School">School</option>
-                  <option value="Parent">Parent</option>
-                  <option value="Educator">Educator</option>
-                  <option value="Other">Other</option>
-                </select>
-                <button 
-                  type="submit" 
-                  disabled={isSubscribing}
-                  className="btn-primary w-full py-3 disabled:opacity-70 flex items-center justify-center gap-2"
-                >
-                  {isSubscribing ? (
-                    <>
-                      <Loader2 size={18} className="animate-spin" />
-                      Subscribing...
-                    </>
-                  ) : (
-                    'Subscribe'
-                  )}
-                </button>
-              </form>
+            <hr className="border-border" />
+
+            <div className="grid sm:grid-cols-2 gap-8">
+              <div className="flex items-start gap-4">
+                <Mail className="text-primary mt-1 shrink-0" />
+                <div>
+                  <h4 className="font-bold text-slate-800">Schools Enquiries</h4>
+                  <p className="text-muted-foreground mt-1">schools@infano.care</p>
+                  <p className="text-xs text-slate-400 mt-1 font-medium">Mon–Fri, 9am–6pm IST</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <Phone className="text-primary mt-1 shrink-0" />
+                <div>
+                  <h4 className="font-bold text-slate-800">Parent Support</h4>
+                  <p className="text-muted-foreground mt-1">support@infano.care</p>
+                  <p className="text-xs text-slate-400 mt-1 font-medium">Mon–Sat, 9am–8pm IST</p>
+                </div>
+              </div>
             </div>
+
           </div>
         </div>
       </section>

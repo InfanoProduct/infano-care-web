@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useEnquiries } from '@/features/enquiries/hooks/use-enquiries';
 import { 
   FileQuestion, Search, Mail, Phone, 
-  Building2, Clock, Eye
+  Building2, Clock, Eye, UserCircle, Handshake
 } from 'lucide-react';
 
 export default function EnquiriesPage() {
@@ -14,9 +14,10 @@ export default function EnquiriesPage() {
   const { data: enquiries = [], isLoading, error } = useEnquiries();
 
   const filteredEnquiries = enquiries.filter((enq: any) => 
-    enq.schoolName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    enq.contactName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    enq.email.toLowerCase().includes(searchQuery.toLowerCase())
+    (enq.schoolName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (enq.contactName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (enq.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (enq.type || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const formatDate = (dateString: string) => {
@@ -29,9 +30,21 @@ export default function EnquiriesPage() {
     return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   };
 
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'school': return 'from-primary/10 to-primary-light/5 text-primary border-primary/10';
+      case 'parent': return 'from-emerald-500/10 to-emerald-400/5 text-emerald-600 border-emerald-500/10';
+      case 'partner': return 'from-blue-500/10 to-blue-400/5 text-blue-600 border-blue-500/10';
+      default: return 'from-slate-100 to-slate-50 text-slate-600 border-slate-200';
+    }
+  };
+
   // Skeleton Row Component
   const SkeletonRow = () => (
     <tr className="animate-pulse border-b border-border">
+      <td className="px-6 py-4">
+        <div className="h-7 w-20 bg-slate-100 rounded-xl" />
+      </td>
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-slate-100 shrink-0" />
@@ -56,9 +69,6 @@ export default function EnquiriesPage() {
           <div className="h-2 w-10 bg-slate-100 rounded" />
         </div>
       </td>
-      <td className="px-6 py-4">
-        <div className="h-3 w-20 bg-slate-100 rounded" />
-      </td>
       <td className="px-6 py-4 text-right">
         <div className="h-8 w-8 bg-slate-100 rounded-xl ml-auto" />
       </td>
@@ -71,9 +81,9 @@ export default function EnquiriesPage() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            School <span className="text-primary">Enquiries</span>
+            Contact <span className="text-primary">Enquiries</span>
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage and respond to school partnership enquiries</p>
+          <p className="text-sm text-muted-foreground mt-1">Manage and respond to school, parent, and partner enquiries</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="relative group">
@@ -100,11 +110,11 @@ export default function EnquiriesPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/50 border-b border-border">
-                  <th className="px-6 py-4 text-[11px] uppercase tracking-[0.15em] font-semibold text-muted-foreground">School Info</th>
+                  <th className="px-6 py-4 text-[11px] uppercase tracking-[0.15em] font-semibold text-muted-foreground">Type</th>
+                  <th className="px-6 py-4 text-[11px] uppercase tracking-[0.15em] font-semibold text-muted-foreground">Subject / Entity</th>
                   <th className="px-6 py-4 text-[11px] uppercase tracking-[0.15em] font-semibold text-muted-foreground">Contact Person</th>
                   <th className="px-6 py-4 text-[11px] uppercase tracking-[0.15em] font-semibold text-muted-foreground">Phone Number</th>
                   <th className="px-6 py-4 text-[11px] uppercase tracking-[0.15em] font-semibold text-muted-foreground">Submitted On</th>
-                  <th className="px-6 py-4 text-[11px] uppercase tracking-[0.15em] font-semibold text-muted-foreground">Preferred Time</th>
                   <th className="px-6 py-4"></th>
                 </tr>
               </thead>
@@ -118,13 +128,23 @@ export default function EnquiriesPage() {
                   filteredEnquiries.map((enquiry: any) => (
                     <tr key={enquiry.id} className="hover:bg-primary/[0.02] transition-colors group">
                       <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border bg-gradient-to-br ${getTypeColor(enquiry.type)}`}>
+                          {enquiry.type || 'school'}
+                        </span>
+                      </td>
+
+                      <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/10 to-primary-light/5 flex items-center justify-center text-primary font-bold text-sm shadow-sm border border-primary/10 group-hover:scale-110 transition-transform shrink-0">
-                            <Building2 size={18} />
+                          <div className={`w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center font-bold text-sm shadow-sm border group-hover:scale-110 transition-transform shrink-0 ${getTypeColor(enquiry.type)}`}>
+                            {enquiry.type === 'school' ? <Building2 size={18} /> : enquiry.type === 'parent' ? <UserCircle size={18} /> : <Handshake size={18} />}
                           </div>
                           <div>
-                            <span className="text-sm font-semibold text-slate-800 block leading-tight">{enquiry.schoolName}</span>
-                            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{enquiry.schoolType || 'General'}</span>
+                            <span className="text-sm font-semibold text-slate-800 block leading-tight">
+                              {enquiry.type === 'school' ? enquiry.schoolName : (enquiry.contactName || 'General Enquiry')}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+                              {enquiry.type === 'school' ? (enquiry.schoolType || 'General') : enquiry.cityState || 'Online'}
+                            </span>
                           </div>
                         </div>
                       </td>
@@ -139,8 +159,8 @@ export default function EnquiriesPage() {
                       </td>
 
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/5 text-primary rounded-xl text-sm font-bold border border-primary/10">
-                          <Phone size={14} />
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-600 rounded-xl text-sm font-bold border border-slate-100">
+                          <Phone size={14} className="text-slate-400" />
                           {enquiry.phone || '—'}
                         </span>
                       </td>
@@ -150,13 +170,6 @@ export default function EnquiriesPage() {
                           <span className="text-sm text-slate-600 font-medium">{formatDate(enquiry.createdAt)}</span>
                           <span className="text-[10px] text-muted-foreground">{formatTime(enquiry.createdAt)}</span>
                         </div>
-                      </td>
-
-                      <td className="px-6 py-4">
-                        <span className="text-sm text-slate-600 font-medium flex items-center gap-1">
-                          <Clock size={14} className="text-muted-foreground" />
-                          {enquiry.preferredTime || '—'}
-                        </span>
                       </td>
 
                       <td className="px-6 py-4 text-right">

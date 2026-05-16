@@ -34,66 +34,65 @@ export function GapSection() {
           viewport={{ once: true }}
           className="text-center mb-20"
         >
-          <h2 className="text-4xl md:text-5xl font-black text-[#4A1E7F] italic font-heading">
+          <h2 className="text-4xl md:text-5xl font-bold text-primary font-heading">
             The Gap That School Hasn't Closed—YET
           </h2>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-12 md:gap-0 relative">
-          {/* Vertical Divider */}
-          <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-200 hidden md:block" />
+        <div className="grid md:grid-cols-2 gap-6">
 
-          {/* Left Column: What Most Schools Offer */}
+          {/* Left Card: What Most Schools Offer */}
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
+            initial={{ opacity: 0, x: -24 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="md:pr-16"
+            className="bg-rose-50 border border-rose-200 rounded-3xl p-8 shadow-sm"
           >
-            <div className="flex items-center gap-4 mb-10">
-              <div className="w-16 h-16 relative shrink-0">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 relative shrink-0">
                 <Image src="/schools/gap-school.png" alt="School icon" fill className="object-contain" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 font-heading">
+              <h3 className="text-base font-bold text-slate-800 font-heading">
                 What Most Schools Offer Today
               </h3>
             </div>
 
-            <ul className="space-y-6">
+            <ul className="space-y-3">
               {SCHOOL_OFFERS.map((item, i) => (
-                <li key={i} className="flex items-center gap-4">
-                  <XCircle className="text-red-500 shrink-0" size={24} />
-                  <span className="text-lg text-slate-600 italic leading-tight">{item}</span>
+                <li key={i} className="flex items-start gap-3">
+                  <XCircle className="text-red-400 shrink-0 mt-0.5" size={16} />
+                  <span className="text-sm text-slate-600 leading-snug">{item}</span>
                 </li>
               ))}
             </ul>
           </motion.div>
 
-          {/* Right Column: What Girls Actually Need */}
+          {/* Right Card: What Girls Actually Need */}
           <motion.div
-            initial={{ opacity: 0, x: 30 }}
+            initial={{ opacity: 0, x: 24 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="md:pl-16"
+            className="bg-emerald-50 border border-emerald-200 rounded-3xl p-8 shadow-sm"
           >
-            <div className="flex items-center gap-4 mb-10">
-              <div className="w-20 h-20 relative shrink-0">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 relative shrink-0">
                 <Image src="/schools/gap-girls.png" alt="Girls icon" fill className="object-contain" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 font-heading">
+              <h3 className="text-base font-bold text-slate-800 font-heading">
                 What Girls Actually Need
               </h3>
             </div>
 
-            <ul className="space-y-6">
+            <ul className="space-y-3">
               {GIRLS_NEED.map((item, i) => (
-                <li key={i} className="flex items-center gap-4">
-                  <CheckCircle2 className="text-green-500 shrink-0" size={24} />
-                  <span className="text-lg text-slate-600 italic leading-tight font-medium">{item}</span>
+                <li key={i} className="flex items-start gap-3">
+                  <CheckCircle2 className="text-emerald-500 shrink-0 mt-0.5" size={16} />
+                  <span className="text-sm text-slate-700 leading-snug font-medium">{item}</span>
                 </li>
               ))}
             </ul>
           </motion.div>
+
         </div>
       </div>
 

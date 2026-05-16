@@ -25,7 +25,7 @@ export function FoundingSchoolsSection() {
             viewport={{ once: true }}
             className="w-full lg:w-[55%]"
           >
-            <h2 className="text-2xl font-black text-[#4A1E7F] mb-4 font-heading">
+            <h2 className="text-4xl md:text-5xl font-bold text-primary mb-4 font-heading">
               A Special Invitation To Founding Schools
             </h2>
             <p className="text-sm text-slate-500 italic mb-8 leading-relaxed">
@@ -70,7 +70,7 @@ export function FoundingSchoolsSection() {
               <p className="text-xs text-slate-500 mb-3 font-medium">
                 Your next step:
               </p>
-              <h3 className="text-2xl font-black text-[#4A1E7F] mb-5 font-heading leading-tight">
+              <h3 className="text-xl font-bold text-primary mb-5 font-heading leading-tight">
                 Schedule a<br />30-minute demo
               </h3>
               <p className="text-xs text-slate-500 italic mb-8 leading-relaxed">
@@ -79,7 +79,7 @@ export function FoundingSchoolsSection() {
 
               <Link
                 href="/contact"
-                className="block w-full py-3 bg-[#E67E22] hover:bg-orange-600 text-white text-sm font-bold rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/20 mb-4"
+                className="btn-primary block w-full text-sm px-8 py-3.5 text-center group shadow-lg shadow-primary/20 mb-4"
               >
                 Contact Us Today
               </Link>

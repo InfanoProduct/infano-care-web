@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { BookOpen, Users, Star, ChevronRight } from 'lucide-react';
@@ -22,8 +21,8 @@ const bgColors: Record<number, string> = {
 
 export function SliderCard({ card, index, isFirst, onDragEnd, onClick }: SliderCardProps) {
   const x = useMotionValue(0);
-  const rotate = useTransform(x, [-200, 200], [-25, 25]);
-  const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]);
+  const rotate = useTransform(x, [-200, 200], [-15, 15]);
+  const opacity = useTransform(x, [-200, -120, 0, 120, 200], [0, 1, 1, 1, 0]);
 
   const handleDragEnd = (_: unknown, info: import('framer-motion').PanInfo) => {
     if (Math.abs(info.offset.x) > 100) {
@@ -40,6 +39,7 @@ export function SliderCard({ card, index, isFirst, onDragEnd, onClick }: SliderC
         rotate,
         opacity,
         zIndex: 50 - index,
+        willChange: 'transform',
       }}
       drag={isFirst ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
@@ -48,19 +48,20 @@ export function SliderCard({ card, index, isFirst, onDragEnd, onClick }: SliderC
       animate={{
         scale: 1 - index * 0.05,
         y: index * 12,
-        x: index * 18,
-        rotate: -2 + index * 4, // Base tilt of -2 for the first card
+        x: index * 14,
+        rotate: index * 2,
         opacity: 1 - index * 0.2,
         zIndex: 50 - index
       }}
       transition={{
         type: "spring",
-        stiffness: 200,
-        damping: 25,
+        stiffness: 120,
+        damping: 20,
+        mass: 0.8,
       }}
       className="absolute inset-0 cursor-grab active:cursor-grabbing"
     >
-      <div className={`glass-card p-5 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.06)] h-full flex flex-col transition-all duration-500 hover:shadow-[0_25px_60px_rgba(0,0,0,0.08)] border ${bgColor}`}>
+      <div className={`glass-card p-5 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.06)] h-full flex flex-col border ${bgColor}`} style={{ contain: 'layout style' }}>
         <div className="relative aspect-[16/10] rounded-[2rem] overflow-hidden mb-5">
           <Image 
             src={card.image} 

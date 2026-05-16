@@ -76,10 +76,10 @@ export function PartnershipTiers() {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl font-black text-[#4A1E7F] mb-2 font-heading">
+          <h2 className="text-4xl md:text-5xl font-bold text-primary mb-2 font-heading">
             The Partnership
           </h2>
-          <p className="text-sm font-semibold text-slate-500">
+          <p className="text-base md:text-md text-slate-500 font-medium">
             Three Ways To Join
           </p>
         </motion.div>
@@ -99,9 +99,7 @@ export function PartnershipTiers() {
                   : 'bg-white border-slate-100 hover:border-[#4A1E7F]/15'
               }`}
             >
-              <h3 className={`text-2xl font-black mb-1 font-heading ${
-                tier.highlight ? 'text-[#E67E22]' : 'text-[#E67E22]'
-              }`}>
+              <h3 className={`text-xl font-bold mb-1 font-heading text-[#E67E22]`}>
                 {tier.name}
               </h3>
               <p className="text-xs text-slate-500 mb-5">({tier.students})</p>

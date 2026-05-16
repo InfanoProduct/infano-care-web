@@ -48,11 +48,11 @@ export function IntroductionSection() {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <span className="text-xl font-bold text-[#4A1E7F] mb-2 block">Introducing</span>
-          <h2 className="text-4xl md:text-6xl font-black text-[#4A1E7F] mb-4 font-heading">
+          <span className="text-xs font-bold text-primary mb-2 block uppercase tracking-[0.2em]">Introducing</span>
+          <h2 className="text-4xl md:text-5xl font-bold text-primary mb-4 font-heading">
             Infano.Care
           </h2>
-          <p className="text-lg md:text-xl text-[#4A1E7F] font-medium max-w-2xl mx-auto italic">
+          <p className="text-base md:text-md text-slate-500 leading-relaxed font-medium max-w-2xl mx-auto">
             India’s First Age-Progressive Wellness Program <br className="hidden md:block" /> for Adolescent Girls in Schools
           </p>
         </motion.div>
@@ -75,7 +75,7 @@ export function IntroductionSection() {
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
-              <h3 className="text-2xl font-bold text-[#4A1E7F] mb-2 font-heading text-center">
+              <h3 className="text-lg font-bold text-primary mb-2 font-heading text-center">
                 {item.title}
               </h3>
               <p className="text-slate-600 italic text-center px-4">

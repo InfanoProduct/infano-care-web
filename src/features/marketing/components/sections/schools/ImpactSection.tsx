@@ -62,10 +62,10 @@ export function ImpactSection() {
             viewport={{ once: true }}
             className="w-full lg:w-[42%] shrink-0"
           >
-            <h2 className="text-3xl font-black text-[#4A1E7F] mb-2 font-heading">
+            <h2 className="text-4xl md:text-5xl font-bold text-primary mb-2 font-heading">
               The Impact
             </h2>
-            <p className="text-base font-semibold text-slate-600 mb-6">
+            <p className="text-base text-slate-500 font-medium mb-6">
               What Changes For Your Girls
             </p>
             <blockquote className="text-sm text-slate-600 italic leading-relaxed border-l-0">

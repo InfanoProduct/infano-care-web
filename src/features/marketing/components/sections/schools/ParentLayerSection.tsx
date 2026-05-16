@@ -62,10 +62,10 @@ export function ParentLayerSection() {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl font-black text-[#4A1E7F] mb-2 font-heading">
+          <h2 className="text-4xl md:text-5xl font-bold text-primary mb-2 font-heading">
             The Parent Layer
           </h2>
-          <p className="text-base font-semibold text-slate-600 mb-3">
+          <p className="text-base text-slate-500 font-medium mb-3">
             Bringing Home Into The Journey
           </p>
           <p className="text-sm text-slate-500 italic max-w-2xl mx-auto leading-relaxed">
@@ -95,7 +95,7 @@ export function ParentLayerSection() {
               </div>
 
               {/* Title */}
-              <h3 className="text-sm font-bold text-[#4A1E7F] mb-2 font-heading">
+              <h3 className="text-base font-bold text-primary mb-2 font-heading">
                 {step.title}
               </h3>
 

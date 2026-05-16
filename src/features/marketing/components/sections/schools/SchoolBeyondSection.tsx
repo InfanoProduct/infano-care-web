@@ -59,10 +59,10 @@ export function SchoolBeyondSection() {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl font-black text-[#4A1E7F] mb-3 font-heading">
+          <h2 className="text-4xl md:text-5xl font-bold text-primary mb-3 font-heading">
             What Your School Gets—Beyond The Program
           </h2>
-          <p className="text-sm text-slate-500 font-medium">
+          <p className="text-base md:text-md text-slate-500 font-medium">
             Every session is 45 minutes. Expert-facilitated. Activity-based. Nothing like a class.
           </p>
         </motion.div>
@@ -85,7 +85,7 @@ export function SchoolBeyondSection() {
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 mb-2 font-heading">
+                  <h3 className="text-base font-bold text-slate-900 mb-2 font-heading">
                     {item.title}
                   </h3>
                   <p className="text-xs text-slate-500 leading-relaxed italic">

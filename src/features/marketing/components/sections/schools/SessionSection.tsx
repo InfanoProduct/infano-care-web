@@ -37,7 +37,7 @@ const SESSION_STEPS = [
 
 export function SessionSection() {
   return (
-    <section className="py-24 bg-white relative overflow-hidden">
+    <section className="py-16 bg-[#F5F0FF] relative overflow-hidden">
       {/* Decorative Arcs & Flare */}
       <div className="absolute bottom-[-10%] left-[-5%] w-96 h-96 opacity-10 pointer-events-none">
         <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
@@ -64,35 +64,37 @@ export function SessionSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-10"
         >
-          <h2 className="text-4xl md:text-5xl font-black text-[#4A1E7F] mb-6 font-heading">
+          <h2 className="text-4xl md:text-5xl font-bold text-primary mb-4 font-heading">
             Inside The Session—What Actually Happens
           </h2>
-          <p className="text-lg md:text-xl text-slate-600 font-medium">
+          <p className="text-base md:text-md text-slate-500 font-medium">
             Every session is 45 minutes. Expert-facilitated. Activity-based. Nothing like a class.
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-4">
           {SESSION_STEPS.map((step, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="bg-[#F8F4FF] p-10 rounded-[2.5rem] border border-white shadow-sm hover:shadow-md transition-all duration-300 group"
+              className="bg-white/60 backdrop-blur-sm p-6 rounded-3xl border border-white/70 shadow-sm hover:shadow-md hover:bg-white/80 transition-all duration-300 group min-h-[130px] flex flex-col justify-between"
             >
-              <span className="text-2xl font-black text-[#E67E22] block mb-6 font-heading group-hover:scale-110 transition-transform origin-left">
+              <span className="text-xs font-black text-[#E67E22] block mb-3 font-heading tracking-widest">
                 {step.number}
               </span>
-              <h3 className="text-2xl font-bold text-[#4A1E7F] mb-4 font-heading">
-                {step.title}
-              </h3>
-              <p className="text-lg text-slate-600 italic leading-relaxed">
-                {step.desc}
-              </p>
+              <div>
+                <h3 className="text-sm font-bold text-primary mb-1.5 font-heading">
+                  {step.title}
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  {step.desc}
+                </p>
+              </div>
             </motion.div>
           ))}
         </div>

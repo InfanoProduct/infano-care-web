@@ -69,10 +69,10 @@ export function TeacherTrainingSection() {
             viewport={{ once: true }}
             className="md:max-w-xl"
           >
-            <h2 className="text-4xl md:text-5xl font-black text-[#4A1E7F] mb-4 font-heading">
+            <h2 className="text-4xl md:text-5xl font-bold text-primary mb-4 font-heading">
               Teacher Training
             </h2>
-            <p className="text-xl md:text-2xl text-slate-600 font-medium">
+            <p className="text-base md:text-md text-slate-500 font-medium">
               Your Staff Becomes Your Girl&apos;s First Line Of Support
             </p>
           </motion.div>
@@ -136,7 +136,7 @@ export function TeacherTrainingSection() {
           viewport={{ once: true }}
           className="mt-12 text-center"
         >
-          <p className="text-2xl md:text-3xl font-medium text-slate-600 italic">
+          <p className="text-base md:text-md text-slate-600 font-medium">
             Teachers aren&apos;t failing girls. They were never trained to help
           </p>
         </motion.div>

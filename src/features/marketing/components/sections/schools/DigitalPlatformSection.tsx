@@ -104,10 +104,10 @@ export function DigitalPlatformSection() {
               viewport={{ once: true }}
               className="mb-10 text-center lg:text-left"
             >
-              <h2 className="text-3xl md:text-5xl font-black text-[#4A1E7F] mb-4 font-heading leading-tight">
+              <h2 className="text-4xl md:text-5xl font-bold text-primary mb-4 font-heading leading-tight">
                 The Digital Platform
               </h2>
-              <p className="text-lg md:text-2xl text-slate-500 font-medium italic">
+              <p className="text-base md:text-md text-slate-500 font-medium">
                 The Session Never Really Ends
               </p>
             </motion.div>
@@ -127,7 +127,7 @@ export function DigitalPlatformSection() {
                       <feature.icon className={feature.color} size={20} />
                     </div>
                     <div>
-                      <h3 className="text-base sm:text-lg font-bold text-[#4A1E7F] mb-1 font-heading">
+                      <h3 className="text-base font-bold text-primary mb-1 font-heading">
                         {feature.title}
                       </h3>
                       <p className="text-slate-600 text-xs sm:text-sm leading-relaxed italic">

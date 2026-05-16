@@ -40,7 +40,7 @@ export function RealitySection() {
             viewport={{ once: true }}
             className="max-w-2xl"
           >
-            <h2 className="text-4xl md:text-6xl font-black text-[#4A1E7F] leading-tight font-heading">
+            <h2 className="text-4xl md:text-5xl font-bold text-primary leading-tight font-heading">
               The Reality We Are Not Talking About
             </h2>
           </motion.div>
@@ -90,7 +90,7 @@ export function RealitySection() {
           className="flex justify-center"
         >
           <div className="bg-[#E8E2F3] px-12 py-5 rounded-full shadow-sm">
-            <p className="text-[#4A1E7F] text-xl md:text-2xl font-bold italic text-center">
+            <p className="text-primary text-base md:text-lg font-bold italic text-center">
               These are your students. They are navigating this alone
             </p>
           </div>

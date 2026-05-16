@@ -10,7 +10,8 @@ const JOURNEY_STEPS = [
     title: 'My Body, My Story',
     desc: 'Body literacy, puberty, and menstruation readiness',
     image: '/schools/journey-5.png',
-    color: 'bg-[#FDF2F8]/60',
+    color: 'bg-[#FDE8F4]',
+    border: 'border-pink-200',
     height: 'min-h-[400px]',
     imgHeight: 'h-40 md:h-48',
   },
@@ -20,7 +21,8 @@ const JOURNEY_STEPS = [
     title: 'Emotions Are My Superpower',
     desc: 'Emotional intelligence, social media reality',
     image: '/schools/journey-6.png',
-    color: 'bg-[#F5F3FF]/60',
+    color: 'bg-[#EDE9FF]',
+    border: 'border-purple-200',
     height: 'min-h-[430px]',
     imgHeight: 'h-44 md:h-52',
   },
@@ -30,7 +32,8 @@ const JOURNEY_STEPS = [
     title: 'My Relationships, My Rules',
     desc: 'Consent, digital safety, and grooming awareness',
     image: '/schools/journey-7.png',
-    color: 'bg-[#F0F9FF]/60',
+    color: 'bg-[#E0F2FE]',
+    border: 'border-sky-200',
     height: 'min-h-[460px]',
     imgHeight: 'h-48 md:h-56',
   },
@@ -40,7 +43,8 @@ const JOURNEY_STEPS = [
     title: 'I know who I am',
     desc: 'Mental health, identity, self-esteem',
     image: '/schools/journey-8.png',
-    color: 'bg-[#ECFDF5]/60',
+    color: 'bg-[#D1FAE5]',
+    border: 'border-emerald-200',
     height: 'min-h-[490px]',
     imgHeight: 'h-52 md:h-60',
   },
@@ -50,7 +54,8 @@ const JOURNEY_STEPS = [
     title: 'Ready for the World',
     desc: 'Reproductive health, ambition, and life skills',
     image: '/schools/journey-9.png',
-    color: 'bg-[#FFFBEB]/60',
+    color: 'bg-[#FEF3C7]',
+    border: 'border-amber-200',
     height: 'min-h-[520px]',
     imgHeight: 'h-56 md:h-64',
   }
@@ -58,7 +63,7 @@ const JOURNEY_STEPS = [
 
 export function JourneySection() {
   return (
-    <section className="py-24 bg-[#FAF9FF] relative overflow-hidden">
+    <section className="py-24 bg-[#E8E1F5] relative overflow-hidden">
       {/* Decorative Arcs - Top Left & Bottom Left */}
       <div className="absolute top-[-5%] left-[-5%] w-80 h-80 bg-[#E8E2F3] rounded-full opacity-30 blur-3xl" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] border-[40px] border-[#E8E2F3]/20 rounded-full" />
@@ -70,7 +75,7 @@ export function JourneySection() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-black text-[#4A1E7F] mb-4 font-heading">
+          <h2 className="text-4xl md:text-5xl font-bold text-primary mb-4 font-heading">
             A 5-Year Journey — Not A One-Day Talk
           </h2>
         </motion.div>
@@ -83,7 +88,7 @@ export function JourneySection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className={`${step.color} ${step.height} p-6 rounded-[2.5rem] border border-white flex flex-col items-center justify-end text-center group hover:shadow-xl transition-all duration-500`}
+              className={`${step.color} ${step.height} p-6 rounded-[2.5rem] border ${step.border} shadow-md flex flex-col items-center justify-end text-center group hover:shadow-xl hover:-translate-y-1 transition-all duration-500`}
             >
               <div className={`relative w-full ${step.imgHeight} mb-6 overflow-hidden rounded-3xl shrink-0`}>
                 <Image 
@@ -94,13 +99,13 @@ export function JourneySection() {
                 />
               </div>
               <div className="space-y-1 mb-4">
-                <span className="text-2xl font-black text-[#E67E22] block font-heading">{step.grade}</span>
-                <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">{step.age}</span>
+                <span className="text-lg font-black text-[#E67E22] block font-heading">{step.grade}</span>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{step.age}</span>
               </div>
-              <h3 className="text-xl font-bold text-[#4A1E7F] mb-3 leading-tight font-heading">
+              <h3 className="text-base font-bold text-[#4A1E7F] mb-2 leading-tight font-heading">
                 {step.title}
               </h3>
-              <p className="text-sm text-slate-600 italic leading-relaxed">
+              <p className="text-xs text-slate-600 leading-relaxed">
                 {step.desc}
               </p>
             </motion.div>
@@ -113,8 +118,8 @@ export function JourneySection() {
           viewport={{ once: true }}
           className="text-center"
         >
-          <p className="text-xl md:text-2xl text-slate-800 font-medium italic">
-            Each year builds on the last. By <span className="text-[#4A1E7F] font-black not-italic">Grade 9</span>, she is equipped — <span className="text-[#4A1E7F] font-black">not just informed.</span>
+          <p className="text-base md:text-md text-slate-600 font-medium">
+            Each year builds on the last. By <span className="text-primary font-bold">Grade 9</span>, she is equipped — <span className="text-primary font-bold">not just informed.</span>
           </p>
         </motion.div>
       </div>

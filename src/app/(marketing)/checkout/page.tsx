@@ -243,19 +243,19 @@ function CheckoutContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFCFB] font-sans text-slate-900 pt-16 pb-24">
+    <div className="min-h-screen bg-[#FDFCFB] font-sans text-slate-900 pt-24 md:pt-32 pb-16 md:pb-24 overflow-x-hidden">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
       <div className="max-w-6xl mx-auto px-6">
-        <Link href="/the-book" className="inline-flex items-center text-slate-500 hover:text-primary mb-12 transition-colors text-sm font-medium group">
+        <Link href="/the-book" className="inline-flex items-center text-slate-500 hover:text-primary mb-8 md:mb-12 transition-colors text-sm font-medium group">
           <ArrowLeft size={16} className="mr-2 group-hover:-translate-x-1 transition-transform" /> Back to product
         </Link>
 
         <div className="grid lg:grid-cols-12 gap-10 items-start">
           
           {/* Left: Product Gallery & Summary */}
-          <div className="lg:col-span-5 space-y-8 sticky top-32">
+          <div className="lg:col-span-5 space-y-8 lg:sticky lg:top-32 w-full max-w-full">
             <div className="space-y-6">
-              <div className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl bg-white border border-slate-100 w-full max-w-[400px]">
+              <div className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl bg-white border border-slate-100 w-full max-w-[400px] mx-auto lg:mx-0">
                 <Image
                   src={selectedImage}
                   alt="Book preview"
@@ -266,7 +266,7 @@ function CheckoutContent() {
                 />
               </div>
               
-              <div className="flex gap-2 flex-wrap max-w-[400px]">
+              <div className="flex gap-2 flex-wrap max-w-[400px] mx-auto lg:mx-0 justify-center lg:justify-start">
                 {bookImages.map((img, idx) => (
                   <button
                     key={idx}
@@ -280,12 +280,12 @@ function CheckoutContent() {
               </div>
             </div>
 
-            <div className="space-y-2 max-w-[400px]">
+            <div className="space-y-2 max-w-[400px] mx-auto lg:mx-0 text-center lg:text-left">
               <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 leading-tight">{book?.title || 'The Awkward Age'}</h1>
               <p className="text-slate-500 font-medium text-sm italic">{book?.description || 'A story of every adolescent girl'}</p>
             </div>
 
-            <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xl shadow-slate-200/30 space-y-6 max-w-[400px]">
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xl shadow-slate-200/30 space-y-6 max-w-[400px] w-full mx-auto lg:mx-0">
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <ShoppingBag size={16} className="text-primary" />
                 Order summary
@@ -338,7 +338,7 @@ function CheckoutContent() {
           </div>
 
           {/* Right: Checkout Form */}
-          <div className="lg:col-span-7 bg-white rounded-[2.5rem] border border-slate-200 p-8 md:p-12 shadow-2xl shadow-slate-200/50">
+          <div className="lg:col-span-7 w-full max-w-full bg-white rounded-[2.5rem] border border-slate-200 p-6 sm:p-8 md:p-12 shadow-2xl shadow-slate-200/50">
             <form onSubmit={handleSubmit} className="space-y-10">
 
               {/* Step 1: Personal Details */}
@@ -469,7 +469,7 @@ function CheckoutContent() {
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                     placeholder="Enter code"
-                    className="flex-1 px-4 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-primary/60 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
+                    className="flex-1 min-w-0 px-4 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-primary/60 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
                   />
                   <button
                     type="button"

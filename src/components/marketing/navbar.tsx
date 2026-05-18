@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 
@@ -12,7 +13,7 @@ const navLinks = [
   { name: 'Parents', href: '/parents' },
   { name: 'Circle', href: '/the-circle' },
   { name: 'Book', href: '/the-book' },
-  { name: 'Impact', href: '/impact' },
+  // { name: 'Impact', href: '/impact' },
   { name: 'Blog', href: '/blog' },
   { name: 'About', href: '/about' },
 ];
@@ -37,14 +38,14 @@ export function MarketingNavbar() {
       }`}
     >
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 flex items-center justify-between gap-4">
-        {/* Logo */}
-        <Link href="/" className="flex flex-col z-50 shrink-0 group">
-          <span className="font-heading font-bold text-xl md:text-2xl tracking-tight text-primary transition-transform group-hover:scale-105">
-            Infano.care
-          </span>
-          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest hidden 2xl:block opacity-70">
-            Empowering Girls. Nurturing Women.
-          </span>
+        <Link href="/" className="relative z-50 shrink-0 group w-40 md:w-48 lg:w-52 h-12 md:h-14 lg:h-16 flex items-center -ml-2">
+          <Image 
+            src="/logo/infano-logo-for-light-bg.png" 
+            alt="Infano" 
+            fill
+            className="object-contain object-left transition-transform group-hover:scale-105"
+            priority
+          />
         </Link>
 
         {/* Desktop Nav */}

@@ -2,6 +2,7 @@ import { apiClient } from "@/lib/api-client";
 
 export interface Enquiry {
   id: string;
+  type: string;
   schoolName: string;
   schoolType?: string;
   cityState?: string;
@@ -11,6 +12,8 @@ export interface Enquiry {
   phone?: string;
   preferredTime?: string;
   goals?: string;
+  details?: string;
+  ngoDetail?: string;
   createdAt: string;
   updatedAt: string;
 }

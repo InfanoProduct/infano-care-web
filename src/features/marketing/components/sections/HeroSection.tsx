@@ -71,7 +71,7 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
-              className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-8"
+              className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-0 lg:mb-8"
             >
               Infano.care is India's most holistic ecosystem for girls—blending story-led learning, wellness tracking, and expert guidance into one safe space.
             </motion.p>
@@ -91,8 +91,8 @@ export function HeroSection() {
           <div className="hidden lg:block lg:col-span-4 h-[500px]" />
 
           {/* Right Column: Cards & Slider (4 cols) */}
-          <div className="lg:col-span-4 flex flex-col relative h-auto lg:h-[500px] items-center justify-center lg:justify-end z-30 mt-10 lg:mt-0">
-            <div className="relative w-full max-w-[280px] sm:max-w-[340px] h-[380px] sm:h-[420px] lg:h-[450px] flex items-center justify-center">
+          <div className="lg:col-span-4 flex flex-col relative h-auto lg:h-[500px] items-center justify-center lg:justify-end z-30 lg:mt-0">
+            <div className="relative w-full max-w-[320px] sm:max-w-[360px] lg:max-w-[340px] h-[400px] sm:h-[440px] lg:h-[450px] flex items-center justify-center">
               <AnimatePresence mode="sync">
                 {cards.map((card, index) => {
                   const isFirst = index === 0;
@@ -111,7 +111,7 @@ export function HeroSection() {
             </div>
 
             {/* Slider Progress Indicators - Attached below slider */}
-            <div className="mt-4 lg:mt-8 flex gap-2 z-40 bg-white/80 px-3 py-1.5 lg:px-4 lg:py-2 rounded-2xl border border-slate-100 shadow-sm">
+            <div className="mt-8 flex gap-2 z-40 bg-white/80 px-3 py-1.5 lg:px-4 lg:py-2 rounded-2xl border border-slate-100 shadow-sm">
               {SLIDER_DATA.map((_, index) => (
                 <div key={index} className="relative h-1 lg:h-1.5 w-8 lg:w-10 bg-slate-100/50 rounded-full overflow-hidden">
                   <motion.div
@@ -126,7 +126,7 @@ export function HeroSection() {
             </div>
 
             {/* Mobile CTA: Visible only below LG */}
-            <div className="flex lg:hidden flex-col items-center gap-4 w-full max-w-[280px] mt-20">
+            <div className="flex lg:hidden flex-col items-center gap-4 w-full max-w-[320px] mt-8">
               <Link href="/parents-enquiry" className="btn-primary w-full text-sm px-8 py-3.5 group shadow-lg shadow-primary/20 text-center">
                 Explore Journeys <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1" size={16} />
               </Link>
@@ -139,7 +139,7 @@ export function HeroSection() {
       </div>
 
       {/* Layered Absolute Subject Image (The Girl) */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 z-10 w-full max-w-[700px] h-[65%] lg:h-[95%] pointer-events-none">
+      <div className="hidden lg:block absolute bottom-0 left-1/2 -translate-x-1/2 z-10 w-full max-w-[700px] h-[95%] pointer-events-none">
         <div className="relative w-full h-full flex items-end justify-center">
           <div className="absolute bottom-[10%] w-[70%] h-[20%] bg-primary/10 rounded-full blur-2xl z-0" />
           <motion.div

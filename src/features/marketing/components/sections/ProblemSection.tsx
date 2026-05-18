@@ -10,7 +10,7 @@ const PROBLEMS = [
     title: "1 in 2",
     desc: "Adolescent girls experience anxiety or low self-esteem by age 14",
     color: "bg-[#FEF9C3]",
-    image: "/S2Img1.png",
+    image: "/HS2-1.png",
     link: "/impact",
     tags: ["Mental Health", "Adolescence", "Self-Esteem", "Support"]
   },
@@ -18,7 +18,7 @@ const PROBLEMS = [
     title: "73%",
     desc: "Of girls have no trusted adult to discuss menstrual health with",
     color: "bg-[#F5F3FF]",
-    image: "/S2Img2.png",
+    image: "/HS2-2.png",
     link: "/impact",
     tags: ["Health Literacy", "Support Gap", "Menstrual Health", "Guidance"]
   },
@@ -26,7 +26,7 @@ const PROBLEMS = [
     title: "Only 9%",
     desc: "Of schools offer structured emotional wellness programs for girls",
     color: "bg-[#FFEDD5]",
-    image: "/S2Img3.png",
+    image: "/HS2-3.png",
     link: "/impact",
     tags: ["Education", "Wellness", "Empowerment", "Awareness"]
   }

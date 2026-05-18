@@ -34,14 +34,14 @@ export function ProblemCard({ title, desc, color, image, link, index, tags }: Pr
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.1, duration: 0.8 }}
-      className={`${color} rounded-[2.5rem] relative overflow-hidden hover:shadow-[0_40px_80px_-15px_rgba(124,58,237,0.15)] p-8 md:p-10 border border-white/50 h-full flex flex-col group`}
+      className={`${color} rounded-[2.5rem] relative overflow-hidden hover:shadow-[0_40px_80px_-15px_rgba(124,58,237,0.15)] p-6 md:p-8 border border-white/50 h-full flex flex-col group`}
     >
       {/* Background Index Number */}
       <span className="absolute -top-6 -left-6 text-[12rem] font-bold text-black/5 leading-none select-none group-hover:text-black/[0.08] transition-all duration-700 pointer-events-none">
         0{index + 1}
       </span>
 
-      <div className='flex flex-col relative z-10 gap-6 md:gap-8 h-full'>
+      <div className='flex flex-col relative z-10 gap-4 md:gap-5 h-full'>
         <h3 className="text-4xl md:text-5xl font-bold font-heading text-slate-900 tracking-tight leading-tight">{title}</h3>
         
         <p className="text-slate-500 leading-relaxed text-base md:text-lg font-medium">
@@ -61,13 +61,13 @@ export function ProblemCard({ title, desc, color, image, link, index, tags }: Pr
         </div>
 
         {/* Image Container */}
-        <div className="mt-auto -mx-8 -mb-8 md:-mx-10 md:-mb-10 overflow-hidden rounded-b-[2.5rem]">
+        <div className="mt-auto overflow-hidden rounded-3xl">
           <Image
             src={image}
             alt={title}
             width={600}
             height={400}
-            className="w-full h-auto object-contain object-bottom transition-transform duration-700 group-hover:scale-110"
+            className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
             priority={index === 0}
           />
         </div>

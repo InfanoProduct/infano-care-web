@@ -10,7 +10,7 @@ export const SLIDER_DATA: SliderCourse[] = [
     rating: 4.9,
     reviews: 45,
     price: "Free",
-    image: "/course-thumbnail.png"
+    image: "/homehero-1.png"
   },
   {
     id: 2,
@@ -21,7 +21,7 @@ export const SLIDER_DATA: SliderCourse[] = [
     rating: 4.8,
     reviews: 32,
     price: "Free",
-    image: "/course-thumbnail.png"
+    image: "/homehero-2.png"
   },
   {
     id: 3,
@@ -32,6 +32,6 @@ export const SLIDER_DATA: SliderCourse[] = [
     rating: 5.0,
     reviews: 28,
     price: "Free",
-    image: "/course-thumbnail.png"
+    image: "/homehero-3.png"
   }
 ];

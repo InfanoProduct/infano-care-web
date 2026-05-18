@@ -56,7 +56,7 @@ export function EcosystemHero() {
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
-              className="flex-1"
+              className="hidden lg:block flex-1"
             >
               <Image
                 src="/Ecosystem1.png"
@@ -98,21 +98,41 @@ export function EcosystemHero() {
                 The Infano ecosystem is a holistic digital home for every girl—blending technology, stories, and guidance.
               </motion.p>
 
+              {/* Mobile Image */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8 }}
+                className="block lg:hidden w-full mb-8"
+              >
+                <Image
+                  src="/Ecosystem1.png"
+                  alt="Mobile interface"
+                  width={500}
+                  height={500}
+                  className="object-contain w-full max-h-[350px] mx-auto"
+                />
+              </motion.div>
+
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="flex flex-wrap items-center gap-4"
+                className="flex flex-row items-center justify-between lg:justify-start gap-3 lg:gap-4 w-full"
               >
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="px-8 py-4 bg-primary text-white rounded-full font-bold text-lg hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 flex items-center gap-2 group"
+                  className="flex-1 lg:flex-none justify-center px-2 sm:px-4 lg:px-8 py-3 lg:py-4 bg-primary text-white rounded-full font-bold text-xs sm:text-sm lg:text-lg hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 flex items-center gap-1.5 lg:gap-2 group whitespace-nowrap"
                 >
-                  Download the App <Download size={20} />
+                  <span className="sm:hidden">Download</span>
+                  <span className="hidden sm:inline">Download the App</span> 
+                  <Download className="w-4 h-4 lg:w-5 lg:h-5" />
                 </button>
 
-                <Link href="#pillars" className="px-8 py-4 border-2 border-primary/20 text-primary rounded-full font-bold text-lg hover:bg-primary/5 hover:border-primary/40 transition-all active:scale-95 flex items-center gap-2">
-                  Explore the Pillars <ArrowRight size={20} />
+                <Link href="#pillars" className="flex-1 lg:flex-none justify-center px-2 sm:px-4 lg:px-8 py-3 lg:py-4 border-2 border-primary/20 text-primary rounded-full font-bold text-xs sm:text-sm lg:text-lg hover:bg-primary/5 hover:border-primary/40 transition-all active:scale-95 flex items-center gap-1.5 lg:gap-2 whitespace-nowrap">
+                  <span className="sm:hidden">Explore</span>
+                  <span className="hidden sm:inline">Explore the Pillars</span> 
+                  <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5" />
                 </Link>
               </motion.div>
             </div>

@@ -66,7 +66,7 @@ export function PartnershipBanner() {
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="max-w-6xl mx-auto bg-white rounded-[4rem] p-12 md:p-24 text-center shadow-[0_50px_100px_rgba(0,0,0,0.4)]"
+            className="max-w-6xl mx-auto bg-white rounded-3xl md:rounded-[4rem] p-8 sm:p-12 md:p-24 text-center shadow-[0_50px_100px_rgba(0,0,0,0.4)]"
           >
             {/* Highlight Badges */}
             <div className="flex flex-wrap justify-center gap-12 mb-16">
@@ -82,8 +82,8 @@ export function PartnershipBanner() {
               ))}
             </div>
 
-            <h2 className="text-4xl md:text-7xl font-bold font-heading mb-10 text-slate-900 leading-[1.1] tracking-tight">
-              India's most <span className="text-primary">forward-thinking</span> <br /> girls' wellness movement.
+            <h2 className="text-3xl sm:text-4xl md:text-7xl font-bold font-heading mb-10 text-slate-900 leading-[1.1] tracking-tight">
+              India's most <span className="text-primary">forward-thinking</span> <br className="hidden md:inline" /> girls' wellness movement.
             </h2>
             <p className="text-lg text-slate-500 mb-16 max-w-3xl mx-auto leading-relaxed font-medium">
               Join our growing network of partner schools. Easy onboarding, full curriculum support, and measurable impact for every girl.

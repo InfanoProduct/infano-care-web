@@ -14,6 +14,8 @@ export interface Enquiry {
   goals?: string;
   details?: string;
   ngoDetail?: string;
+  peerMentorName?: string;
+  preferredDate?: string;
   createdAt: string;
   updatedAt: string;
 }

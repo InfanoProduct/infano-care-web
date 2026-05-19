@@ -35,6 +35,7 @@ export default function EnquiriesPage() {
       case 'school': return 'from-primary/10 to-primary-light/5 text-primary border-primary/10';
       case 'parent': return 'from-emerald-500/10 to-emerald-400/5 text-emerald-600 border-emerald-500/10';
       case 'partner': return 'from-blue-500/10 to-blue-400/5 text-blue-600 border-blue-500/10';
+      case 'peer_connect': return 'from-violet-500/10 to-violet-400/5 text-violet-600 border-violet-500/10';
       default: return 'from-slate-100 to-slate-50 text-slate-600 border-slate-200';
     }
   };
@@ -129,21 +130,29 @@ export default function EnquiriesPage() {
                     <tr key={enquiry.id} className="hover:bg-primary/[0.02] transition-colors group">
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border bg-gradient-to-br ${getTypeColor(enquiry.type)}`}>
-                          {enquiry.type || 'school'}
+                          {enquiry.type === 'peer_connect' ? 'peer mentor' : (enquiry.type || 'school')}
                         </span>
                       </td>
 
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className={`w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center font-bold text-sm shadow-sm border group-hover:scale-110 transition-transform shrink-0 ${getTypeColor(enquiry.type)}`}>
-                            {enquiry.type === 'school' ? <Building2 size={18} /> : enquiry.type === 'parent' ? <UserCircle size={18} /> : <Handshake size={18} />}
+                            {enquiry.type === 'school' ? <Building2 size={18} /> : enquiry.type === 'peer_connect' ? <UserCircle size={18} /> : enquiry.type === 'parent' ? <UserCircle size={18} /> : <Handshake size={18} />}
                           </div>
                           <div>
                             <span className="text-sm font-semibold text-slate-800 block leading-tight">
-                              {enquiry.type === 'school' ? enquiry.schoolName : (enquiry.contactName || 'General Enquiry')}
+                              {enquiry.type === 'peer_connect' 
+                                ? `Session with ${enquiry.peerMentorName || 'Mentor'}` 
+                                : enquiry.type === 'school' 
+                                  ? enquiry.schoolName 
+                                  : (enquiry.contactName || 'General Enquiry')}
                             </span>
                             <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
-                              {enquiry.type === 'school' ? (enquiry.schoolType || 'General') : enquiry.cityState || 'Online'}
+                              {enquiry.type === 'peer_connect' 
+                                ? `Scheduled: ${enquiry.preferredDate || 'TBD'}` 
+                                : enquiry.type === 'school' 
+                                  ? (enquiry.schoolType || 'General') 
+                                  : enquiry.cityState || 'Online'}
                             </span>
                           </div>
                         </div>

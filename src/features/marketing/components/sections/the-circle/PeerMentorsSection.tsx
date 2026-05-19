@@ -119,8 +119,8 @@ export function PeerMentorsSection() {
               className="bg-slate-50 rounded-[2rem] border border-slate-100 overflow-hidden flex flex-col group hover:shadow-xl hover:shadow-primary/5 transition-all duration-300"
             >
               {/* Image & Header */}
-              <div className="p-6 pb-0 relative">
-                <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-4 border-white shadow-sm relative z-10">
+              <div className="p-6 pb-0 flex items-center gap-5 relative">
+                <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-sm shrink-0 relative z-10">
                   <Image 
                     src={mentor.image} 
                     alt={mentor.name} 
@@ -128,9 +128,11 @@ export function PeerMentorsSection() {
                     className="object-cover group-hover:scale-110 transition-transform duration-500" 
                   />
                 </div>
+                <div className="relative z-10 flex flex-col">
+                  <h3 className="text-2xl font-bold font-heading text-slate-900 tracking-tight leading-tight">{mentor.name}</h3>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Trained Peer</p>
+                </div>
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-bl-full -z-0 transition-colors group-hover:bg-primary/20" />
-                <h3 className="text-2xl font-bold font-heading text-slate-900 tracking-tight">{mentor.name}</h3>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Trained Peer</p>
               </div>
 
               {/* Tags */}

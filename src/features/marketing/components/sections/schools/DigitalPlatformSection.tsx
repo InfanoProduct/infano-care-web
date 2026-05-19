@@ -1,8 +1,15 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { Heart, BookOpen, Sparkles, Award, BarChart3 } from 'lucide-react';
+
+const MOCKUP_IMAGES = [
+  '/eco-1.png',
+  '/eco-2.png',
+  '/eco-3.png',
+];
 
 const FEATURES = [
   {
@@ -43,6 +50,15 @@ const FEATURES = [
 ];
 
 export function DigitalPlatformSection() {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % MOCKUP_IMAGES.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <section className="py-24 bg-white relative overflow-hidden">
       {/* Decorative Elements */}
@@ -54,7 +70,7 @@ export function DigitalPlatformSection() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
+        <div className="flex flex-col lg:flex-row   ">
 
           {/* Left: Mobile Mockup */}
           <motion.div
@@ -74,13 +90,65 @@ export function DigitalPlatformSection() {
               {/* Phone Frame Decoration */}
               <div className="absolute -inset-10 bg-gradient-to-tr from-[#4A1E7F]/5 to-orange-500/5 rounded-[4rem] blur-3xl -z-20" />
 
-              <div className="relative aspect-[9/18.5] w-full rounded-[2.5rem] sm:rounded-[3rem] overflow-hidden border-[6px] sm:border-[8px] border-slate-900 shadow-2xl">
-                <Image
-                  src="/schools/digital-platform.png"
-                  alt="Digital Platform App Mockup"
-                  fill
-                  className="object-cover"
-                />
+              {/* Realistic Phone Container */}
+              <div className="relative aspect-[9/18.5] w-full rounded-[2.8rem] sm:rounded-[3.2rem] border-[4px] border-slate-700 bg-slate-950 p-[5px] sm:p-[6px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] shadow-slate-950/70">
+
+                {/* Hardware Buttons */}
+                {/* Silent Switch */}
+                <div className="absolute top-16 -left-[5px] sm:-left-[6px] w-[2px] h-6 bg-slate-500 rounded-l" />
+                {/* Volume Up */}
+                <div className="absolute top-28 -left-[5px] sm:-left-[6px] w-[2px] h-12 bg-slate-500 rounded-l" />
+                {/* Volume Down */}
+                <div className="absolute top-44 -left-[5px] sm:-left-[6px] w-[2px] h-12 bg-slate-500 rounded-l" />
+                {/* Power Button */}
+                <div className="absolute top-32 -right-[5px] sm:-right-[6px] w-[2px] h-16 bg-slate-500 rounded-r" />
+
+                {/* Screen Container with Bezels */}
+                <div className="relative w-full h-full rounded-[2.3rem] sm:rounded-[2.7rem] overflow-hidden bg-slate-900 border-[2px] sm:border-[2px] border-slate-950">
+
+                  {/* Notch / Dynamic Island */}
+                  <div className="absolute top-1.5 sm:top-2 left-1/2 -translate-x-1/2 w-10 sm:w-12 h-2 sm:h-2.5 bg-slate-950 rounded-full z-30 flex items-center justify-center gap-1 shadow-inner">
+                    <span className="w-0.5 sm:w-1 h-0.5 sm:h-1 rounded-full bg-slate-900/80" />
+                    <span className="w-0.5 h-0.5 rounded-full bg-[#0a1520]" />
+                  </div>
+
+                  {/* Speaker Ear Piece */}
+                  <div className="absolute top-0.5 sm:top-1 left-1/2 -translate-x-1/2 w-4 sm:w-12 h-0.5 bg-slate-800/80 rounded-full z-30" />
+
+                  <AnimatePresence initial={false}>
+                    <motion.div
+                      key={currentImageIndex}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.6, ease: "easeInOut" }}
+                      className="absolute inset-0"
+                    >
+                      <Image
+                        src={MOCKUP_IMAGES[currentImageIndex]}
+                        alt={`Digital Platform App Mockup ${currentImageIndex + 1}`}
+                        fill
+                        className="object-cover"
+                        priority
+                      />
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+              </div>
+
+              {/* Dot Indicators */}
+              <div className="flex justify-center gap-2 mt-6 relative z-20">
+                {MOCKUP_IMAGES.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentImageIndex(idx)}
+                    className={`h-2 rounded-full transition-all duration-300 ${idx === currentImageIndex
+                      ? 'w-6 bg-primary'
+                      : 'w-2 bg-slate-300 hover:bg-slate-400'
+                      }`}
+                    aria-label={`Go to slide ${idx + 1}`}
+                  />
+                ))}
               </div>
 
               {/* Decorative Floating Element */}

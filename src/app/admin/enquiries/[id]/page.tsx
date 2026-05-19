@@ -27,7 +27,9 @@ export default function EnquiryDetailPage() {
     preferredTime: '',
     goals: '',
     details: '',
-    ngoDetail: ''
+    ngoDetail: '',
+    peerMentorName: '',
+    preferredDate: ''
   };
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -49,6 +51,7 @@ export default function EnquiryDetailPage() {
       case 'school': return 'bg-primary text-white shadow-primary/20';
       case 'parent': return 'bg-emerald-500 text-white shadow-emerald-500/20';
       case 'partner': return 'bg-blue-500 text-white shadow-blue-500/20';
+      case 'peer_connect': return 'bg-violet-600 text-white shadow-violet-600/20';
       default: return 'bg-slate-500 text-white shadow-slate-500/20';
     }
   };
@@ -58,6 +61,7 @@ export default function EnquiryDetailPage() {
       case 'school': return 'School Partnership';
       case 'parent': return 'Parent/Carer Enquiry';
       case 'partner': return 'NGO/Partner Enquiry';
+      case 'peer_connect': return 'Peer Mentor Booking';
       default: return 'Enquiry';
     }
   };
@@ -74,14 +78,14 @@ export default function EnquiryDetailPage() {
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="flex items-center gap-5">
               <div className={`w-14 h-14 rounded-[1.25rem] flex items-center justify-center shadow-xl ${getTypeColor(enquiry.type)}`}>
-                {enquiry.type === 'school' ? <Building2 size={28} /> : enquiry.type === 'parent' ? <UserCircle size={28} /> : <Handshake size={28} />}
+                {enquiry.type === 'school' ? <Building2 size={28} /> : enquiry.type === 'peer_connect' ? <UserCircle size={28} /> : enquiry.type === 'parent' ? <UserCircle size={28} /> : <Handshake size={28} />}
               </div>
               <div>
                 <h1 className="text-3xl font-bold tracking-tight text-slate-800">
-                  {enquiry.type === 'school' ? enquiry.schoolName : enquiry.contactName}
+                  {enquiry.type === 'peer_connect' ? `Session with ${enquiry.peerMentorName || 'Peer Mentor'}` : enquiry.type === 'school' ? enquiry.schoolName : enquiry.contactName}
                 </h1>
                 <div className="flex items-center gap-3 mt-1">
-                  <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${enquiry.type === 'school' ? 'bg-primary/10 text-primary border-primary/20' : enquiry.type === 'parent' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-blue-500/10 text-blue-600 border-blue-500/20'}`}>
+                  <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${enquiry.type === 'school' ? 'bg-primary/10 text-primary border-primary/20' : enquiry.type === 'parent' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : enquiry.type === 'peer_connect' ? 'bg-violet-600/10 text-violet-600 border-violet-600/20' : 'bg-blue-500/10 text-blue-600 border-blue-500/20'}`}>
                     {getTypeLabel(enquiry.type)}
                   </span>
                   <span className="text-xs text-muted-foreground font-medium flex items-center gap-1">
@@ -147,8 +151,8 @@ export default function EnquiryDetailPage() {
                 {/* Specific Detail Card */}
                 <div className="glass-card p-8 rounded-[2rem] border-white/40 shadow-xl space-y-6">
                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2">
-                    {enquiry.type === 'school' ? <Building2 size={16} /> : enquiry.type === 'partner' ? <Handshake size={16} /> : <MapPin size={16} />}
-                    {enquiry.type === 'school' ? 'School Statistics' : enquiry.type === 'partner' ? 'Organization Detail' : 'Location Details'}
+                    {enquiry.type === 'school' ? <Building2 size={16} /> : enquiry.type === 'partner' ? <Handshake size={16} /> : enquiry.type === 'peer_connect' ? <UserCircle size={16} /> : <MapPin size={16} />}
+                    {enquiry.type === 'school' ? 'School Statistics' : enquiry.type === 'partner' ? 'Organization Detail' : enquiry.type === 'peer_connect' ? 'Session Details' : 'Location Details'}
                   </h3>
                   <div className="space-y-5">
                     {enquiry.type === 'school' ? (
@@ -182,17 +186,49 @@ export default function EnquiryDetailPage() {
                           <p className="text-sm font-bold text-slate-700">{enquiry.ngoDetail || '—'}</p>
                         </div>
                       </div>
+                    ) : enquiry.type === 'peer_connect' ? (
+                      <>
+                        <div className="flex items-start gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                            <User size={20} />
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-0.5">Selected Peer Mentor</p>
+                            <p className="text-sm font-bold text-slate-700">{enquiry.peerMentorName || '—'}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                            <Calendar size={20} />
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-0.5">Preferred Date</p>
+                            <p className="text-sm font-bold text-slate-700">{enquiry.preferredDate || '—'}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                            <Clock size={20} />
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-0.5">Preferred Time Slot</p>
+                            <p className="text-sm font-bold text-slate-700">{enquiry.preferredTime || '—'}</p>
+                          </div>
+                        </div>
+                      </>
                     ) : null}
                     
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
-                        <MapPin size={20} />
+                    {enquiry.type !== 'peer_connect' && (
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                          <MapPin size={20} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-0.5">City & State</p>
+                          <p className="text-sm font-bold text-slate-700">{enquiry.cityState || '—'}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-0.5">City & State</p>
-                        <p className="text-sm font-bold text-slate-700">{enquiry.cityState || '—'}</p>
-                      </div>
-                    </div>
+                    )}
 
                     {enquiry.type === 'school' && (
                       <div className="flex items-start gap-4">
@@ -212,11 +248,11 @@ export default function EnquiryDetailPage() {
               {/* Message / Goals Card */}
               <div className="glass-card p-10 rounded-[2.5rem] border-white/40 shadow-xl space-y-6">
                 <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2">
-                  <MessageSquare size={18} /> {enquiry.type === 'parent' ? 'Enquiry Details' : 'Strategic Programme Goals'}
+                  <MessageSquare size={18} /> {enquiry.type === 'parent' ? 'Enquiry Details' : enquiry.type === 'peer_connect' ? 'Booking Details' : 'Strategic Programme Goals'}
                 </h3>
                 <div className="p-8 bg-slate-50/50 rounded-[1.5rem] border border-slate-100">
                   <p className="text-lg text-slate-600 leading-relaxed italic font-medium">
-                    "{enquiry.type === 'parent' ? (enquiry.details || 'No details provided.') : (enquiry.goals || "No specific goals provided.")}"
+                    "{enquiry.type === 'parent' ? (enquiry.details || 'No details provided.') : enquiry.type === 'peer_connect' ? (enquiry.details || 'No session details.') : (enquiry.goals || "No specific goals provided.")}"
                   </p>
                 </div>
               </div>

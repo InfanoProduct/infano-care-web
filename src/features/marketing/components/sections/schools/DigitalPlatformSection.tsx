@@ -48,16 +48,16 @@ export function DigitalPlatformSection() {
       {/* Decorative Elements */}
       <div className="absolute top-[-10%] right-[-5%] w-96 h-96 opacity-[0.03] pointer-events-none">
         <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-           <circle cx="400" cy="0" r="350" fill="#4A1E7F" />
-           <circle cx="400" cy="0" r="380" stroke="#E67E22" strokeWidth="2" fill="none" />
+          <circle cx="400" cy="0" r="350" fill="#4A1E7F" />
+          <circle cx="400" cy="0" r="380" stroke="#E67E22" strokeWidth="2" fill="none" />
         </svg>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
-          
+
           {/* Left: Mobile Mockup */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
@@ -73,18 +73,18 @@ export function DigitalPlatformSection() {
 
               {/* Phone Frame Decoration */}
               <div className="absolute -inset-10 bg-gradient-to-tr from-[#4A1E7F]/5 to-orange-500/5 rounded-[4rem] blur-3xl -z-20" />
-              
+
               <div className="relative aspect-[9/18.5] w-full rounded-[2.5rem] sm:rounded-[3rem] overflow-hidden border-[6px] sm:border-[8px] border-slate-900 shadow-2xl">
-                <Image 
-                  src="/schools/digital-platform.png" 
-                  alt="Digital Platform App Mockup" 
+                <Image
+                  src="/schools/digital-platform.png"
+                  alt="Digital Platform App Mockup"
                   fill
                   className="object-cover"
                 />
               </div>
 
               {/* Decorative Floating Element */}
-              <motion.div 
+              <motion.div
                 animate={{ y: [0, -10, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 className="absolute -top-6 -right-6 w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-2xl shadow-lg border border-slate-100 flex items-center justify-center p-3 z-20"
@@ -127,10 +127,10 @@ export function DigitalPlatformSection() {
                       <feature.icon className={feature.color} size={20} />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-primary mb-1 font-heading">
+                      <h3 className="text-xl  font-bold text-primary mb-1 font-heading">
                         {feature.title}
                       </h3>
-                      <p className="text-slate-600 text-xs sm:text-sm leading-relaxed italic">
+                      <p className="text-slate-600  sm:text-sm leading-relaxed  text-sm">
                         {feature.desc}
                       </p>
                     </div>

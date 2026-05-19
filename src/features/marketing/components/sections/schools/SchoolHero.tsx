@@ -68,7 +68,7 @@ export function SchoolHero() {
           >
             <div className="relative aspect-[4/3] rounded-[3rem] overflow-hidden shadow-2xl shadow-emerald-900/10 border border-white">
               <Image
-                src="https://images.unsplash.com/photo-1523050335192-ce1273591790?auto=format&fit=crop&q=80"
+                src="/SchoolHeroimg.png"
                 alt="Institutional campus"
                 fill
                 className="object-cover"

@@ -1,13 +1,14 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { 
-  HeartPulse, 
-  MessageCircle, 
-  ShieldAlert, 
-  Users, 
-  HandHeart, 
-  Smartphone 
+import Image from 'next/image';
+import {
+  HeartPulse,
+  MessageCircle,
+  ShieldAlert,
+  Users,
+  HandHeart,
+  Smartphone
 } from 'lucide-react';
 
 const TRAINING_TOPICS = [
@@ -62,7 +63,7 @@ export function TeacherTrainingSection() {
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         {/* Top Header Row */}
-        <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-16">
+        <div className="flex flex-col  md:flex-row  items-center gap-12 mb-16">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -83,8 +84,8 @@ export function TeacherTrainingSection() {
             viewport={{ once: true }}
             className="bg-white/70 backdrop-blur-sm p-8 rounded-[2rem] border border-white shadow-sm flex items-center gap-8 max-w-md"
           >
-            <span className="text-7xl font-black text-[#E67E22] leading-none">7%</span>
-            <p className="text-slate-600 font-medium leading-tight italic">
+            <span className="text-5xl font-black text-[#db006a] leading-none">7%</span>
+            <p className="text-slate-600 font-medium leading-tight ">
               of Indian girls received menstrual health info from a teacher.
             </p>
           </motion.div>
@@ -95,37 +96,55 @@ export function TeacherTrainingSection() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="bg-[#F8F4FF] border border-white p-12 rounded-[3rem] shadow-sm relative overflow-hidden"
+          className="bg-[#F8F4FF] border border-white p-10 md:p-14 rounded-[3rem] shadow-sm relative overflow-hidden"
         >
-          <div className="text-center mb-12">
-            <h3 className="text-2xl font-bold text-slate-900 font-heading">
+          <div className="text-left mb-12">
+            <h3 className="text-2xl md:text-3xl font-bold text-slate-900 font-heading">
               What The INFANO.CARE Teacher Training Covers
             </h3>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-x-16 gap-y-10">
-            {TRAINING_TOPICS.map((topic, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="flex items-start gap-6 group"
-              >
-                <div className="w-12 h-12 shrink-0 flex items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-50 transition-transform group-hover:scale-110">
-                  <topic.icon className={topic.color} size={24} />
-                </div>
-                <div>
-                  <h4 className="text-lg font-bold text-[#4A1E7F] mb-1 font-heading">
-                    {topic.title}
-                  </h4>
-                  <p className="text-slate-600 text-sm italic leading-relaxed">
-                    {topic.desc}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Left: Points */}
+            <div className="flex flex-col gap-16">
+              {TRAINING_TOPICS.map((topic, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="flex items-start gap-5 group"
+                >
+                  <div className="w-12 h-12 shrink-0 flex items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-50 transition-transform group-hover:scale-110">
+                    <topic.icon className={topic.color} size={24} />
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-bold text-[#4A1E7F] mb-1 font-heading">
+                      {topic.title}
+                    </h4>
+                    <p className="text-slate-600 text-base leading-relaxed">
+                      {topic.desc}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Right: Image */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="relative w-full aspect-[4/5] lg:aspect-[4/5] xl:aspect-[3/4] rounded-3xl overflow-hidden shadow-xl"
+            >
+              <Image
+                src="/schools/intro-teacher.png"
+                alt="Teacher Training"
+                fill
+                className="object-cover"
+              />
+            </motion.div>
           </div>
         </motion.div>
 

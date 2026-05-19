@@ -49,7 +49,7 @@ export function PartnershipBanner() {
 
   return (
     <>
-      <section className="py-32 relative overflow-hidden bg-[#2D1B4D]">
+      <section className="py-20 relative overflow-hidden bg-[#2D1B4D]">
         {/* Thematic Image Overlay with Gradient */}
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-br from-[#2D1B4D] via-[#4A2B8A] to-[#2D1B4D] mix-blend-multiply opacity-90" />
@@ -66,36 +66,36 @@ export function PartnershipBanner() {
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="max-w-6xl mx-auto bg-white rounded-3xl md:rounded-[4rem] p-8 sm:p-12 md:p-24 text-center shadow-[0_50px_100px_rgba(0,0,0,0.4)]"
+            className="max-w-5xl mx-auto bg-white rounded-3xl md:rounded-[2.5rem] p-6 sm:p-10 md:p-14 text-center shadow-[0_50px_100px_rgba(0,0,0,0.4)]"
           >
             {/* Highlight Badges */}
-            <div className="flex flex-wrap justify-center gap-12 mb-16">
+            <div className="flex flex-wrap justify-center gap-8 sm:gap-12 mb-10">
               {[
                 { label: "India-Wide", value: "20+ Schools" },
                 { label: "Expert-Backed", value: "Verified Impact" },
                 { label: "Curriculum", value: "Ready to Use" }
               ].map((item, idx) => (
                 <div key={idx} className="flex flex-col items-center">
-                  <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-black mb-3 opacity-60">{item.label}</span>
-                  <span className="text-slate-900 font-bold text-lg">{item.value}</span>
+                  <span className="text-[10px] uppercase tracking-[0.4em] text-primary font-black mb-2 opacity-60">{item.label}</span>
+                  <span className="text-slate-900 font-bold text-base sm:text-lg">{item.value}</span>
                 </div>
               ))}
             </div>
 
-            <h2 className="text-3xl sm:text-4xl md:text-7xl font-bold font-heading mb-10 text-slate-900 leading-[1.1] tracking-tight">
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold font-heading mb-6 text-slate-900 leading-[1.2] tracking-tight">
               India's most <span className="text-primary">forward-thinking</span> <br className="hidden md:inline" /> girls' wellness movement.
             </h2>
-            <p className="text-lg text-slate-500 mb-16 max-w-3xl mx-auto leading-relaxed font-medium">
+            <p className="text-base text-slate-500 mb-10 max-w-2xl mx-auto leading-relaxed font-medium">
               Join our growing network of partner schools. Easy onboarding, full curriculum support, and measurable impact for every girl.
             </p>
 
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
-              <Link href="/contact" className="px-12 py-6 bg-slate-900 text-white rounded-full font-bold text-lg hover:bg-primary transition-all shadow-2xl active:scale-95 group">
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
+              <Link href="/contact" className="px-8 py-4 bg-slate-900 text-white rounded-full font-bold text-base hover:bg-primary transition-all shadow-xl active:scale-95 group">
                 Apply for Partnership <ArrowRight className="inline-block ml-2 transition-transform group-hover:translate-x-1" />
               </Link>
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="px-12 py-6 bg-transparent border-2 border-slate-200 text-slate-900 rounded-full font-bold text-lg hover:bg-slate-50 transition-all active:scale-95"
+                className="px-8 py-4 bg-transparent border-2 border-slate-200 text-slate-900 rounded-full font-bold text-base hover:bg-slate-50 transition-all active:scale-95"
               >
                 Download Info Pack
               </button>

@@ -85,10 +85,10 @@ export function SchoolBeyondSection() {
                 </div>
 
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 mb-2 font-heading">
+                  <h3 className="text-xl font-bold text-slate-900 mb-2 font-heading">
                     {item.title}
                   </h3>
-                  <p className="text-xs text-slate-500 leading-relaxed italic">
+                  <p className="text-base text-slate-500 leading-relaxed">
                     {item.desc}
                   </p>
                 </div>

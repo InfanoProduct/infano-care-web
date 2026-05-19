@@ -85,33 +85,59 @@ export function PartnershipTiers() {
         </motion.div>
 
         {/* Tier Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-end">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-end max-w-5xl mx-auto mt-8">
           {TIERS.map((tier, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className={`rounded-2xl p-6 border transition-all duration-300 hover:shadow-md ${
-                tier.highlight
-                  ? 'bg-[#FDE8DC] border-orange-200'
-                  : 'bg-white border-slate-100 hover:border-[#4A1E7F]/15'
-              }`}
+              transition={{ delay: i * 0.15, duration: 0.5, ease: "easeOut" }}
+              className={`relative rounded-3xl p-8 transition-all duration-500 ${tier.highlight
+                  ? 'bg-gradient-to-b from-[#FFF5F0] to-white border-2 border-orange-200 shadow-xl shadow-orange-500/10 hover:-translate-y-2 z-10'
+                  : 'bg-white/80 backdrop-blur-sm border border-slate-200 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-2'
+                }`}
             >
-              <h3 className={`text-xl font-bold mb-1 font-heading text-[#E67E22]`}>
-                {tier.name}
-              </h3>
-              <p className="text-xs text-slate-500 mb-5">({tier.students})</p>
+              {tier.highlight && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                  <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[11px] font-bold tracking-widest uppercase py-1.5 px-4 rounded-full shadow-md">
+                    Recommended
+                  </span>
+                </div>
+              )}
 
-              <ul className="space-y-2.5">
+              <div className="mb-8">
+                <h3 className={`text-2xl font-bold mb-2 font-heading ${tier.highlight ? 'text-orange-600' : 'text-primary'}`}>
+                  {tier.name}
+                </h3>
+                <div className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-slate-100 text-xs font-medium text-slate-600">
+                  {tier.students}
+                </div>
+              </div>
+
+              <div className="space-y-4">
                 {tier.features.map((feature, j) => (
-                  <li key={j} className="flex items-center gap-2.5">
-                    <CheckCircle2 size={15} className="text-green-500 shrink-0" />
-                    <span className="text-xs text-slate-700 font-medium">{feature}</span>
-                  </li>
+                  <div key={j} className="flex items-start gap-3">
+                    <CheckCircle2
+                      size={18}
+                      className={`mt-0.5 shrink-0 ${tier.highlight ? 'text-orange-500' : 'text-green-500'}`}
+                      strokeWidth={2.5}
+                    />
+                    <span className={`text-sm leading-tight ${tier.highlight ? 'text-slate-800 font-medium' : 'text-slate-600'}`}>
+                      {feature}
+                    </span>
+                  </div>
                 ))}
-              </ul>
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-slate-100">
+                <button className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${tier.highlight
+                    ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-md hover:shadow-lg'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
+                  }`}>
+                  Join as {tier.name}
+                </button>
+              </div>
             </motion.div>
           ))}
         </div>

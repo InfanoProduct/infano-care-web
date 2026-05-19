@@ -3,35 +3,35 @@ import { SliderCourse } from '../types';
 export const SLIDER_DATA: SliderCourse[] = [
   {
     id: 1,
-    title: "Emotional Wellness",
-    desc: "A journey through understanding emotions and building resilience.",
-    lessons: 12,
-    students: 150,
+    title: "Menstrual Health & Hygiene",
+    desc: "Empowering adolescent girls with expert-backed knowledge to navigate their cycles completely stigma-free.",
+    episodes: 8,
+    students: 1200,
     rating: 4.9,
     reviews: 45,
-    price: "Free",
-    image: "/course-thumbnail.png"
+    price: 799,
+    image: "/homehero-1.png"
   },
   {
     id: 2,
-    title: "Menstrual Health",
-    desc: "Demystifying your cycle with expert-backed knowledge.",
-    lessons: 8,
-    students: 230,
+    title: "Mind & Harmony",
+    desc: "Practical tools and mindfulness techniques to reduce stress, manage emotions, and build everyday resilience.",
+    episodes: 6,
+    students: 850,
     rating: 4.8,
     reviews: 32,
-    price: "Free",
-    image: "/course-thumbnail.png"
+    price: 799,
+    image: "/homehero-2.png"
   },
   {
     id: 3,
-    title: "Digital Safety",
-    desc: "Navigating the online world with confidence and security.",
-    lessons: 10,
-    students: 180,
+    title: "Confidence & Beyond",
+    desc: "Nurturing self-esteem, leadership, and essential life skills to help young girls thrive inside and outside the classroom.",
+    episodes: 10,
+    students: 1500,
     rating: 5.0,
     reviews: 28,
-    price: "Free",
-    image: "/course-thumbnail.png"
+    price: 999,
+    image: "/homehero-3.png"
   }
 ];

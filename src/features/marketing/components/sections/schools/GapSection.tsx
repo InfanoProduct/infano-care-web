@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { XCircle, CheckCircle2 } from 'lucide-react';
+import { XCircle, CheckCircle2, Building2, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 
 const SCHOOL_OFFERS = [
@@ -46,22 +46,22 @@ export function GapSection() {
             initial={{ opacity: 0, x: -24 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="bg-rose-50 border border-rose-200 rounded-3xl p-8 shadow-sm"
+            className="bg-rose-50 border border-rose-200 rounded-[2.5rem] p-10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500"
           >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 relative shrink-0">
-                <Image src="/schools/gap-school.png" alt="School icon" fill className="object-contain" />
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center shrink-0 text-rose-500">
+                <Building2 size={28} />
               </div>
-              <h3 className="text-base font-bold text-slate-800 font-heading">
+              <h3 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight font-heading">
                 What Most Schools Offer Today
               </h3>
             </div>
 
-            <ul className="space-y-3">
+            <ul className="space-y-4">
               {SCHOOL_OFFERS.map((item, i) => (
                 <li key={i} className="flex items-start gap-3">
-                  <XCircle className="text-red-400 shrink-0 mt-0.5" size={16} />
-                  <span className="text-sm text-slate-600 leading-snug">{item}</span>
+                  <XCircle className="text-red-400 shrink-0 mt-1" size={20} />
+                  <span className="text-base md:text-md text-slate-600 leading-relaxed font-medium">{item}</span>
                 </li>
               ))}
             </ul>
@@ -72,22 +72,22 @@ export function GapSection() {
             initial={{ opacity: 0, x: 24 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="bg-emerald-50 border border-emerald-200 rounded-3xl p-8 shadow-sm"
+            className="bg-emerald-50 border border-emerald-200 rounded-[2.5rem] p-10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500"
           >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 relative shrink-0">
-                <Image src="/schools/gap-girls.png" alt="Girls icon" fill className="object-contain" />
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center shrink-0 text-emerald-500">
+                <Sparkles size={28} />
               </div>
-              <h3 className="text-base font-bold text-slate-800 font-heading">
+              <h3 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight font-heading">
                 What Girls Actually Need
               </h3>
             </div>
 
-            <ul className="space-y-3">
+            <ul className="space-y-4">
               {GIRLS_NEED.map((item, i) => (
                 <li key={i} className="flex items-start gap-3">
-                  <CheckCircle2 className="text-emerald-500 shrink-0 mt-0.5" size={16} />
-                  <span className="text-sm text-slate-700 leading-snug font-medium">{item}</span>
+                  <CheckCircle2 className="text-emerald-500 shrink-0 mt-1" size={20} />
+                  <span className="text-base md:text-md text-slate-600 leading-relaxed font-medium">{item}</span>
                 </li>
               ))}
             </ul>

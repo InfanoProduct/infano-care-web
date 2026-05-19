@@ -5,9 +5,9 @@ import Image from 'next/image';
 
 const FEATURES = [
   {
-    title: 'Expert Sessions',
+    title: 'In-School Expert Sessions ',
     desc: 'Structured in-school sessions Grades 5-9 every year',
-    image: '/schools/intro-expert.png',
+    image: '/IntroducingCard.png',
   },
   {
     title: 'Digital Platform',
@@ -26,7 +26,7 @@ export function IntroductionSection() {
     <section className="py-20 bg-white relative overflow-hidden">
       {/* Decorative Elements - Top */}
       <div className="absolute top-[-10%] left-[-5%] w-64 h-64 bg-[#F2EBFF] rounded-full opacity-60 blur-3xl" />
-      
+
       <div className="absolute top-0 right-0 w-80 h-40 opacity-20 pointer-events-none">
         <svg viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
           <circle cx="450" cy="-50" r="250" stroke="#E67E22" strokeWidth="2" />
@@ -68,9 +68,9 @@ export function IntroductionSection() {
               className="bg-[#FAF9FF] p-6 rounded-[2rem] border border-slate-100 group hover:shadow-lg transition-all duration-300"
             >
               <div className="relative w-full aspect-[4/3] mb-6 overflow-hidden rounded-2xl">
-                <Image 
-                  src={item.image} 
-                  alt={item.title} 
+                <Image
+                  src={item.image}
+                  alt={item.title}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />

@@ -51,8 +51,8 @@ export default function TheBookPage() {
       <BookDetailedSection book={book} />
       <BookAchieve />
       <BookChapters />
-
-
+      
+      <BookPreview />
 
       <BookTrust />
       <BookReaders />

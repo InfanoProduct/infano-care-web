@@ -56,7 +56,7 @@ export function BookHero({ book }: BookHeroProps) {
               transition={{ delay: 0.1 }}
               className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900"
             >
-              A story of Every <br /> <span className="text-primary/80">Adolescent Girl</span>
+              The Awkward Age
             </motion.h1>
 
             <motion.p
@@ -65,7 +65,7 @@ export function BookHero({ book }: BookHeroProps) {
               transition={{ delay: 0.2 }}
               className="text-base md:text-lg text-slate-500 leading-relaxed font-medium mb-10 max-w-lg"
             >
-              A warm, illustrated guide to the adolescent journey—built to spark reflection, confidence, and conversations at home. Short chapters, friendly visuals, and practical prompts.
+              Let’s make the best investment—an investment in companionship, love, and loyalty. In a world that’s constantly changing, there is no friend as loyal, comforting, and true as
             </motion.p>
 
             <motion.div
@@ -85,24 +85,6 @@ export function BookHero({ book }: BookHeroProps) {
               </button>
             </motion.div>
 
-            {/* Trust Indicator */}
-            <div className="mt-12 flex items-center gap-3">
-              <div className="flex -space-x-2">
-                {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="relative w-10 h-10 rounded-full border-2 border-white bg-slate-100 overflow-hidden">
-                    <Image 
-                      src={`/experts/1 (${i}).png`}
-                      alt={`Expert ${i}`}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-              <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
-                Trusted by 2,000+ families
-              </p>
-            </div>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Camera, Video, Briefcase, ArrowRight, Shield, Heart, Star } from 'lucide-react';
@@ -126,17 +127,20 @@ export function MarketingFooter() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-12 mb-20">
           <div className="col-span-2 lg:col-span-2">
-            <Link href="/" className="flex flex-col mb-8">
-              <span className="font-heading font-bold text-4xl tracking-tight text-slate-900 mb-2">
-                Infano.care
-              </span>
-              <div className="flex items-center gap-2">
-                <div className="h-px w-8 bg-primary" />
-                <span className="text-xs font-black text-primary uppercase tracking-[0.3em]">
-                  Growing Together
-                </span>
-              </div>
+            <Link href="/" className="relative flex flex-col mb-8 w-48 md:w-56 lg:w-64 h-16 md:h-20 lg:h-24 group -ml-2">
+              <Image 
+                src="/logo/infano-logo-for-light-bg.png" 
+                alt="Infano" 
+                fill
+                className="object-contain object-left"
+              />
             </Link>
+            <div className="flex items-center gap-2 mb-8 -mt-4">
+              <div className="h-px w-8 bg-primary" />
+              <span className="text-xs font-black text-primary uppercase tracking-[0.3em]">
+                Growing Together
+              </span>
+            </div>
             <p className="text-base text-slate-600 mb-8 max-w-sm leading-relaxed font-medium">
               India's most holistic ecosystem for adolescent and young adult girls—blending story-led learning, wellness tracking, and expert guidance.
             </p>

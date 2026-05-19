@@ -68,7 +68,7 @@ export function ImpactSection() {
             <p className="text-base text-slate-500 font-medium mb-6">
               What Changes For Your Girls
             </p>
-            <blockquote className="text-sm text-slate-600 italic leading-relaxed border-l-0">
+            <blockquote className="text-base text-slate-600  leading-relaxed border-l-0">
               &ldquo;By the time she finishes Grade 9, she has managed her period independently for 4 years, named and sought help for her anxiety, practiced saying no, and written a letter to her 25-year-old self. That letter will arrive at her door on her 19th birthday.&rdquo;
             </blockquote>
           </motion.div>
@@ -85,7 +85,7 @@ export function ImpactSection() {
                 className={`${stat.span} bg-[#F8F4FF] border border-white rounded-2xl p-5 flex flex-col gap-2 hover:shadow-sm transition-all duration-300`}
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl font-black text-[#E67E22] font-heading leading-none">
+                  <span className="text-2xl font-black text-primary font-heading leading-none">
                     {stat.value}
                   </span>
                   {stat.arrow === 'down' ? (
@@ -94,7 +94,7 @@ export function ImpactSection() {
                     <TrendingUp className="text-green-500" size={20} strokeWidth={2.5} />
                   )}
                 </div>
-                <p className="text-xs text-slate-600 font-medium leading-snug">
+                <p className="text-base text-slate-600 font-medium leading-snug">
                   {stat.label}
                 </p>
               </motion.div>

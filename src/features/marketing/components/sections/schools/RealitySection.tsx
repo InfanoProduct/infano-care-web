@@ -7,17 +7,32 @@ const STATS = [
   {
     value: '30%',
     desc: 'of Indian girls had never heard of menstruation before their first period arrived.',
-    image: '/schools/stat-menstruation.png',
+    image: '/menstruationinschool.png',
+    textColor: 'text-rose-500',
+    bgAccent: 'bg-rose-500',
+    gradient: 'from-rose-900',
+    cardBg: 'bg-rose-50',
+    shadowColor: 'shadow-rose-500/10 hover:shadow-rose-500/20',
   },
   {
     value: '25%',
     desc: 'miss school every month because of period-related stigma, pain & lack of support.',
-    image: '/schools/stat-school-miss.png',
+    image: '/CrampsMissingschool.png',
+    textColor: 'text-amber-600',
+    bgAccent: 'bg-amber-500',
+    gradient: 'from-amber-900',
+    cardBg: 'bg-amber-50',
+    shadowColor: 'shadow-amber-500/10 hover:shadow-amber-500/20',
   },
   {
     value: '62%',
     desc: 'of adolescents do not know where to get help if they are cyberbullied online.',
-    image: '/schools/stat-cyberbullying.png',
+    image: '/DigitalSafety.png',
+    textColor: 'text-indigo-600',
+    bgAccent: 'bg-indigo-500',
+    gradient: 'from-indigo-900',
+    cardBg: 'bg-indigo-50',
+    shadowColor: 'shadow-indigo-500/10 hover:shadow-indigo-500/20',
   }
 ];
 
@@ -44,7 +59,7 @@ export function RealitySection() {
               The Reality We Are Not Talking About
             </h2>
           </motion.div>
-          
+
           {/* Top Right Dots */}
           <div className="hidden md:flex gap-3 mt-4">
             <div className="w-5 h-5 bg-[#E67E22] rounded-full" />
@@ -61,24 +76,31 @@ export function RealitySection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="bg-[#FAF9FF] p-10 rounded-[2.5rem] border border-slate-100 flex flex-col items-center text-center group hover:shadow-xl hover:shadow-primary/5 transition-all duration-500"
+              className={`rounded-[2.5rem] overflow-hidden border border-white flex flex-col group transition-all duration-500 shadow-xl ${item.shadowColor} hover:-translate-y-2`}
             >
-              <div className="relative w-full aspect-square mb-8 overflow-hidden rounded-3xl">
-                <Image 
-                  src={item.image} 
-                  alt={`Statistic illustration ${i + 1}`} 
+              <div className="relative w-full aspect-[4/3] overflow-hidden bg-slate-50">
+                <Image
+                  src={item.image}
+                  alt={`Statistic illustration ${i + 1}`}
                   fill
-                  className="object-contain p-4 group-hover:scale-110 transition-transform duration-700"
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
+                <div className={`absolute inset-0 bg-gradient-to-t ${item.gradient} to-transparent opacity-10 group-hover:opacity-0 transition-opacity duration-500`} />
               </div>
-              <div className="flex items-center justify-center gap-4 mb-4 w-full">
-                <span className="text-5xl md:text-6xl font-black text-[#E67E22] font-heading">
-                  {item.value}
-                </span>
+
+              <div className={`p-8 md:p-10 flex flex-col items-center text-center relative grow ${item.cardBg}`}>
+                <div className={`w-12 h-1.5 rounded-full ${item.bgAccent} mb-8 opacity-80`} />
+
+                <div className="mb-4">
+                  <span className={`text-4xl md:text-5xl font-black font-heading tracking-tight ${item.textColor} drop-shadow-sm`}>
+                    {item.value}
+                  </span>
+                </div>
+
+                <p className="text-slate-600 text-base md:text-lg leading-relaxed font-medium">
+                  {item.desc}
+                </p>
               </div>
-              <p className="text-slate-600 italic text-lg leading-relaxed px-2">
-                {item.desc}
-              </p>
             </motion.div>
           ))}
         </div>
@@ -89,9 +111,9 @@ export function RealitySection() {
           viewport={{ once: true }}
           className="flex justify-center"
         >
-          <div className="bg-[#E8E2F3] px-12 py-5 rounded-full shadow-sm">
-            <p className="text-primary text-base md:text-lg font-bold italic text-center">
-              These are your students. They are navigating this alone
+          <div className="bg-[#f5f1fe] px-10 py-2 rounded-full shadow-sm border border-primary/10">
+            <p className="text-primary text-base md:text-md  italic text-center">
+              These are your students. They are navigating this alone.
             </p>
           </div>
         </motion.div>
@@ -101,7 +123,7 @@ export function RealitySection() {
       {/* Bottom Left Circles */}
       <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-[#E8E2F3] rounded-full opacity-40 blur-3xl -z-10" />
       <div className="absolute bottom-10 left-10 w-40 h-40 border-[20px] border-[#E8E2F3]/30 rounded-full -z-10" />
-      
+
       {/* Bottom Right Sparkles/Stars */}
       <div className="absolute bottom-12 right-12 w-48 h-48 opacity-20 pointer-events-none -z-10">
         <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">

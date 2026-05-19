@@ -68,7 +68,7 @@ export function ParentLayerSection() {
           <p className="text-base text-slate-500 font-medium mb-3">
             Bringing Home Into The Journey
           </p>
-          <p className="text-sm text-slate-500 italic max-w-2xl mx-auto leading-relaxed">
+          <p className="text-md text-slate-500  max-w-2xl mx-auto leading-relaxed">
             The most powerful thing a girl can have is a parent who actually understands what she is going through.
           </p>
         </motion.div>
@@ -82,10 +82,10 @@ export function ParentLayerSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="bg-white border border-slate-100 rounded-2xl p-6 hover:shadow-md hover:border-[#4A1E7F]/15 transition-all duration-300 group flex flex-col"
+              className="bg-white relative border border-slate-100 rounded-2xl p-6 hover:shadow-md hover:border-[#4A1E7F]/15 transition-all duration-300 group flex flex-col"
             >
               {/* Step Number */}
-              <span className="text-3xl font-black text-[#E67E22] leading-none mb-4 font-heading">
+              <span className="absolute top-2 right-2 text-[4rem] font-bold text-black/5 leading-none select-none group-hover:text-black/[0.08] transition-all duration-700 pointer-events-none">
                 {step.number}
               </span>
 
@@ -95,12 +95,12 @@ export function ParentLayerSection() {
               </div>
 
               {/* Title */}
-              <h3 className="text-base font-bold text-primary mb-2 font-heading">
+              <h3 className="text-xl font-bold text-primary mb-2 font-heading">
                 {step.title}
               </h3>
 
               {/* Description */}
-              <p className="text-xs text-slate-500 italic leading-relaxed flex-grow">
+              <p className="text-sm text-slate-500  leading-relaxed flex-grow">
                 {step.desc}
               </p>
             </motion.div>
@@ -114,7 +114,7 @@ export function ParentLayerSection() {
           viewport={{ once: true }}
           className="text-center"
         >
-          <p className="text-xs text-slate-400 italic">
+          <p className="inline rounded-full text-xs text-slate-900 font-medium  px-10 py-4 bg-[#e9dcff]">
             The school distributes the Welcome Packet During The Session. Infano.Care handles everything else.
           </p>
         </motion.div>

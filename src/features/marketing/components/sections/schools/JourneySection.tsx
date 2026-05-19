@@ -9,7 +9,7 @@ const JOURNEY_STEPS = [
     age: 'Age 10-11',
     title: 'My Body, My Story',
     desc: 'Body literacy, puberty, and menstruation readiness',
-    image: '/schools/journey-5.png',
+    image: '/5th Grade.png',
     color: 'bg-[#FDE8F4]',
     border: 'border-pink-200',
     height: 'min-h-[400px]',
@@ -20,7 +20,7 @@ const JOURNEY_STEPS = [
     age: 'Age 11-12',
     title: 'Emotions Are My Superpower',
     desc: 'Emotional intelligence, social media reality',
-    image: '/schools/journey-6.png',
+    image: '/6th Grade.png',
     color: 'bg-[#EDE9FF]',
     border: 'border-purple-200',
     height: 'min-h-[430px]',
@@ -31,7 +31,7 @@ const JOURNEY_STEPS = [
     age: 'Age 12-13',
     title: 'My Relationships, My Rules',
     desc: 'Consent, digital safety, and grooming awareness',
-    image: '/schools/journey-7.png',
+    image: '/7th Grade.png',
     color: 'bg-[#E0F2FE]',
     border: 'border-sky-200',
     height: 'min-h-[460px]',
@@ -42,7 +42,7 @@ const JOURNEY_STEPS = [
     age: 'Age 13-14',
     title: 'I know who I am',
     desc: 'Mental health, identity, self-esteem',
-    image: '/schools/journey-8.png',
+    image: '/8th Grade.png',
     color: 'bg-[#D1FAE5]',
     border: 'border-emerald-200',
     height: 'min-h-[490px]',
@@ -53,7 +53,7 @@ const JOURNEY_STEPS = [
     age: 'Age 14-15',
     title: 'Ready for the World',
     desc: 'Reproductive health, ambition, and life skills',
-    image: '/schools/journey-9.png',
+    image: '/9th Grade.png',
     color: 'bg-[#FEF3C7]',
     border: 'border-amber-200',
     height: 'min-h-[520px]',
@@ -88,26 +88,28 @@ export function JourneySection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className={`${step.color} ${step.height} p-6 rounded-[2.5rem] border ${step.border} shadow-md flex flex-col items-center justify-end text-center group hover:shadow-xl hover:-translate-y-1 transition-all duration-500`}
+              className={`${step.color} ${step.height} p-6 rounded-[2.5rem] border ${step.border} shadow-md flex flex-col items-center justify-start text-center group hover:shadow-xl hover:-translate-y-1 transition-all duration-500`}
             >
-              <div className={`relative w-full ${step.imgHeight} mb-6 overflow-hidden rounded-3xl shrink-0`}>
-                <Image 
-                  src={step.image} 
-                  alt={step.grade} 
+              <div className={`relative w-full ${step.imgHeight} mb-6 overflow-hidden rounded-3xl shrink-0 shadow-sm`}>
+                <Image
+                  src={step.image}
+                  alt={step.grade}
                   fill
-                  className="object-contain p-2 group-hover:scale-110 transition-transform duration-700"
+                  className="object-cover group-hover:scale-110 transition-transform duration-700"
                 />
               </div>
-              <div className="space-y-1 mb-4">
-                <span className="text-lg font-black text-[#E67E22] block font-heading">{step.grade}</span>
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{step.age}</span>
+              <div className="mt-auto flex flex-col items-center w-full">
+                <div className="space-y-1 mb-4">
+                  <span className="text-lg font-black text-[#303030] block font-heading">{step.grade}</span>
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{step.age}</span>
+                </div>
+                <h3 className="text-base font-bold text-[#4A1E7F] mb-2 leading-tight font-heading">
+                  {step.title}
+                </h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  {step.desc}
+                </p>
               </div>
-              <h3 className="text-base font-bold text-[#4A1E7F] mb-2 leading-tight font-heading">
-                {step.title}
-              </h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                {step.desc}
-              </p>
             </motion.div>
           ))}
         </div>
@@ -127,7 +129,7 @@ export function JourneySection() {
       {/* Top Right Decoration - Flare */}
       <div className="absolute top-0 right-0 w-96 h-96 opacity-10 pointer-events-none">
         <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-           <circle cx="450" cy="-50" r="400" fill="#4A1E7F" />
+          <circle cx="450" cy="-50" r="400" fill="#4A1E7F" />
         </svg>
       </div>
 

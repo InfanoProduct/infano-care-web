@@ -13,6 +13,26 @@ export function BookSection() {
       <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-primary/5 blur-[100px] rounded-full -translate-x-1/3 translate-y-1/3" />
 
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
+        
+        {/* Mobile Title & Subtitle */}
+        <div className="flex lg:hidden flex-col mb-10">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="flex items-center gap-3 mb-6"
+          >
+            <div className="h-px w-6 bg-primary/20" />
+            <span className="text-primary font-black uppercase tracking-[0.2em] text-[10px]">
+              India's first book on Adolescent Girls
+            </span>
+          </motion.div>
+
+          <h2 className="text-4xl font-bold font-heading leading-tight tracking-tight text-slate-900">
+            A story of Every <br /> <span className="text-primary">Adolescent Girl</span>
+          </h2>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
           {/* Left: Book Image & Testimonial */}
           <div className="flex flex-col ">
@@ -67,7 +87,7 @@ export function BookSection() {
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="flex items-center gap-3 mb-6"
+              className="hidden lg:flex items-center gap-3 mb-6"
             >
               <div className="h-px w-6 bg-primary/20" />
               <span className="text-primary font-black uppercase tracking-[0.2em] text-[10px]">
@@ -75,7 +95,7 @@ export function BookSection() {
               </span>
             </motion.div>
 
-            <h2 className="text-4xl md:text-5xl font-bold font-heading mb-6 leading-tight tracking-tight text-slate-900">
+            <h2 className="hidden lg:block text-4xl md:text-5xl font-bold font-heading mb-6 leading-tight tracking-tight text-slate-900">
               A story of Every <br /> <span className="text-primary">Adolescent Girl</span>
             </h2>
 

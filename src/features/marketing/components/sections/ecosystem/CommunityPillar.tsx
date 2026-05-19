@@ -6,15 +6,15 @@ import { Users } from 'lucide-react';
 
 export function CommunityPillar() {
   return (
-    <section className="py-24 bg-white relative overflow-hidden">
+    <section className="py-16 lg:py-24 bg-white relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/pinstriped-suit.png')] opacity-[0.02]" />
       <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-pink-100/30 rounded-full blur-[120px] translate-x-1/2" />
 
       <div className=" mx-auto px-6 md:px-12 lg:px-24 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-20 items-center">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
+            initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             className="hidden lg:block order-2 lg:order-1 relative"
@@ -22,20 +22,20 @@ export function CommunityPillar() {
             <div className="absolute -inset-10 bg-emerald-100/50 blur-[100px] rounded-full scale-75" />
             <div className="relative mx-auto w-full ">
               <Image
-                src="/Ecosystem6.png"
+                src="/eco-5.png"
                 alt="Mobile interface"
                 width={500}
-                height={500}
-                className="object-contain w-[920px]"
+                height={600}
+                className="object-contain max-h-[400px] lg:max-h-[600px] w-auto mx-auto"
               />
             </div>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
+            initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="order-1 lg:order-2"
+            className="order-1 lg:order-1"
           >
             <div className="flex items-center gap-6 mb-6">
               <div className="w-16 h-16 rounded-2xl bg-pink-50 text-pink-500 flex items-center justify-center text-3xl shadow-lg shadow-pink-900/5 border border-pink-100 shrink-0">

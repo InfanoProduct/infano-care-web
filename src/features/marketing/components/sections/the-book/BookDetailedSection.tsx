@@ -30,7 +30,7 @@ export function BookDetailedSection({ book }: BookDetailedSectionProps) {
             >
               <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full scale-110" />
               <Image
-                src="/girl-standing-with-book.png"
+                src="/BookwithCover.png"
                 alt="The Awkward Age Book"
                 width={800}
                 height={800}

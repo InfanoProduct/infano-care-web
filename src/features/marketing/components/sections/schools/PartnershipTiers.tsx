@@ -7,7 +7,8 @@ const TIERS = [
   {
     name: 'Seeding',
     students: '100 students',
-    highlight: false,
+    badgeText: 'Essential',
+    theme: 'green' as const,
     features: [
       'Grades 5–6 (2 grades)',
       '1 physical session / grade',
@@ -20,8 +21,9 @@ const TIERS = [
   },
   {
     name: 'Grow',
-    students: '150 students',
-    highlight: true,
+    students: '200 students',
+    badgeText: 'Recommended',
+    theme: 'purple' as const,
     features: [
       'Grades 5–7 (3 grades)',
       '1 session per grade',
@@ -35,8 +37,9 @@ const TIERS = [
   },
   {
     name: 'Thrive',
-    students: '200 students',
-    highlight: false,
+    students: '300 students',
+    badgeText: 'Complete',
+    theme: 'rose' as const,
     features: [
       'All Grades 5–9 (5 grades)',
       '1 session per grade',
@@ -50,6 +53,45 @@ const TIERS = [
     ],
   },
 ];
+
+const themeStyles = {
+  slate: {
+    card: 'bg-white/80 backdrop-blur-sm border border-slate-200 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-2',
+    title: 'text-primary',
+    badge: 'bg-slate-100 text-slate-600',
+    check: 'text-green-500',
+    featureText: 'text-slate-600',
+    button: 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200',
+    topBadge: '',
+  },
+  green: {
+    card: 'bg-gradient-to-b from-[#f0fdf4] to-white border-2 border-emerald-200 shadow-xl shadow-emerald-500/10 hover:-translate-y-2 z-10',
+    title: 'text-emerald-600',
+    badge: 'bg-emerald-100 text-emerald-700',
+    check: 'text-emerald-500',
+    featureText: 'text-slate-800 font-medium',
+    button: 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-md hover:shadow-lg',
+    topBadge: 'bg-emerald-500 text-white',
+  },
+  purple: {
+    card: 'bg-gradient-to-b from-[#f8f0ff] to-white border-2 border-purple-200 shadow-xl shadow-purple-500/10 hover:-translate-y-2 z-10',
+    title: 'text-primary',
+    badge: 'bg-purple-100 text-purple-700',
+    check: 'text-primary',
+    featureText: 'text-slate-800 font-medium',
+    button: 'bg-primary hover:bg-primary/95 text-white shadow-md hover:shadow-lg',
+    topBadge: 'bg-primary text-white',
+  },
+  rose: {
+    card: 'bg-gradient-to-b from-[#fff1f2] to-white border-2 border-rose-200 shadow-xl shadow-rose-500/10 hover:-translate-y-2 z-10',
+    title: 'text-rose-600',
+    badge: 'bg-rose-100 text-rose-700',
+    check: 'text-rose-500',
+    featureText: 'text-slate-800 font-medium',
+    button: 'bg-rose-500 hover:bg-rose-600 text-white shadow-md hover:shadow-lg',
+    topBadge: 'bg-rose-500 text-white',
+  },
+};
 
 export function PartnershipTiers() {
   return (
@@ -85,35 +127,58 @@ export function PartnershipTiers() {
         </motion.div>
 
         {/* Tier Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-end">
-          {TIERS.map((tier, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className={`rounded-2xl p-6 border transition-all duration-300 hover:shadow-md ${
-                tier.highlight
-                  ? 'bg-[#FDE8DC] border-orange-200'
-                  : 'bg-white border-slate-100 hover:border-[#4A1E7F]/15'
-              }`}
-            >
-              <h3 className={`text-xl font-bold mb-1 font-heading text-[#E67E22]`}>
-                {tier.name}
-              </h3>
-              <p className="text-xs text-slate-500 mb-5">({tier.students})</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-end max-w-5xl mx-auto mt-8">
+          {TIERS.map((tier, i) => {
+            const styles = themeStyles[tier.theme];
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15, duration: 0.5, ease: "easeOut" }}
+                className={`relative rounded-3xl p-8 transition-all duration-500 ${styles.card}`}
+              >
+                {tier.badgeText && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                    <span className={`${styles.topBadge} text-[11px] font-bold tracking-widest uppercase py-1.5 px-4 rounded-full shadow-md`}>
+                      {tier.badgeText}
+                    </span>
+                  </div>
+                )}
 
-              <ul className="space-y-2.5">
-                {tier.features.map((feature, j) => (
-                  <li key={j} className="flex items-center gap-2.5">
-                    <CheckCircle2 size={15} className="text-green-500 shrink-0" />
-                    <span className="text-xs text-slate-700 font-medium">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          ))}
+                <div className="mb-8">
+                  <h3 className={`text-2xl font-bold mb-2 font-heading ${styles.title}`}>
+                    {tier.name}
+                  </h3>
+                  <div className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium ${styles.badge}`}>
+                    {tier.students}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {tier.features.map((feature, j) => (
+                    <div key={j} className="flex items-start gap-3">
+                      <CheckCircle2
+                        size={18}
+                        className={`mt-0.5 shrink-0 ${styles.check}`}
+                        strokeWidth={2.5}
+                      />
+                      <span className={`text-sm leading-tight ${styles.featureText}`}>
+                        {feature}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-8 pt-6 border-t border-slate-100">
+                  <button className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${styles.button}`}>
+                    Enroll Now
+                  </button>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>

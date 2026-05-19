@@ -28,6 +28,9 @@ export function SuperpowerCard({ title, desc, features, image, link, index, prio
       transition={{ duration: 0.8, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
       className={`${theme.bg} rounded-[2.5rem] p-6 md:p-8 relative overflow-hidden group hover:shadow-xl transition-all duration-700 flex flex-col justify-start gap-2 min-h-[360px] md:min-h-[380px] border ${theme.border}`}
     >
+      <span className="absolute -top-0 -right-0 text-[4rem] font-bold text-black/5 leading-none select-none group-hover:text-black/[0.08] transition-all duration-700 pointer-events-none">
+        0{index + 1}
+      </span>
       <div className="relative z-10">
         <div className="max-w-[85%] mb-6">
           <h3 className="text-xl md:text-2xl font-bold font-heading text-slate-900 tracking-tight leading-tight group-hover:text-primary transition-colors duration-500 mb-4">{title}</h3>

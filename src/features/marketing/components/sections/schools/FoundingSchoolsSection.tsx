@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { CheckCircle2 } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 
 const FOUNDING_BENEFITS = [
@@ -28,7 +29,7 @@ export function FoundingSchoolsSection() {
             <h2 className="text-4xl md:text-5xl font-bold text-primary mb-4 font-heading">
               A Special Invitation To Founding Schools
             </h2>
-            <p className="text-sm text-slate-500 italic mb-8 leading-relaxed">
+            <p className="text-sm text-slate-500  mb-8 leading-relaxed">
               That status is permanent. It will be referenced in every piece of Infano.Care&apos;s national marketing as the program grows across India.
             </p>
 
@@ -50,10 +51,15 @@ export function FoundingSchoolsSection() {
 
             {/* Footer brand */}
             <div className="mt-16">
-              <p className="text-lg font-black text-[#4A1E7F] tracking-widest uppercase font-heading">
-                INFANO.CARE
-              </p>
-              <p className="text-xs text-slate-400 italic mt-1">
+              <div className="relative w-44 h-20 ">
+                <Image
+                  src="/logo/infano-logo-for-light-bg.png"
+                  alt="Infano Logo"
+                  fill
+                  className="object-contain object-left"
+                />
+              </div>
+              <p className="text-xs text-slate-400 italic">
                 Building Confident Girls, One School at a Time
               </p>
             </div>
@@ -70,10 +76,10 @@ export function FoundingSchoolsSection() {
               <p className="text-xs text-slate-500 mb-3 font-medium">
                 Your next step:
               </p>
-              <h3 className="text-xl font-bold text-primary mb-5 font-heading leading-tight">
+              <h3 className="text-2xl font-bold text-primary mb-5 font-heading leading-tight">
                 Schedule a<br />30-minute demo
               </h3>
-              <p className="text-xs text-slate-500 italic mb-8 leading-relaxed">
+              <p className="text-sm text-slate-700 font-medium mb-8 leading-relaxed">
                 We&apos;ll bring the Student Activity Booklet, the Care KIT, and a live platform walk-through to your school.
               </p>
 
@@ -83,7 +89,7 @@ export function FoundingSchoolsSection() {
               >
                 Contact Us Today
               </Link>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500">
                 infano.care &nbsp;|&nbsp; support@infano.care
               </p>
             </div>

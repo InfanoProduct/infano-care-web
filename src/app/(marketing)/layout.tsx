@@ -25,7 +25,7 @@ export default function MarketingLayout({
 
       {/* Floating WhatsApp Button */}
       <Link
-        href="https://wa.me/message/INFANOCARE"
+        href="https://wa.me/919243019243"
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat on WhatsApp"

@@ -31,79 +31,78 @@ export function MarketingNavbar() {
   }, []);
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-sm py-2' : 'bg-transparent py-4'
-      }`}
-    >
-      <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 flex items-center justify-between gap-4">
-        {/* Logo */}
-        <Link href="/" className="flex flex-col z-50 shrink-0 group">
-          <span className="font-heading font-bold text-xl md:text-2xl tracking-tight text-primary transition-transform group-hover:scale-105">
-            Infano.care
-          </span>
-          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest hidden 2xl:block opacity-70">
-            Empowering Girls. Nurturing Women.
-          </span>
-        </Link>
-
-        {/* Desktop Nav */}
-        <nav className="hidden xl:flex items-center gap-1 bg-white/70 p-1 rounded-full border border-white/80 shadow-lg shadow-slate-200/50 backdrop-blur-md">
-          {navLinks.map((link) => {
-            const isActive = link.href === '/' 
-              ? pathname === '/' 
-              : pathname.startsWith(link.href);
-            return (
-              <Link
-                key={link.name}
-                href={link.href}
-                className={`text-xs xl:text-[13px] px-3 xl:px-4 py-2 rounded-full transition-all duration-200 whitespace-nowrap ${
-                  isActive
-                    ? 'bg-primary text-white font-semibold shadow-sm'
-                    : 'text-slate-600 hover:text-primary font-medium hover:bg-white/60'
-                }`}
-              >
-                {link.name}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Desktop CTAs */}
-        <div className="hidden lg:flex items-center gap-3 xl:gap-6 shrink-0">
-          <Link href="/parents" className="text-[13px] font-bold text-slate-700 hover:text-primary transition-colors whitespace-nowrap hidden 2xl:block">
-            I'm a Parent — Get Access
+    <>
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-sm py-2' : 'bg-transparent py-4'
+          }`}
+      >
+        <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 flex items-center justify-between gap-4">
+          {/* Logo */}
+          <Link href="/" className="flex flex-col z-50 shrink-0 group">
+            <span className="font-heading font-bold text-xl md:text-2xl tracking-tight text-primary transition-transform group-hover:scale-105">
+              Infano.care
+            </span>
+            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest hidden 2xl:block opacity-70">
+              Empowering Girls. Nurturing Women.
+            </span>
           </Link>
-          <Link href="/contact" className="btn-primary text-xs xl:text-[13px] px-4 xl:px-6 py-2 xl:py-2.5 whitespace-nowrap shadow-md hover:shadow-lg transition-all active:scale-95">
-            Enrol Your School &rarr;
-          </Link>
+
+          {/* Desktop Nav */}
+          <nav className="hidden xl:flex items-center gap-1 bg-white/70 p-1 rounded-full border border-white/80 shadow-lg shadow-slate-200/50 backdrop-blur-md">
+            {navLinks.map((link) => {
+              const isActive = link.href === '/'
+                ? pathname === '/'
+                : pathname.startsWith(link.href);
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className={`text-xs xl:text-[13px] px-3 xl:px-4 py-2 rounded-full transition-all duration-200 whitespace-nowrap ${isActive
+                      ? 'bg-primary text-white font-semibold shadow-sm'
+                      : 'text-slate-600 hover:text-primary font-medium hover:bg-white/60'
+                    }`}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Desktop CTAs */}
+          <div className="hidden xl:flex items-center gap-3 xl:gap-6 shrink-0">
+            <Link href="/parents" className="text-[13px] font-bold text-slate-700 hover:text-primary transition-colors whitespace-nowrap hidden 2xl:block">
+              I'm a Parent — Get Access
+            </Link>
+            <Link href="/contact" className="btn-primary text-xs xl:text-[13px] px-4 xl:px-6 py-2 xl:py-2.5 whitespace-nowrap shadow-md hover:shadow-lg transition-all active:scale-95">
+              Enrol Your School &rarr;
+            </Link>
+          </div>
+
+          {/* Mobile Menu Toggle */}
+          <button
+            className="xl:hidden p-2 text-foreground z-50"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
+      </header>
 
-        {/* Mobile Menu Toggle */}
-        <button
-          className="lg:hidden p-2 text-foreground z-50"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
+      {/* Mobile Menu (Rendered outside header to avoid backdrop-filter stacking context bugs) */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-white pt-24 px-6 flex flex-col gap-6 overflow-y-auto">
+        <div className="xl:hidden fixed inset-0 z-40 bg-white pt-24 px-6 flex flex-col gap-6 overflow-y-auto">
           <nav className="flex flex-col gap-4">
             {navLinks.map((link) => {
-              const isActive = link.href === '/' 
-                ? pathname === '/' 
+              const isActive = link.href === '/'
+                ? pathname === '/'
                 : pathname.startsWith(link.href);
               return (
                 <Link
                   key={link.name}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`text-lg font-medium pb-2 border-b border-border ${
-                    isActive ? 'text-primary' : 'text-foreground'
-                  }`}
+                  className={`text-lg font-medium pb-2 border-b border-border ${isActive ? 'text-primary' : 'text-foreground'
+                    }`}
                 >
                   {link.name}
                 </Link>
@@ -111,15 +110,15 @@ export function MarketingNavbar() {
             })}
           </nav>
           <div className="flex flex-col gap-4 mt-6 pb-12">
-            <Link 
-              href="/parents" 
+            <Link
+              href="/parents"
               onClick={() => setMobileMenuOpen(false)}
               className="btn-outline w-full"
             >
               I'm a Parent — Get Access
             </Link>
-            <Link 
-              href="/contact" 
+            <Link
+              href="/contact"
               onClick={() => setMobileMenuOpen(false)}
               className="btn-primary w-full"
             >
@@ -128,6 +127,6 @@ export function MarketingNavbar() {
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 }

@@ -17,7 +17,7 @@ export function CommunityPillar() {
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="order-2 lg:order-1 relative"
+            className="hidden lg:block order-2 lg:order-1 relative"
           >
             <div className="absolute -inset-10 bg-emerald-100/50 blur-[100px] rounded-full scale-75" />
             <div className="relative mx-auto w-full ">
@@ -47,6 +47,18 @@ export function CommunityPillar() {
             <p className="text-sm md:text-base text-slate-500 mb-10 leading-relaxed font-medium max-w-xl">
               Connect with girls who get it. A moderated environment designed for genuine friendship and mutual growth.
             </p>
+
+            {/* Mobile Image */}
+            <div className="lg:hidden relative mx-auto w-full mb-10">
+              <div className="absolute -inset-10 bg-emerald-100/50 blur-[100px] rounded-full scale-75" />
+              <Image
+                src="/Ecosystem6.png"
+                alt="Mobile interface"
+                width={500}
+                height={500}
+                className="object-contain w-[920px] relative z-10"
+              />
+            </div>
 
             <div className="grid gap-6">
               {[

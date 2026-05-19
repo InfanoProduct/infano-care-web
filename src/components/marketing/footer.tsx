@@ -34,7 +34,7 @@ const footerLinks = {
     { name: 'Instagram', href: 'https://www.instagram.com/infano.care/' },
     { name: 'YouTube', href: 'https://www.youtube.com/channel/UCjJ06NX_nNaWoezl3-QeeLg' },
     { name: 'LinkedIn', href: 'https://www.linkedin.com/company/infanocare/' },
-    { name: 'WhatsApp Community', href: '#' },
+    { name: 'WhatsApp Community', href: 'https://wa.me/919243019243' },
   ],
 };
 
@@ -74,7 +74,7 @@ const socialLinks = [
   },
   {
     name: 'WhatsApp',
-    href: 'https://wa.me/message/INFANOCARE',
+    href: 'https://wa.me/919243019243',
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"

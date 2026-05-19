@@ -29,6 +29,18 @@ export function SupportPillar() {
               Real experts. Real conversations. Moderated group sessions led by qualified professionals in a safe, anonymous environment.
             </p>
 
+            {/* Mobile Image */}
+            <div className="lg:hidden relative mx-auto w-full mb-10">
+              <div className="absolute -inset-10 bg-emerald-100/50 blur-[100px] rounded-full scale-75" />
+              <Image
+                src="/Ecosystem5.png"
+                alt="Mobile interface"
+                width={500}
+                height={500}
+                className="object-contain w-[920px] relative z-10"
+              />
+            </div>
+
             <div className="grid sm:grid-cols-2 gap-4 mb-10">
               {[
                 { name: 'Wellness Circle', desc: 'Mental health and emotional wellbeing' },
@@ -61,7 +73,7 @@ export function SupportPillar() {
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="order-2 lg:order-1 relative"
+            className="hidden lg:block order-2 lg:order-1 relative"
           >
             <div className="absolute -inset-10 bg-emerald-100/50 blur-[100px] rounded-full scale-75" />
             <div className="relative mx-auto w-full ">

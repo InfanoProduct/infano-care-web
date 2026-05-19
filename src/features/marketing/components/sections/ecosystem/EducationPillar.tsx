@@ -23,7 +23,7 @@ export function EducationPillar() {
             <div className="absolute -inset-10 bg-emerald-100/50 blur-[100px] rounded-full scale-75" />
             <div className="relative mx-auto w-full ">
               <Image
-                src="/Eco-3.png"
+                src="/eco-3.png"
                 alt="Mobile interface"
                 width={500}
                 height={600}

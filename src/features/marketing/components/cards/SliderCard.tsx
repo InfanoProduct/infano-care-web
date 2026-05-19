@@ -61,52 +61,49 @@ export function SliderCard({ card, index, isFirst, onDragEnd, onClick }: SliderC
       }}
       className="absolute inset-0 cursor-grab active:cursor-grabbing"
     >
-      <div className={`glass-card p-5 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.06)] h-full flex flex-col border ${bgColor}`} style={{ contain: 'layout style' }}>
-        <div className="relative aspect-[16/10] rounded-[2rem] overflow-hidden mb-5">
-          <Image 
-            src={card.image} 
+      <div className={`glass-card p-5 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.06)] h-full flex flex-col gap-4 border ${bgColor}`} style={{ contain: 'layout style' }}>
+        <div className="relative aspect-[16/10] rounded-[2rem] overflow-hidden">
+          <Image
+            src={card.image}
             alt={card.title}
             fill
             className="object-cover transition-transform duration-700 group-hover:scale-110"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             priority={isFirst}
           />
-          <div className="absolute top-4 right-4 px-3 py-1.5 bg-white/95 backdrop-blur text-[9px] font-black rounded-xl text-primary shadow-sm uppercase tracking-wider z-10">
-            -40% OFF
-          </div>
         </div>
 
-        <div className="flex items-center gap-4 mb-2 text-[9px] text-slate-500 font-bold uppercase tracking-widest">
+        <div className="flex items-center gap-4 text-[9px] text-slate-500 font-bold uppercase tracking-widest">
           <div className="flex items-center gap-1.5">
             <div className="w-5 h-5 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-               <BookOpen size={10} />
+              <BookOpen size={10} />
             </div>
-            {card.lessons} Lessons
+            {card.episodes} Episodes
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-5 h-5 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
-               <Users size={10} />
+              <Users size={10} />
             </div>
-            {card.students} Students
+            {card.students}+ Students Empowered
           </div>
         </div>
 
-        <h3 className="text-xl font-bold text-slate-900 mb-1 leading-tight">{card.title}</h3>
-        <p className="text-[11px] text-slate-500 mb-4 line-clamp-2 leading-relaxed font-medium">
+        <h3 className="text-xl font-bold text-slate-900 leading-tight">{card.title}</h3>
+        <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed font-medium">
           {card.desc}
         </p>
 
         <div className="mt-auto pt-4 border-t border-slate-100/60">
           <div className="flex items-center justify-between">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1 mb-1">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-1">
                 {[1, 2, 3, 4, 5].map((s) => (
                   <Star key={s} size={10} className="text-yellow-500 fill-yellow-500" />
                 ))}
                 <span className="text-[9px] font-bold text-slate-400 ml-1">({card.reviews})</span>
               </div>
-              <div className="text-lg font-bold text-slate-900">
-                {card.price} <span className="text-xs text-slate-400 line-through font-normal ml-1">$120</span>
+              <div className="text-lg font-bold text-slate-900"> Free
+                <span className="text-xs text-slate-400 line-through font-normal ml-1">₹ {card.price} /-</span>
               </div>
             </div>
             <div className="flex items-center gap-1 text-xs font-black text-primary hover:gap-2 transition-all cursor-pointer">

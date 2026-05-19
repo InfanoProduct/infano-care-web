@@ -67,7 +67,7 @@ export function SupportPillar() {
             <div className="absolute -inset-10 bg-emerald-100/50 blur-[100px] rounded-full scale-75" />
             <div className="relative mx-auto w-full ">
               <Image
-                src="/Eco-4.png"
+                src="/eco-4.png"
                 alt="Mobile interface"
                 width={500}
                 height={600}

@@ -134,7 +134,7 @@ export function PartnershipBanner() {
                   <FileText className="text-white" size={32} />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">Get the Info Pack</h3>
-                <p className="text-primary-100 text-sm">Everything you need to know about partnering with Infano.</p>
+                <p className=" text-sm text-white">Everything you need to know about partnering with Infano.</p>
               </div>
 
               {/* Form */}

@@ -19,7 +19,7 @@ const SUPERPOWERS = [
     ]
   },
   {
-    title: "Menstrual Wellness",
+    title: "AI Wellness & Cycle Tracker",
     desc: "AI-powered, stigma-free tracking that demystifies cycles with medical accuracy.",
     image: "/S3Img2.png",
     link: "/ecosystem",

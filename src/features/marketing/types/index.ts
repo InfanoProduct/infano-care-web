@@ -4,11 +4,11 @@ export interface SliderCourse {
   id: number;
   title: string;
   desc: string;
-  lessons: number;
+  episodes: number;
   students: number;
   rating: number;
   reviews: number;
-  price: string;
+  price: number;
   image: string;
 }
 

@@ -2,10 +2,12 @@ import { Metadata } from 'next';
 import { TheBookClient } from './TheBookClient';
 
 export const metadata: Metadata = {
-  title: 'Gigi - The Awkward Age | Adolescent Puberty Guide for Girls',
+  title: {
+    absolute: 'Gigi - The Awkward Age | Adolescent Puberty Guide for Girls | Infano Care',
+  },
   description: "Empower adolescent girls with scientific guidance, body-positivity, and self-love. India's first dedicated guidebook addressing female puberty transitions with absolute clarity.",
   openGraph: {
-    title: 'Gigi - The Awkward Age | Adolescent Puberty Guide for Girls',
+    title: 'Gigi - The Awkward Age | Adolescent Puberty Guide for Girls | Infano Care',
     description: "Empower adolescent girls with scientific guidance, body-positivity, and self-love. India's first dedicated guidebook addressing female puberty transitions with absolute clarity.",
     url: 'https://infano.care/gigi-the-awkward-age-book',
     images: [
@@ -19,8 +21,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Gigi - The Awkward Age | Adolescent Puberty Guide for Girls',
-    description: "Empower adolescent girls with scientific guidance, body-positivity, and self-love.",
+    title: 'Gigi - The Awkward Age | Adolescent Puberty Guide for Girls | Infano Care',
+    description: "Empower adolescent girls with scientific guidance, body-positivity, and self-love. India's first dedicated guidebook addressing female puberty transitions with absolute clarity.",
     images: ['/api/og?title=Gigi+-+The+Awkward+Age&category=Gigi+Book&author=Infano+Care'],
   },
 };

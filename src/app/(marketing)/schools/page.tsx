@@ -17,10 +17,12 @@ import { FoundingSchoolsSection } from '@/features/marketing/components/sections
 import { PartnershipBanner } from '@/features/marketing/components/sections/PartnershipBanner';
 
 export const metadata: Metadata = {
-  title: 'School Partnerships | Puberty & Wellness Programmes',
+  title: {
+    absolute: 'School Partnerships | Puberty & Wellness Programmes | Infano Care',
+  },
   description: "Bring Infano's NEP-aligned puberty and wellness curriculum to your school. Comprehensive teacher training, expert workshops, and secure student platforms.",
   openGraph: {
-    title: 'School Partnerships | Puberty & Wellness Curriculum',
+    title: 'School Partnerships | Puberty & Wellness Programmes | Infano Care',
     description: "Bring Infano's NEP-aligned puberty and wellness curriculum to your school. Comprehensive teacher training, expert workshops, and secure student platforms.",
     url: 'https://infano.care/schools',
     images: [
@@ -34,8 +36,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'School Partnerships | Puberty & Wellness Curriculum',
-    description: "Bring Infano's NEP-aligned puberty and wellness curriculum to your school.",
+    title: 'School Partnerships | Puberty & Wellness Programmes | Infano Care',
+    description: "Bring Infano's NEP-aligned puberty and wellness curriculum to your school. Comprehensive teacher training, expert workshops, and secure student platforms.",
     images: ['/api/og?title=School+Partnerships&category=Schools&author=Infano+Care'],
   },
 };

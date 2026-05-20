@@ -2,10 +2,12 @@ import { Metadata } from 'next';
 import { BlogListingClient } from './BlogListingClient';
 
 export const metadata: Metadata = {
-  title: 'Infano Care Blog | Adolescent Health & Parenting Stories',
+  title: {
+    absolute: 'Infano Care Blog | Adolescent Health & Parenting Stories | Infano Care',
+  },
   description: 'Discover expert stories, health tips, and educational puberty guides written by professionals to empower adolescent girls and support parents.',
   openGraph: {
-    title: 'Infano Care Blog | Adolescent Health & Parenting Stories',
+    title: 'Infano Care Blog | Adolescent Health & Parenting Stories | Infano Care',
     description: 'Discover expert stories, health tips, and educational puberty guides written by professionals to empower adolescent girls and support parents.',
     url: 'https://infano.care/blog',
     images: [
@@ -19,8 +21,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Infano Care Blog | Adolescent Health & Parenting Stories',
-    description: 'Discover expert stories, health tips, and educational puberty guides written by professionals to empower adolescent girls.',
+    title: 'Infano Care Blog | Adolescent Health & Parenting Stories | Infano Care',
+    description: 'Discover expert stories, health tips, and educational puberty guides written by professionals to empower adolescent girls and support parents.',
     images: ['/api/og?title=Infano+Care+Blog&category=Blog+Guides&author=Infano+Care'],
   },
 };

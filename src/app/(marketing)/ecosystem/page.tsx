@@ -9,10 +9,12 @@ import { BookPillar } from '@/features/marketing/components/sections/ecosystem/B
 import { EcosystemFaq } from '@/features/marketing/components/sections/ecosystem/EcosystemFaq';
 
 export const metadata: Metadata = {
-  title: 'Our Ecosystem | Puberty Education, Wellness & Care',
+  title: {
+    absolute: 'Our Ecosystem | Puberty Education, Wellness & Care | Infano Care',
+  },
   description: "Explore the Infano Care Ecosystem — combining book guides, digital physical tracking, clinical expert support, and moderated communities for a safe puberty transition.",
   openGraph: {
-    title: 'The Infano Care Ecosystem | A Safe Puberty Journey',
+    title: 'Our Ecosystem | Puberty Education, Wellness & Care | Infano Care',
     description: "Explore the Infano Care Ecosystem — combining book guides, digital physical tracking, clinical expert support, and moderated communities for a safe puberty transition.",
     url: 'https://infano.care/ecosystem',
     images: [
@@ -26,8 +28,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'The Infano Care Ecosystem | A Safe Puberty Journey',
-    description: 'Explore our multi-layered physical and digital support network for girls and parents.',
+    title: 'Our Ecosystem | Puberty Education, Wellness & Care | Infano Care',
+    description: "Explore the Infano Care Ecosystem — combining book guides, digital physical tracking, clinical expert support, and moderated communities for a safe puberty transition.",
     images: ['/api/og?title=Our+Ecosystem&category=Ecosystem&author=Infano+Care'],
   },
 };

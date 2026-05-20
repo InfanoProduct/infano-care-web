@@ -7,10 +7,12 @@ import { PeerMentorsSection } from '@/features/marketing/components/sections/the
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'The Support Circle | Safe Community for Adolescent Girls',
+  title: {
+    absolute: 'The Support Circle | Safe Community for Adolescent Girls | Infano Care',
+  },
   description: "Join the Infano Support Circle — a secure, moderated peer community and expert-led wellness space designed specifically to empower teenage girls through safe dialogue.",
   openGraph: {
-    title: 'The Support Circle | Safe Community for Adolescent Girls',
+    title: 'The Support Circle | Safe Community for Adolescent Girls | Infano Care',
     description: "Join the Infano Support Circle — a secure, moderated peer community and expert-led wellness space designed specifically to empower teenage girls through safe dialogue.",
     url: 'https://infano.care/the-support-circle',
     images: [
@@ -21,6 +23,12 @@ export const metadata: Metadata = {
         alt: 'Infano Support Circle',
       },
     ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'The Support Circle | Safe Community for Adolescent Girls | Infano Care',
+    description: "Join the Infano Support Circle — a secure, moderated peer community and expert-led wellness space designed specifically to empower teenage girls through safe dialogue.",
+    images: ['/api/og?title=The+Support+Circle&category=Community&author=Infano+Care'],
   },
 };
 

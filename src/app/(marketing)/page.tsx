@@ -8,12 +8,19 @@ import { BookSection } from '@/features/marketing/components/sections/BookSectio
 import { PartnershipBanner } from '@/features/marketing/components/sections/PartnershipBanner';
 
 export const metadata: Metadata = {
-  title: 'Empowering Adolescent Girls & Families',
+  title: {
+    absolute: 'Empowering Adolescent Girls & Families | Infano Care',
+  },
   description: "India's first holistic platform supporting adolescent girls and their parents through puberty education, mental wellness programs, and digital healthcare resources.",
   openGraph: {
-    title: 'Infano Care - Adolescent Health & Puberty Education Solutions',
+    title: 'Empowering Adolescent Girls & Families | Infano Care',
     description: "India's first holistic platform supporting adolescent girls and their parents through puberty education, mental wellness programs, and digital healthcare resources.",
     url: 'https://infano.care',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Empowering Adolescent Girls & Families | Infano Care',
+    description: "India's first holistic platform supporting adolescent girls and their parents through puberty education, mental wellness programs, and digital healthcare resources.",
   },
 };
 

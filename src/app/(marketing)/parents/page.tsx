@@ -7,10 +7,12 @@ import { AccessOptions } from '@/features/marketing/components/sections/parents/
 import { ParentsFAQ } from '@/features/marketing/components/sections/parents/ParentsFAQ';
 
 export const metadata: Metadata = {
-  title: 'Parents Programme | Support Your Daughter Through Puberty',
+  title: {
+    absolute: 'Parents Programme | Support Your Daughter Through Puberty | Infano Care',
+  },
   description: 'Empower your daughter during female puberty with clinical guidance, parent tracking, and empathetic resources built for modern families.',
   openGraph: {
-    title: 'Parents Programme | Support Your Daughter Through Puberty',
+    title: 'Parents Programme | Support Your Daughter Through Puberty | Infano Care',
     description: 'Empower your daughter during female puberty with clinical guidance, parent tracking, and empathetic resources built for modern families.',
     url: 'https://infano.care/parents',
     images: [
@@ -24,8 +26,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Parents Programme | Support Your Daughter Through Puberty',
-    description: 'Empower your daughter during female puberty with clinical guidance and tracking tools.',
+    title: 'Parents Programme | Support Your Daughter Through Puberty | Infano Care',
+    description: 'Empower your daughter during female puberty with clinical guidance, parent tracking, and empathetic resources built for modern families.',
     images: ['/api/og?title=Parents+Programme&category=Parents&author=Infano+Care'],
   },
 };

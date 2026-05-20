@@ -7,10 +7,12 @@ import AboutApproach from '@/features/marketing/components/sections/about/AboutA
 import AboutCta from '@/features/marketing/components/sections/about/AboutCta';
 
 export const metadata: Metadata = {
-  title: 'About Us | Our Mission & Experts',
+  title: {
+    absolute: 'About Us | Our Mission & Experts | Infano Care',
+  },
   description: "Learn about Infano Care's journey, our mission to transform adolescent female healthcare and education in India, and the expert medical council guiding our puberty programs.",
   openGraph: {
-    title: 'About Infano Care | Empowering Adolescent Girls',
+    title: 'About Us | Our Mission & Experts | Infano Care',
     description: "Learn about Infano Care's journey, our mission to transform adolescent female healthcare and education in India, and the expert medical council guiding our puberty programs.",
     url: 'https://infano.care/about',
     images: [
@@ -24,8 +26,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'About Infano Care | Empowering Adolescent Girls',
-    description: 'Learn about our mission to transform adolescent female healthcare and education in India.',
+    title: 'About Us | Our Mission & Experts | Infano Care',
+    description: "Learn about Infano Care's journey, our mission to transform adolescent female healthcare and education in India, and the expert medical council guiding our puberty programs.",
     images: ['/api/og?title=About+Us&category=Our+Mission&author=Infano+Care'],
   },
 };

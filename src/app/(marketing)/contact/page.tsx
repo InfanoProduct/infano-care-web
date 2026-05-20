@@ -2,10 +2,12 @@ import { Metadata } from 'next';
 import { ContactClient } from './ContactClient';
 
 export const metadata: Metadata = {
-  title: 'Contact Us | School & Parent Enquiries',
+  title: {
+    absolute: 'Contact Us | School & Parent Enquiries | Infano Care',
+  },
   description: 'Reach out to the Infano Care team. Whether you represent a school looking to run health workshops or are a parent seeking adolescent advice, we respond within 24 hours.',
   openGraph: {
-    title: 'Contact Infano Care | Partner & Parent Enquiries',
+    title: 'Contact Us | School & Parent Enquiries | Infano Care',
     description: 'Reach out to the Infano Care team. Whether you represent a school looking to run health workshops or are a parent seeking adolescent advice, we respond within 24 hours.',
     url: 'https://infano.care/contact',
     images: [
@@ -19,8 +21,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Contact Infano Care | Partner & Parent Enquiries',
-    description: 'Get in touch with us for school consultations, parent support, and partnerships.',
+    title: 'Contact Us | School & Parent Enquiries | Infano Care',
+    description: 'Reach out to the Infano Care team. Whether you represent a school looking to run health workshops or are a parent seeking adolescent advice, we respond within 24 hours.',
     images: ['/api/og?title=Contact+Us&category=Contact&author=Infano+Care'],
   },
 };

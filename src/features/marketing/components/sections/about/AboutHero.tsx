@@ -76,7 +76,7 @@ export default function AboutHero() {
             className="relative aspect-video lg:aspect-video rounded-3xl overflow-hidden shadow-xl"
           >
             <Image
-              src="/aboutUs.png"
+              src="/about.webp"
               alt="Our founding story"
               fill
               className="object-cover"

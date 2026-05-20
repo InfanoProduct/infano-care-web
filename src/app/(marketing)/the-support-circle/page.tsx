@@ -4,8 +4,28 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { PeerBanner } from '@/features/marketing/components/sections/the-circle/PeerBanner';
 import { PeerMentorsSection } from '@/features/marketing/components/sections/the-circle/PeerMentorsSection';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'The Support Circle | Safe Community for Adolescent Girls',
+  description: "Join the Infano Support Circle — a secure, moderated peer community and expert-led wellness space designed specifically to empower teenage girls through safe dialogue.",
+  openGraph: {
+    title: 'The Support Circle | Safe Community for Adolescent Girls',
+    description: "Join the Infano Support Circle — a secure, moderated peer community and expert-led wellness space designed specifically to empower teenage girls through safe dialogue.",
+    url: 'https://infano.care/the-support-circle',
+    images: [
+      {
+        url: '/api/og?title=The+Support+Circle&category=Community&author=Infano+Care',
+        width: 1200,
+        height: 630,
+        alt: 'Infano Support Circle',
+      },
+    ],
+  },
+};
 
 export default function TheCirclePage() {
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Section 6.1 — Hero */}

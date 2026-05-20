@@ -1,122 +1,67 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { Metadata } from 'next';
 import { blogService } from '@/services/blog.service';
+import { BlogPostDetailClient } from './BlogPostDetailClient';
 
-// Import newly created sections
-import { BlogHeader } from '@/components/blog/sections/BlogHeader';
-import { BlogContent } from '@/components/blog/sections/BlogContent';
-import { EditorsChoice } from '@/components/blog/sections/EditorsChoice';
-import { PromoBanner, CategoryWidget, SocialStats, PostTabsWidget } from '@/components/blog/SidebarWidgets';
-import '../blog.css';
+interface PageProps {
+  params: Promise<{ slug: string }>;
+}
 
-export default function BlogPostDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const slug = params.slug as string;
-  const [post, setPost] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [relatedPosts, setRelatedPosts] = useState<any[]>([]);
-  const [allPosts, setAllPosts] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [globalStats, setGlobalStats] = useState<any>(null);
-
-  useEffect(() => {
-    if (slug) {
-      loadPost();
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  try {
+    const post = await blogService.getPostBySlug(slug) as any;
+    if (!post) {
+      return {
+        title: 'Blog Story | Infano Care',
+      };
     }
-  }, [slug]);
+    
+    const cleanTitle = post.title || 'Healthcare Story';
+    const cleanDesc = post.summary || post.metaDescription || 'Read this post on Infano Care.';
+    const category = post.categories?.[0]?.name || 'Healthcare';
+    const author = post.author?.name || 'Infano Care';
+    
+    const encodedTitle = encodeURIComponent(cleanTitle);
+    const encodedCategory = encodeURIComponent(category);
+    const encodedAuthor = encodeURIComponent(author);
+    const ogImageUrl = `/api/og?title=${encodedTitle}&category=${encodedCategory}&author=${encodedAuthor}`;
 
-  const loadPost = async () => {
-    setLoading(true);
-    try {
-        const [data, postsData, categoriesData, gStatsData] = await Promise.all([
-          blogService.getPostBySlug(slug),
-          blogService.getAllPosts(1, 50, ''),
-          blogService.getCategories(),
-          blogService.getGlobalStats().catch(() => null)
-        ]) as [any, any, any, any];
-        
-        if (!data || !data.isPublished) {
-          router.push('/blog');
-          return;
-        }
-      setPost(data);
-      setGlobalStats(gStatsData);
-      // Increment view count
-      blogService.incrementViews(data.id).catch(err => console.error('Failed to increment views:', err));
-
-      const publishedPosts = postsData.items.filter((p: any) => p.isPublished);
-      setAllPosts(publishedPosts);
-      setCategories(categoriesData);
-
-      // Load Editor's Choice posts (Prioritize tagged posts, fallback to available posts)
-      const taggedPosts = publishedPosts.filter((p: any) => 
-        p.id !== data.id &&
-        p.tags?.some((t: string) => ['choice', 'editor', 'editors-choice'].includes(t.toLowerCase()))
-      );
-      
-      let ecPosts = [];
-      if (taggedPosts.length > 0) {
-        ecPosts = taggedPosts.slice(0, 4);
-      } else {
-        // Fallback to general list (excluding current post)
-        ecPosts = publishedPosts
-          .filter((p: any) => p.id !== data.id)
-          .slice(0, 4);
-      }
-      setRelatedPosts(ecPosts);
-    } catch (error: any) {
-      console.error('Failed to load post:', error);
-      router.push('/blog');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6">
-        <Loader2 className="animate-spin text-primary" size={48} />
-        <p className="text-xl font-black text-muted-foreground animate-pulse">Loading story...</p>
-      </div>
-    );
+    return {
+      title: cleanTitle,
+      description: cleanDesc,
+      openGraph: {
+        title: cleanTitle,
+        description: cleanDesc,
+        type: 'article',
+        publishedTime: post.createdAt,
+        modifiedTime: post.updatedAt,
+        authors: [author],
+        images: [
+          {
+            url: ogImageUrl,
+            width: 1200,
+            height: 630,
+            alt: cleanTitle,
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: cleanTitle,
+        description: cleanDesc,
+        images: [ogImageUrl],
+      },
+    };
+  } catch (error) {
+    console.error('Failed to generate metadata for blog post:', error);
+    return {
+      title: 'Story | Infano Care',
+      description: 'Read the latest stories and insights from adolescent healthcare experts.',
+    };
   }
+}
 
-  if (!post) return null;
-
-  return (
-    <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
-      <BlogHeader post={post} />
-      
-      <div className="max-w-[1440px] mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-          <div className="lg:col-span-8">
-            <BlogContent post={post} />
-          </div>
-          <aside className="lg:col-span-4 space-y-12 sticky top-24 self-start" style={{ fontFamily: 'var(--blog-font-main)' }}>
-            <div className="space-y-6">
-              <h3 className="blog-widget-title pl-1">Don't Miss</h3>
-              <PromoBanner />
-            </div>
-            <div className="space-y-6">
-              <h3 className="blog-widget-title pl-1">Hot Topics</h3>
-              <CategoryWidget categories={categories} />
-            </div>
-            <div className="space-y-6">
-              <h3 className="blog-widget-title pl-1">Join Our Community</h3>
-              <SocialStats author={post.author} globalStats={globalStats} />
-            </div>
-            <PostTabsWidget posts={allPosts} />
-          </aside>
-        </div>
-      </div>
-
-      <div className="max-w-[1440px] mx-auto px-6 pb-24">
-        <EditorsChoice posts={relatedPosts} />
-      </div>
-    </div>
-  );
+export default async function BlogPostDetailPage({ params }: PageProps) {
+  const { slug } = await params;
+  return <BlogPostDetailClient slug={slug} />;
 }

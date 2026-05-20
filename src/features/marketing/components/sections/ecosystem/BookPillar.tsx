@@ -49,7 +49,7 @@ export function BookPillar() {
             <p className="text-sm md:text-base text-slate-500 mb-10 leading-relaxed font-medium max-w-2xl mx-auto">
               A beautiful, honest, and expert-backed guide covering everything an adolescent girl deserves to understand.
             </p>
-            <Link href="/the-book" className="px-12 py-4 bg-primary text-white rounded-[2rem] font-bold text-xl hover:bg-primary transition-all shadow-2xl active:scale-95 inline-flex items-center gap-4 group">
+            <Link href="/gigi-the-awkward-age-book" className="px-12 py-4 bg-primary text-white rounded-[2rem] font-bold text-xl hover:bg-primary transition-all shadow-2xl active:scale-95 inline-flex items-center gap-4 group">
               Explore The Book <ArrowRight size={24} className="transition-transform group-hover:translate-x-2" />
             </Link>
 

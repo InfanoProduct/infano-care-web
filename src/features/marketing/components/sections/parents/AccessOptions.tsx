@@ -31,7 +31,7 @@ const OPTIONS = [
     desc: "Start the conversation with the Infano book — a beautiful, honest guide for adolescent girls.",
     icon: <Gift size={32} />,
     linkText: 'Buy the Book',
-    href: '/the-book',
+    href: '/gigi-the-awkward-age-book',
     color: 'bg-amber-50/60',
     borderColor: 'border-amber-100',
     iconColor: 'text-amber-500'

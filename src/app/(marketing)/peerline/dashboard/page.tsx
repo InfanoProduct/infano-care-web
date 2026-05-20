@@ -176,7 +176,7 @@ export default function MentorDashboardOverview() {
           <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50">
             <h3 className="text-xl font-bold mb-6">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-4">
-              <Link href="/the-circle" className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-transparent hover:border-purple-200 hover:bg-white transition-all text-left group">
+              <Link href="/the-support-circle" className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-transparent hover:border-purple-200 hover:bg-white transition-all text-left group">
                 <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform"><Users size={20} /></div>
                 <span className="font-bold text-slate-900 text-sm">Community</span>
               </Link>

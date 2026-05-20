@@ -74,7 +74,7 @@ export function BookHero({ book }: BookHeroProps) {
               transition={{ delay: 0.3 }}
               className="flex flex-wrap gap-4"
             >
-              <Link href={book ? `/checkout?bookId=${book.id}` : '#'} className="px-10 py-4 bg-primary text-white rounded-full font-bold text-base hover:bg-primary transition-all shadow-xl shadow-slate-900/10 active:scale-95 group flex items-center gap-2">
+              <Link href={book ? `/checkout?bookId=${book.id}` : '/checkout'} className="px-10 py-4 bg-primary text-white rounded-full font-bold text-base hover:bg-primary transition-all shadow-xl shadow-slate-900/10 active:scale-95 group flex items-center gap-2">
                 Buy Now <span className="opacity-50">₹499</span> <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
               </Link>
               <button

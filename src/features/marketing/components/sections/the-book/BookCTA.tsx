@@ -19,7 +19,7 @@ export function BookCTA({ book }: BookCTAProps) {
             <p className="text-slate-500 font-medium mb-10 leading-relaxed">
               Order your copy today and get a private, expert-supported space for your girl to grow.
             </p>
-            <Link href={book ? `/checkout?bookId=${book.id}` : '#'} className="px-12 py-6 bg-rose-500 text-white rounded-full font-bold text-xl hover:bg-rose-600 transition-all shadow-xl shadow-rose-500/20 active:scale-95 inline-flex items-center gap-3">
+            <Link href={book ? `/checkout?bookId=${book.id}` : '/checkout'} className="px-12 py-6 bg-rose-500 text-white rounded-full font-bold text-xl hover:bg-rose-600 transition-all shadow-xl shadow-rose-500/20 active:scale-95 inline-flex items-center gap-3">
                <ShoppingCart size={24} /> Get My Copy ₹499
             </Link>
          </div>

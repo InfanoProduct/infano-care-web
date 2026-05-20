@@ -124,7 +124,7 @@ export function BookDetailedSection({ book }: BookDetailedSectionProps) {
 
                   <div className="flex flex-wrap gap-4 justify-center">
                     <Link
-                      href={book ? `/checkout?bookId=${book.id}` : '#'}
+                      href={book ? `/checkout?bookId=${book.id}` : '/checkout'}
                       className="px-8 py-4 bg-primary text-white rounded-full font-bold text-sm hover:bg-primary transition-all shadow-lg active:scale-95 flex items-center gap-2"
                     >
                       Buy Now <ArrowRight size={16} />

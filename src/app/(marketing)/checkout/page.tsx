@@ -246,7 +246,7 @@ function CheckoutContent() {
     <div className="min-h-screen bg-[#FDFCFB] font-sans text-slate-900 pt-24 md:pt-32 pb-16 md:pb-24 overflow-x-hidden">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
       <div className="max-w-6xl mx-auto px-6">
-        <Link href="/the-book" className="inline-flex items-center text-slate-500 hover:text-primary mb-8 md:mb-12 transition-colors text-sm font-medium group">
+        <Link href="/gigi-the-awkward-age-book" className="inline-flex items-center text-slate-500 hover:text-primary mb-8 md:mb-12 transition-colors text-sm font-medium group">
           <ArrowLeft size={16} className="mr-2 group-hover:-translate-x-1 transition-transform" /> Back to product
         </Link>
 

@@ -2,8 +2,42 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { getImageUrl, getCategoryColor } from '@/lib/utils';
+import { ShopService, Book } from '@/services/shop.service';
 
 export function PromoBanner() {
+  const [book, setBook] = useState<Book | null>(null);
+
+  useEffect(() => {
+    async function loadBook() {
+      try {
+        const books = await ShopService.getBooks();
+        if (books && books.length > 0) {
+          setBook(books[0]);
+        } else {
+          setBook({
+            id: '7e248707-c9e8-462c-a716-99f3852ef8c0',
+            title: 'The Awkward Age',
+            description: 'A story of Every Adolescent Girl',
+            price: 499,
+            stock: 100,
+            isActive: true
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load book in PromoBanner:', err);
+        setBook({
+          id: '7e248707-c9e8-462c-a716-99f3852ef8c0',
+          title: 'The Awkward Age',
+          description: 'A story of Every Adolescent Girl',
+          price: 499,
+          stock: 100,
+          isActive: true
+        });
+      }
+    }
+    loadBook();
+  }, []);
+
   return (
     <div className="group relative overflow-hidden rounded-xl aspect-square shadow-2xl">
       <Image
@@ -16,7 +50,7 @@ export function PromoBanner() {
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
       <div className="absolute inset-0 p-8 flex flex-col justify-end items-center text-center space-y-4">
         <Link 
-          href="/checkout"
+          href={book ? `/checkout?bookId=${book.id}` : '/checkout'}
           className="px-10 py-4 bg-primary text-white text-[12px] font-black uppercase tracking-widest rounded-lg hover:bg-white hover:text-primary transition-all text-center inline-block"
         >
           Purchase Now
@@ -26,6 +60,7 @@ export function PromoBanner() {
     </div>
   );
 }
+
 
 export function CategoryWidget({ categories }: { categories: any[] }) {
   const displayCategories = [...categories]

@@ -1,5 +1,30 @@
+import { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight, Download, Award, Newspaper, Star } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Our Impact | Over 10,000+ Girls Empowered',
+  description: "Read the stories and metrics behind Infano Care's work in India. Empowering school girls, supporting parents, and changing adolescent health dialogue with real results.",
+  openGraph: {
+    title: 'Infano Care Impact | Empowering Girls & Families',
+    description: "Read the stories and metrics behind Infano Care's work in India. Empowering school girls, supporting parents, and changing adolescent health dialogue with real results.",
+    url: 'https://infano.care/impact',
+    images: [
+      {
+        url: '/api/og?title=Our+Impact&category=Social+Impact&author=Infano+Care',
+        width: 1200,
+        height: 630,
+        alt: 'Infano Care Impact',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Infano Care Impact | Empowering Girls & Families',
+    description: 'Read the stories and metrics behind our mission to support 10,000+ girls.',
+    images: ['/api/og?title=Our+Impact&category=Social+Impact&author=Infano+Care'],
+  },
+};
 
 export default function ImpactPage() {
   return (

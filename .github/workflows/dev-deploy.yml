@@ -30,6 +30,9 @@ jobs:
         tags: registry.pocapi.in/infano.web:dev-latest
         build-args: |
           NEXT_PUBLIC_API_URL=http://109.199.120.104:8084/api
+          NEXT_PUBLIC_APP_URL=http://109.199.120.104:8086/
+          NEXT_PUBLIC_UPLOAD_API_URL=http://109.199.120.104:8084/api
+          NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_test_jvNqNOEPY5sMuf
         cache-from: type=gha
         cache-to: type=gha,mode=max
         provenance: false

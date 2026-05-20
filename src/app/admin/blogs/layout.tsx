@@ -18,7 +18,7 @@ export default function BlogLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="space-y-6">
       {/* Sub Navigation */}
-      <div className="flex items-center gap-2 p-2 bg-secondary/20 backdrop-blur-md rounded-2xl border border-border/50 w-fit overflow-x-auto">
+      <div className="admin-subnav flex items-center gap-2 p-2 bg-secondary/20 backdrop-blur-md rounded-2xl border border-border/50 w-fit overflow-x-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/admin/blogs' && pathname.startsWith(item.href));
           return (

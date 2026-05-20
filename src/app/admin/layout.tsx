@@ -81,7 +81,7 @@ export default function AdminLayout({
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background admin-panel">
       {/* Admin Sidebar */}
       <aside className="w-80 border-r border-border p-8 flex flex-col gap-10 hidden lg:flex bg-white/50 backdrop-blur-md">
         <div className="flex items-center gap-4 px-2">

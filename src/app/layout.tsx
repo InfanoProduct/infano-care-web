@@ -25,8 +25,10 @@ const poppins = Poppins({
   weight: ["400", "500", "600", "700", "800", "900"],
 });
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://infano.care";
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://infano.care"),
+  metadataBase: new URL(appUrl),
   title: {
     default: "Infano Care | Modern Healthcare & Puberty Education Solutions",
     template: "%s | Infano Care",

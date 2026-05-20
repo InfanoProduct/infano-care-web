@@ -11,8 +11,8 @@ const footerLinks = {
   platform: [
     { name: 'About Infano', href: '/about' },
     { name: 'The Ecosystem', href: '/ecosystem' },
-    { name: 'The Book', href: '/the-book' },
-    { name: 'The Circle', href: '/the-circle' },
+    { name: 'The Book', href: '/gigi-the-awkward-age-book' },
+    { name: 'The Circle', href: '/the-support-circle' },
     { name: 'Impact', href: '/impact' },
   ],
   audiences: [

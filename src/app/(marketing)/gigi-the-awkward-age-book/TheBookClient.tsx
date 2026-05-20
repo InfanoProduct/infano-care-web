@@ -8,14 +8,13 @@ import { BookPreview } from '@/features/marketing/components/sections/the-book/B
 import { ReaderVoices } from '@/features/marketing/components/sections/the-book/ReaderVoices';
 import { PurchaseOptions } from '@/features/marketing/components/sections/the-book/PurchaseOptions';
 import { BookCTA } from '@/features/marketing/components/sections/the-book/BookCTA';
-
 import { BookDetailedSection } from '@/features/marketing/components/sections/the-book/BookDetailedSection';
 import { BookAchieve } from '@/features/marketing/components/sections/the-book/BookAchieve';
 import { BookChapters } from '@/features/marketing/components/sections/the-book/BookChapters';
 import { BookReaders } from '@/features/marketing/components/sections/the-book/BookReaders';
 import { BookTrust } from '@/features/marketing/components/sections/the-book/BookTrust';
 
-export default function TheBookPage() {
+export function TheBookClient() {
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -23,11 +22,28 @@ export default function TheBookPage() {
     const loadData = async () => {
       try {
         const books = await ShopService.getBooks();
-        if (books.length > 0) {
+        if (books && books.length > 0) {
           setBook(books[0]);
+        } else {
+          setBook({
+            id: '7e248707-c9e8-462c-a716-99f3852ef8c0',
+            title: 'The Awkward Age',
+            description: 'A story of Every Adolescent Girl',
+            price: 499,
+            stock: 100,
+            isActive: true
+          });
         }
       } catch (error) {
         console.error('Failed to load book data:', error);
+        setBook({
+          id: '7e248707-c9e8-462c-a716-99f3852ef8c0',
+          title: 'The Awkward Age',
+          description: 'A story of Every Adolescent Girl',
+          price: 499,
+          stock: 100,
+          isActive: true
+        });
       } finally {
         setLoading(false);
       }
@@ -47,13 +63,10 @@ export default function TheBookPage() {
     <div className="flex flex-col min-h-screen">
       <BookHero book={book} />
       <BookAbout />
-
       <BookDetailedSection book={book} />
       <BookAchieve />
       <BookChapters />
-      
       <BookPreview />
-
       <BookTrust />
       <BookReaders />
       <ReaderVoices />

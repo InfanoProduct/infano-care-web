@@ -1,12 +1,34 @@
-"use client";
-
+import { Metadata } from 'next';
 import AboutHero from '@/features/marketing/components/sections/about/AboutHero';
 import AboutStory from '@/features/marketing/components/sections/about/AboutStory';
 import AboutMission from '@/features/marketing/components/sections/about/AboutMission';
 import AboutExperts from '@/features/marketing/components/sections/about/AboutExperts';
 import AboutApproach from '@/features/marketing/components/sections/about/AboutApproach';
-import AboutCrew from '@/features/marketing/components/sections/about/AboutCrew';
 import AboutCta from '@/features/marketing/components/sections/about/AboutCta';
+
+export const metadata: Metadata = {
+  title: 'About Us | Our Mission & Experts',
+  description: "Learn about Infano Care's journey, our mission to transform adolescent female healthcare and education in India, and the expert medical council guiding our puberty programs.",
+  openGraph: {
+    title: 'About Infano Care | Empowering Adolescent Girls',
+    description: "Learn about Infano Care's journey, our mission to transform adolescent female healthcare and education in India, and the expert medical council guiding our puberty programs.",
+    url: 'https://infano.care/about',
+    images: [
+      {
+        url: '/api/og?title=About+Us&category=Our+Mission&author=Infano+Care',
+        width: 1200,
+        height: 630,
+        alt: 'About Infano Care',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'About Infano Care | Empowering Adolescent Girls',
+    description: 'Learn about our mission to transform adolescent female healthcare and education in India.',
+    images: ['/api/og?title=About+Us&category=Our+Mission&author=Infano+Care'],
+  },
+};
 
 export default function AboutPage() {
   return (

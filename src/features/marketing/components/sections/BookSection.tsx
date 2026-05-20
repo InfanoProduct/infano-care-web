@@ -4,8 +4,43 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ArrowRight, CheckCircle2, Shield, Users, BookOpen } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ShopService, Book } from '@/services/shop.service';
 
 export function BookSection() {
+  const [book, setBook] = useState<Book | null>(null);
+
+  useEffect(() => {
+    async function loadBook() {
+      try {
+        const books = await ShopService.getBooks();
+        if (books && books.length > 0) {
+          setBook(books[0]);
+        } else {
+          setBook({
+            id: '7e248707-c9e8-462c-a716-99f3852ef8c0',
+            title: 'The Awkward Age',
+            description: 'A story of Every Adolescent Girl',
+            price: 499,
+            stock: 100,
+            isActive: true
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load book in BookSection:', err);
+        setBook({
+          id: '7e248707-c9e8-462c-a716-99f3852ef8c0',
+          title: 'The Awkward Age',
+          description: 'A story of Every Adolescent Girl',
+          price: 499,
+          stock: 100,
+          isActive: true
+        });
+      }
+    }
+    loadBook();
+  }, []);
+
   return (
     <section className="py-32 bg-[#FFFBF7] relative overflow-hidden">
       {/* Decorative Elements */}
@@ -152,10 +187,10 @@ export function BookSection() {
               </div>
 
               <div className="flex gap-4 w-full sm:w-auto">
-                <Link href="/checkout" className="flex-1 sm:flex-none inline-flex items-center justify-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-full font-bold text-base hover:bg-primary transition-all shadow-lg shadow-slate-900/5 active:scale-95 group">
+                <Link href={book ? `/checkout?bookId=${book.id}` : '/checkout'} className="flex-1 sm:flex-none inline-flex items-center justify-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-full font-bold text-base hover:bg-primary transition-all shadow-lg shadow-slate-900/5 active:scale-95 group">
                   Buy Now <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                 </Link>
-                <Link href="/the-book#read" className="flex-1 sm:flex-none inline-flex items-center justify-center gap-3 px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-full font-bold text-sm hover:bg-slate-50 transition-all active:scale-95">
+                <Link href="/gigi-the-awkward-age-book#read" className="flex-1 sm:flex-none inline-flex items-center justify-center gap-3 px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-full font-bold text-sm hover:bg-slate-50 transition-all active:scale-95">
                   <BookOpen size={18} className="text-primary" /> Read Sample
                 </Link>
               </div>
@@ -166,4 +201,3 @@ export function BookSection() {
     </section>
   );
 }
-

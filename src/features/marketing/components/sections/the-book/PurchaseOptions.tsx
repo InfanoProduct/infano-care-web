@@ -23,7 +23,7 @@ export function PurchaseOptions({ book }: PurchaseOptionsProps) {
                 </div>
                 <h3 className="font-bold font-heading text-xl mb-4 text-slate-900 tracking-tight">Individual Purchase</h3>
                 <p className="text-slate-500 text-sm leading-relaxed mb-8">Buy online — delivered to your door. Available in English, Hindi, Tamil, and Telugu.</p>
-                <Link href={book ? `/checkout?bookId=${book.id}` : '#'} className="mt-auto text-primary font-bold hover:underline flex items-center gap-2">Order Now <ArrowRight size={16} /></Link>
+                <Link href={book ? `/checkout?bookId=${book.id}` : '/checkout'} className="mt-auto text-primary font-bold hover:underline flex items-center gap-2">Order Now <ArrowRight size={16} /></Link>
              </div>
 
              <div className="flex flex-col items-center text-center p-8 bg-[#F0FDF4] rounded-[2.5rem] border border-slate-50 transition-transform hover:-translate-y-2">
@@ -41,7 +41,7 @@ export function PurchaseOptions({ book }: PurchaseOptionsProps) {
                 </div>
                 <h3 className="font-bold font-heading text-xl mb-4 text-slate-900 tracking-tight">Gift a Copy</h3>
                 <p className="text-slate-500 text-sm leading-relaxed mb-8">Beautiful gift packaging available. Give the gift of self-knowledge to a girl you care about.</p>
-                <Link href={book ? `/checkout?bookId=${book.id}&gift=true` : '#'} className="mt-auto text-rose-500 font-bold hover:underline flex items-center gap-2">Send as Gift <ArrowRight size={16} /></Link>
+                <Link href={book ? `/checkout?bookId=${book.id}&gift=true` : '/checkout?gift=true'} className="mt-auto text-rose-500 font-bold hover:underline flex items-center gap-2">Send as Gift <ArrowRight size={16} /></Link>
              </div>
           </div>
        </div>

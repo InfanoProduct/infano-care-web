@@ -63,8 +63,8 @@ export function HeroSection() {
               transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
               className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900"
             >
-              Build The Skills To <br />
-              <span className="text-primary">Bloom With Confidence.</span>
+
+              <span className="text-primary">From Girlhood → Adulthood → Womanhood </span>
             </motion.h1>
 
             <motion.p

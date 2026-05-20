@@ -89,7 +89,7 @@ export default function MentorDashboardLayout({
   const NAVIGATION = [
     { id: 'dashboard', name: 'Dashboard', icon: Activity, href: '/peerline/dashboard' },
     { id: 'training', name: 'Training', icon: BookOpen, href: '/peerline/dashboard/training' },
-    { id: 'community', name: 'The Circle', icon: Users, href: '/the-circle' },
+    { id: 'community', name: 'The Circle', icon: Users, href: '/the-support-circle' },
   ];
 
   const STATUS_OPTIONS = [

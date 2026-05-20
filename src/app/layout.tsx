@@ -26,9 +26,65 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Infano Care | Modern Healthcare Solutions",
-  description: "Production grade healthcare management platform.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://infano.care"),
+  title: {
+    default: "Infano Care | Modern Healthcare & Puberty Education Solutions",
+    template: "%s | Infano Care",
+  },
+  description: "India's first dedicated platform empowering adolescent girls through puberty education, healthcare solutions, and supportive community networks.",
+  keywords: [
+    "Adolescent healthcare",
+    "Puberty education India",
+    "Menstrual hygiene",
+    "Parenting teenage girls",
+    "School health workshops",
+    "Infano Care",
+    "Gigi The Awkward Age Book"
+  ],
+  authors: [{ name: "Infano Care Team", url: "https://infano.care" }],
+  creator: "Infano Care",
+  publisher: "Infano Care",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_IN",
+    url: "https://infano.care",
+    siteName: "Infano Care",
+    title: "Infano Care | Modern Healthcare & Puberty Education Solutions",
+    description: "India's first dedicated platform empowering adolescent girls through puberty education, healthcare solutions, and supportive community networks.",
+    images: [
+      {
+        url: "/og-images/landing-og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Infano Care - Puberty Education & Adolescent Health Platform",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Infano Care | Puberty Education & Adolescent Health Solutions",
+    description: "Empowering girls and supporting parents through their adolescent journey.",
+    images: ["/og-images/landing-og-image.png"],
+    creator: "@Infanocare",
+  },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/icon.png",
+  },
 };
+
 
 import { Toaster } from "react-hot-toast";
 

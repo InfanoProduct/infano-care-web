@@ -45,7 +45,7 @@ export function EcosystemHero() {
           <div className="absolute top-[30%] right-[60%] opacity-20">
             <div className="w-10 h-10 border-2 border-primary rounded-full animate-spin-slow" />
           </div>
-          <div className="absolute bottom-[25%] left-[40%] opacity-20">
+          <div className="absolute bottom-[25%] left-[35%] opacity-20">
             <div className="w-32 h-32 border-2 border-accent rounded-2xl rotate-45 animate-bounce-slow" />
           </div>
           <div className="absolute bottom-[70%] left-[5%] opacity-20">
@@ -80,7 +80,7 @@ export function EcosystemHero() {
               </div>
 
               <h1
-                className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+                className="text-4xl md:text-6xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
                 style={{ animationDelay: '100ms' }}
               >
                 Six pillars. <br />

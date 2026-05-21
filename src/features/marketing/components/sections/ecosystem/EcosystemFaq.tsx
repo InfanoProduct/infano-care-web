@@ -34,7 +34,7 @@ export function EcosystemFaq() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className={`border rounded-[2rem] transition-all duration-500 overflow-hidden ${
+              className={`border rounded-[2rem] transition duration-300 overflow-hidden ${
                 openIndex === i ? 'border-primary bg-primary/[0.02] shadow-xl shadow-primary/5' : 'border-slate-100 bg-white hover:border-slate-200'
               }`}
             >
@@ -45,7 +45,7 @@ export function EcosystemFaq() {
                 <span className={`text-lg font-bold tracking-tight transition-colors duration-300 ${openIndex === i ? 'text-primary' : 'text-slate-900'}`}>
                   {faq.question}
                 </span>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 ${
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition duration-300 ${
                   openIndex === i ? 'bg-primary text-white rotate-180 shadow-lg shadow-primary/30' : 'bg-slate-50 text-slate-400 group-hover:bg-slate-100'
                 }`}>
                   {openIndex === i ? <Minus size={18} /> : <Plus size={18} />}
@@ -58,7 +58,7 @@ export function EcosystemFaq() {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
                   >
                     <div className="px-8 pb-8 text-slate-500 font-medium leading-relaxed border-t border-primary/5 pt-6 mx-8">
                       {faq.answer}

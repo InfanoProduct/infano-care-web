@@ -128,9 +128,9 @@ export function MarketingFooter() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-12 mb-20">
           <div className="col-span-2 lg:col-span-2">
             <Link href="/" className="relative flex flex-col mb-8 w-48 md:w-56 lg:w-64 h-16 md:h-20 lg:h-24 group -ml-2">
-              <Image 
-                src="/logo/infano-logo-for-light-bg.png" 
-                alt="Infano" 
+              <Image
+                src="/logo/infano-logo-for-light-bg.png"
+                alt="Infano"
                 fill
                 className="object-contain object-left"
               />
@@ -168,13 +168,13 @@ export function MarketingFooter() {
                   {pathname === link.href ? (
                     <button
                       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                      className="text-sm font-medium text-slate-400 hover:text-white transition-colors flex items-center group w-full text-left"
+                      className="text-sm font-medium text-slate-400 hover:text-primary transition-colors flex items-center group w-full text-left"
                     >
                       <span className="h-1 w-0 bg-primary mr-0 group-hover:w-2 group-hover:mr-2 transition-all rounded-full" />
                       {link.name}
                     </button>
                   ) : (
-                    <Link href={link.href} className="text-sm font-medium text-slate-400 hover:text-white transition-colors flex items-center group">
+                    <Link href={link.href} className="text-sm font-medium text-slate-400 hover:text-primary transition-colors flex items-center group">
                       <span className="h-1 w-0 bg-primary mr-0 group-hover:w-2 group-hover:mr-2 transition-all rounded-full" />
                       {link.name}
                     </Link>

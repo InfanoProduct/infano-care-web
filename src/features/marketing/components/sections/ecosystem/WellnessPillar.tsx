@@ -13,7 +13,7 @@ export function WellnessPillar() {
         <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]" />
       </div>
 
-      <div className="mx-auto px-6 md:px-12 lg:px-24 relative z-10">
+      <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 place-items-center  ">
           <motion.div
             initial={{ opacity: 0, x: 50 }}

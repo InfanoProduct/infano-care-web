@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight, ShieldAlert, Heart, Zap, Briefcase, Users, Star, Activity, Rocket } from 'lucide-react';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
 import { PeerBanner } from '@/features/marketing/components/sections/the-circle/PeerBanner';
 import { PeerMentorsSection } from '@/features/marketing/components/sections/the-circle/PeerMentorsSection';
 import { Metadata } from 'next';
@@ -48,19 +47,27 @@ export default function TheCirclePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
             {/* Left Content */}
             <div className="flex flex-col text-center lg:text-left">
-              <span className="text-primary font-black uppercase tracking-[0.3em] text-[10px] mb-6 inline-block">
+              <span className="text-primary font-black uppercase tracking-[0.3em] text-[10px] mb-6 inline-block animate-in fade-in slide-in-from-left-4 duration-500 fill-mode-both">
                 The Infano Support Circle
               </span>
-              <h1 className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900">
+              <h1
+                className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+                style={{ animationDelay: '100ms' }}
+              >
                 Every girl needs a circle. <br className="hidden lg:block" />
                 <span className="text-primary">We help her build one.</span>
               </h1>
-              <p className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-8
-">
+              <p
+                className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-8 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+                style={{ animationDelay: '200ms' }}
+              >
                 The Infano Support Circle is where expertise meets community. From live sessions with qualified professionals to warm, peer-to-peer connection — it's the space where girls feel truly understood.
               </p>
 
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+              <div
+                className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+                style={{ animationDelay: '300ms' }}
+              >
                 <Link href="#peer-mentors" className="btn-primary text-base px-12 py-4 w-full sm:w-auto shadow-xl shadow-primary/20 group">
                   I want to connect <ArrowRight size={20} className="ml-2 inline-block transition-transform group-hover:translate-x-1" />
                 </Link>
@@ -68,13 +75,17 @@ export default function TheCirclePage() {
             </div>
 
             {/* Right Hero Image */}
-            <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] rounded-[3rem] overflow-hidden shadow-2xl shadow-primary/10 border-8 border-white/40">
+            <div
+              className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] rounded-[3rem] overflow-hidden shadow-2xl shadow-primary/10 border-8 border-white/40 animate-in fade-in zoom-in-95 duration-700 fill-mode-both"
+              style={{ animationDelay: '150ms' }}
+            >
               <Image
                 src="/circle-hero-img.png"
                 alt="Girls sitting in a circle"
                 fill
                 className="object-cover"
                 priority
+                unoptimized
               />
             </div>
           </div>

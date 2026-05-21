@@ -62,9 +62,9 @@ export default function BookManagement() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="admin-header flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black tracking-tight text-foreground italic">Book <span className="text-primary">Catalog</span></h1>
+          <h1 className="text-4xl font-black tracking-tight text-foreground">Book <span className="text-primary">Catalog</span></h1>
           <p className="text-muted-foreground mt-1">Manage your physical products and inventory</p>
         </div>
         <Link href="/admin/books/new" className="btn-primary flex items-center gap-2 px-6 py-3 rounded-2xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95">
@@ -89,7 +89,7 @@ export default function BookManagement() {
 
             <div className="divide-y divide-border/30">
               {books.length === 0 ? (
-                <div className="p-12 text-center text-muted-foreground font-bold italic">
+                <div className="p-12 text-center text-muted-foreground font-bold">
                   Your catalog is empty. Time to publish your first book!
                 </div>
               ) : (
@@ -106,7 +106,7 @@ export default function BookManagement() {
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-extrabold text-2xl line-clamp-1 group-hover:text-primary transition-colors tracking-tight italic">{book.title}</p>
+                        <p className="font-extrabold text-2xl line-clamp-1 group-hover:text-primary transition-colors tracking-tight">{book.title}</p>
                         <p className="text-sm text-muted-foreground line-clamp-2 mt-1 font-medium leading-relaxed max-w-xl">
                           {book.description}
                         </p>
@@ -176,13 +176,13 @@ export default function BookManagement() {
 
         {/* Right Column: Inventory Summary */}
         <div className="space-y-6">
-          <h2 className="text-2xl font-black tracking-tight px-2 italic">Snapshot</h2>
+          <h2 className="text-2xl font-black tracking-tight px-2">Snapshot</h2>
           <div className="glass-card p-8 rounded-[2.5rem] border-primary/5 space-y-8 shadow-2xl relative overflow-hidden">
             <div className="space-y-6 relative z-10">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">Total Inventory</p>
-                  <p className="text-4xl font-black italic">{books.reduce((acc, b) => acc + b.stock, 0)}</p>
+                  <p className="text-4xl font-black">{books.reduce((acc, b) => acc + b.stock, 0)}</p>
                 </div>
                 <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center text-white shadow-xl shadow-primary/30">
                   <Package size={28} />
@@ -194,7 +194,7 @@ export default function BookManagement() {
                 <div className="space-y-4">
                   {books.length > 0 ? books.slice(0, 3).map(book => (
                     <div key={book.id} className="space-y-2">
-                      <div className="flex justify-between text-xs font-black italic">
+                      <div className="flex justify-between text-xs font-black">
                         <span className="truncate pr-4">{book.title}</span>
                         <span>{book.stock}</span>
                       </div>
@@ -206,7 +206,7 @@ export default function BookManagement() {
                       </div>
                     </div>
                   )) : (
-                    <p className="text-xs font-bold text-muted-foreground italic">No products yet</p>
+                    <p className="text-xs font-bold text-muted-foreground">No products yet</p>
                   )}
                 </div>
               </div>
@@ -232,7 +232,7 @@ export default function BookManagement() {
               <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
                 <ShoppingBag size={20} />
               </div>
-              <span className="font-extrabold italic">Recent Orders</span>
+              <span className="font-extrabold">Recent Orders</span>
             </div>
             <ArrowUpRight className="text-muted-foreground group-hover:text-primary transition-colors" size={18} />
           </Link>

@@ -13,7 +13,7 @@ export function UserList() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div className="admin-header flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
           <h2 className="text-4xl font-extrabold tracking-tight premium-gradient-text">User Management</h2>
           <p className="text-muted-foreground mt-2 font-medium">Manage and monitor your community members</p>

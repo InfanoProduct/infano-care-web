@@ -56,7 +56,7 @@ export default function AdminOrdersPage() {
 
   return (
     <div className="space-y-10">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="admin-header flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground flex items-center gap-3">
             <ShoppingBag className="text-primary" size={36} />

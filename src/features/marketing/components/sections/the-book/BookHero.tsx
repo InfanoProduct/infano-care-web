@@ -20,11 +20,9 @@ export function BookHero({ book }: BookHeroProps) {
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Left: Book Bundle Image */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, type: "spring" }}
-            className="relative lg:order-1 self-end lg:-ml-12"
+          <div
+            className="relative lg:order-1 self-end lg:-ml-12 animate-in fade-in zoom-in-95 duration-700 fill-mode-both"
+            style={{ animationDelay: '150ms' }}
           >
             <div className="absolute inset-0 bg-primary/10 blur-[100px] rounded-full scale-90" />
             <Image
@@ -34,45 +32,38 @@ export function BookHero({ book }: BookHeroProps) {
               height={900}
               className="relative z-10 drop-shadow-[0_40px_80px_rgba(0,0,0,0.1)] block w-full h-auto"
               priority
+              unoptimized
             />
-          </motion.div>
+          </div>
 
           {/* Right: Content */}
           <div className="flex flex-col lg:order-2 py-16 lg:py-20">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-3 mb-6"
+            <div
+              className="flex items-center gap-3 mb-6 animate-in fade-in slide-in-from-left-4 duration-500 fill-mode-both"
             >
               <div className="h-px w-6 bg-primary/20" />
               <span className="text-primary font-black uppercase tracking-[0.2em] text-[10px]">
                 India's first book on Adolescent Girls
               </span>
-            </motion.div>
+            </div>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900"
+            <h1
+              className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '100ms' }}
             >
               The Awkward Age
-            </motion.h1>
+            </h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-base md:text-lg text-slate-500 leading-relaxed font-medium mb-10 max-w-lg"
+            <p
+              className="text-base md:text-lg text-slate-500 leading-relaxed font-medium mb-10 max-w-lg animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '200ms' }}
             >
               Let’s make the best investment—an investment in companionship, love, and loyalty. In a world that’s constantly changing, there is no friend as loyal, comforting, and true as
-            </motion.p>
+            </p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="flex flex-wrap gap-4"
+            <div
+              className="flex flex-wrap gap-4 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '300ms' }}
             >
               <Link href={book ? `/checkout?bookId=${book.id}` : '/checkout'} className="px-10 py-4 bg-primary text-white rounded-full font-bold text-base hover:bg-primary transition-all shadow-xl shadow-slate-900/10 active:scale-95 group flex items-center gap-2">
                 Buy Now <span className="opacity-50">₹499</span> <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
@@ -83,7 +74,7 @@ export function BookHero({ book }: BookHeroProps) {
               >
                 <BookOpen size={18} className="text-primary" /> Read Sample
               </button>
-            </motion.div>
+            </div>
 
           </div>
         </div>

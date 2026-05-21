@@ -77,10 +77,10 @@ export default function BookForm({ bookId }: BookFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8 animate-in slide-in-from-bottom-8 duration-700">
-      <div className="flex items-center justify-between">
+    <form onSubmit={handleSubmit} className="space-y-8 animate-in slide-in-from-bottom-8 duration-700">
+      <div className="admin-header flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-black tracking-tight italic">
+          <h1 className="text-4xl font-black tracking-tight">
             {bookId ? 'Edit' : 'Add New'} <span className="text-primary">Product</span>
           </h1>
           <p className="text-muted-foreground mt-1">Configure your book details and inventory levels</p>
@@ -104,15 +104,15 @@ export default function BookForm({ bookId }: BookFormProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Info */}
         <div className="lg:col-span-2 space-y-6">
           <div className="glass-card p-8 rounded-[2.5rem] border-primary/5 shadow-2xl space-y-6">
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Product Title</label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                  <Type size={20} />
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                  <Type size={18} />
                 </div>
                 <input
                   type="text"
@@ -120,7 +120,7 @@ export default function BookForm({ bookId }: BookFormProps) {
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="e.g. Growing Up Honest"
-                  className="w-full pl-14 pr-6 py-5 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-bold text-lg italic"
+                  className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -128,8 +128,8 @@ export default function BookForm({ bookId }: BookFormProps) {
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Full Description</label>
               <div className="relative group">
-                <div className="absolute top-5 left-5 text-muted-foreground group-focus-within:text-primary transition-colors">
-                  <AlignLeft size={20} />
+                <div className="absolute top-3 left-4 text-muted-foreground group-focus-within:text-primary transition-colors">
+                  <AlignLeft size={18} />
                 </div>
                 <textarea
                   required
@@ -137,7 +137,7 @@ export default function BookForm({ bookId }: BookFormProps) {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Tell the readers what this book is about..."
-                  className="w-full pl-14 pr-6 py-5 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-base leading-relaxed"
+                  className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -147,8 +147,8 @@ export default function BookForm({ bookId }: BookFormProps) {
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Unit Price (₹)</label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                  <DollarSign size={20} />
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                  <DollarSign size={18} />
                 </div>
                 <input
                   type="number"
@@ -156,7 +156,7 @@ export default function BookForm({ bookId }: BookFormProps) {
                   min="0"
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
-                  className="w-full pl-14 pr-6 py-5 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-black text-xl italic"
+                  className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -164,8 +164,8 @@ export default function BookForm({ bookId }: BookFormProps) {
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Inventory Level</label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                  <Package size={20} />
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                  <Package size={18} />
                 </div>
                 <input
                   type="number"
@@ -173,7 +173,7 @@ export default function BookForm({ bookId }: BookFormProps) {
                   min="0"
                   value={formData.stock}
                   onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) })}
-                  className="w-full pl-14 pr-6 py-5 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-black text-xl italic"
+                  className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -211,7 +211,7 @@ export default function BookForm({ bookId }: BookFormProps) {
                   <div className={`absolute top-1 w-6 h-6 rounded-full bg-white transition-all shadow-md ${formData.isActive ? 'left-7' : 'left-1'}`} />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm font-black italic">Active Status</span>
+                  <span className="text-sm font-black">Active Status</span>
                   <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
                     {formData.isActive ? 'Visible in store' : 'Hidden from store'}
                   </span>
@@ -221,7 +221,7 @@ export default function BookForm({ bookId }: BookFormProps) {
           </div>
 
           <div className="glass-card p-8 rounded-[2.5rem] bg-gradient-to-br from-primary/5 to-transparent border-primary/10 border space-y-4">
-            <h4 className="text-sm font-black flex items-center gap-2 italic">
+            <h4 className="text-sm font-black flex items-center gap-2">
               <CheckCircle2 size={16} className="text-primary" />
               Publishing Checklist
             </h4>

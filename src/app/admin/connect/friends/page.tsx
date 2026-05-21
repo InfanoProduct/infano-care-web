@@ -5,9 +5,9 @@ import { MapPin, Plus, Loader2 } from 'lucide-react';
 export default function FriendsManagement() {
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="admin-header flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black tracking-tight text-foreground italic">Nearby Friends <span className="text-primary">Audit</span></h1>
+          <h1 className="text-4xl font-black tracking-tight text-foreground">Nearby Friends <span className="text-primary">Audit</span></h1>
           <p className="text-muted-foreground mt-1">Review user connections and location-based discovery data</p>
         </div>
       </div>
@@ -17,7 +17,7 @@ export default function FriendsManagement() {
           <MapPin size={40} />
         </div>
         <div>
-          <h2 className="text-2xl font-black italic">Discovery module under construction</h2>
+          <h2 className="text-2xl font-black">Discovery module under construction</h2>
           <p className="text-muted-foreground font-medium mt-2 max-w-md mx-auto">
             The nearby friends discovery audit panel is being finalized for production release. 
           </p>

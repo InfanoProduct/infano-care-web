@@ -84,7 +84,7 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
-      <div className="flex items-center justify-between">
+      <div className="admin-header flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-black tracking-tight">Blog Categories</h1>
           <p className="text-muted-foreground mt-1">Organize your content into meaningful sections</p>

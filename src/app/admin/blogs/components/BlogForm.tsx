@@ -139,7 +139,7 @@ export default function BlogForm({ initialData, isEditing }: BlogFormProps) {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white/50 backdrop-blur-xl p-6 rounded-[2.5rem] border border-primary/5 shadow-xl">
+      <div className="admin-header flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
             <Layout size={28} />
@@ -304,13 +304,15 @@ export default function BlogForm({ initialData, isEditing }: BlogFormProps) {
             <div className="glass-card p-10 rounded-[3rem] border-primary/10 shadow-2xl space-y-10 animate-in fade-in duration-500">
               <div className="space-y-6">
                 <label className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-1">Article Tags</label>
-                <div className="relative">
-                  <Tag className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                    <Tag size={18} />
+                  </div>
                   <input
-                    className="w-full bg-secondary/30 border-none rounded-3xl py-6 pl-16 pr-8 text-lg font-bold placeholder:text-muted-foreground/30 focus:ring-4 focus:ring-primary/10 outline-none transition-all shadow-inner"
                     placeholder="Enter tags separated by commas..."
                     value={postData.tags.join(', ')}
                     onChange={(e) => setPostData(prev => ({...prev, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean)}))}
+                    className="w-full pr-8 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
                   />
                 </div>
               </div>
@@ -374,7 +376,7 @@ export default function BlogForm({ initialData, isEditing }: BlogFormProps) {
                 onChange={(e) => setPostData(prev => ({...prev, thumbnailUrl: e.target.value}))}
               />
             </div>
-            <p className="text-xs text-muted-foreground font-bold text-center italic opacity-60">
+            <p className="text-xs text-muted-foreground font-bold text-center opacity-60">
               Optimal size: 1200 x 630px
             </p>
           </div>

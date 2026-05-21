@@ -39,7 +39,7 @@ export default function PeerApplicationPage({ params }: { params: Promise<{ user
   if (loading) return (
     <div className="p-16 flex flex-col items-center justify-center gap-4">
       <Loader2 className="animate-spin text-primary" size={40} />
-      <p className="text-muted-foreground font-bold italic">Loading application...</p>
+      <p className="text-muted-foreground font-bold">Loading application...</p>
     </div>
   );
 
@@ -54,7 +54,7 @@ export default function PeerApplicationPage({ params }: { params: Promise<{ user
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="admin-header flex items-center gap-4">
         <button
           onClick={() => router.back()}
           className="p-2 bg-white border border-border rounded-xl hover:bg-secondary transition-all shadow-sm"
@@ -141,7 +141,7 @@ export default function PeerApplicationPage({ params }: { params: Promise<{ user
           </h3>
         </div>
         <div className="p-6">
-          <div className="p-6 bg-white border border-slate-100 rounded-2xl text-sm text-slate-600 leading-relaxed italic relative">
+          <div className="p-6 bg-white border border-slate-100 rounded-2xl text-sm text-slate-600 leading-relaxed relative">
             <div className="absolute top-3 left-5 text-5xl text-primary/10 font-bold leading-none">&ldquo;</div>
             <p className="relative z-10">{app.personalStatement || 'No statement provided.'}</p>
           </div>

@@ -45,39 +45,34 @@ export function HeroSection() {
 
           {/* Left Column: Content */}
           <div className="lg:col-span-4 text-center lg:text-left z-30">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-              className="inline-flex items-center gap-2 px-3 py-1 bg-slate-50/80 backdrop-blur-sm border border-slate-100 rounded-full mb-6"
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1 bg-slate-50/80 backdrop-blur-sm border border-slate-100 rounded-full mb-6 animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both"
             >
               <div className="w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center">
                 <div className="w-1.5 h-1.5 rounded-full bg-primary" />
               </div>
               <span className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">The Leader in Girls' Wellness</span>
-            </motion.div>
+            </div>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
-              className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900"
+            <h1
+              className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '100ms' }}
             >
-
               <span className="text-primary">From Girlhood → Adulthood → Womanhood </span>
-            </motion.h1>
+            </h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
-              className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-0 lg:mb-8"
+            <p
+              className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-0 lg:mb-8 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '200ms' }}
             >
               Infano.care is India's most holistic ecosystem for girls—blending story-led learning, wellness tracking, and expert guidance into one safe space.
-            </motion.p>
+            </p>
 
             {/* Desktop CTA: Visible only on LG+ */}
-            <div className="hidden lg:flex flex-col sm:flex-row items-center justify-start gap-4">
+            <div 
+              className="hidden lg:flex flex-col sm:flex-row items-center justify-start gap-4 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '300ms' }}
+            >
               <Link href="/parents-enquiry" className="btn-primary w-full sm:w-auto text-sm px-8 py-3.5 group shadow-lg shadow-primary/20">
                 Explore Journeys <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1" size={16} />
               </Link>
@@ -126,7 +121,10 @@ export function HeroSection() {
             </div>
 
             {/* Mobile CTA: Visible only below LG */}
-            <div className="flex lg:hidden flex-col items-center gap-4 w-full max-w-[320px] mt-8">
+            <div 
+              className="flex lg:hidden flex-col items-center gap-4 w-full max-w-[320px] mt-8 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '300ms' }}
+            >
               <Link href="/parents-enquiry" className="btn-primary w-full text-sm px-8 py-3.5 group shadow-lg shadow-primary/20 text-center">
                 Explore Journeys <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1" size={16} />
               </Link>
@@ -142,11 +140,9 @@ export function HeroSection() {
       <div className="hidden lg:block absolute bottom-0 left-1/2 -translate-x-1/2 z-10 w-full max-w-[700px] h-[95%] pointer-events-none">
         <div className="relative w-full h-full flex items-end justify-center">
           <div className="absolute bottom-[10%] w-[70%] h-[20%] bg-primary/10 rounded-full blur-2xl z-0" />
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-            className="relative z-10 h-full w-full"
+          <div 
+            className="relative z-10 h-full w-full animate-in fade-in slide-in-from-bottom-4 duration-700 fill-mode-both"
+            style={{ animationDelay: '150ms' }}
           >
             <Image
               src="/heroImage1.png"
@@ -155,8 +151,9 @@ export function HeroSection() {
               className="object-contain object-bottom drop-shadow-[0_15px_40px_rgba(0,0,0,0.12)]"
               sizes="(max-width: 768px) 100vw, 50vw"
               priority
+              unoptimized
             />
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

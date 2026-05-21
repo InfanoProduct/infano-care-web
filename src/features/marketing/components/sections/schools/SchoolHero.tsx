@@ -17,39 +17,31 @@ export function SchoolHero() {
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
           <div className="lg:col-span-6">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-50 border border-emerald-100 rounded-full mb-8"
+            <div
+              className="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-50 border border-emerald-100 rounded-full mb-8 animate-in fade-in slide-in-from-left-4 duration-500 fill-mode-both"
             >
               <School size={14} className="text-emerald-600" />
               <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-[0.2em]">Institutional Partnerships</span>
-            </motion.div>
+            </div>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900"
+            <h1
+              className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '100ms' }}
             >
               Redefining the standard of <br />
               <span className="text-primary font-bold">Holistic Growth.</span>
-            </motion.h1>
+            </h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.1 }}
-              className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-8"
+            <p
+              className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-8 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '200ms' }}
             >
               A structured wellness integration programme for leading educational institutions focused on adolescent empowerment and life skills.
-            </motion.p>
+            </p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="flex flex-col sm:flex-row items-center gap-6"
+            <div
+              className="flex flex-col sm:flex-row items-center gap-6 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '300ms' }}
             >
               <Link href="/contact" className="btn-primary w-full sm:w-auto text-sm px-8 py-3.5 group shadow-lg shadow-primary/20">
                 Request Consultation <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1" size={20} />
@@ -57,14 +49,12 @@ export function SchoolHero() {
               <Link href="#" className="btn-outline w-full sm:w-auto text-sm px-8 py-3.5 backdrop-blur-md bg-white/50 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300">
                 Partnership Guide
               </Link>
-            </motion.div>
+            </div>
           </div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1 }}
-            className="lg:col-span-6 relative"
+          <div
+            className="lg:col-span-6 relative animate-in fade-in zoom-in-95 duration-700 fill-mode-both"
+            style={{ animationDelay: '150ms' }}
           >
             <div className="relative aspect-[4/3] rounded-[3rem] overflow-hidden shadow-2xl shadow-emerald-900/10 border border-white">
               <Image
@@ -73,12 +63,13 @@ export function SchoolHero() {
                 fill
                 className="object-cover"
                 priority
+                unoptimized
               />
             </div>
             {/* Decorative Elements */}
             <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-primary/10 rounded-full blur-2xl -z-10" />
             <div className="absolute -top-6 -left-6 w-24 h-24 bg-emerald-100/50 rounded-full blur-xl -z-10" />
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

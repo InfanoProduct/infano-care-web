@@ -94,7 +94,7 @@ export default function PeerAssessmentPage({ params }: { params: Promise<{ userI
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="admin-header flex items-center gap-4">
         <button
           onClick={() => router.back()}
           className="p-2 bg-white border border-border rounded-xl hover:bg-secondary transition-all shadow-sm"
@@ -274,7 +274,7 @@ export default function PeerAssessmentPage({ params }: { params: Promise<{ userI
                                 <p className="text-xs font-medium text-slate-700">{prompt || 'Reflection Prompt'}</p>
                               </div>
                               <div className="p-5 bg-white">
-                                <p className="text-sm text-slate-600 italic leading-relaxed">"{rValue}"</p>
+                                <p className="text-sm text-slate-600 leading-relaxed">"{rValue}"</p>
                               </div>
                             </div>
                           );
@@ -286,7 +286,7 @@ export default function PeerAssessmentPage({ params }: { params: Promise<{ userI
                             <p className="text-xs font-medium text-slate-700">{(EPISODE_REFLECTION_PROMPTS[slug] as string) || 'Reflection Prompt'}</p>
                           </div>
                           <div className="p-5 bg-white">
-                            <p className="text-sm text-slate-600 italic leading-relaxed">"{data.reflection}"</p>
+                            <p className="text-sm text-slate-600 leading-relaxed">"{data.reflection}"</p>
                           </div>
                         </div>
                       )}
@@ -302,7 +302,7 @@ export default function PeerAssessmentPage({ params }: { params: Promise<{ userI
                             <p className="text-xs font-medium text-slate-700">{EPISODE_QUESTIONS[slug]?.[parseInt(qIdx)] || 'Knowledge Check'}</p>
                           </div>
                           <div className="p-5 bg-white">
-                            <p className="text-sm text-slate-600 italic leading-relaxed">"{answer}"</p>
+                            <p className="text-sm text-slate-600 leading-relaxed">"{answer}"</p>
                           </div>
                         </div>
                       ))}

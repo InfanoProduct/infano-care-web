@@ -40,7 +40,7 @@ export default function BlogListPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="admin-header flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Blog Management</h1>
           <p className="text-muted-foreground mt-2">Create, edit and manage your blog articles</p>

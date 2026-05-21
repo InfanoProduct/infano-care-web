@@ -14,9 +14,17 @@ import { BookChapters } from '@/features/marketing/components/sections/the-book/
 import { BookReaders } from '@/features/marketing/components/sections/the-book/BookReaders';
 import { BookTrust } from '@/features/marketing/components/sections/the-book/BookTrust';
 
+const DEFAULT_BOOK: Book = {
+  id: '7e248707-c9e8-462c-a716-99f3852ef8c0',
+  title: 'The Awkward Age',
+  description: 'A story of Every Adolescent Girl',
+  price: 499,
+  stock: 100,
+  isActive: true
+};
+
 export function TheBookClient() {
-  const [book, setBook] = useState<Book | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [book, setBook] = useState<Book>(DEFAULT_BOOK);
 
   useEffect(() => {
     const loadData = async () => {
@@ -24,40 +32,13 @@ export function TheBookClient() {
         const books = await ShopService.getBooks();
         if (books && books.length > 0) {
           setBook(books[0]);
-        } else {
-          setBook({
-            id: '7e248707-c9e8-462c-a716-99f3852ef8c0',
-            title: 'The Awkward Age',
-            description: 'A story of Every Adolescent Girl',
-            price: 499,
-            stock: 100,
-            isActive: true
-          });
         }
       } catch (error) {
         console.error('Failed to load book data:', error);
-        setBook({
-          id: '7e248707-c9e8-462c-a716-99f3852ef8c0',
-          title: 'The Awkward Age',
-          description: 'A story of Every Adolescent Girl',
-          price: 499,
-          stock: 100,
-          isActive: true
-        });
-      } finally {
-        setLoading(false);
       }
     };
     loadData();
   }, []);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col min-h-screen">

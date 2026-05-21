@@ -6,7 +6,7 @@ export default function AboutMission() {
   return (
     <section className="py-32 bg-white relative">
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[240px]">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:auto-rows-[240px]">
           {/* Our Mission - Large Feature Card */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}

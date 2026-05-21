@@ -271,7 +271,7 @@ export default function TheCirclePage() {
       </section>
 
       {/* Section 6.3.5 — Trained Peer Mentors */}
-      <PeerMentorsSection />
+      {/* <PeerMentorsSection /> */}
 
       {/* Section 6.4 — Peer Banner */}
       <PeerBanner />

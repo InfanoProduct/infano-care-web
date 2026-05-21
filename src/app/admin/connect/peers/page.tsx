@@ -122,7 +122,7 @@ export default function PeerManagement() {
   if (isLoading) return (
     <div className="p-16 flex flex-col items-center justify-center gap-4">
       <Loader2 className="animate-spin text-primary" size={40} />
-      <p className="text-muted-foreground font-bold italic">Loading peer applications...</p>
+      <p className="text-muted-foreground font-bold">Loading peer applications...</p>
     </div>
   );
 
@@ -135,7 +135,7 @@ export default function PeerManagement() {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Page Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div className="admin-header flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
             Peer <span className="text-primary">Management</span>

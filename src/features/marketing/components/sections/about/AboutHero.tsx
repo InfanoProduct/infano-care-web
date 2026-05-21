@@ -38,42 +38,34 @@ export default function AboutHero() {
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
         <div className="grid lg:grid-cols-2 gap-2 items-center">
           <div className="max-w-2xl">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="inline-flex items-center gap-3 px-4 py-1.5 bg-white border border-slate-100 rounded-full mb-12 shadow-sm"
+            <div
+              className="inline-flex items-center gap-3 px-4 py-1.5 bg-white border border-slate-100 rounded-full mb-12 shadow-sm animate-in fade-in slide-in-from-left-4 duration-500 fill-mode-both"
             >
               <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
                 <Sparkles size={10} className="text-primary" />
               </div>
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Our Founding Philosophy</span>
-            </motion.div>
+            </div>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900"
+            <h1
+              className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '100ms' }}
             >
               We started because we <br />
               <span className="text-primary">remembered</span> what it <br /> felt like.
-            </motion.h1>
+            </h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.1 }}
-              className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-8 max-w-lg"
+            <p
+              className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-8 max-w-lg animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '200ms' }}
             >
               Infano.care was born from a deeply personal understanding of what adolescent girls go through—and a fierce belief that they deserve better tools, better conversations, and better support.
-            </motion.p>
+            </p>
           </div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, x: 20 }}
-            animate={{ opacity: 1, scale: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative aspect-video lg:aspect-video rounded-3xl overflow-hidden shadow-xl"
+          <div
+            className="relative aspect-video lg:aspect-video rounded-3xl overflow-hidden shadow-xl animate-in fade-in zoom-in-95 duration-700 fill-mode-both"
+            style={{ animationDelay: '150ms' }}
           >
             <Image
               src="/about.webp"
@@ -81,8 +73,9 @@ export default function AboutHero() {
               fill
               className="object-cover"
               priority
+              unoptimized
             />
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

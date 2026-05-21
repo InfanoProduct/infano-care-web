@@ -3,7 +3,7 @@ import { DashboardStats } from "@/features/dashboard/components/DashboardStats";
 export default function AdminDashboard() {
   return (
     <div className="space-y-8">
-      <div>
+      <div className="admin-header">
         <h1 className="text-3xl font-bold tracking-tight">Admin Overview</h1>
         <p className="text-muted-foreground mt-1">
           Welcome back to the Infano Care admin panel.

@@ -4,7 +4,7 @@
 
 @theme {
   --font-sans: var(--font-geist-sans), system-ui;
-  --font-heading: "Outfit", var(--font-geist-sans), system-ui;
+  --font-heading: var(--font-outfit), var(--font-geist-sans), system-ui;
   --font-mono: var(--font-geist-mono);
   
   /* Infano.care Brand Colors */
@@ -203,6 +203,100 @@
 }
 
 /* ==========================================
+   PURE CSS HARDWARE-ACCELERATED TRANSITIONS
+   ========================================== */
+@keyframes enter {
+  from {
+    opacity: var(--tw-enter-opacity, 1);
+    transform: translate3d(var(--tw-enter-translate-x, 0), var(--tw-enter-translate-y, 0), 0) scale3d(var(--tw-enter-scale, 1), var(--tw-enter-scale, 1), 1);
+  }
+}
+
+.animate-in {
+  animation-name: enter;
+  animation-duration: 500ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: both;
+}
+
+.fade-in {
+  --tw-enter-opacity: 0;
+}
+
+.zoom-in-95 {
+  --tw-enter-scale: 0.95;
+}
+
+.zoom-in {
+  --tw-enter-scale: 0.95;
+  --tw-enter-opacity: 0;
+}
+
+.slide-in-from-bottom-2 {
+  --tw-enter-translate-y: 8px;
+  --tw-enter-opacity: 0;
+}
+
+.slide-in-from-bottom-3 {
+  --tw-enter-translate-y: 16px;
+  --tw-enter-opacity: 0;
+}
+
+.slide-in-from-bottom-4 {
+  --tw-enter-translate-y: 24px;
+  --tw-enter-opacity: 0;
+}
+
+.slide-in-from-bottom-8 {
+  --tw-enter-translate-y: 48px;
+  --tw-enter-opacity: 0;
+}
+
+.slide-in-from-top-2 {
+  --tw-enter-translate-y: -8px;
+  --tw-enter-opacity: 0;
+}
+
+.slide-in-from-top-4 {
+  --tw-enter-translate-y: -16px;
+  --tw-enter-opacity: 0;
+}
+
+.slide-in-from-left-4 {
+  --tw-enter-translate-x: -24px;
+  --tw-enter-opacity: 0;
+}
+
+.slide-in-from-right {
+  --tw-enter-translate-x: 24px;
+  --tw-enter-opacity: 0;
+}
+
+.fill-mode-both {
+  animation-fill-mode: both !important;
+}
+
+.duration-150 {
+  animation-duration: 150ms !important;
+}
+
+.duration-200 {
+  animation-duration: 200ms !important;
+}
+
+.duration-300 {
+  animation-duration: 300ms !important;
+}
+
+.duration-500 {
+  animation-duration: 500ms !important;
+}
+
+.duration-700 {
+  animation-duration: 700ms !important;
+}
+
+/* ==========================================
    CLASSIC & PROFESSIONAL ADMIN PANEL REDESIGN
    ========================================== */
 
@@ -276,6 +370,39 @@
   padding: 1.5rem !important;
 }
 
+/* Lock viewport overflow and prevent browser-level window scrolling on admin pages */
+html:has(.admin-panel),
+body:has(.admin-panel) {
+  height: 100vh !important;
+  min-height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+}
+
+/* Lock the parent admin layout container to screen height and hide viewport-level scrolling */
+.admin-panel {
+  height: 100vh !important;
+  min-height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+}
+
+/* Custom modern, ultra-slim scrollbars inside the admin panel */
+.admin-panel *::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
+.admin-panel *::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+.admin-panel *::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1 !important;  /* Slate-300 minimalist thumb */
+  border-radius: 9999px !important;
+}
+.admin-panel *::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8 !important;  /* Slate-400 thumb on hover */
+}
+
 /* --- 3. Sidebar Overhaul (Classic, Slim, Rectangular) --- */
 .admin-panel aside {
   width: 15rem !important;        /* Slim 240px width instead of massive 320px */
@@ -285,6 +412,11 @@
   border-right: 1px solid #e2e8f0 !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
+  height: 100vh !important;       /* Sidebar is sticky and spans exactly screen height */
+  max-height: 100vh !important;
+  overflow-y: auto !important;    /* Sidebar scrolls independently if menu grows too long */
+  position: sticky !important;
+  top: 0 !important;
 }
 
 /* Sidebar Logo Area */
@@ -406,13 +538,32 @@
 
 /* --- 4. Main Panel Layout & Width --- */
 .admin-panel main {
-  padding: 1.5rem !important;         /* Reduced layout padding */
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow-y: auto !important;
+  padding: 0 1.5rem 1.5rem 1.5rem !important; /* No top padding to allow native sticking to top: 0 */
   background-color: #f8fafc !important;
 }
 
 .admin-panel main .max-w-\[1600px\] {
   max-w: 1280px !important;          /* Standard, neat desktop width */
 }
+
+/* Scoped Sticky Page Header inside the main content area */
+.admin-header {
+  position: sticky !important;
+  top: 0 !important;                /* Stick perfectly to the top of main container */
+  z-index: 30 !important;
+  background-color: rgba(248, 250, 252, 0.9) !important; /* Matching elegant slate background #f8fafc */
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  margin-left: -1.5rem !important;  /* Pull left flush against main left padding */
+  margin-right: -1.5rem !important; /* Pull right flush against main right padding */
+  padding: 1.5rem 1.5rem 1rem 1.5rem !important;  /* Elegant top padding that mimics page padding */
+  margin-bottom: 1.5rem !important; /* Perfect margin separation from list/table content */
+}
+
 
 /* --- 5. Flat & Elegant Cards (Corner Radii Cleanup) --- */
 .admin-panel .glass-card,
@@ -462,8 +613,7 @@
 
 /* --- 6. Form Controls & Inputs Overhaul --- */
 .admin-panel label,
-.admin-panel .text-xs.font-black.uppercase,
-.admin-panel .text-\[10px\].font-black.uppercase {
+.admin-panel .admin-form-label {
   font-size: 0.75rem !important;         /* Clear 12px label */
   font-weight: 500 !important;           /* Medium weight instead of shouting black */
   letter-spacing: normal !important;
@@ -476,9 +626,7 @@
 
 .admin-panel input,
 .admin-panel textarea,
-.admin-panel select,
-.admin-panel .w-full.bg-secondary\/30,
-.admin-panel .w-full.bg-secondary\/50 {
+.admin-panel select {
   background-color: #ffffff !important;
   border: 1px solid #cbd5e1 !important;   /* Solid slate-300 border */
   border-radius: 0.375rem !important;     /* 6px radius */
@@ -494,26 +642,11 @@
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;
 }
 
-/* Enforce the left padding utilities inside the admin-panel input controls to allow prefix icons (e.g. search icons) */
-.admin-panel input.pl-10,
-.admin-panel select.pl-10 {
-  padding-left: 2.5rem !important;
-}
-.admin-panel input.pl-11,
-.admin-panel select.pl-11 {
+/* Prefix icon input groups - ensures text never overlaps with absolute-positioned prefix icons */
+.admin-panel .relative .absolute ~ input,
+.admin-panel .relative .absolute ~ textarea,
+.admin-panel .relative .absolute ~ select {
   padding-left: 2.75rem !important;
-}
-.admin-panel input.pl-12,
-.admin-panel select.pl-12 {
-  padding-left: 3rem !important;
-}
-.admin-panel input.pl-14,
-.admin-panel select.pl-14 {
-  padding-left: 3.5rem !important;
-}
-.admin-panel input.pl-16,
-.admin-panel select.pl-16 {
-  padding-left: 4rem !important;
 }
 
 .admin-panel input:focus,
@@ -572,6 +705,17 @@
   background-color: #f1f5f9 !important;
 }
 
+/* Enforce uniform classic compact size and border radius for all table/list row action buttons */
+.admin-panel .divide-y .flex.gap-2 button,
+.admin-panel .divide-y .flex.gap-2 a,
+.admin-panel tbody td .flex.gap-2 button,
+.admin-panel tbody td .flex.gap-2 a,
+.admin-panel tbody td .flex.justify-end.gap-2 button,
+.admin-panel tbody td .flex.justify-end.gap-2 a {
+  padding: 0.4375rem !important;
+  border-radius: 0.25rem !important;
+}
+
 /* --- 8. Table Rows & Listed Records --- */
 .admin-panel .divide-y > div {
   padding: 0.75rem 1rem !important;       /* Tight and balanced list items */
@@ -582,15 +726,15 @@
 }
 
 /* Thumbnail/Avatar Frames */
-.admin-panel .divide-y img,
-.admin-panel .w-16.h-16 {
+.admin-panel .divide-y img.admin-avatar,
+.admin-panel .w-16.h-16.admin-avatar {
   width: 2.25rem !important;              /* Compact square-ish thumbnail */
   height: 2.25rem !important;
   border-radius: 0.25rem !important;
 }
 
-.admin-panel .divide-y img + div,
-.admin-panel .w-16.h-16 + div {
+.admin-panel .divide-y img.admin-avatar + div,
+.admin-panel .w-16.h-16.admin-avatar + div {
   display: flex;
   flex-direction: column;
 }

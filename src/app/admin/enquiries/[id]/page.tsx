@@ -69,7 +69,7 @@ export default function EnquiryDetailPage() {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Page Header - Always Visible */}
-      <div className="flex flex-col gap-4">
+      <div className="admin-header flex flex-col gap-4">
         <Link href="/admin/enquiries" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors font-bold text-sm w-fit">
           <ChevronLeft size={18} /> Back to all Enquiries
         </Link>
@@ -251,7 +251,7 @@ export default function EnquiryDetailPage() {
                   <MessageSquare size={18} /> {enquiry.type === 'parent' ? 'Enquiry Details' : enquiry.type === 'peer_connect' ? 'Booking Details' : 'Strategic Programme Goals'}
                 </h3>
                 <div className="p-8 bg-slate-50/50 rounded-[1.5rem] border border-slate-100">
-                  <p className="text-lg text-slate-600 leading-relaxed italic font-medium">
+                  <p className="text-lg text-slate-600 leading-relaxed font-medium">
                     "{enquiry.type === 'parent' ? (enquiry.details || 'No details provided.') : enquiry.type === 'peer_connect' ? (enquiry.details || 'No session details.') : (enquiry.goals || "No specific goals provided.")}"
                   </p>
                 </div>

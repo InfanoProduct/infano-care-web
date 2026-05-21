@@ -42,68 +42,62 @@ export function EcosystemHero() {
           <div className="absolute top-[15%] right-[5%] opacity-20">
             <div className="w-24 h-24 border-2 border-primary rounded-full animate-spin-slow" />
           </div>
-          <div className="absolute top-[30%] right-[40%] opacity-20">
+          <div className="absolute top-[30%] right-[60%] opacity-20">
             <div className="w-10 h-10 border-2 border-primary rounded-full animate-spin-slow" />
           </div>
-          <div className="absolute bottom-[25%] left-[40%] opacity-20">
+          <div className="absolute bottom-[25%] left-[35%] opacity-20">
             <div className="w-32 h-32 border-2 border-accent rounded-2xl rotate-45 animate-bounce-slow" />
+          </div>
+          <div className="absolute bottom-[70%] left-[5%] opacity-20">
+            <div className="w-10 h-10 border-2 border-accent rounded-md rotate-45 animate-bounce-slow" />
           </div>
         </div>
 
         <div className="mx-auto px-6 md:px-12 lg:px-24 relative z-10">
-          <div className="flex flex-col lg:flex-row items-center gap-20">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              className="hidden lg:block flex-1 bg-green-300"
+          <div className="flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-32">
+            <div
+              className="hidden lg:block shrink-0 animate-in fade-in slide-in-from-left-4 duration-700 fill-mode-both"
             >
               <Image
                 src="/Ecosystem1.png"
                 alt="Mobile interface"
                 width={500}
                 height={500}
-                className="object-cover w-[580px]"
+                className="object-cover w-[360px]"
+                priority
+                unoptimized
               />
-            </motion.div>
+            </div>
 
-            <div className="flex-1 max-w-2xl">
-              <motion.div
-                initial={{ opacity: 0, x: 30 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="inline-flex items-center gap-3 px-4 py-2 bg-white border border-slate-200 rounded-full mb-8 shadow-md"
+            <div className="max-w-2xl">
+              <div
+                className="inline-flex items-center gap-3 px-4 py-2 bg-white border border-slate-200 rounded-full mb-8 shadow-md animate-in fade-in slide-in-from-right duration-500 fill-mode-both"
               >
                 <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                   <Smartphone size={12} />
                 </div>
                 <span className="text-sm font-medium text-slate-600 ">The Infano Mobile Platform</span>
-              </motion.div>
+              </div>
 
-              <motion.h1
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900"
+              <h1
+                className="text-4xl md:text-6xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+                style={{ animationDelay: '100ms' }}
               >
                 Six pillars. <br />
                 <span className="text-primary">One universe.</span>
-              </motion.h1>
+              </h1>
 
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.1 }}
-                className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-8 max-w-xl"
+              <p
+                className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-8 max-w-xl animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+                style={{ animationDelay: '200ms' }}
               >
                 The Infano ecosystem is a holistic digital home for every girl—blending technology, stories, and guidance.
-              </motion.p>
+              </p>
 
               {/* Mobile Image */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8 }}
-                className="block lg:hidden w-full mb-8"
+              <div
+                className="block lg:hidden w-full mb-8 animate-in fade-in zoom-in-95 duration-700 fill-mode-both"
+                style={{ animationDelay: '150ms' }}
               >
                 <Image
                   src="/Ecosystem1.png"
@@ -111,14 +105,14 @@ export function EcosystemHero() {
                   width={500}
                   height={500}
                   className="object-contain w-full max-h-[350px] mx-auto"
+                  priority
+                  unoptimized
                 />
-              </motion.div>
+              </div>
 
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-                className="flex flex-row items-center justify-between lg:justify-start gap-3 lg:gap-4 w-full"
+              <div
+                className="flex flex-row items-center justify-between lg:justify-start gap-3 lg:gap-4 w-full animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+                style={{ animationDelay: '300ms' }}
               >
                 <button
                   onClick={() => setIsModalOpen(true)}
@@ -134,7 +128,7 @@ export function EcosystemHero() {
                   <span className="hidden sm:inline">Explore the Pillars</span>
                   <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5" />
                 </Link>
-              </motion.div>
+              </div>
             </div>
           </div>
         </div>

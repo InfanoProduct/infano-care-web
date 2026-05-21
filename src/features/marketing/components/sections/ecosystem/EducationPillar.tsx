@@ -18,7 +18,7 @@ export function EducationPillar() {
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="hidden lg:block order-2 lg:order-1 relative"
+            className="hidden lg:block order-2 lg:order-2 relative"
           >
             <div className="absolute -inset-10 bg-emerald-100/50 blur-[100px] rounded-full scale-75" />
             <div className="relative mx-auto w-full ">

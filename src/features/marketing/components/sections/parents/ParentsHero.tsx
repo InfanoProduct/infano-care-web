@@ -42,38 +42,30 @@ export function ParentsHero() {
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
           <div>
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="inline-flex items-center gap-2 px-3 py-1 bg-primary/5 border border-primary/10 rounded-full mb-8"
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1 bg-primary/5 border border-primary/10 rounded-full mb-8 animate-in fade-in slide-in-from-left-4 duration-500 fill-mode-both"
             >
               <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">For Families & Caregivers</span>
-            </motion.div>
+            </div>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900"
+            <h1
+              className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '100ms' }}
             >
               You love her. <br />
               <span className="text-primary">You want to understand her.</span>
-            </motion.h1>
+            </h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.1 }}
-              className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-8"
+            <p
+              className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-8 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '200ms' }}
             >
               Infano.care is the safe, expert-supported companion that helps your daughter navigate the questions, emotions, and changes she's facing.
-            </motion.p>
+            </p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="flex flex-col sm:flex-row items-center gap-6"
+            <div
+              className="flex flex-col sm:flex-row items-center gap-6 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '300ms' }}
             >
               <Link href="/parents-enquiry" className="btn-primary w-full text-sm px-8 py-3.5 group shadow-lg shadow-primary/20 text-center sm:w-auto">
                 Enrol Your Daughter <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1" size={20} />
@@ -84,14 +76,12 @@ export function ParentsHero() {
               >
                 Download the Parent Guide
               </button>
-            </motion.div>
+            </div>
           </div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1 }}
-            className="relative"
+          <div
+            className="relative animate-in fade-in zoom-in-95 duration-700 fill-mode-both"
+            style={{ animationDelay: '150ms' }}
           >
             <div className="relative aspect-[5/4] rounded-2xl overflow-hidden shadow-2xl border border-white">
               <Image
@@ -100,6 +90,7 @@ export function ParentsHero() {
                 fill
                 className="object-cover"
                 priority
+                unoptimized
               />
             </div>
             {/* Floating Elements - Layered on top of image */}
@@ -132,7 +123,7 @@ export function ParentsHero() {
                 <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Trusted Ecosystem</span>
               </div>
             </motion.div>
-          </motion.div>
+          </div>
         </div>
       </div>
 

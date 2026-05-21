@@ -96,7 +96,7 @@ export default function AuthorsPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
-      <div className="flex items-center justify-between">
+      <div className="admin-header flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-black tracking-tight">Blog Authors</h1>
           <p className="text-muted-foreground mt-1">Manage the contributors behind your content</p>

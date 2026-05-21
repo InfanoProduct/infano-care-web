@@ -83,7 +83,7 @@ export default function CTAsPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
-      <div className="flex items-center justify-between">
+      <div className="admin-header flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-black tracking-tight">Call-to-Actions (CTAs)</h1>
           <p className="text-muted-foreground mt-1">Design reusable interaction blocks for your articles</p>

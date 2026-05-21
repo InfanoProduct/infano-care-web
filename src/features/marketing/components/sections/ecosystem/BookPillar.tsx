@@ -30,7 +30,7 @@ export function BookPillar() {
             className="relative lg:absolute z-10 lg:bottom-0 lg:right-[48%] max-h-[400px] lg:max-h-[600px] w-auto object-contain "
           />
         </div>
-        <div className="max-w-4xl mx-auto bg-white rounded-[2rem] md:rounded-[4rem] p-8 md:p-12 lg:p-20 shadow-[0_50px_100px_-15px_rgba(0,0,0,0.5)] relative overflow-hidden border border-white/10">
+        <div className="max-w-4xl mx-auto bg-white rounded-[2rem] md:rounded-[4rem] p-6 sm:p-8 md:p-12 lg:p-20 shadow-[0_50px_100px_-15px_rgba(0,0,0,0.5)] relative overflow-hidden border border-white/10">
           <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
           <motion.div
@@ -49,8 +49,8 @@ export function BookPillar() {
             <p className="text-sm md:text-base text-slate-500 mb-10 leading-relaxed font-medium max-w-2xl mx-auto">
               A beautiful, honest, and expert-backed guide covering everything an adolescent girl deserves to understand.
             </p>
-            <Link href="/gigi-the-awkward-age-book" className="px-12 py-4 bg-primary text-white rounded-[2rem] font-bold text-xl hover:bg-primary transition-all shadow-2xl active:scale-95 inline-flex items-center gap-4 group">
-              Explore The Book <ArrowRight size={24} className="transition-transform group-hover:translate-x-2" />
+            <Link href="/gigi-the-awkward-age-book" className="px-6 md:px-12 py-3 md:py-4 bg-primary text-white rounded-[2rem] font-bold text-sm sm:text-base md:text-xl hover:bg-primary transition-all shadow-2xl active:scale-95 inline-flex items-center justify-center gap-2 md:gap-4 group whitespace-nowrap w-fit">
+              Explore The Book <ArrowRight className="w-5 h-5 md:w-6 md:h-6 transition-transform group-hover:translate-x-2 shrink-0" />
             </Link>
 
           </motion.div>

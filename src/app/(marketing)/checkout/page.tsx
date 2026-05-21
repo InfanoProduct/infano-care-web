@@ -103,9 +103,10 @@ function CheckoutContent() {
       const fetchPincodeData = async () => {
         setPincodeLoading(true);
         try {
-          const res = await fetch(`https://api.postalpincode.in/pincode/${formData.pincode}`);
+          const res = await fetch(`/api/pincode?code=${formData.pincode}`);
+          if (!res.ok) throw new Error('Failed to fetch pincode data');
           const data = await res.json();
-          if (data[0].Status === 'Success') {
+          if (data && data[0] && data[0].Status === 'Success' && data[0].PostOffice && data[0].PostOffice[0]) {
             const postOffice = data[0].PostOffice[0];
             setFormData(prev => ({
               ...prev,
@@ -114,7 +115,7 @@ function CheckoutContent() {
             }));
           }
         } catch (err) {
-          console.error('Pincode lookup failed');
+          console.error('Pincode lookup failed:', err);
         } finally {
           setPincodeLoading(false);
         }

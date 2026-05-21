@@ -50,25 +50,24 @@ export function EcosystemHero() {
           </div>
         </div>
 
-        <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <div className="mx-auto px-6 md:px-12 lg:px-24 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center gap-20">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
-              className="hidden lg:flex justify-end w-full"
+              className="hidden lg:block flex-1 bg-green-300"
             >
               <Image
                 src="/Ecosystem1.png"
                 alt="Mobile interface"
                 width={500}
                 height={500}
-                className="object-contain w-full max-w-[540px] h-auto"
-                priority
+                className="object-cover w-[580px]"
               />
             </motion.div>
 
-            <div className="w-full max-w-2xl">
+            <div className="flex-1 max-w-2xl">
               <motion.div
                 initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0 }}

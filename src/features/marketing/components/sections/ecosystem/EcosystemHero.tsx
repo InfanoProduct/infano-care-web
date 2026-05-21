@@ -18,7 +18,7 @@ export function EcosystemHero() {
 
   return (
     <>
-      <section className="relative pt-20 overflow-hidden bg-[#FAF9FF]">
+      <section className="relative pt-8  overflow-hidden bg-[#FAF9FF]">
         {/* Background Graphics - Enriched */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <div className="absolute top-[-10%] left-[-5%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px] animate-pulse" />
@@ -50,33 +50,34 @@ export function EcosystemHero() {
           </div>
         </div>
 
-        <div className="mx-auto px-6 md:px-12 lg:px-24 relative z-10">
-          <div className="flex flex-col lg:flex-row items-center gap-20">
+        <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
-              className="hidden lg:block flex-1"
+              className="hidden lg:flex justify-end w-full"
             >
               <Image
                 src="/Ecosystem1.png"
                 alt="Mobile interface"
                 width={500}
                 height={500}
-                className="object-cover w-[580px]"
+                className="object-contain w-full max-w-[540px] h-auto"
+                priority
               />
             </motion.div>
 
-            <div className="flex-1 max-w-2xl">
+            <div className="w-full max-w-2xl">
               <motion.div
                 initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="inline-flex items-center gap-3 px-4 py-2 bg-white border border-slate-200 rounded-full mb-10 shadow-md"
+                className="inline-flex items-center gap-3 px-4 py-2 bg-white border border-slate-200 rounded-full mb-8 shadow-md"
               >
                 <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                   <Smartphone size={12} />
                 </div>
-                <span className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.25em]">The Infano Mobile Platform</span>
+                <span className="text-sm font-medium text-slate-600 ">The Infano Mobile Platform</span>
               </motion.div>
 
               <motion.h1
@@ -122,16 +123,16 @@ export function EcosystemHero() {
               >
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="flex-1 lg:flex-none justify-center px-2 sm:px-4 lg:px-8 py-3 lg:py-4 bg-primary text-white rounded-full font-bold text-xs sm:text-sm lg:text-lg hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 flex items-center gap-1.5 lg:gap-2 group whitespace-nowrap"
+                  className="flex-1 lg:flex-none justify-center px-2 sm:px-4 lg:px-8 py-3 lg:py-4 bg-primary text-white rounded-full font-bold text-xs sm:text-sm lg:text-lg hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 flex items-center gap-1.5 lg:gap-2 group whitespace-nowrap cursor-pointer"
                 >
                   <span className="sm:hidden">Download</span>
-                  <span className="hidden sm:inline">Download the App</span> 
+                  <span className="hidden sm:inline">Download the App</span>
                   <Download className="w-4 h-4 lg:w-5 lg:h-5" />
                 </button>
 
                 <Link href="#pillars" className="flex-1 lg:flex-none justify-center px-2 sm:px-4 lg:px-8 py-3 lg:py-4 border-2 border-primary/20 text-primary rounded-full font-bold text-xs sm:text-sm lg:text-lg hover:bg-primary/5 hover:border-primary/40 transition-all active:scale-95 flex items-center gap-1.5 lg:gap-2 whitespace-nowrap">
                   <span className="sm:hidden">Explore</span>
-                  <span className="hidden sm:inline">Explore the Pillars</span> 
+                  <span className="hidden sm:inline">Explore the Pillars</span>
                   <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5" />
                 </Link>
               </motion.div>

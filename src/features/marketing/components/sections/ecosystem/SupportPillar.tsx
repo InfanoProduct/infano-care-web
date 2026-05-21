@@ -11,7 +11,7 @@ export function SupportPillar() {
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_20%,_#F3E8FF_0%,_transparent_40%)] opacity-50" />
       <div className="absolute bottom-0 right-0 w-1/2 h-full bg-purple-50/30 skew-x-12 translate-x-1/4" />
 
-      <div className=" mx-auto px-6 md:px-12 lg:px-24 relative z-10">
+      <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           <motion.div
             initial={{ opacity: 0, x: 50 }}

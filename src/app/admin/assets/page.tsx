@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Image as ImageIcon, Plus, Search, Copy, Check, Trash2, Eye, X, 
-  Loader2, UploadCloud, FileImage, ExternalLink, Calendar, HardDrive 
+  Loader2, UploadCloud, FileImage, ExternalLink, Calendar, HardDrive,
+  FileText
 } from 'lucide-react';
 import { AssetsService, Asset } from '@/services/assets.service';
 import { toast } from 'react-hot-toast';
@@ -112,9 +113,9 @@ export default function AssetsManagement() {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       
-      // Basic image check
-      if (!file.type.startsWith('image/')) {
-        toast.error(`${file.name} is not an image file`);
+      // Basic image or PDF check
+      if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+        toast.error(`${file.name} is not an image or PDF file`);
         failCount++;
         continue;
       }
@@ -134,7 +135,7 @@ export default function AssetsManagement() {
     }
 
     if (successCount > 0) {
-      toast.success(`Successfully uploaded ${successCount} image(s)`);
+      toast.success(`Successfully uploaded ${successCount} file(s)`);
       loadAssets(true); // silently reload list
     }
     if (failCount > 0) {
@@ -195,14 +196,14 @@ export default function AssetsManagement() {
           className="btn-primary flex items-center gap-2 px-6 py-3 rounded-2xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100"
         >
           <Plus size={20} />
-          <span>Upload Image</span>
+          <span>Upload File</span>
         </button>
         <input 
           type="file"
           ref={fileInputRef}
           className="hidden"
           multiple
-          accept="image/*"
+          accept="image/*,application/pdf"
           onChange={(e) => e.target.files && handleUploadFiles(e.target.files)}
         />
       </div>
@@ -267,13 +268,13 @@ export default function AssetsManagement() {
               <UploadCloud size={32} />
             </div>
             <div>
-              <p className="font-black text-xl tracking-tight">Drag & Drop your images here</p>
+              <p className="font-black text-xl tracking-tight">Drag & Drop your files here</p>
               <p className="text-sm text-muted-foreground mt-1 font-medium">
                 Or <span className="text-primary font-bold hover:underline">browse files</span> from your computer
               </p>
             </div>
             <p className="text-[10px] uppercase tracking-wider font-extrabold text-muted-foreground/60">
-              Supports PNG, JPG, JPEG, SVG, WEBP, GIF
+              Supports PNG, JPG, JPEG, SVG, WEBP, GIF, PDF
             </p>
           </div>
         )}
@@ -339,14 +340,23 @@ export default function AssetsManagement() {
                   key={asset.filename} 
                   className="bg-secondary/15 rounded-3xl overflow-hidden border border-border/40 hover:border-primary/20 shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300 flex flex-col group"
                 >
-                  {/* Image container */}
+                  {/* Image/File container */}
                   <div className="relative aspect-video w-full bg-secondary/30 overflow-hidden flex-shrink-0 flex items-center justify-center border-b border-border/30">
-                    <img 
-                      src={asset.url} 
-                      alt="" 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
-                      loading="lazy"
-                    />
+                    {asset.filename.toLowerCase().endsWith('.pdf') || asset.url.toLowerCase().endsWith('.pdf') ? (
+                      <div className="w-full h-full bg-gradient-to-br from-red-500/10 via-rose-500/5 to-transparent flex flex-col items-center justify-center p-4 relative group-hover:scale-105 transition-transform duration-700 select-none">
+                        <FileText size={48} className="text-red-500 mb-2 drop-shadow-sm" />
+                        <span className="text-[10px] font-extrabold uppercase text-red-500 tracking-wider bg-red-500/10 px-2.5 py-0.5 rounded-md border border-red-500/20">
+                          PDF Document
+                        </span>
+                      </div>
+                    ) : (
+                      <img 
+                        src={asset.url} 
+                        alt="" 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                        loading="lazy"
+                      />
+                    )}
                     
                     {/* Hover Overlay Actions */}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
@@ -443,13 +453,21 @@ export default function AssetsManagement() {
             className="relative bg-white dark:bg-zinc-900 rounded-[2rem] overflow-hidden max-w-4xl w-full shadow-2xl flex flex-col md:flex-row animate-in zoom-in-95 duration-300"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Left: Huge Image */}
-            <div className="bg-zinc-100 dark:bg-zinc-950 flex items-center justify-center p-6 md:p-10 aspect-video md:aspect-auto md:w-3/5">
-              <img 
-                src={selectedAsset.url} 
-                alt="" 
-                className="max-h-[70vh] object-contain rounded-2xl shadow-lg border border-black/5"
-              />
+            {/* Left: Huge Image / PDF Iframe */}
+            <div className="bg-zinc-100 dark:bg-zinc-950 flex items-center justify-center p-6 md:p-10 aspect-video md:aspect-auto md:w-3/5 min-h-[350px] md:min-h-[500px]">
+              {selectedAsset.filename.toLowerCase().endsWith('.pdf') || selectedAsset.url.toLowerCase().endsWith('.pdf') ? (
+                <iframe 
+                  src={selectedAsset.url} 
+                  className="w-full h-full min-h-[350px] md:min-h-[500px] rounded-2xl border border-black/10 shadow-lg"
+                  title={selectedAsset.filename}
+                />
+              ) : (
+                <img 
+                  src={selectedAsset.url} 
+                  alt="" 
+                  className="max-h-[70vh] object-contain rounded-2xl shadow-lg border border-black/5"
+                />
+              )}
             </div>
 
             {/* Right: Technical specs and quick actions */}

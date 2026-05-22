@@ -1,5 +1,8 @@
 import { Metadata } from 'next';
 import { ParentsHero } from '@/features/marketing/components/sections/parents/ParentsHero';
+import { WhatSchoolsMiss } from '@/features/marketing/components/sections/parents/WhatSchoolsMiss';
+import { ParentsPrograms } from '@/features/marketing/components/sections/parents/ParentsPrograms';
+import { SupportSystem } from '@/features/marketing/components/sections/parents/SupportSystem';
 import { ParentsResponse } from '@/features/marketing/components/sections/parents/ParentsResponse';
 import { DaughterExperience } from '@/features/marketing/components/sections/parents/DaughterExperience';
 import { ParentDashboard } from '@/features/marketing/components/sections/parents/ParentDashboard';
@@ -36,6 +39,9 @@ export default function ParentsPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <ParentsHero />
+      <WhatSchoolsMiss />
+      <ParentsPrograms />
+      <SupportSystem />
       <ParentsResponse />
       <DaughterExperience />
       <ParentDashboard />

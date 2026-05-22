@@ -18,6 +18,7 @@ export default function AssetsManagement() {
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string>('');
+  const [currentFileProgress, setCurrentFileProgress] = useState<number>(0);
   
   // Lightbox Modal state
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
@@ -104,6 +105,7 @@ export default function AssetsManagement() {
     if (files.length === 0) return;
     
     setUploading(true);
+    setCurrentFileProgress(0);
     let successCount = 0;
     let failCount = 0;
 
@@ -118,9 +120,12 @@ export default function AssetsManagement() {
       }
 
       setUploadProgress(`Uploading ${i + 1}/${files.length}: ${file.name}`);
+      setCurrentFileProgress(0);
       
       try {
-        await AssetsService.uploadAsset(file);
+        await AssetsService.uploadAsset(file, (percent) => {
+          setCurrentFileProgress(percent);
+        });
         successCount++;
       } catch (error) {
         console.error(`Failed to upload ${file.name}:`, error);
@@ -138,6 +143,7 @@ export default function AssetsManagement() {
 
     setUploading(false);
     setUploadProgress('');
+    setCurrentFileProgress(0);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -215,12 +221,45 @@ export default function AssetsManagement() {
         }`}
       >
         {uploading ? (
-          <div className="space-y-4 animate-pulse">
-            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mx-auto">
-              <Loader2 className="animate-spin" size={32} />
+          <div className="w-full max-w-xl mx-auto space-y-6 py-4 animate-in fade-in zoom-in-95 duration-500">
+            {/* Header info */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-center sm:text-left">
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase font-black tracking-widest text-primary/80 bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+                  {uploadProgress.split(':')[0] || 'Uploading'}
+                </span>
+                <p className="font-extrabold text-lg text-foreground truncate max-w-[280px] sm:max-w-xs md:max-w-sm mt-2" title={uploadProgress.split(': ').slice(1).join(': ')}>
+                  {uploadProgress.split(': ').slice(1).join(': ') || 'Processing files...'}
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-1.5 self-center sm:self-auto">
+                <span className="font-black text-3xl text-primary tracking-tight tabular-nums">
+                  {currentFileProgress}
+                </span>
+                <span className="text-sm font-black text-muted-foreground/70">%</span>
+              </div>
             </div>
-            <p className="font-extrabold text-lg text-primary">{uploadProgress || 'Uploading assets...'}</p>
-            <p className="text-xs text-muted-foreground font-semibold">Please do not close this page</p>
+
+            {/* Glowing Custom Progress Bar Track */}
+            <div className="relative w-full">
+              <div className="w-full bg-secondary/40 rounded-full h-3.5 border border-border/20 shadow-inner overflow-hidden">
+                <div 
+                  className="bg-gradient-to-r from-primary via-violet-500 to-indigo-500 rounded-full h-full shadow-[0_0_15px_rgba(124,58,237,0.5)] transition-all duration-300 ease-out flex items-center justify-end relative"
+                  style={{ width: `${currentFileProgress}%` }}
+                >
+                  <div className="absolute right-0 top-0 bottom-0 w-2.5 bg-white/40 blur-[1px] animate-pulse rounded-r-full" />
+                </div>
+              </div>
+            </div>
+
+            {/* Subtle Sub-Text / Loader indicator */}
+            <div className="flex items-center justify-between text-xs text-muted-foreground/80 font-bold px-1">
+              <div className="flex items-center gap-2">
+                <Loader2 className="animate-spin text-primary" size={14} />
+                <span>Do not close or refresh this tab</span>
+              </div>
+              <span>Uploading to secure server...</span>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">

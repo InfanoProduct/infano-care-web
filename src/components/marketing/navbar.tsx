@@ -43,6 +43,7 @@ export function MarketingNavbar() {
             src="/logo/infano-logo-for-light-bg.png"
             alt="Infano"
             fill
+            sizes="(max-width: 768px) 160px, (max-width: 1024px) 192px, 208px"
             className="object-contain object-left transition-transform group-hover:scale-105"
             priority
           />

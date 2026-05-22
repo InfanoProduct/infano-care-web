@@ -132,6 +132,7 @@ export function MarketingFooter() {
                 src="/logo/infano-logo-for-light-bg.png"
                 alt="Infano"
                 fill
+                sizes="(max-width: 768px) 192px, (max-width: 1024px) 224px, 256px"
                 className="object-contain object-left"
               />
             </Link>

@@ -1,5 +1,20 @@
 import { apiClient } from "@/lib/api-client";
 
+export interface Coupon {
+  id: string;
+  code: string;
+  type: 'PERCENTAGE' | 'FLAT';
+  value: number;
+  minOrderAmount: number;
+  maxDiscount?: number | null;
+  expiryDate?: string | null;
+  usageLimit: number;
+  usedCount: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Book {
   id: string;
   title: string;
@@ -8,6 +23,8 @@ export interface Book {
   imageUrl?: string;
   stock: number;
   isActive: boolean;
+  couponId?: string | null;
+  coupon?: Coupon | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -46,8 +63,8 @@ export const ShopService = {
     return apiClient.get<Book>(`/shop/books/${id}`);
   },
 
-  async validateCoupon(code: string, amount: number): Promise<{ coupon: any, discountAmount: number }> {
-    return apiClient.post('/shop/coupons/validate', { code, amount });
+  async validateCoupon(code: string, items: { bookId: string; quantity: number; price: number }[]): Promise<{ coupon: any, discountAmount: number }> {
+    return apiClient.post('/shop/coupons/validate', { code, items });
   },
 
   async createOrder(data: CreateOrderRequest): Promise<OrderResponse> {
@@ -77,5 +94,40 @@ export const ShopService = {
 
   async adminDeleteBook(id: string): Promise<void> {
     return apiClient.delete(`/admin/books/${id}`);
-  }
+  },
+
+  // ─── Admin Coupon Methods ─────────────────────────────────────
+  async adminListCoupons(): Promise<any[]> {
+    return apiClient.get<any[]>('/shop/admin/coupons');
+  },
+
+  async adminCreateCoupon(data: {
+    code: string;
+    type: 'PERCENTAGE' | 'FLAT';
+    value: number;
+    minOrderAmount?: number;
+    maxDiscount?: number | null;
+    expiryDate?: string | null;
+    usageLimit?: number;
+    isActive?: boolean;
+  }): Promise<any> {
+    return apiClient.post('/shop/admin/coupons', data);
+  },
+
+  async adminUpdateCoupon(id: string, data: Partial<{
+    code: string;
+    type: 'PERCENTAGE' | 'FLAT';
+    value: number;
+    minOrderAmount: number;
+    maxDiscount: number | null;
+    expiryDate: string | null;
+    usageLimit: number;
+    isActive: boolean;
+  }>): Promise<any> {
+    return apiClient.patch(`/shop/admin/coupons/${id}`, data);
+  },
+
+  async adminDeleteCoupon(id: string): Promise<void> {
+    return apiClient.delete(`/shop/admin/coupons/${id}`);
+  },
 };

@@ -1,6 +1,32 @@
-import { Sparkles } from 'lucide-react';
+'use client';
+
+import { useState } from 'react';
+import { Sparkles, Loader2 } from 'lucide-react';
+import { apiClient } from '@/lib/api-client';
+import toast from 'react-hot-toast';
 
 export function Newsletter() {
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setIsSubmitting(true);
+    try {
+      await apiClient.post('/enquiry/subscribe', {
+        email: email,
+      });
+      toast.success('Successfully subscribed! Check your email for a welcome message.');
+      setEmail('');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to subscribe. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <section className="text-center py-24 space-y-8 bg-gray-50 rounded-[4rem]">
       <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center text-primary mx-auto">
@@ -12,14 +38,28 @@ export function Newsletter() {
           Subscribe to our weekly editorial digest for curated health insights and parenting guides.
         </p>
       </div>
-      <form className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto px-6" onSubmit={e => e.preventDefault()}>
+      <form className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto px-6" onSubmit={handleSubmit}>
         <input
           type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           placeholder="Enter your email"
+          required
           className="flex-grow bg-white border border-gray-200 rounded-2xl py-5 px-8 font-bold text-lg focus:ring-4 focus:ring-primary/10 outline-none transition-all shadow-xl"
         />
-        <button className="btn-primary py-5 px-12 rounded-2xl font-black shadow-2xl shadow-primary/20 whitespace-nowrap text-lg">
-          Sign Me Up
+        <button 
+          type="submit"
+          disabled={isSubmitting}
+          className="btn-primary py-5 px-12 rounded-2xl font-black shadow-2xl shadow-primary/20 whitespace-nowrap text-lg flex items-center justify-center gap-2 disabled:opacity-70"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 size={20} className="animate-spin" />
+              Subscribing...
+            </>
+          ) : (
+            'Sign Me Up'
+          )}
         </button>
       </form>
     </section>

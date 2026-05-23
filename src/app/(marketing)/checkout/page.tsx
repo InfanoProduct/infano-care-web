@@ -133,7 +133,7 @@ function CheckoutContent() {
     setValidatingCoupon(true);
     setError(null);
     try {
-      const result = await ShopService.validateCoupon(couponCode, book.price);
+      const result = await ShopService.validateCoupon(couponCode, [{ bookId: book.id, quantity: 1, price: book.price }]);
       setAppliedCoupon(result.coupon);
       setDiscountAmount(result.discountAmount);
     } catch (err: any) {
@@ -226,15 +226,28 @@ function CheckoutContent() {
   if (orderSuccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-        <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-10 text-center animate-in zoom-in duration-500">
+        <div className="max-w-xl w-full bg-white rounded-3xl shadow-2xl p-10 text-center animate-in zoom-in duration-500">
           <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8">
             <CheckCircle2 size={48} />
           </div>
-          <h1 className="text-3xl font-extrabold mb-4">Order Placed!</h1>
-          <p className="text-slate-600 mb-10 leading-relaxed">
-            Your journey with Infano has begun. We've sent a confirmation email with all the details.
+          <h1 className="text-3xl md:text-4xl font-extrabold mb-6 text-slate-900">Order Confirmed! 🎉</h1>
+          <p className="text-slate-600 mb-6 text-lg leading-relaxed">
+            Thank you for ordering your book. Your order has been successfully placed, and we will get it delivered to you soon! Our team will connect with you shortly with further updates.
           </p>
-          <button onClick={() => router.push('/')} className="w-full py-4 bg-primary text-white rounded-2xl font-bold shadow-lg hover:opacity-90 transition-all active:scale-95">
+          
+          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 text-left mb-8 max-w-sm mx-auto">
+            <h3 className="font-bold text-slate-900 mb-4 text-center">Need help? We're here for you:</h3>
+            <div className="space-y-3 font-medium text-slate-700">
+              <p className="flex items-center justify-center gap-2">
+                <span>📧</span> Email: <a href="mailto:support@infano.care" className="text-primary hover:underline font-bold">support@infano.care</a>
+              </p>
+              <p className="flex items-center justify-center gap-2">
+                <span>💬</span> WhatsApp: <a href="https://wa.me/916362994347" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-bold">+91 6362994347</a>
+              </p>
+            </div>
+          </div>
+
+          <button onClick={() => router.push('/')} className="w-full sm:w-auto px-10 py-4 bg-primary text-white rounded-2xl font-bold shadow-lg hover:opacity-90 transition-all active:scale-95">
             Back to Home
           </button>
         </div>
@@ -463,13 +476,14 @@ function CheckoutContent() {
 
               {/* Promo Code Section */}
               <div className="space-y-3 pt-2">
+
                 <label className="text-[11px] font-bold text-slate-600 ml-0.5">Promo code</label>
                 <div className="flex gap-2">
                   <input
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                    placeholder="Enter code"
-                    className="flex-1 min-w-0 px-4 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-primary/60 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
+                    placeholder="Enter code e.g. PROMO15"
+                    className="flex-1 min-w-0 px-4 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
                   />
                   <button
                     type="button"
@@ -481,9 +495,12 @@ function CheckoutContent() {
                   </button>
                 </div>
                 {appliedCoupon && (
-                  <p className="text-emerald-600 text-[10px] font-bold flex items-center gap-1 ml-0.5">
-                    <Tag size={12} /> Coupon '{appliedCoupon.code}' applied!
-                  </p>
+                  <div className="flex items-center gap-2 px-3.5 py-2.5 bg-emerald-50 border border-emerald-200 rounded-xl">
+                    <Tag size={13} className="text-emerald-600" />
+                    <p className="text-emerald-700 text-[11px] font-bold">
+                      🎉 Code <span className="font-black">{appliedCoupon.code}</span> applied — you save ₹{discountAmount}!
+                    </p>
+                  </div>
                 )}
               </div>
 

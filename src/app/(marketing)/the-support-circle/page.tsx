@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     url: 'https://infano.care/the-support-circle',
     images: [
       {
-        url: '/api/og?title=The+Support+Circle&category=Community&author=Infano+Care',
+        url: '/og-images/landing-og-image.png',
         width: 1200,
         height: 630,
         alt: 'Infano Support Circle',
@@ -27,14 +27,162 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'The Support Circle | Safe Community for Adolescent Girls | Infano Care',
     description: "Join the Infano Support Circle — a secure, moderated peer community and expert-led wellness space designed specifically to empower teenage girls through safe dialogue.",
-    images: ['/api/og?title=The+Support+Circle&category=Community&author=Infano+Care'],
+    images: ['/og-images/landing-og-image.png'],
   },
+};
+
+const circleServiceSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "The Infano Support Circle",
+  "alternateName": "Infano Circle",
+  "description": "A secure, fully moderated online community and expert-led wellness space for adolescent girls. Combines live and recorded sessions with qualified professionals across 5 themed circles — wellness, body health, ambition, relationships, and crisis support — with warm peer-to-peer connection through interest groups, peer mentors, and school-exclusive communities. No follower counts, no viral loops, no toxic comparison.",
+  "url": "https://infano.care/the-support-circle",
+  "image": "https://infano.care/api/og?title=The+Support+Circle&category=Community&author=Infano+Care",
+  "serviceType": "Online Peer Community & Expert Wellness Sessions",
+  "provider": {
+    "@type": "Organization",
+    "name": "Infano Care",
+    "legalName": "BerryBird Technologies Private Limited",
+    "url": "https://infano.care",
+    "email": "support@infano.care"
+  },
+  "areaServed": { "@type": "Country", "name": "India" },
+  "audience": {
+    "@type": "Audience",
+    "audienceType": "Adolescent girls aged 10–21 and their parents in India"
+  },
+  "availableChannel": {
+    "@type": "ServiceChannel",
+    "name": "Join the Circle",
+    "serviceUrl": "https://infano.care/contact",
+    "availableLanguage": "English"
+  },
+  "serviceOutput": "Access to 5 expert-led themed circles (live and recorded, 45–60 minutes each), anonymous Q&A with qualified professionals, moderated peer community with interest-based groups, school-exclusive community circles, trained peer mentor 1-on-1 connection, story sharing space, AI and human moderation within 2 hours, session recordings and notes post-session",
+  "additionalProperty": [
+    { "@type": "PropertyValue", "name": "Content moderation response time", "value": "All posts reviewed by AI and human moderators within 2 hours" },
+    { "@type": "PropertyValue", "name": "Crisis support availability", "value": "Crisis Circle staffed by trained counsellors, response within 24 hours" },
+    { "@type": "PropertyValue", "name": "Session format", "value": "45–60 minutes, expert-hosted, anonymous Q&A, live polls, recording and notes shared after" },
+    { "@type": "PropertyValue", "name": "Peer mentor specialisations available", "value": "Anxiety, academic stress, peer pressure, body image, relationships, self-esteem, bullying, confidence, friendships" }
+  ],
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Expert-Led Circles",
+    "itemListElement": [
+      {
+        "@type": "Offer",
+        "name": "The Wellness Circle",
+        "description": "Live and recorded sessions hosted by clinical psychologists and counsellors. Topics include anxiety, confidence, self-worth, academic stress, and grief. 45–60 minutes with anonymous Q&A.",
+        "url": "https://infano.care/the-support-circle",
+        "itemOffered": { "@type": "Service", "name": "Wellness Circle — Mental health expert sessions", "provider": { "@type": "Organization", "name": "Infano Care" } },
+        "availability": "https://schema.org/InStock"
+      },
+      {
+        "@type": "Offer",
+        "name": "The Body Circle",
+        "description": "Live and recorded sessions hosted by gynaecologists and adolescent health doctors. Topics include puberty, periods, PCOS, body image, and nutrition. 45–60 minutes with anonymous Q&A.",
+        "url": "https://infano.care/the-support-circle",
+        "itemOffered": { "@type": "Service", "name": "Body Circle — Adolescent health and menstrual expert sessions", "provider": { "@type": "Organization", "name": "Infano Care" } },
+        "availability": "https://schema.org/InStock"
+      },
+      {
+        "@type": "Offer",
+        "name": "The Ambition Circle",
+        "description": "Live and recorded sessions hosted by career mentors and entrepreneurs. Topics include goal-setting, career exploration, leadership, and confidence. 45–60 minutes with anonymous Q&A.",
+        "url": "https://infano.care/the-support-circle",
+        "itemOffered": { "@type": "Service", "name": "Ambition Circle — Career and leadership mentoring sessions", "provider": { "@type": "Organization", "name": "Infano Care" } },
+        "availability": "https://schema.org/InStock"
+      },
+      {
+        "@type": "Offer",
+        "name": "The Relationship Circle",
+        "description": "Live and recorded sessions hosted by family therapists. Topics include friendships, family conflict, romantic relationships, and healthy boundaries. 45–60 minutes with anonymous Q&A.",
+        "url": "https://infano.care/the-support-circle",
+        "itemOffered": { "@type": "Service", "name": "Relationship Circle — Family therapy and healthy relationships sessions", "provider": { "@type": "Organization", "name": "Infano Care" } },
+        "availability": "https://schema.org/InStock"
+      },
+      {
+        "@type": "Offer",
+        "name": "The Crisis Circle",
+        "description": "Urgent support staffed by trained crisis counsellors. Always available with a response guaranteed within 24 hours. For girls who need immediate, confidential emotional support.",
+        "url": "https://infano.care/the-support-circle",
+        "itemOffered": { "@type": "Service", "name": "Crisis Circle — Urgent counsellor support within 24 hours", "provider": { "@type": "Organization", "name": "Infano Care" } },
+        "availability": "https://schema.org/InStock"
+      }
+    ]
+  }
+};
+
+const circleProgramSchema = {
+  "@context": "https://schema.org",
+  "@type": "EducationalOccupationalProgram",
+  "name": "Infano Peer Mentor Training Programme",
+  "alternateName": "PeerLine Mentor Certification",
+  "description": "A structured multi-step leadership and mentoring training programme for older adolescent girls who want to guide and support younger girls in the Infano community. Participants complete expert-designed training modules, earn an Infano Peer Mentor certification, and progress through reward tiers for sustained mentoring contribution. Mentors specialise in areas including anxiety, academic stress, body image, relationships, confidence, and bullying prevention.",
+  "url": "https://infano.care/peerline-onboarding",
+  "educationalProgramMode": "online",
+  "programType": "Peer Mentorship & Leadership Training",
+  "typicalAgeRange": "16-21",
+  "educationalCredentialAwarded": "Infano Certified Peer Mentor",
+  "provider": {
+    "@type": "Organization",
+    "name": "Infano Care",
+    "legalName": "BerryBird Technologies Private Limited",
+    "url": "https://infano.care"
+  },
+  "applicationContact": {
+    "@type": "ContactPoint",
+    "contactType": "admissions",
+    "url": "https://infano.care/peerline-onboarding",
+    "email": "support@infano.care"
+  },
+  "occupationalCategory": "Peer Support, Adolescent Wellness Mentoring",
+  "programPrerequisites": {
+    "@type": "EducationalOccupationalCredential",
+    "credentialCategory": "Infano platform member in good standing, older adolescent girl with lived experience"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "INR",
+    "description": "Free to apply. Includes multi-step expert training, Infano Certified Peer Mentor credential, reward tier progression, and leadership skill development.",
+    "availability": "https://schema.org/InStock",
+    "url": "https://infano.care/peerline-onboarding"
+  },
+  "hasCourse": [
+    {
+      "@type": "Course",
+      "name": "Anxiety & Academic Stress Mentoring",
+      "description": "Training to support girls navigating exam pressure, academic anxiety, and peer stress. Includes evidence-based listening techniques and safe escalation protocols.",
+      "provider": { "@type": "Organization", "name": "Infano Care" }
+    },
+    {
+      "@type": "Course",
+      "name": "Body Image & Self-Esteem Mentoring",
+      "description": "Training in body-positive communication, self-worth conversations, and supporting girls with body image challenges during adolescence.",
+      "provider": { "@type": "Organization", "name": "Infano Care" }
+    },
+    {
+      "@type": "Course",
+      "name": "Bullying, Confidence & Friendships Mentoring",
+      "description": "Training to help girls find their voice, set healthy boundaries, and navigate bullying and social dynamics with resilience.",
+      "provider": { "@type": "Organization", "name": "Infano Care" }
+    }
+  ]
 };
 
 export default function TheCirclePage() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(circleServiceSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(circleProgramSchema) }}
+      />
       {/* Section 6.1 — Hero */}
       <section className="pt-20 pb-20 bg-primary/5 relative overflow-hidden">
         {/* Subtle Background Elements */}

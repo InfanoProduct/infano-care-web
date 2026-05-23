@@ -28,8 +28,8 @@ export function PartnershipBanner() {
 
       // Download local PDF from public folder
       const link = document.createElement('a');
-      link.href = '/dummy-pdf.pdf';
-      link.download = 'Infano_Partnership_Info_Pack.pdf';
+      link.href = '/InfanoCare School broucher.pdf';
+      link.download = 'InfanoCare School broucher.pdf';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

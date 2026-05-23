@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     url: 'https://infano.care/impact',
     images: [
       {
-        url: '/api/og?title=Our+Impact&category=Social+Impact&author=Infano+Care',
+        url: '/og-images/landing-og-image.png',
         width: 1200,
         height: 630,
         alt: 'Infano Care Impact',
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Infano Care Impact | Empowering Girls & Families',
     description: 'Read the stories and metrics behind our mission to support 10,000+ girls.',
-    images: ['/api/og?title=Our+Impact&category=Social+Impact&author=Infano+Care'],
+    images: ['/og-images/landing-og-image.png'],
   },
 };
 
@@ -34,7 +34,7 @@ export default function ImpactPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20" />
         <div className="max-w-4xl mx-auto px-6 md:px-12 lg:px-24 text-center relative z-10">
           <h1 className="text-4xl md:text-6xl font-bold font-heading mb-6 leading-tight">
-            Numbers tell the story. <br/>
+            Numbers tell the story. <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-secondary-light to-accent-light">Girls live it.</span>
           </h1>
         </div>
@@ -109,22 +109,22 @@ export default function ImpactPage() {
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold font-heading mb-4 text-muted-foreground">As seen and recognised by</h2>
           </div>
-          
+
           <div className="flex flex-wrap justify-center items-center gap-12 opacity-50 grayscale hover:grayscale-0 transition-all duration-500 mb-16">
-             {/* Placeholders for logos */}
-             <div className="text-xl font-bold font-serif">EdTech India</div>
-             <div className="text-xl font-bold font-sans tracking-widest uppercase">Parenting Today</div>
-             <div className="text-xl font-bold italic">The Health Journal</div>
-             <div className="text-xl font-bold border-2 border-current px-2">NEP ALIGNED</div>
-             <div className="text-xl font-bold flex items-center gap-2"><Award /> Innovation Award</div>
+            {/* Placeholders for logos */}
+            <div className="text-xl font-bold font-serif">EdTech India</div>
+            <div className="text-xl font-bold font-sans tracking-widest uppercase">Parenting Today</div>
+            <div className="text-xl font-bold italic">The Health Journal</div>
+            <div className="text-xl font-bold border-2 border-current px-2">NEP ALIGNED</div>
+            <div className="text-xl font-bold flex items-center gap-2"><Award /> Innovation Award</div>
           </div>
 
           <div className="max-w-3xl mx-auto text-center border-t border-border pt-12">
-             <div className="text-secondary mx-auto mb-4 flex justify-center"><Newspaper size={32} /></div>
-             <p className="text-xl md:text-2xl font-medium text-foreground italic mb-6">
-               "Infano.care represents the kind of holistic, girl-first thinking that Indian education has needed for decades."
-             </p>
-             <p className="font-semibold text-primary">— EdTech India</p>
+            <div className="text-secondary mx-auto mb-4 flex justify-center"><Newspaper size={32} /></div>
+            <p className="text-xl md:text-2xl font-medium text-foreground italic mb-6">
+              "Infano.care represents the kind of holistic, girl-first thinking that Indian education has needed for decades."
+            </p>
+            <p className="font-semibold text-primary">— EdTech India</p>
           </div>
         </div>
       </section>

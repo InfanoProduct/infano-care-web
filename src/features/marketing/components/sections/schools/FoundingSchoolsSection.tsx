@@ -56,6 +56,7 @@ export function FoundingSchoolsSection() {
                   src="/logo/infano-logo-for-light-bg.png"
                   alt="Infano Logo"
                   fill
+                  sizes="176px"
                   className="object-contain object-left"
                 />
               </div>

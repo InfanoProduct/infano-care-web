@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     url: 'https://infano.care/ecosystem',
     images: [
       {
-        url: '/api/og?title=Our+Ecosystem&category=Ecosystem&author=Infano+Care',
+        url: '/og-images/landing-og-image.png',
         width: 1200,
         height: 630,
         alt: 'Infano Care Ecosystem',
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Our Ecosystem | Puberty Education, Wellness & Care | Infano Care',
     description: "Explore the Infano Care Ecosystem — combining book guides, digital physical tracking, clinical expert support, and moderated communities for a safe puberty transition.",
-    images: ['/api/og?title=Our+Ecosystem&category=Ecosystem&author=Infano+Care'],
+    images: ['/og-images/landing-og-image.png'],
   },
 };
 

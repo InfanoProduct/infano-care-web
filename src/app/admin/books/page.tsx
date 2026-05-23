@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { 
-  ShoppingBag, Eye, Tag, Users, Plus, TrendingUp, Loader2, ArrowUpRight, 
-  Clock, CheckCircle2, AlertCircle, Trash2, Edit, Package, DollarSign
+import {
+  ShoppingBag, Eye, Plus, TrendingUp, Loader2, ArrowUpRight,
+  CheckCircle2, Trash2, Edit, Package, DollarSign
 } from 'lucide-react';
 import { ShopService, Book } from '@/services/shop.service';
 import { toast } from 'react-hot-toast';
@@ -13,32 +13,24 @@ export default function BookManagement() {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadBooks();
-  }, []);
+  useEffect(() => { loadBooks(); }, []);
 
   const loadBooks = async () => {
     setLoading(true);
     try {
       const data = await ShopService.adminGetBooks();
       setBooks(data);
-    } catch (error) {
-      console.error('Failed to load books:', error);
-      toast.error('Failed to load books');
-    } finally {
-      setLoading(false);
-    }
+    } catch { toast.error('Failed to load books'); }
+    finally { setLoading(false); }
   };
 
   const handleDeleteBook = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this book? This will not affect existing orders.')) return;
+    if (!confirm('Delete this book? This will not affect existing orders.')) return;
     try {
       await ShopService.adminDeleteBook(id);
-      toast.success('Book deleted successfully');
+      toast.success('Book deleted');
       loadBooks();
-    } catch (error) {
-      toast.error('Failed to delete book');
-    }
+    } catch { toast.error('Failed to delete book'); }
   };
 
   const toggleBookStatus = async (book: Book) => {
@@ -46,9 +38,7 @@ export default function BookManagement() {
       await ShopService.adminUpdateBook(book.id, { isActive: !book.isActive });
       toast.success(`Book ${!book.isActive ? 'activated' : 'deactivated'}`);
       loadBooks();
-    } catch (error) {
-      toast.error('Failed to update book status');
-    }
+    } catch { toast.error('Failed to update book status'); }
   };
 
   if (loading) {
@@ -74,8 +64,9 @@ export default function BookManagement() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Left Column: List */}
-        <div className="lg:col-span-3 space-y-6">
+        {/* Left: Books list */}
+        <div className="lg:col-span-3 space-y-8">
+          {/* Books */}
           <div className="glass-card rounded-[2.5rem] border-primary/5 overflow-hidden shadow-2xl">
             <div className="p-8 border-b border-border/30 flex items-center justify-between bg-primary/5">
               <h2 className="text-xl font-black flex items-center gap-2">
@@ -83,10 +74,9 @@ export default function BookManagement() {
                 Product List
               </h2>
               <span className="text-xs font-black bg-white/50 px-3 py-1 rounded-full border border-border shadow-sm uppercase tracking-widest text-muted-foreground">
-                {books.length} Items Total
+                {books.length} Items
               </span>
             </div>
-
             <div className="divide-y divide-border/30">
               {books.length === 0 ? (
                 <div className="p-12 text-center text-muted-foreground font-bold">
@@ -121,48 +111,25 @@ export default function BookManagement() {
                             <div className="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
                               <Package size={14} />
                             </div>
-                            <span className={book.stock < 10 ? 'text-rose-500' : ''}>
-                              {book.stock} in Stock
-                            </span>
+                            <span className={book.stock < 10 ? 'text-rose-500' : ''}>{book.stock} in Stock</span>
                           </div>
                         </div>
                       </div>
                     </div>
-                    
                     <div className="flex flex-col items-end gap-4 ml-6">
-                      <div className="flex items-center gap-2">
-                         <span className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm border ${
-                           book.isActive 
-                            ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' 
-                            : 'bg-amber-500/10 text-amber-600 border-amber-500/20'
-                         }`}>
-                          <div className={`w-1.5 h-1.5 rounded-full ${book.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
-                          {book.isActive ? 'Active' : 'Draft'}
-                        </span>
-                      </div>
-                      
+                      <span className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm border ${book.isActive ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border-amber-500/20'}`}>
+                        <div className={`w-1.5 h-1.5 rounded-full ${book.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                        {book.isActive ? 'Active' : 'Draft'}
+                      </span>
                       <div className="flex gap-2">
-                        <button 
-                          onClick={() => toggleBookStatus(book)}
-                          title={book.isActive ? 'Deactivate' : 'Activate'}
-                          className={`p-3 rounded-xl transition-all border shadow-sm ${
-                            book.isActive 
-                              ? 'bg-amber-500/5 hover:bg-amber-500/10 text-amber-500 border-amber-500/10' 
-                              : 'bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-500 border-emerald-500/10'
-                          }`}
-                        >
+                        <button onClick={() => toggleBookStatus(book)} title={book.isActive ? 'Deactivate' : 'Activate'}
+                          className={`p-3 rounded-xl transition-all border shadow-sm ${book.isActive ? 'bg-amber-500/5 hover:bg-amber-500/10 text-amber-500 border-amber-500/10' : 'bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-500 border-emerald-500/10'}`}>
                           {book.isActive ? <Eye size={18} /> : <CheckCircle2 size={18} />}
                         </button>
-                        <Link 
-                          href={`/admin/books/${book.id}/edit`}
-                          className="p-3 bg-secondary/50 rounded-xl hover:bg-primary/10 hover:text-primary transition-all border border-border/50 shadow-sm"
-                        >
+                        <Link href={`/admin/books/${book.id}/edit`} className="p-3 bg-secondary/50 rounded-xl hover:bg-primary/10 hover:text-primary transition-all border border-border/50 shadow-sm">
                           <Edit size={18} />
                         </Link>
-                        <button 
-                          onClick={() => handleDeleteBook(book.id)}
-                          className="p-3 bg-secondary/50 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-all border border-border/50 shadow-sm"
-                        >
+                        <button onClick={() => handleDeleteBook(book.id)} className="p-3 bg-secondary/50 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-all border border-border/50 shadow-sm">
                           <Trash2 size={18} />
                         </button>
                       </div>
@@ -174,7 +141,7 @@ export default function BookManagement() {
           </div>
         </div>
 
-        {/* Right Column: Inventory Summary */}
+        {/* Right: Snapshot */}
         <div className="space-y-6">
           <h2 className="text-2xl font-black tracking-tight px-2">Snapshot</h2>
           <div className="glass-card p-8 rounded-[2.5rem] border-primary/5 space-y-8 shadow-2xl relative overflow-hidden">
@@ -199,10 +166,7 @@ export default function BookManagement() {
                         <span>{book.stock}</span>
                       </div>
                       <div className="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-primary" 
-                          style={{ width: `${Math.min(100, (book.stock / 200) * 100)}%` }}
-                        />
+                        <div className="h-full bg-primary" style={{ width: `${Math.min(100, (book.stock / 200) * 100)}%` }} />
                       </div>
                     </div>
                   )) : (
@@ -217,16 +181,15 @@ export default function BookManagement() {
                   Quick Tip
                 </h4>
                 <p className="text-xs text-muted-foreground font-medium leading-relaxed">
-                  Low stock items (below 10) are highlighted in red. Consider restocking these items to avoid missed sales opportunities.
+                  Promo codes can now be managed directly from the product creation page! Go ahead and add one!
                 </p>
               </div>
             </div>
-            
             <div className="absolute top-0 right-0 p-4 opacity-[0.03]">
               <Package size={200} />
             </div>
           </div>
-          
+
           <Link href="/admin/orders" className="glass-card p-6 rounded-[2rem] border-primary/5 hover:border-primary/20 transition-all group flex items-center justify-between shadow-lg bg-gradient-to-br from-white to-secondary/30">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">

@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     url: 'https://infano.care/parents',
     images: [
       {
-        url: '/api/og?title=Parents+Programme&category=Parents&author=Infano+Care',
+        url: '/og-images/landing-og-image.png',
         width: 1200,
         height: 630,
         alt: 'Infano Parents Programme',
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Parents Programme | Support Your Daughter Through Puberty | Infano Care',
     description: 'Empower your daughter during female puberty with clinical guidance, parent tracking, and empathetic resources built for modern families.',
-    images: ['/api/og?title=Parents+Programme&category=Parents&author=Infano+Care'],
+    images: ['/og-images/landing-og-image.png'],
   },
 };
 

@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     url: 'https://infano.care/schools',
     images: [
       {
-        url: '/api/og?title=School+Partnerships&category=Schools&author=Infano+Care',
+        url: '/og-images/landing-og-image.png',
         width: 1200,
         height: 630,
         alt: 'Infano School Partnerships',
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'School Partnerships | Puberty & Wellness Programmes | Infano Care',
     description: "Bring Infano's NEP-aligned puberty and wellness curriculum to your school. Comprehensive teacher training, expert workshops, and secure student platforms.",
-    images: ['/api/og?title=School+Partnerships&category=Schools&author=Infano+Care'],
+    images: ['/og-images/landing-og-image.png'],
   },
 };
 

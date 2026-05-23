@@ -40,34 +40,26 @@ export default function BookForm({ bookId }: BookFormProps) {
     isActive: true,
   });
 
-  // Promo code state
-  const [hasPromo, setHasPromo] = useState(false);
+  // Promo codes list state
+  const [coupons, setCoupons] = useState<any[]>([]);
+  const [couponsLoading, setCouponsLoading] = useState(false);
+  const [showAddPromo, setShowAddPromo] = useState(false);
   const [promoForm, setPromoForm] = useState(emptyPromo);
-  const [removingPromo, setRemovingPromo] = useState(false);
+  const [savingPromo, setSavingPromo] = useState(false);
 
   useEffect(() => {
     if (bookId) {
       loadBook();
+      loadCoupons();
     }
   }, [bookId]);
 
   const loadBook = async () => {
     try {
       const book = await ShopService.getBook(bookId!);
-      setFormData(book);
-      if (book.coupon) {
-        setHasPromo(true);
-        setPromoForm({
-          code: book.coupon.code,
-          type: book.coupon.type,
-          value: book.coupon.value,
-          minOrderAmount: book.coupon.minOrderAmount,
-          maxDiscount: book.coupon.maxDiscount ? String(book.coupon.maxDiscount) : '',
-          expiryDate: book.coupon.expiryDate ? book.coupon.expiryDate.slice(0, 10) : '',
-          usageLimit: book.coupon.usageLimit,
-          isActive: book.coupon.isActive,
-        });
-      }
+      // Safe destructuring of book data to exclude circular/metadata fields
+      const { coupon, couponId, orderItems, ...safeBook } = book as any;
+      setFormData(safeBook);
     } catch (error) {
       console.error('Failed to load book:', error);
       toast.error('Failed to load book details');
@@ -77,24 +69,69 @@ export default function BookForm({ bookId }: BookFormProps) {
     }
   };
 
-  const handleRemovePromo = async () => {
-    if (!bookId) {
-      // Just clear the state for a new book
-      setHasPromo(false);
-      setPromoForm(emptyPromo);
+  const loadCoupons = async () => {
+    setCouponsLoading(true);
+    try {
+      const list = await ShopService.adminListCoupons();
+      setCoupons(list);
+    } catch (error) {
+      console.error('Failed to load coupons:', error);
+    } finally {
+      setCouponsLoading(false);
+    }
+  };
+
+  const handleTogglePromoStatus = async (coupon: any) => {
+    try {
+      await ShopService.adminUpdateCoupon(coupon.id, { isActive: !coupon.isActive });
+      toast.success(`Promo code ${coupon.code} ${!coupon.isActive ? 'activated' : 'deactivated'}`);
+      loadCoupons();
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to update promo status');
+    }
+  };
+
+  const handleDeletePromo = async (couponId: string) => {
+    if (!confirm('Are you sure you want to delete this promo code?')) return;
+    try {
+      await ShopService.adminDeleteCoupon(couponId);
+      toast.success('Promo code deleted');
+      loadCoupons();
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to delete promo code');
+    }
+  };
+
+  const handleAddPromo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!promoForm.code.trim()) {
+      toast.error('Promo code is required');
       return;
     }
-    if (!confirm('Delete this promo code from the product?')) return;
-    setRemovingPromo(true);
+    if (!promoForm.value || Number(promoForm.value) <= 0) {
+      toast.error('Promo discount value must be greater than 0');
+      return;
+    }
+    setSavingPromo(true);
     try {
-      await ShopService.adminUpdateBook(bookId, { promo: null } as any);
-      toast.success('Promo code removed');
-      setHasPromo(false);
+      await ShopService.adminCreateCoupon({
+        code: promoForm.code.toUpperCase().trim(),
+        type: promoForm.type,
+        value: Number(promoForm.value),
+        minOrderAmount: Number(promoForm.minOrderAmount),
+        maxDiscount: promoForm.maxDiscount ? Number(promoForm.maxDiscount) : null,
+        expiryDate: promoForm.expiryDate || null,
+        usageLimit: Number(promoForm.usageLimit),
+        isActive: promoForm.isActive,
+      });
+      toast.success('Promo code added successfully');
       setPromoForm(emptyPromo);
+      setShowAddPromo(false);
+      loadCoupons();
     } catch (e: any) {
-      toast.error(e?.message || 'Failed to remove promo code');
+      toast.error(e?.message || 'Failed to add promo code');
     } finally {
-      setRemovingPromo(false);
+      setSavingPromo(false);
     }
   };
 
@@ -103,32 +140,15 @@ export default function BookForm({ bookId }: BookFormProps) {
     setLoading(true);
 
     try {
-      const payload: any = { ...formData };
-
-      if (hasPromo) {
-        if (!promoForm.code.trim()) {
-          toast.error('Promo code is required');
-          setLoading(false);
-          return;
-        }
-        if (!promoForm.value || promoForm.value <= 0) {
-          toast.error('Promo discount value must be greater than 0');
-          setLoading(false);
-          return;
-        }
-        payload.promo = {
-          ...promoForm,
-          value: Number(promoForm.value),
-          minOrderAmount: Number(promoForm.minOrderAmount),
-          maxDiscount: promoForm.maxDiscount ? Number(promoForm.maxDiscount) : null,
-          expiryDate: promoForm.expiryDate || null,
-        };
-      } else {
-        // If promo was removed, signal deletion to the API
-        if (bookId) {
-          payload.promo = null;
-        }
-      }
+      // Create a clean payload with only standard writeable fields
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        price: Number(formData.price),
+        stock: Number(formData.stock),
+        imageUrl: formData.imageUrl,
+        isActive: formData.isActive,
+      };
 
       if (bookId) {
         await ShopService.adminUpdateBook(bookId, payload);
@@ -262,98 +282,42 @@ export default function BookForm({ bookId }: BookFormProps) {
             </div>
           </div>
 
-          {/* ─── Promo Code Section ─── */}
+          {/* ─── Promo Code Management Section ─── */}
           <div className="glass-card rounded-[2.5rem] border-emerald-500/10 shadow-2xl overflow-hidden">
-            {/* Promo header */}
+            {/* Section Header */}
             <div className="p-8 pb-6 border-b border-border/20 flex items-center justify-between bg-emerald-500/5">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center">
                   <Ticket size={20} className="text-emerald-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-foreground">Promo Code</h3>
-                  <p className="text-xs text-muted-foreground font-medium mt-0.5">
-                    Attach a discount code directly to this product
+                  <h3 className="text-lg font-black text-slate-900 tracking-tight">Shop Promo Codes</h3>
+                  <p className="text-xs text-muted-foreground font-semibold mt-0.5">
+                    Manage multiple discount coupons active in the store
                   </p>
                 </div>
               </div>
 
-              {/* Three action buttons */}
-              <div className="flex items-center gap-2">
-                {/* Status toggle button */}
-                {hasPromo && (
-                  <button
-                    type="button"
-                    onClick={() => setPromoForm(p => ({ ...p, isActive: !p.isActive }))}
-                    title={promoForm.isActive ? 'Deactivate promo' : 'Activate promo'}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs transition-all border ${promoForm.isActive
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
-                        : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'
-                      }`}
-                  >
-                    {promoForm.isActive ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
-                    {promoForm.isActive ? 'Active' : 'Inactive'}
-                  </button>
-                )}
-
-                {/* Delete promo button */}
-                {hasPromo && (
-                  <button
-                    type="button"
-                    onClick={handleRemovePromo}
-                    disabled={removingPromo}
-                    title="Remove promo code"
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition-all disabled:opacity-50"
-                  >
-                    {removingPromo ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                    Delete
-                  </button>
-                )}
-
-                {/* Add / collapse promo button */}
-                {!hasPromo ? (
-                  <button
-                    type="button"
-                    onClick={() => setHasPromo(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20 hover:scale-105 active:scale-95"
-                  >
-                    <Plus size={14} />
-                    Add Promo
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => { setHasPromo(false); setPromoForm(emptyPromo); }}
-                    className="p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-400"
-                    title="Collapse"
-                  >
-                    <X size={16} />
-                  </button>
-                )}
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddPromo(!showAddPromo);
+                  setPromoForm(emptyPromo);
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20 hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                {showAddPromo ? <X size={14} /> : <Plus size={14} />}
+                {showAddPromo ? 'Cancel' : 'Add Promo'}
+              </button>
             </div>
 
-            {/* Promo form body */}
-            {hasPromo && (
-              <div className="p-8 space-y-5">
-                {/* Promo code preview badge */}
-                {promoForm.code && (
-                  <div className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-sm font-bold w-fit transition-all ${isExpired
-                      ? 'bg-rose-50 border-rose-200 text-rose-600'
-                      : promoForm.isActive
-                        ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                        : 'bg-slate-50 border-slate-200 text-slate-500'
-                    }`}>
-                    <Tag size={14} />
-                    <span className="font-mono font-black tracking-wider">{promoForm.code}</span>
-                    <span className="font-normal text-xs opacity-70">
-                      {promoForm.type === 'PERCENTAGE' ? `${promoForm.value}% off` : `₹${promoForm.value} off`}
-                      {isExpired ? ' · Expired' : promoForm.isActive ? ' · Active' : ' · Inactive'}
-                    </span>
-                  </div>
-                )}
+            {/* Add Promo Code Form */}
+            {showAddPromo && (
+              <div className="p-8 border-b border-border/10 bg-slate-50/50 space-y-5 animate-in slide-in-from-top-4 duration-300">
+                <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2 mb-2">
+                  <Plus size={16} className="text-emerald-600" /> Create a New Coupon
+                </h4>
 
-                {/* Code */}
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-black text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
                     <Ticket size={12} /> Promo Code *
@@ -361,12 +325,11 @@ export default function BookForm({ bookId }: BookFormProps) {
                   <input
                     value={promoForm.code}
                     onChange={e => setPromoForm(p => ({ ...p, code: e.target.value.toUpperCase() }))}
-                    placeholder="e.g. BOOK20"
+                    placeholder="e.g. GIGI25"
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none font-mono font-black text-slate-900 placeholder:font-normal placeholder:text-slate-400 text-sm transition-all"
                   />
                 </div>
 
-                {/* Type + Value */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-black text-slate-600 uppercase tracking-wider">Discount Type *</label>
@@ -395,25 +358,20 @@ export default function BookForm({ bookId }: BookFormProps) {
                   </div>
                 </div>
 
-                {/* Expiry Date */}
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-black text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
                     <Calendar size={12} /> Expiry Date
-                    <span className="text-slate-400 normal-case font-normal">(leave blank for no expiry)</span>
+                    <span className="text-slate-400 normal-case font-normal">(optional)</span>
                   </label>
                   <input
                     type="date"
                     value={promoForm.expiryDate}
                     min={new Date().toISOString().slice(0, 10)}
                     onChange={e => setPromoForm(p => ({ ...p, expiryDate: e.target.value }))}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none font-bold text-slate-900 text-sm transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none font-bold text-slate-900 text-sm transition-all bg-white"
                   />
-                  {isExpired && (
-                    <p className="text-xs text-rose-500 font-semibold">⚠ This expiry date is in the past — the code will be rejected at checkout.</p>
-                  )}
                 </div>
 
-                {/* Min Order + Max Discount + Usage Limit */}
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-black text-slate-600 uppercase tracking-wider">Min Order (₹)</label>
@@ -421,7 +379,7 @@ export default function BookForm({ bookId }: BookFormProps) {
                       type="number" min={0}
                       value={promoForm.minOrderAmount}
                       onChange={e => setPromoForm(p => ({ ...p, minOrderAmount: Number(e.target.value) }))}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none font-bold text-slate-900 text-sm transition-all"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none font-bold text-slate-900 text-sm transition-all bg-white"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -431,7 +389,7 @@ export default function BookForm({ bookId }: BookFormProps) {
                       value={promoForm.maxDiscount}
                       placeholder="No cap"
                       onChange={e => setPromoForm(p => ({ ...p, maxDiscount: e.target.value }))}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none font-bold text-slate-900 placeholder:font-normal placeholder:text-slate-400 text-sm transition-all"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none font-bold text-slate-900 placeholder:font-normal placeholder:text-slate-400 text-sm transition-all bg-white"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -440,22 +398,118 @@ export default function BookForm({ bookId }: BookFormProps) {
                       type="number" min={1}
                       value={promoForm.usageLimit}
                       onChange={e => setPromoForm(p => ({ ...p, usageLimit: Number(e.target.value) }))}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none font-bold text-slate-900 text-sm transition-all"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none font-bold text-slate-900 text-sm transition-all bg-white"
                     />
                   </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => { setShowAddPromo(false); setPromoForm(emptyPromo); }}
+                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl font-bold text-xs transition-all cursor-pointer text-slate-700"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddPromo}
+                    disabled={savingPromo}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs transition-all disabled:opacity-50 cursor-pointer"
+                  >
+                    {savingPromo ? <Loader2 className="animate-spin" size={14} /> : <Save size={14} />}
+                    Save Coupon
+                  </button>
                 </div>
               </div>
             )}
 
-            {/* Empty state */}
-            {!hasPromo && (
-              <div className="px-8 py-6 text-center text-muted-foreground text-sm font-medium italic">
-                No promo code attached to this product.{' '}
-                <button type="button" onClick={() => setHasPromo(true)} className="text-emerald-600 font-bold not-italic hover:underline">
-                  Add one →
-                </button>
-              </div>
-            )}
+            {/* Coupons List */}
+            <div className="p-8 space-y-4">
+              {couponsLoading ? (
+                <div className="flex flex-col items-center justify-center py-10 gap-2">
+                  <Loader2 className="animate-spin text-emerald-600" size={28} />
+                  <p className="text-xs text-muted-foreground font-semibold">Updating promo codes list...</p>
+                </div>
+              ) : coupons.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground text-sm font-medium italic">
+                  No promo codes active in store. Create one above to attract buyers!
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {coupons.map((coupon) => {
+                    const isCouponExpired = coupon.expiryDate ? new Date(coupon.expiryDate) < new Date() : false;
+                    return (
+                      <div
+                        key={coupon.id}
+                        className={`flex flex-col md:flex-row md:items-center justify-between p-5 rounded-2xl border transition-all ${
+                          isCouponExpired
+                            ? 'bg-rose-50/40 border-rose-100'
+                            : coupon.isActive
+                              ? 'bg-emerald-50/20 border-emerald-100'
+                              : 'bg-slate-50/40 border-slate-100'
+                        }`}
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-3">
+                            <span className="font-mono font-black tracking-wider px-3 py-1 bg-white border border-slate-200 rounded-lg text-slate-900 shadow-sm text-sm">
+                              {coupon.code}
+                            </span>
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                              isCouponExpired
+                                ? 'bg-rose-100 text-rose-700'
+                                : coupon.isActive
+                                  ? 'bg-emerald-100 text-emerald-700'
+                                  : 'bg-slate-100 text-slate-500'
+                            }`}>
+                              {isCouponExpired ? 'Expired' : coupon.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+
+                          <div className="text-xs text-slate-500 font-bold space-y-1">
+                            <p className="text-slate-800 text-sm font-black">
+                              Discount: {coupon.type === 'PERCENTAGE' ? `${coupon.value}%` : `₹${coupon.value}`} off
+                            </p>
+                            <p className="font-semibold">
+                              Min Order: ₹{coupon.minOrderAmount} 
+                              {coupon.maxDiscount ? ` · Cap: ₹${coupon.maxDiscount}` : ''} 
+                              {coupon.expiryDate ? ` · Expires: ${new Date(coupon.expiryDate).toLocaleDateString()}` : ' · No Expiry'}
+                            </p>
+                            <p className="font-semibold text-slate-400">
+                              Usage: {coupon.usedCount} used / {coupon.usageLimit} limit
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 mt-4 md:mt-0 justify-end">
+                          <button
+                            type="button"
+                            onClick={() => handleTogglePromoStatus(coupon)}
+                            className={`flex items-center gap-1 px-3 py-1.5 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all border ${
+                              coupon.isActive
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'
+                            }`}
+                          >
+                            {coupon.isActive ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
+                            {coupon.isActive ? 'Deactivate' : 'Activate'}
+                          </button>
+                          
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePromo(coupon.id)}
+                            className="p-2 rounded-xl text-rose-500 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-all"
+                            title="Delete promo code"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -510,7 +564,7 @@ export default function BookForm({ bookId }: BookFormProps) {
                 { label: 'Cover image linked', checked: !!formData.imageUrl },
                 { label: 'Stock level updated', checked: formData.stock! >= 0 },
                 { label: 'Catchy description', checked: formData.description!.length > 20 },
-                { label: 'Promo code valid', checked: !hasPromo || (!!promoForm.code && promoForm.value > 0 && !isExpired) },
+                { label: 'Shop promo codes ready', checked: coupons.length > 0 },
               ].map(item => (
                 <li key={item.label} className="flex items-center gap-3 text-xs font-bold transition-all">
                   <div className={`w-4 h-4 rounded-md flex items-center justify-center border transition-all ${item.checked ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-border bg-white'}`}>

@@ -52,20 +52,33 @@ export default function AdminLayout({
     { name: 'System Settings', icon: Settings, href: '/admin/settings' },
   ];
 
+  const filteredMenuItems = user?.role === 'EXPERT'
+    ? menuItems.filter(item => item.name === 'Learning Programs' || item.name === 'Connect')
+    : menuItems;
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
+    if (!mounted || !user) return;
+    
+    // Redirect experts away from dashboard or root to Learning Programs
+    if (user.role === 'EXPERT' && (pathname === '/admin' || pathname === '/admin/dashboard')) {
+      router.push('/admin/programs');
+    }
+  }, [mounted, user, pathname, router]);
+
+  useEffect(() => {
     if (!mounted) return;
     
     // Auto-expand items that have active children on mount
-    const activeItems = menuItems
+    const activeItems = filteredMenuItems
       .filter(item => item.subItems?.some(sub => pathname.startsWith(sub.href)))
       .map(item => item.name);
     
     setExpandedItems(prev => Array.from(new Set([...prev, ...activeItems])));
-  }, [mounted, pathname]);
+  }, [mounted, pathname, filteredMenuItems]);
 
   if (!mounted) return null;
   if (isLoginPage) return <>{children}</>;
@@ -97,7 +110,7 @@ export default function AdminLayout({
         </div>
 
         <nav className="flex-1 space-y-2">
-          {menuItems.map((item) => {
+          {filteredMenuItems.map((item) => {
             if (item.subItems) {
               const isSubActive = item.subItems.some(sub => pathname.startsWith(sub.href));
               const isExpanded = expandedItems.includes(item.name);

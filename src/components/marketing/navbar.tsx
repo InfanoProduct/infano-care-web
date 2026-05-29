@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
+import { useAuthStore } from '@/store/auth-store';
 
 const navLinks = [
   { name: 'Home', href: '/' },
@@ -22,6 +23,7 @@ export function MarketingNavbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -72,9 +74,15 @@ export function MarketingNavbar() {
 
         {/* Desktop CTAs */}
         <div className="hidden xl:flex items-center gap-3 xl:gap-6 shrink-0">
-          <Link href="/parents" className="text-[13px] font-bold text-slate-700 hover:text-primary transition-colors whitespace-nowrap hidden 2xl:block">
-            I'm a Parent — Get Access
-          </Link>
+          {isAuthenticated ? (
+            <Link href="/dashboard" className="text-[13px] font-bold text-primary hover:text-primary-dark transition-colors whitespace-nowrap hidden 2xl:block">
+              Go to Workspace &rarr;
+            </Link>
+          ) : (
+            <Link href="/login" className="text-[13px] font-bold text-slate-700 hover:text-primary transition-colors whitespace-nowrap hidden 2xl:block">
+              Sign In
+            </Link>
+          )}
           <Link href="/contact" className="btn-primary text-xs xl:text-[13px] px-4 xl:px-6 py-2 xl:py-2.5 whitespace-nowrap shadow-md hover:shadow-lg transition-all active:scale-95">
             Enrol Your School &rarr;
           </Link>
@@ -113,17 +121,27 @@ export function MarketingNavbar() {
           })}
         </nav>
         <div className="flex flex-col gap-4 mt-6 pb-12">
-          <Link
-            href="/parents"
-            onClick={() => setMobileMenuOpen(false)}
-            className="btn-outline w-full"
-          >
-            I'm a Parent — Get Access
-          </Link>
+          {isAuthenticated ? (
+            <Link
+              href="/dashboard"
+              onClick={() => setMobileMenuOpen(false)}
+              className="btn-outline w-full text-center"
+            >
+              Go to Workspace &rarr;
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="btn-outline w-full text-center"
+            >
+              Sign In
+            </Link>
+          )}
           <Link
             href="/contact"
             onClick={() => setMobileMenuOpen(false)}
-            className="btn-primary w-full"
+            className="btn-primary w-full text-center"
           >
             Enrol Your School &rarr;
           </Link>

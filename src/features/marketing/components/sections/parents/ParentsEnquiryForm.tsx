@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { 
   ChevronRight, ChevronLeft, CheckCircle2, Loader2, Sparkles, 
   BookOpen, Users, Calendar, ShieldCheck, Heart, Award, GraduationCap,
@@ -16,7 +17,7 @@ const PROGRAMS_METADATA = [
   {
     id: 'spark',
     title: 'SPARK',
-    classRange: 'Class 5-6',
+    classRange: 'Class 5',
     tagline: 'She wakes up to herself.',
     description: 'A transformative space designed to ease early adolescent girls into the physical, emotional, and social changes of puberty, building a bulletproof foundation of body confidence.',
     sessions: 8,
@@ -32,7 +33,7 @@ const PROGRAMS_METADATA = [
   {
     id: 'rise',
     title: 'RISE',
-    classRange: 'Class 6-7',
+    classRange: 'Class 6',
     tagline: 'She learns who she is - and who gets access.',
     description: 'An essential guide to digital safety, consent, and self-identity, helping middle-school girls map out healthy boundaries and understand red & green flags in their online and offline circles.',
     sessions: 10,
@@ -48,7 +49,7 @@ const PROGRAMS_METADATA = [
   {
     id: 'bloom',
     title: 'BLOOM',
-    classRange: 'Class 7-8',
+    classRange: 'Class 7',
     tagline: 'She faces the hard stuff before it faces her.',
     description: 'Tackling the intense academic and emotional hurdles of early high school. Focuses on friendship dynamics, body-image issues, social pressures, and healthy emotional coping mechanisms.',
     sessions: 10,
@@ -64,7 +65,7 @@ const PROGRAMS_METADATA = [
   {
     id: 'ignite',
     title: 'IGNITE',
-    classRange: 'Class 8-9',
+    classRange: 'Class 8',
     tagline: 'She learns how the world works - and how to work it.',
     description: 'An advanced leadership, critical thinking, and financial intelligence curriculum, preparing young women to stand up against media bias, negotiate boundaries, and set real goals.',
     sessions: 12,
@@ -80,7 +81,7 @@ const PROGRAMS_METADATA = [
   {
     id: 'unstoppable',
     title: 'UNSTOPPABLE',
-    classRange: 'Class 9-10',
+    classRange: 'Class 9',
     tagline: 'She walks into adult life prepared, not blindsided.',
     description: 'The ultimate preparatory milestone program focusing on career planning, college transition, independent adulting, stress mitigation, and maintaining healthy personal relationships.',
     sessions: 12,
@@ -103,18 +104,18 @@ const QUESTIONS = [
     subtitle: "This helps us route her to the perfect, age-appropriate developmental curriculum.",
     type: 'select',
     options: [
-      { value: '5-6', label: 'Class 5 to 6', desc: 'Ages 10-12 (Early pre-teen transition)' },
-      { value: '6-7', label: 'Class 6 to 7', desc: 'Ages 11-13 (Middle school milestones)' },
-      { value: '7-8', label: 'Class 7 to 8', desc: 'Ages 12-14 (Early high school adjustments)' },
-      { value: '8-9', label: 'Class 8 to 9', desc: 'Ages 13-15 (Critical puberty & identity phases)' },
-      { value: '9-10', label: 'Class 9 to 10', desc: 'Ages 14-16 (Preparing for senior high & beyond)' }
+      { value: '5', label: 'Class 5', desc: 'Ages 10-11 (Early pre-teen transition)' },
+      { value: '6', label: 'Class 6', desc: 'Ages 11-12 (Middle school milestones)' },
+      { value: '7', label: 'Class 7', desc: 'Ages 12-13 (Early high school adjustments)' },
+      { value: '8', label: 'Class 8', desc: 'Ages 13-14 (Critical puberty & identity phases)' },
+      { value: '9', label: 'Class 9', desc: 'Ages 14-15 (Preparing for senior high & beyond)' }
     ]
   },
   {
     id: 'confidence',
     title: "How would you describe her social confidence?",
     subtitle: "We tailor peer circle interactions to match her comfort zone.",
-    type: 'select',
+    type: 'multiselect',
     options: [
       { value: 'shy', label: 'Quiet & Observant', desc: 'Prefers small groups, takes time to open up to new circles.' },
       { value: 'selective', label: 'Thoughtful & Selective', desc: 'Warm and comfortable with close friends, but quiet in larger spaces.' },
@@ -208,7 +209,7 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
   // Form State
   const [answers, setAnswers] = useState({
     classRange: '',
-    confidence: '',
+    confidence: [] as string[],
     interests: '',
     hasMentor: '',
     challenges: [] as string[],
@@ -303,10 +304,6 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
   const getSuggestedPrograms = () => {
     const selectedClass = answers.classRange;
     if (!selectedClass) return [PROGRAMS_METADATA[0]]; // fallback
-    if (selectedClass === '6-7') {
-      // suggest both SPARK (Class 5-6) and RISE (Class 6-7)
-      return PROGRAMS_METADATA.filter((p) => p.id === 'spark' || p.id === 'rise');
-    }
     const matched = PROGRAMS_METADATA.find((p) => p.classRange.includes(selectedClass));
     return matched ? [matched] : [PROGRAMS_METADATA[0]];
   };
@@ -353,7 +350,7 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
         phone,
         email: email || null,
         classRange: `Class ${answers.classRange}`,
-        confidence: answers.confidence,
+        confidence: answers.confidence.join(','),
         interests: [answers.interests],
         hasMentor: answers.hasMentor,
         challenges: answers.challenges,
@@ -461,25 +458,33 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                     {QUESTIONS[currentStep].options.map((option) => {
                       const selectedList = answers[QUESTIONS[currentStep].id as keyof typeof answers] as string[] || [];
                       const isSelected = selectedList.includes(option.value);
+                      const hasDesc = !!(option as any).desc;
                       return (
                         <button
                           key={option.value}
                           type="button"
                           onClick={() => handleToggleMultiOption(QUESTIONS[currentStep].id, option.value)}
-                          className={`p-3 sm:p-3.5 text-left rounded-2xl border-2 transition-all duration-200 group flex items-center gap-3 ${
+                          className={`p-3 sm:p-3.5 text-left rounded-2xl border-2 transition-all duration-200 group flex items-start gap-3 hover:shadow-lg hover:shadow-slate-100/30 ${
                             isSelected
                               ? 'border-primary bg-primary/[0.02] text-primary shadow-sm shadow-primary/5'
                               : 'border-slate-100 hover:border-slate-200 text-slate-700 hover:bg-slate-50'
                           }`}
                         >
-                          <div className={`w-4.5 h-4.5 rounded-md border-2 shrink-0 flex items-center justify-center transition-all ${
+                          <div className={`w-4.5 h-4.5 rounded-md border-2 shrink-0 flex items-center justify-center mt-0.5 transition-all ${
                             isSelected ? 'border-primary bg-primary' : 'border-slate-300 group-hover:border-slate-400'
                           }`}>
                             {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white stroke-[3px]" />}
                           </div>
-                          <span className={`text-[13px] sm:text-[14px] font-semibold tracking-tight ${isSelected ? 'text-primary' : 'text-slate-800'}`}>
-                            {option.label}
-                          </span>
+                          <div>
+                            <p className={`font-semibold text-sm sm:text-[14px] leading-tight ${isSelected ? 'text-primary' : 'text-slate-800'}`}>
+                              {option.label}
+                            </p>
+                            {hasDesc && (
+                              <p className={`text-[11px] mt-1 leading-relaxed ${isSelected ? 'text-primary/80 font-medium' : 'text-slate-500 font-normal'}`}>
+                                {(option as any).desc}
+                              </p>
+                            )}
+                          </div>
                         </button>
                       );
                     })}
@@ -968,20 +973,32 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                   {error && <p className="text-red-500 text-xs font-semibold text-center mt-0.5">{error}</p>}
 
                   {/* Submit demo slot */}
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full btn-primary py-2.5 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 group text-white bg-primary font-semibold text-xs transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-75 mt-0.5"
-                  >
-                    {isSubmitting ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <>
-                        Book Free Demo Session
-                        <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                      </>
-                    )}
-                  </button>
+                  {/* Actions Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-0.5">
+                    {/* Book Demo Button */}
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full btn-primary py-2.5 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 group text-white bg-primary font-semibold text-xs transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-75"
+                    >
+                      {isSubmitting ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          Book Free Demo
+                          <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                        </>
+                      )}
+                    </button>
+
+                    {/* Direct Enroll Button */}
+                    <Link
+                      href={`/checkout?bookId=${suggestedPrograms[0] ? suggestedPrograms[0].id.toLowerCase() : 'spark'}-${selectedFormat === 'PRIVATE' ? 'private' : 'group'}&name=${encodeURIComponent(parentName)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&class=${encodeURIComponent(suggestedPrograms[0] ? suggestedPrograms[0].classRange : ("Class " + answers.classRange))}&format=${encodeURIComponent(selectedFormat === 'PRIVATE' ? '1:1 Private Mentoring' : 'Group Cohort (4 Girls)')}&date=${encodeURIComponent(selectedDay ? selectedDay.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '')}&time=${encodeURIComponent(selectedTime ? selectedTime.replace('_', ' ') : '')}`}
+                      className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99] text-center"
+                    >
+                      Enroll Now
+                    </Link>
+                  </div>
                 </form>
 
                 {/* Back link */}

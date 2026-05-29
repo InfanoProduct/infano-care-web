@@ -29,5 +29,9 @@ export const AuthService = {
 
   async verifyOtp(phone: string, otp: string) {
     return apiClient.post<any>('/auth/otp/verify', { phone, otp });
+  },
+
+  async updateRole(role: string) {
+    return apiClient.patch<any>('/user/role', { role });
   }
 };

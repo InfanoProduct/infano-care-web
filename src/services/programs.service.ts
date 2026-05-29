@@ -33,10 +33,7 @@ export interface ProgramEnrollment {
   pricePaid: number;
   createdAt: string;
   updatedAt: string;
-  program: {
-    title: string;
-    classRange: string;
-  };
+  program: Program;
   user: {
     username: string;
     phone: string;
@@ -145,5 +142,19 @@ export const ProgramsService = {
    */
   async bookDemoSession(data: Partial<DemoSession>): Promise<{ success: boolean; data: DemoSession }> {
     return apiClient.post<{ success: boolean; data: DemoSession }>('/programs/demo/book', data);
+  },
+
+  /**
+   * Enrolls the current logged-in user in a program
+   */
+  async enrollInProgram(programId: string, type: 'PRIVATE' | 'GROUP'): Promise<{ success: boolean; message: string; enrollment: any }> {
+    return apiClient.post<{ success: boolean; message: string; enrollment: any }>(`/programs/${programId}/enroll`, { type });
+  },
+
+  /**
+   * Fetches all enrollments for the current logged-in user
+   */
+  async getUserEnrollments(): Promise<{ success: boolean; data: ProgramEnrollment[] }> {
+    return apiClient.get<{ success: boolean; data: ProgramEnrollment[] }>('/programs/me');
   }
 };

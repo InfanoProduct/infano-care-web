@@ -1,0 +1,366 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { 
+  CreditCard, Award, ShoppingBag, Calendar, CheckCircle2, 
+  Loader2, ShieldCheck, ArrowRight, MessageCircle, ExternalLink,
+  DollarSign, FileText, AlertCircle, HelpCircle, BadgeCheck, MapPin
+} from 'lucide-react';
+import { ProgramsService, ProgramEnrollment } from '@/services/programs.service';
+import { ShopService } from '@/services/shop.service';
+import { useAuthStore } from '@/store/auth-store';
+import Link from 'next/link';
+
+export default function CustomerPaymentsOverview() {
+  const { user } = useAuthStore();
+  const [enrollments, setEnrollments] = useState<ProgramEnrollment[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'programs' | 'books'>('programs');
+
+  const loadPaymentData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [enrollRes, ordersRes] = await Promise.all([
+        ProgramsService.getUserEnrollments().catch(() => ({ success: true, data: [] })),
+        ShopService.getUserOrders().catch(() => [])
+      ]);
+
+      setEnrollments(enrollRes.data || []);
+      setOrders(ordersRes || []);
+    } catch (err) {
+      console.error('Failed to load payment & invoice data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadPaymentData();
+  }, [loadPaymentData]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 gap-4 text-primary">
+        <Loader2 className="animate-spin text-primary" size={44} />
+        <span className="font-extrabold text-lg text-slate-600 tracking-wide">Compiling Financial Ledger...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 font-sans">
+      
+      {/* Header Banner */}
+      <div className="bg-gradient-to-r from-primary/10 via-accent/5 to-white p-8 rounded-2xl border border-primary/10 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden shadow-sm">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-3xl rounded-full translate-x-1/3 -translate-y-1/3 pointer-events-none" />
+        <div className="space-y-2 relative z-10">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-primary/20 rounded-full text-[10px] font-black tracking-widest text-primary uppercase shadow-sm">
+            <CreditCard size={11} /> Secure Transactions
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-800 tracking-tight leading-none">
+            Payments & Invoices
+          </h1>
+          <p className="text-sm font-semibold text-slate-500 max-w-lg leading-relaxed">
+            Review detailed invoice summaries, track physical product delivery coordinates, and audit digital program enrollments.
+          </p>
+        </div>
+      </div>
+
+      {/* Main Grid: Left Column for Payments lists, Right for FAQs/Support info */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        {/* LEFT COLUMN: Tab Switcher & Data Lists (lg:col-span-8) */}
+        <div className="lg:col-span-8 space-y-6">
+          
+          {/* Tab buttons */}
+          <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200 text-xs font-black uppercase tracking-wider select-none w-fit">
+            <button
+              onClick={() => setActiveTab('programs')}
+              className={`flex items-center gap-2 px-5 py-3 rounded-xl transition-all duration-200 ${
+                activeTab === 'programs'
+                  ? 'bg-white text-primary shadow-sm font-black'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Award size={15} />
+              Program Enrollments ({enrollments.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('books')}
+              className={`flex items-center gap-2 px-5 py-3 rounded-xl transition-all duration-200 ${
+                activeTab === 'books'
+                  ? 'bg-white text-primary shadow-sm font-black'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <ShoppingBag size={15} />
+              Product Orders ({orders.length})
+            </button>
+          </div>
+
+          {/* Tab 1: Program Enrollments list */}
+          {activeTab === 'programs' && (
+            <div className="space-y-4">
+              {enrollments.length === 0 ? (
+                <div className="text-center py-16 bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/20 space-y-4">
+                  <div className="w-16 h-16 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center mx-auto text-slate-300">
+                    <Award size={28} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800">No Program Enrollments Found</h4>
+                    <p className="text-xs text-slate-400 font-semibold mt-1 max-w-sm mx-auto">
+                      You haven't enrolled in any developmental programs yet. Explore classes to get started!
+                    </p>
+                  </div>
+                  <Link 
+                    href="/#programs" 
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-extrabold text-xs rounded-xl shadow-md shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-wider"
+                  >
+                    View Curriculums <ArrowRight size={14} />
+                  </Link>
+                </div>
+              ) : (
+                enrollments.map((enr) => (
+                  <div 
+                    key={enr.id}
+                    className="bg-white border border-slate-100/80 rounded-2xl p-6 shadow-xl shadow-slate-200/25 relative overflow-hidden border-t-4 border-t-primary"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-[9px] font-black uppercase tracking-widest text-primary bg-primary/10 px-2.5 py-0.5 rounded-full">
+                            {enr.type === 'PRIVATE' ? '1:1 Private Mentoring' : 'Group Cohort (4 Girls)'}
+                          </span>
+                          <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                            <Calendar size={12} />
+                            {new Date(enr.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </span>
+                        </div>
+                        <h3 className="text-lg font-black text-slate-800">
+                          {enr.program.title} Program • {enr.program.classRange}
+                        </h3>
+                      </div>
+
+                      <div className="text-left sm:text-right shrink-0">
+                        <span className="text-2xl font-black text-slate-800">₹{enr.pricePaid.toLocaleString()}</span>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Paid Successfully</p>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-semibold text-slate-500">
+                      <div className="flex flex-wrap gap-4">
+                        <div>
+                          <span className="text-[9px] font-bold text-slate-400 uppercase block tracking-wider">Registration ID</span>
+                          <span className="text-slate-700 font-bold font-mono text-[11px] block mt-0.5">{enr.id}</span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] font-bold text-slate-400 uppercase block tracking-wider">Enrollment Status</span>
+                          <span className="text-emerald-600 font-extrabold flex items-center gap-1 mt-0.5 text-[11px]">
+                            <BadgeCheck size={13} /> {enr.status}
+                          </span>
+                        </div>
+                      </div>
+
+                      <Link 
+                        href="/dashboard"
+                        className="inline-flex items-center gap-1 text-primary hover:text-primary-dark font-extrabold text-[11px] uppercase tracking-wider group"
+                      >
+                        Go to Workspace <ArrowRight className="group-hover:translate-x-0.5 transition-transform" size={13} />
+                      </Link>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
+          {/* Tab 2: Book Orders list */}
+          {activeTab === 'books' && (
+            <div className="space-y-4">
+              {orders.length === 0 ? (
+                <div className="text-center py-16 bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/20 space-y-4">
+                  <div className="w-16 h-16 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center mx-auto text-slate-300">
+                    <ShoppingBag size={28} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800">No Product Orders Found</h4>
+                    <p className="text-xs text-slate-400 font-semibold mt-1 max-w-sm mx-auto">
+                      You haven't ordered any books or products yet. Check out the Gigi Survival Guide!
+                    </p>
+                  </div>
+                  <Link 
+                    href="/gigi-the-awkward-age-book" 
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-extrabold text-xs rounded-xl shadow-md shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-wider"
+                  >
+                    View Book Details <ArrowRight size={14} />
+                  </Link>
+                </div>
+              ) : (
+                orders.map((order) => (
+                  <div 
+                    key={order.id}
+                    className="bg-white border border-slate-100/80 rounded-2xl p-6 shadow-xl shadow-slate-200/25 relative overflow-hidden"
+                  >
+                    {/* Top Order Row */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-[9px] font-black uppercase tracking-widest bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md border border-slate-200/60">
+                            Order ID: #{order.id.slice(0, 8)}
+                          </span>
+                          <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${
+                            order.paymentStatus === 'COMPLETED' 
+                              ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
+                              : order.paymentStatus === 'PENDING'
+                              ? 'bg-amber-50 text-amber-600 border border-amber-100'
+                              : 'bg-rose-50 text-rose-600 border border-rose-100'
+                          }`}>
+                            Payment {order.paymentStatus}
+                          </span>
+                          <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                            <Calendar size={12} />
+                            {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </span>
+                        </div>
+                        <h4 className="text-base font-extrabold text-slate-800">
+                          {order.items?.map((it: any) => `${it.book.title} (x${it.quantity})`).join(', ') || 'Survival Guide Order'}
+                        </h4>
+                      </div>
+
+                      <div className="text-left sm:text-right shrink-0">
+                        <span className="text-2xl font-black text-slate-800">₹{order.totalAmount.toLocaleString()}</span>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Method: {order.paymentMethod}</p>
+                      </div>
+                    </div>
+
+                    {/* Middle Detail Row: Shipping and Breakdown */}
+                    <div className="py-4 border-b border-slate-100 grid md:grid-cols-2 gap-6 text-xs text-slate-500 font-semibold">
+                      <div className="space-y-3">
+                        <h5 className="text-[9px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1">
+                          <MapPin size={11} /> Shipping Address
+                        </h5>
+                        <p className="text-slate-700 leading-normal text-[11px] font-bold pl-4">
+                          {order.guestName || 'Recipient'}<br />
+                          {order.shippingAddress}, {order.city}, {order.state} - {order.pincode}
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <h5 className="text-[9px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1">
+                          <FileText size={11} /> Tax Invoice Breakdown
+                        </h5>
+                        <div className="space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-100 font-bold text-[11px]">
+                          <div className="flex justify-between">
+                            <span className="text-slate-400">Subtotal:</span>
+                            <span className="text-slate-600">₹{order.subtotal}</span>
+                          </div>
+                          {order.discountAmount > 0 && (
+                            <div className="flex justify-between text-emerald-600">
+                              <span>Coupon Discount:</span>
+                              <span>-₹{order.discountAmount}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between">
+                            <span className="text-slate-400">Taxable Value:</span>
+                            <span className="text-slate-600">₹{order.taxableAmount}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-400">GST (5%):</span>
+                            <span className="text-slate-600">₹{order.gstAmount} (CGST ₹{order.cgstAmount} + SGST ₹{order.sgstAmount})</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom Order Row */}
+                    <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-semibold text-slate-500">
+                      <div className="flex flex-wrap gap-4">
+                        {order.razorpayPaymentId && (
+                          <div>
+                            <span className="text-[9px] font-bold text-slate-400 uppercase block tracking-wider">Razorpay Payment ID</span>
+                            <span className="text-slate-700 font-bold font-mono text-[10px] block mt-0.5">{order.razorpayPaymentId}</span>
+                          </div>
+                        )}
+                        <div>
+                          <span className="text-[9px] font-bold text-slate-400 uppercase block tracking-wider">Delivery Status</span>
+                          <span className="text-slate-800 font-extrabold block mt-0.5 uppercase tracking-wider text-[11px]">
+                            {order.orderStatus}
+                          </span>
+                        </div>
+                      </div>
+
+                      <a 
+                        href={`https://wa.me/916362994347?text=Hi%2C%20I%27d%20like%20to%20track%20my%20order%20%23${order.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-primary hover:text-primary-dark font-extrabold text-[11px] uppercase tracking-wider group"
+                      >
+                        <MessageCircle size={13} /> Support Chat
+                      </a>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
+        </div>
+
+        {/* RIGHT COLUMN: Support, Security, FAQs (lg:col-span-4) */}
+        <div className="lg:col-span-4 space-y-6">
+          
+          {/* Safety Verification Badge */}
+          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xl shadow-slate-200/25 space-y-4">
+            <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+              <ShieldCheck className="text-green-500" size={18} />
+              Billing Security
+            </h4>
+            <p className="text-xs font-semibold text-slate-500 leading-relaxed">
+              Every checkout is processed securely using modern 256-bit encryption through Razorpay, India's leading payment infrastructure. 
+            </p>
+            <div className="border-t border-slate-100 pt-3 flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase">
+              <span>🔒 PCI-DSS Compliant</span>
+              <span>•</span>
+              <span>💳 UPI & Card Safe</span>
+            </div>
+          </div>
+
+          {/* Billing FAQs */}
+          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xl shadow-slate-200/25 space-y-5">
+            <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+              <HelpCircle className="text-primary" size={18} />
+              Billing FAQs
+            </h4>
+
+            <div className="space-y-3.5 text-xs">
+              <div className="space-y-1">
+                <h5 className="font-extrabold text-slate-700">How do I access sessions after enrolling?</h5>
+                <p className="text-slate-500 font-medium leading-relaxed">
+                  Log in with the registered phone number. Your dashboard immediately hosts live Google Meet links for active program cohorts.
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <h5 className="font-extrabold text-slate-700">Can I request a payment refund?</h5>
+                <p className="text-slate-500 font-medium leading-relaxed">
+                  Refunds are subject to terms based on book shipping and program session completions. Reach out directly to support at WhatsApp or email.
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <h5 className="font-extrabold text-slate-700">How do I get my Tax Invoice?</h5>
+                <p className="text-slate-500 font-medium leading-relaxed">
+                  Tax invoice structures are dynamically printed above. If you need a formal PDF for corporate reimbursement, chat with our coordinator on WhatsApp.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  );
+}

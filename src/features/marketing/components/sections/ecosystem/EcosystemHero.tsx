@@ -13,7 +13,7 @@ export function EcosystemHero() {
 
   const handleNavigate = () => {
     setIsModalOpen(false);
-    router.push('/parents-enquiry');
+    router.push('/program-enrollment');
   };
 
   return (

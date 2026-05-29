@@ -11,13 +11,14 @@ import { toast } from 'react-hot-toast';
 
 // Helper functions for human-friendly questionnaire labels
 const getConfidenceLabel = (val: string) => {
+  if (!val) return '';
   const map: Record<string, string> = {
     shy: 'Quiet & Observant',
     selective: 'Thoughtful & Selective',
     balanced: 'Balanced & Easygoing',
     outgoing: 'Vibrant & Expressive'
   };
-  return map[val] || val;
+  return val.split(',').map(v => map[v.trim()] || v.trim()).join(', ');
 };
 
 const getInterestsLabel = (val: string) => {
@@ -1254,42 +1255,23 @@ export default function ProgramsManagement() {
                 />
               </div>
 
-              {/* Class Target & Limits */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Class Target */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Class Range Label *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Class 5-6"
-                    value={formClassRange}
-                    onChange={(e) => setFormClassRange(e.target.value)}
-                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Min Class (Eligibility) *</label>
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Target Class *</label>
                   <input
                     type="number"
                     required
                     min={1}
                     max={12}
+                    placeholder="e.g. 5"
                     value={formMinClass}
-                    onChange={(e) => setFormMinClass(Number(e.target.value))}
-                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground outline-none focus:border-primary/50 transition-all font-semibold"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Max Class (Eligibility) *</label>
-                  <input
-                    type="number"
-                    required
-                    min={1}
-                    max={12}
-                    value={formMaxClass}
-                    onChange={(e) => setFormMaxClass(Number(e.target.value))}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      setFormMinClass(val);
+                      setFormMaxClass(val);
+                      setFormClassRange(`Class ${val}`);
+                    }}
                     className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground outline-none focus:border-primary/50 transition-all font-semibold"
                   />
                 </div>

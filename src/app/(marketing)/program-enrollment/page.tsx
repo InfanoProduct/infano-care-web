@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ParentsEnquiryForm } from '@/features/marketing/components/sections/parents/ParentsEnquiryForm';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function ParentsEnquiryPage() {
+export default function ProgramEnrollmentPage() {
   const [phase, setPhase] = useState<'questions' | 'recommendation' | 'success'>('questions');
 
   return (
@@ -53,4 +53,3 @@ export default function ParentsEnquiryPage() {
     </div>
   );
 }
-

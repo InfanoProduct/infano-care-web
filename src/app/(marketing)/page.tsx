@@ -92,7 +92,7 @@ const homeSchema = {
         },
         "price": "799",
         "priceCurrency": "INR",
-        "url": "https://infano.care/parents-enquiry"
+        "url": "https://infano.care/program-enrollment"
       },
       {
         "@type": "Offer",
@@ -104,7 +104,7 @@ const homeSchema = {
         },
         "price": "799",
         "priceCurrency": "INR",
-        "url": "https://infano.care/parents-enquiry"
+        "url": "https://infano.care/program-enrollment"
       },
       {
         "@type": "Offer",
@@ -116,7 +116,7 @@ const homeSchema = {
         },
         "price": "999",
         "priceCurrency": "INR",
-        "url": "https://infano.care/parents-enquiry"
+        "url": "https://infano.care/program-enrollment"
       },
       {
         "@type": "Offer",

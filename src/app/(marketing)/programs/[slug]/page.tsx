@@ -94,9 +94,9 @@ const STATIC_PROGRAMS: Record<string, Omit<Program, 'id' | 'createdAt' | 'update
     title: 'SPARK',
     tagline: 'She wakes up to herself.',
     description: 'A foundational, sensitive entry point for girls beginning puberty. SPARK provides an empathetic space to discuss body changes, emotional growth, and basic social media navigation.',
-    classRange: 'Class 5-6',
+    classRange: 'Class 5',
     minClass: 5,
-    maxClass: 6,
+    maxClass: 5,
     sessions: 8,
     duration: '2 Months',
     topics: ['Body Unfiltered', 'Period. Full Stop.', 'Myth Busters: Family Edition', 'My Body My Boundary', 'The Filter Lie', 'Feel It to Deal It'],
@@ -118,9 +118,9 @@ const STATIC_PROGRAMS: Record<string, Omit<Program, 'id' | 'createdAt' | 'update
     title: 'RISE',
     tagline: 'She learns who she is - and who gets access.',
     description: 'Empowers girls with digital safety, consent frameworks, and emotional regulation. RISE helps girls build a stronger sense of digital wellness and real-life boundaries.',
-    classRange: 'Class 6-7',
+    classRange: 'Class 6',
     minClass: 6,
-    maxClass: 7,
+    maxClass: 6,
     sessions: 10,
     duration: '2.5 Months',
     topics: ['Consent Is Not Just About Sex', 'Grooming Has a Script', 'Your Digital Footprint Is Permanent', 'Red Flags & Green Flags', 'The Hormone Weather Report', 'Who Am I When No One Is Watching'],
@@ -144,9 +144,9 @@ const STATIC_PROGRAMS: Record<string, Omit<Program, 'id' | 'createdAt' | 'update
     title: 'BLOOM',
     tagline: 'She faces the hard stuff before it faces her.',
     description: 'Equips older girls with tools to tackle adolescent mental health, academic stress, body image, and shifting friendship dynamics with professional psychology insights.',
-    classRange: 'Class 7-8',
+    classRange: 'Class 7',
     minClass: 7,
-    maxClass: 8,
+    maxClass: 7,
     sessions: 10,
     duration: '2.5 Months',
     topics: ['Anxiety Is Real - Not Drama', 'Depression Doesn\'t Look Like the Movies', 'Friendship Expiry Dates', 'The Comparison Trap', 'PCOS & Pain: Unfiltered', 'Safe Havens: Finding Help'],
@@ -170,9 +170,9 @@ const STATIC_PROGRAMS: Record<string, Omit<Program, 'id' | 'createdAt' | 'update
     title: 'IGNITE',
     tagline: 'She learns how the world works - and how to work it.',
     description: 'A powerful transition kit for leadership, confidence, media literacy, negotiation, and early financial intelligence.',
-    classRange: 'Class 8-9',
+    classRange: 'Class 8',
     minClass: 8,
-    maxClass: 9,
+    maxClass: 8,
     sessions: 12,
     duration: '3 Months',
     topics: ['Feminism: Not A Bad Word', 'Financial Literacy for Teen Girls', 'Negotiating Your Worth', 'Unmasking Media Influence', 'Leadership Under Pressure', 'Designing My Future'],
@@ -198,9 +198,9 @@ const STATIC_PROGRAMS: Record<string, Omit<Program, 'id' | 'createdAt' | 'update
     title: 'UNSTOPPABLE',
     tagline: 'She walks into adult life prepared, not blindsided.',
     description: 'The ultimate preparatory package to step into independent adulthood with confidence, complete clarity, career blueprints, and relationship insights.',
-    classRange: 'Class 9-10',
+    classRange: 'Class 9',
     minClass: 9,
-    maxClass: 10,
+    maxClass: 9,
     sessions: 12,
     duration: '3 Months',
     topics: ['Life on My Own Terms', 'Adulting 101: Survival Pack', 'Healthy Intimacy & Relationships', 'Career Blueprinting', 'Resilience: Bouncing Back Higher', 'Becoming My Own Anchor'],
@@ -241,7 +241,8 @@ const CHALLENGES_OPTIONS = [
 ];
 
 export default function ProgramDetailsPage() {
-  const { id } = useParams() as { id: string };
+  const { slug } = useParams() as { slug: string };
+  const id = slug;
   const router = useRouter();
 
   const [program, setProgram] = useState<Program | null>(null);
@@ -393,7 +394,7 @@ export default function ProgramDetailsPage() {
   const sessionsList = program.sessionsList || [];
 
   return (
-    <div className="min-h-screen bg-[#FAFBFE] text-slate-900 relative overflow-hidden">
+    <div className="min-h-screen bg-[#FAFBFE] text-slate-900 relative">
       
       {/* Decorative Orbs */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-40">
@@ -617,16 +618,16 @@ export default function ProgramDetailsPage() {
                             className="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:border-slate-400 focus:outline-none text-slate-800 text-sm font-semibold transition-colors bg-[#FAFBFE]"
                           >
                             <option value="">Select Grade</option>
-                            <option value="Class 5-6">Class 5-6</option>
-                            <option value="Class 6-7">Class 6-7</option>
-                            <option value="Class 7-8">Class 7-8</option>
-                            <option value="Class 8-9">Class 8-9</option>
-                            <option value="Class 9-10">Class 9-10</option>
+                            <option value="Class 5">Class 5</option>
+                            <option value="Class 6">Class 6</option>
+                            <option value="Class 7">Class 7</option>
+                            <option value="Class 8">Class 8</option>
+                            <option value="Class 9">Class 9</option>
                           </select>
                         </div>
                         <div>
                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">
-                            Learning Style
+                            Learning Format
                           </label>
                           <select 
                             value={learningPref}
@@ -638,109 +639,6 @@ export default function ProgramDetailsPage() {
                             <option value="Group Cohort">Group Cohort (4 Girls)</option>
                           </select>
                         </div>
-                      </div>
-
-                      {/* Interactive Areas of Interest Checklist */}
-                      <div>
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                          Areas of Primary Interest
-                        </label>
-                        <div className="flex flex-wrap gap-2">
-                          {INTERESTS_OPTIONS.map((opt) => {
-                            const isSelected = interests.includes(opt);
-                            return (
-                              <button
-                                type="button"
-                                key={opt}
-                                onClick={() => toggleInterest(opt)}
-                                className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
-                                  isSelected 
-                                    ? `bg-slate-900 border-slate-900 text-white shadow-sm` 
-                                    : 'bg-white border-slate-200 text-slate-500 hover:border-slate-350'
-                                }`}
-                              >
-                                {opt}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Interactive Primary Challenges Checklist */}
-                      <div>
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                          Recent Developmental Challenges
-                        </label>
-                        <div className="flex flex-wrap gap-2">
-                          {CHALLENGES_OPTIONS.map((opt) => {
-                            const isSelected = challenges.includes(opt);
-                            return (
-                              <button
-                                type="button"
-                                key={opt}
-                                onClick={() => toggleChallenge(opt)}
-                                className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
-                                  isSelected 
-                                    ? `bg-slate-900 border-slate-900 text-white shadow-sm` 
-                                    : 'bg-white border-slate-200 text-slate-500 hover:border-slate-350'
-                                }`}
-                              >
-                                {opt}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Mentorship Adult Question */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">
-                            Social Confidence
-                          </label>
-                          <select 
-                            value={confidence}
-                            onChange={(e) => setConfidence(e.target.value)}
-                            className="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:border-slate-400 focus:outline-none text-slate-800 text-sm font-semibold transition-colors bg-[#FAFBFE]"
-                          >
-                            <option value="">Select level</option>
-                            <option value="Highly Confident">Highly Confident</option>
-                            <option value="Slightly Shy">Slightly Shy</option>
-                            <option value="Anxious/Introvert">Socially Anxious / Quiet</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">
-                            Safe Outside Mentor?
-                          </label>
-                          <select 
-                            value={hasMentor}
-                            onChange={(e) => setHasMentor(e.target.value)}
-                            className="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:border-slate-400 focus:outline-none text-slate-800 text-sm font-semibold transition-colors bg-[#FAFBFE]"
-                          >
-                            <option value="">Select option</option>
-                            <option value="Yes">Yes, she has one</option>
-                            <option value="No">No, we are seeking one</option>
-                            <option value="Unsure">Not sure</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Parent involvement preference */}
-                      <div>
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">
-                          Desired Parent Involvement
-                        </label>
-                        <select 
-                          value={parentInvolvement}
-                          onChange={(e) => setParentInvolvement(e.target.value)}
-                          className="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:border-slate-400 focus:outline-none text-slate-800 text-sm font-semibold transition-colors bg-[#FAFBFE]"
-                        >
-                          <option value="">Select preference</option>
-                          <option value="Highly Involved">Highly Involved (Co-learning)</option>
-                          <option value="Moderate">Moderate updates / summaries</option>
-                          <option value="Hands-Off">Hands-off (Completely confidential for her)</option>
-                        </select>
                       </div>
 
                       {/* Slot Booking Date and Time */}
@@ -774,21 +672,40 @@ export default function ProgramDetailsPage() {
                         </div>
                       </div>
 
-                      {/* Submit Button */}
-                      <button
-                        type="submit"
-                        disabled={submitting}
-                        className={`w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-2xl text-white font-bold text-xs uppercase tracking-widest transition-all ${theme.btn} disabled:opacity-50`}
-                      >
-                        {submitting ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>Saving Session...</span>
-                          </>
-                        ) : (
-                          <span>Book Free Demo Session</span>
-                        )}
-                      </button>
+                      {/* Actions Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                        {/* Book Demo Button */}
+                        <button
+                          type="submit"
+                          disabled={submitting}
+                          className={`w-full inline-flex items-center justify-center gap-2 py-4 px-4 rounded-2xl text-white font-bold text-xs uppercase tracking-widest transition-all ${theme.btn} disabled:opacity-50 shadow-md`}
+                        >
+                          {submitting ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Saving...</span>
+                            </>
+                          ) : (
+                            <span>Book Free Demo</span>
+                          )}
+                        </button>
+
+                        {/* Direct Enroll Link */}
+                        <Link
+                          href={`/checkout?bookId=${program ? program.title.toLowerCase() : 'spark'}-${learningPref.includes('Private') || learningPref.includes('1:1') ? 'private' : 'group'}&name=${encodeURIComponent(parentName)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&class=${encodeURIComponent(classRange)}&format=${encodeURIComponent(learningPref)}&date=${encodeURIComponent(slotDate)}&time=${encodeURIComponent(slotTime)}`}
+                          onClick={(e) => {
+                            if (!parentName || !phone) {
+                              e.preventDefault();
+                              setFormError("Please enter your name and phone number in the form above to enroll.");
+                              const nameInput = document.querySelector('input[placeholder="Your name"]');
+                              if (nameInput) (nameInput as HTMLInputElement).focus();
+                            }
+                          }}
+                          className="w-full inline-flex items-center justify-center gap-2 py-4 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-md text-center"
+                        >
+                          <span>Enroll Now</span>
+                        </Link>
+                      </div>
 
                     </form>
                   </motion.div>

@@ -99,9 +99,9 @@ const STATIC_FALLBACK_PROGRAMS: Omit<Program, 'id' | 'createdAt' | 'updatedAt'>[
     title: 'SPARK',
     tagline: 'She wakes up to herself.',
     description: 'A foundational, sensitive entry point for girls beginning puberty.',
-    classRange: 'Class 5-6',
+    classRange: 'Class 5',
     minClass: 5,
-    maxClass: 6,
+    maxClass: 5,
     sessions: 8,
     duration: '2 Months',
     topics: ['Body Unfiltered', 'Period. Full Stop.', 'Myth Busters: Family Edition', 'My Body My Boundary', 'The Filter Lie', 'Feel It to Deal It'],
@@ -113,9 +113,9 @@ const STATIC_FALLBACK_PROGRAMS: Omit<Program, 'id' | 'createdAt' | 'updatedAt'>[
     title: 'RISE',
     tagline: 'She learns who she is - and who gets access.',
     description: 'Empowers girls with digital safety, consent frameworks, and emotional regulation.',
-    classRange: 'Class 6-7',
+    classRange: 'Class 6',
     minClass: 6,
-    maxClass: 7,
+    maxClass: 6,
     sessions: 10,
     duration: '2.5 Months',
     topics: ['Consent Is Not Just About Sex', 'Grooming Has a Script', 'Your Digital Footprint Is Permanent', 'Red Flags & Green Flags', 'The Hormone Weather Report', 'Who Am I When No One Is Watching'],
@@ -127,9 +127,9 @@ const STATIC_FALLBACK_PROGRAMS: Omit<Program, 'id' | 'createdAt' | 'updatedAt'>[
     title: 'BLOOM',
     tagline: 'She faces the hard stuff before it faces her.',
     description: 'Equips older girls with tools to tackle adolescent mental health and social dynamics.',
-    classRange: 'Class 7-8',
+    classRange: 'Class 7',
     minClass: 7,
-    maxClass: 8,
+    maxClass: 7,
     sessions: 10,
     duration: '2.5 Months',
     topics: ['Anxiety Is Real - Not Drama', 'Depression Doesn\'t Look Like the Movies', 'Friendship Expiry Dates', 'The Comparison Trap', 'PCOS & Pain: Unfiltered', 'Safe Havens: Finding Help'],
@@ -141,9 +141,9 @@ const STATIC_FALLBACK_PROGRAMS: Omit<Program, 'id' | 'createdAt' | 'updatedAt'>[
     title: 'IGNITE',
     tagline: 'She learns how the world works - and how to work it.',
     description: 'A powerful transition kit for leadership, confidence, and media literacy.',
-    classRange: 'Class 8-9',
+    classRange: 'Class 8',
     minClass: 8,
-    maxClass: 9,
+    maxClass: 8,
     sessions: 12,
     duration: '3 Months',
     topics: ['Feminism: Not A Bad Word', 'Financial Literacy for Teen Girls', 'Negotiating Your Worth', 'Unmasking Media Influence', 'Leadership Under Pressure', 'Designing My Future'],
@@ -155,9 +155,9 @@ const STATIC_FALLBACK_PROGRAMS: Omit<Program, 'id' | 'createdAt' | 'updatedAt'>[
     title: 'UNSTOPPABLE',
     tagline: 'She walks into adult life prepared, not blindsided.',
     description: 'The ultimate preparatory package to step into independent adulthood with confidence and complete clarity.',
-    classRange: 'Class 9-10',
+    classRange: 'Class 9',
     minClass: 9,
-    maxClass: 10,
+    maxClass: 9,
     sessions: 12,
     duration: '3 Months',
     topics: ['Life on My Own Terms', 'Adulting 101: Survival Pack', 'Healthy Intimacy & Relationships', 'Career Blueprinting', 'Resilience: Bouncing Back Higher', 'Becoming My Own Anchor'],
@@ -352,7 +352,7 @@ export function ParentsPrograms() {
 
                   {/* Direct Link CTA */}
                   <Link
-                    href={`/programs/${program.id || program.title.toLowerCase()}`}
+                    href={`/programs/${program.title.toLowerCase()}`}
                     className={`w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-2xl text-white font-bold text-xs uppercase tracking-widest transition-all ${styles.btnBg} relative z-10`}
                   >
                     <span>Explore Program</span>

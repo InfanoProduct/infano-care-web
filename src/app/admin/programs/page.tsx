@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { 
   Award, Plus, Loader2, Calendar, Clock, BookOpen, Users, DollarSign,
   Edit, Trash2, CheckCircle2, XCircle, RefreshCw, Layers, ShieldCheck,
-  Search, Filter, Check, X, CreditCard, Mail, Phone, Sliders, Sparkles
+  Search, Filter, Check, X, CreditCard, Mail, Phone, Sliders, Sparkles, Eye
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { ProgramsService, Program, ProgramEnrollment, DemoSession } from '@/services/programs.service';
 import { toast } from 'react-hot-toast';
 
@@ -73,6 +74,7 @@ const getParentInvolvementLabel = (val: string) => {
 };
 
 export default function ProgramsManagement() {
+  const router = useRouter();
   // Tabs
   const [activeTab, setActiveTab] = useState<'programs' | 'enrollments' | 'demos'>('programs');
 
@@ -736,6 +738,13 @@ export default function ProgramsManagement() {
                         {/* Actions */}
                         <td className="p-6 text-right">
                           <div className="flex justify-end gap-1.5">
+                            <button
+                              onClick={() => router.push(`/admin/expert/enrollments/${enrollment.id}`)}
+                              title="View Schedule Details"
+                              className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-500/15 rounded-xl transition-all shadow-sm"
+                            >
+                              <Eye size={14} className="stroke-[3px]" />
+                            </button>
                             {enrollment.status === 'ACTIVE' && (
                               <>
                                 <button

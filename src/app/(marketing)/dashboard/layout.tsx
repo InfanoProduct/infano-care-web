@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { ShieldCheck, LogOut, LayoutDashboard, Calendar, Compass, User, Sparkles, CreditCard } from 'lucide-react';
+import { ShieldCheck, LogOut, LayoutDashboard, Calendar, Compass, User, Sparkles, CreditCard, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
 import { AuthService } from '@/services/auth.service';
+import { NotificationBell } from '@/features/parent/components/NotificationBell';
 
 export default function CustomerDashboardLayout({
   children,
@@ -100,6 +101,8 @@ export default function CustomerDashboardLayout({
         </div>
 
         <div className="flex items-center gap-4">
+          <NotificationBell />
+
           <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 py-1.5 pl-3 pr-4 rounded-2xl">
             <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-white font-black text-xs shadow-sm ${
               isTeen ? 'bg-purple-500' : 'bg-rose-500'
@@ -154,6 +157,56 @@ export default function CustomerDashboardLayout({
                 >
                   <CreditCard size={16} />
                   Payment Details
+                </Link>
+                {!isTeen && (
+                  <Link 
+                    href="/dashboard/expert-sessions" 
+                    className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all duration-200 ${
+                      isActive('/dashboard/expert-sessions') 
+                        ? 'bg-primary/10 text-primary shadow-sm' 
+                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                    }`}
+                  >
+                    <Calendar size={16} />
+                    Expert Sessions
+                  </Link>
+                )}
+                {!isTeen && (
+                  <Link 
+                    href="/dashboard/resources" 
+                    className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all duration-200 ${
+                      isActive('/dashboard/resources') 
+                        ? 'bg-primary/10 text-primary shadow-sm' 
+                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                    }`}
+                  >
+                    <BookOpen size={16} />
+                    Library
+                  </Link>
+                )}
+                {isTeen && (
+                  <Link 
+                    href="/dashboard/expert-sessions" 
+                    className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all duration-200 ${
+                      isActive('/dashboard/expert-sessions') 
+                        ? 'bg-primary/10 text-primary shadow-sm' 
+                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                    }`}
+                  >
+                    <Calendar size={16} />
+                    My Sessions
+                  </Link>
+                ) }
+                <Link 
+                  href="/dashboard/parent" 
+                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all duration-200 ${
+                    isActive('/dashboard/parent') 
+                      ? 'bg-primary/10 text-primary shadow-sm' 
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                  }`}
+                >
+                  <User size={16} />
+                  {isTeen ? 'Link Parent' : 'Link Daughter'}
                 </Link>
               </nav>
             </div>

@@ -9,11 +9,15 @@ import {
 import { useAuthStore } from '@/store/auth-store';
 import { ProgramsService, Program, ProgramEnrollment, ProgramSession } from '@/services/programs.service';
 import { toast } from 'react-hot-toast';
+import { ParentService } from '@/services/parent.service';
+import { DashboardSummary } from "@/features/parent/components/DashboardSummary";
+import Link from 'next/link';
 
 export default function CustomerDashboardOverview() {
   const { user } = useAuthStore();
   const [enrollments, setEnrollments] = useState<ProgramEnrollment[]>([]);
   const [allPrograms, setAllPrograms] = useState<Program[]>([]);
+  const [parentBookmarks, setParentBookmarks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [enrollingId, setEnrollingId] = useState<string | null>(null);
   const [enrollType, setEnrollType] = useState<'PRIVATE' | 'GROUP'>('GROUP');
@@ -25,14 +29,16 @@ export default function CustomerDashboardOverview() {
   const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
-      const [enrollRes, programsRes] = await Promise.all([
+      const [enrollRes, programsRes, bookmarksRes] = await Promise.all([
         ProgramsService.getUserEnrollments().catch(() => ({ success: true, data: [] })),
-        ProgramsService.getPrograms().catch(() => [])
+        ProgramsService.getPrograms().catch(() => []),
+        isTeen ? ParentService.getTeenParentBookmarks().catch(() => []) : Promise.resolve([])
       ]);
 
       const activeEnrollments = enrollRes.data || [];
       setEnrollments(activeEnrollments);
       setAllPrograms(programsRes);
+      setParentBookmarks(bookmarksRes);
 
       if (activeEnrollments.length > 0) {
         setActiveEnrollmentTab(activeEnrollments[0].id);
@@ -117,6 +123,10 @@ export default function CustomerDashboardOverview() {
         )}
       </div>
 
+      {!isTeen && (
+        <DashboardSummary />
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         {/* LEFT TWO-THIRDS PANEL (lg:col-span-8) */}
@@ -173,38 +183,39 @@ export default function CustomerDashboardOverview() {
               }));
               const totalSessions = sessions.length;
               
-              // Calculate dynamic session statuses mathematically based on enrollment.createdAt
-              const enrollmentTime = new Date(selectedEnrollment.createdAt).getTime();
-              const now = Date.now();
-              const oneDay = 24 * 60 * 60 * 1000;
-
+              const dbSessions = selectedEnrollment.user?.scheduledSessions || [];
               const sessionsWithStatus = sessions.map((session: ProgramSession, index: number) => {
-                // Session index i occurs: 2 days after enrollment + i * 7 days
-                const sessionTime = enrollmentTime + (2 + index * 7) * oneDay;
-                
-                let status: 'completed' | 'scheduled' | 'not-scheduled' = 'not-scheduled';
-                
-                if (selectedEnrollment.status === 'COMPLETED' || sessionTime < now) {
-                  status = 'completed';
-                } else if (sessionTime >= now && sessionTime < now + 7 * oneDay) {
-                  status = 'scheduled';
-                }
+                const sessionNum = index + 1;
+                const dbSession = dbSessions.find((s: any) => s.sessionNumber === sessionNum && s.programId === selectedEnrollment.programId);
 
-                const formattedDate = new Date(sessionTime).toLocaleDateString('en-IN', {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric'
-                });
-                
-                const times = ["10:30 AM", "02:00 PM", "04:30 PM", "06:30 PM"];
-                const formattedTime = times[index % times.length];
+                let status: 'completed' | 'scheduled' | 'not-scheduled' = 'not-scheduled';
+                let sessionTime = 0;
+                let formattedDate = 'TBD';
+                let formattedTime = 'TBD';
+                let meetLink = '';
+
+                if (dbSession) {
+                  status = dbSession.status.toLowerCase() as 'completed' | 'scheduled';
+                  sessionTime = new Date(dbSession.scheduledAt).getTime();
+                  formattedDate = new Date(sessionTime).toLocaleDateString('en-IN', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                  });
+                  formattedTime = new Date(sessionTime).toLocaleTimeString('en-IN', {
+                    hour: 'numeric',
+                    minute: '2-digit'
+                  });
+                  meetLink = dbSession.meetLink || '';
+                }
 
                 return {
                   ...session,
                   status,
                   sessionTime,
                   formattedDate,
-                  formattedTime
+                  formattedTime,
+                  meetLink
                 };
               });
 
@@ -311,14 +322,18 @@ export default function CustomerDashboardOverview() {
                                 </div>
                                 
                                 <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 z-10">
-                                  <a 
-                                    href="https://meet.google.com/abc-defg-hij" 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white font-extrabold py-2.5 px-6 rounded-xl flex items-center justify-center gap-2 shadow-md shadow-purple-100 hover:shadow-purple-300 transition-all text-xs active:scale-95 text-center"
-                                  >
-                                    Launch Google Meet <ChevronRight size={14} />
-                                  </a>
+                                  {session.meetLink ? (
+                                    <a 
+                                      href={session.meetLink} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white font-extrabold py-2.5 px-6 rounded-xl flex items-center justify-center gap-2 shadow-md shadow-purple-100 hover:shadow-purple-300 transition-all text-xs active:scale-95 text-center"
+                                    >
+                                      Join Virtual Class <ChevronRight size={14} />
+                                    </a>
+                                  ) : (
+                                    <span className="text-xs text-purple-700 font-bold bg-purple-100 px-3 py-1.5 rounded-lg">Link will be updated soon</span>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -430,6 +445,7 @@ export default function CustomerDashboardOverview() {
           
           {/* TEEN WORKSPACE: Cycle Tracker or Quests Summary */}
           {isTeen ? (
+            <>
             <div className="bg-gradient-to-br from-purple-600 to-indigo-700 text-white p-8 rounded-2xl shadow-xl shadow-purple-900/10 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-2xl rounded-full translate-x-1/2 -translate-y-1/2" />
               <div className="space-y-6 relative z-10">
@@ -456,6 +472,43 @@ export default function CustomerDashboardOverview() {
                 </div>
               </div>
             </div>
+            
+            {/* NEW: Parent Recommended Reads (Bookmarks) */}
+            {parentBookmarks.length > 0 && (
+              <div className="bg-white border border-slate-100 p-8 rounded-2xl shadow-xl shadow-slate-200/40 space-y-6">
+                <div>
+                  <h4 className="text-base font-extrabold text-slate-800 flex items-center gap-2">
+                    <BookOpen className="text-indigo-500" size={18} /> Recommended Reads
+                  </h4>
+                  <p className="text-xs font-semibold text-slate-400 mt-1">Articles bookmarked by your parent</p>
+                </div>
+
+                <div className="space-y-4">
+                  {parentBookmarks.slice(0, 3).map((bookmark, idx) => (
+                    <Link key={idx} href={`/blog/${bookmark.slug || bookmark.id}`} className="flex gap-4 items-start p-4 bg-indigo-50/50 border border-indigo-50 rounded-xl hover:shadow-sm hover:bg-indigo-50 transition-all group">
+                      <div className="w-12 h-12 bg-white rounded-lg overflow-hidden shrink-0 border border-slate-100">
+                        {bookmark.thumbnailUrl ? (
+                          <img src={bookmark.thumbnailUrl} alt={bookmark.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                        ) : (
+                          <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-300">
+                            <BookOpen size={16} />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <h5 className="text-sm font-extrabold text-slate-800 line-clamp-2 group-hover:text-indigo-600 transition-colors">
+                          {bookmark.title}
+                        </h5>
+                        <p className="text-[10px] text-slate-500 font-semibold mt-1">
+                          {bookmark.readTime || 5} min read • By {bookmark.author?.name || 'Infano'}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+            </>
           ) : (
             /* PARENT WORKSPACE: Booked Demo Session Status & Progress Overview */
             <div className="bg-white border border-slate-100 p-8 rounded-2xl shadow-xl shadow-slate-200/40 space-y-6">

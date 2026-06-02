@@ -33,5 +33,13 @@ export const AuthService = {
 
   async updateRole(role: string) {
     return apiClient.patch<any>('/user/role', { role });
+  },
+
+  async checkUser(phone: string): Promise<{ exists: boolean; role?: string }> {
+    return apiClient.post<{ exists: boolean; role?: string }>('/auth/check-user', { phone });
+  },
+
+  async getMe(): Promise<any> {
+    return apiClient.get<any>('/user/me');
   }
 };

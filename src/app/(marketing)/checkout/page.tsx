@@ -159,15 +159,15 @@ function CheckoutContent() {
   }, [missingDetails, book, router]);
 
   useEffect(() => {
-    if (nameParam || phoneParam || emailParam) {
+    if (nameParam || phoneParam || emailParam || user) {
       setFormData(prev => ({
         ...prev,
-        guestName: nameParam || prev.guestName,
-        guestPhone: phoneParam || prev.guestPhone,
-        guestEmail: emailParam || prev.guestEmail
+        guestName: nameParam || prev.guestName || user?.profile?.displayName || user?.username || '',
+        guestPhone: phoneParam || prev.guestPhone || user?.phone || '',
+        guestEmail: emailParam || prev.guestEmail || user?.email || ''
       }));
     }
-  }, [nameParam, phoneParam, emailParam]);
+  }, [nameParam, phoneParam, emailParam, user]);
 
   useEffect(() => {
     if (isProgram) {

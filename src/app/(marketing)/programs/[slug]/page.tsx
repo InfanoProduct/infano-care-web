@@ -20,6 +20,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { ProgramsService, Program, ProgramSession } from '@/services/programs.service';
+import { AuthService } from '@/services/auth.service';
 
 // Standard themes map matching parent program display
 const THEMES_MAP: Record<string, {
@@ -266,6 +267,37 @@ export default function ProgramDetailsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  // Role selection step
+  const [selectedRole, setSelectedRole] = useState<'PARENT' | 'TEEN' | null>(null);
+
+  const [userExists, setUserExists] = useState(false);
+  const [isCheckingUser, setIsCheckingUser] = useState(false);
+
+  useEffect(() => {
+    const checkUserExists = async () => {
+      const cleanPhone = phone.replace(/\D/g, '');
+      if (cleanPhone.length >= 10) {
+        try {
+          setIsCheckingUser(true);
+          const formattedPhone = cleanPhone.startsWith('91') && cleanPhone.length === 12 
+            ? '+' + cleanPhone 
+            : (cleanPhone.length === 10 ? '+91' + cleanPhone : '+' + cleanPhone);
+          const res = await AuthService.checkUser(formattedPhone);
+          setUserExists(res.exists);
+        } catch (e) {
+          setUserExists(false);
+        } finally {
+          setIsCheckingUser(false);
+        }
+      } else {
+        setUserExists(false);
+      }
+    };
+
+    const timer = setTimeout(checkUserExists, 500);
+    return () => clearTimeout(timer);
+  }, [phone]);
 
   useEffect(() => {
     async function fetchProgramDetail() {
@@ -552,6 +584,88 @@ export default function ProgramDetailsPage() {
                       </p>
                     </div>
 
+                    {/* ─── ROLE SELECTION STEP ─── */}
+                    {!selectedRole && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="space-y-4"
+                      >
+                        <p className="text-center text-xs font-bold text-slate-400 uppercase tracking-widest">Who is this for?</p>
+                        <div className="grid grid-cols-2 gap-4">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedRole('PARENT')}
+                            className="group flex flex-col items-center gap-3 p-5 rounded-2xl border-2 border-slate-100 hover:border-primary hover:bg-primary/5 transition-all"
+                          >
+                            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-2xl group-hover:scale-110 transition-transform">
+                              💜
+                            </div>
+                            <div className="text-center">
+                              <p className="font-bold text-slate-800 text-sm group-hover:text-primary transition-colors">I am a Parent</p>
+                              <p className="text-[10px] text-slate-400 mt-0.5">Enrolling for my daughter</p>
+                            </div>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedRole('TEEN')}
+                            className="group flex flex-col items-center gap-3 p-5 rounded-2xl border-2 border-slate-100 hover:border-amber-400 hover:bg-amber-50 transition-all"
+                          >
+                            <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-amber-500 text-2xl group-hover:scale-110 transition-transform">
+                              ✨
+                            </div>
+                            <div className="text-center">
+                              <p className="font-bold text-slate-800 text-sm group-hover:text-amber-600 transition-colors">I am a Teen</p>
+                              <p className="text-[10px] text-slate-400 mt-0.5">Exploring for myself</p>
+                            </div>
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* Teen Redirect Message */}
+                    {selectedRole === 'TEEN' && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="text-center py-4 space-y-4"
+                      >
+                        <div className="text-4xl">👋</div>
+                        <h4 className="font-bold text-slate-800">Hey there! 🌸</h4>
+                        <p className="text-sm text-slate-500 leading-relaxed">
+                          This enrollment form is designed for parents. Please ask your mum or dad to fill this in!
+                          <br /><br />
+                          In the meantime, you can explore all our programs and read more about what excites you.
+                        </p>
+                        <div className="flex flex-col gap-2 pt-2">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedRole(null)}
+                            className="w-full py-3 rounded-2xl border-2 border-slate-200 hover:border-slate-400 text-slate-600 font-bold text-xs uppercase tracking-widest transition-all"
+                          >
+                            ← Go Back
+                          </button>
+                          <a
+                            href="/parents"
+                            className="w-full py-3 rounded-2xl bg-primary hover:bg-fuchsia-700 text-white font-bold text-xs uppercase tracking-widest transition-all text-center"
+                          >
+                            Explore All Programs
+                          </a>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* Booking form (only for parents) */}
+                    {selectedRole === 'PARENT' && (
+                    <>
+                    <div className="flex items-center gap-2 mb-1">
+                      <button type="button" onClick={() => setSelectedRole(null)} className="text-[10px] text-slate-400 hover:text-slate-600 font-bold uppercase tracking-widest flex items-center gap-1 transition-colors">
+                        ← Change Role
+                      </button>
+                      <span className="ml-auto text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">Parent ✓</span>
+                    </div>
+
                     {formError && (
                       <div className="mb-5 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-start gap-3 text-rose-700 text-xs leading-relaxed font-semibold">
                         <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
@@ -691,23 +805,34 @@ export default function ProgramDetailsPage() {
                         </button>
 
                         {/* Direct Enroll Link */}
-                        <Link
-                          href={`/checkout?bookId=${program ? program.title.toLowerCase() : 'spark'}-${learningPref.includes('Private') || learningPref.includes('1:1') ? 'private' : 'group'}&name=${encodeURIComponent(parentName)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&class=${encodeURIComponent(classRange)}&format=${encodeURIComponent(learningPref)}&date=${encodeURIComponent(slotDate)}&time=${encodeURIComponent(slotTime)}`}
-                          onClick={(e) => {
-                            if (!parentName || !phone) {
-                              e.preventDefault();
-                              setFormError("Please enter your name and phone number in the form above to enroll.");
-                              const nameInput = document.querySelector('input[placeholder="Your name"]');
-                              if (nameInput) (nameInput as HTMLInputElement).focus();
-                            }
-                          }}
-                          className="w-full inline-flex items-center justify-center gap-2 py-4 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-md text-center"
-                        >
-                          <span>Enroll Now</span>
-                        </Link>
+                        {userExists ? (
+                          <Link
+                            href="/login"
+                            className="w-full inline-flex items-center justify-center gap-2 py-4 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-md text-center"
+                          >
+                            <span>You are already a user, pls login</span>
+                          </Link>
+                        ) : (
+                          <Link
+                            href={`/checkout?bookId=${program ? program.title.toLowerCase() : 'spark'}-${learningPref.includes('Private') || learningPref.includes('1:1') ? 'private' : 'group'}&name=${encodeURIComponent(parentName)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&class=${encodeURIComponent(classRange)}&format=${encodeURIComponent(learningPref)}&date=${encodeURIComponent(slotDate)}&time=${encodeURIComponent(slotTime)}`}
+                            onClick={(e) => {
+                              if (!parentName || !phone) {
+                                e.preventDefault();
+                                setFormError("Please enter your name and phone number in the form above to enroll.");
+                                const nameInput = document.querySelector('input[placeholder="Your name"]');
+                                if (nameInput) (nameInput as HTMLInputElement).focus();
+                              }
+                            }}
+                            className="w-full inline-flex items-center justify-center gap-2 py-4 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-md text-center"
+                          >
+                            <span>Enroll Now</span>
+                          </Link>
+                        )}
                       </div>
 
                     </form>
+                    </>
+                    )}
                   </motion.div>
                 ) : (
                   /* THE SUCCESS SCREEN */

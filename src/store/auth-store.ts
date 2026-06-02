@@ -3,13 +3,19 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface AuthState {
   token: string | null;
+  accessToken: string | null;
   refreshToken: string | null;
   user: {
     id: string;
     username?: string;
     phone?: string;
+    email?: string;
     role: string;
     peerApplicationStatus?: string;
+    profile?: {
+      displayName?: string;
+      [key: string]: any;
+    };
   } | null;
   setAuth: (token: string, refreshToken: string, user: AuthState['user']) => void;
   clearAuth: () => void;
@@ -20,11 +26,12 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       token: null,
+      accessToken: null,
       refreshToken: null,
       user: null,
       isAuthenticated: false,
-      setAuth: (token, refreshToken, user) => set({ token, refreshToken, user, isAuthenticated: true }),
-      clearAuth: () => set({ token: null, refreshToken: null, user: null, isAuthenticated: false }),
+      setAuth: (token, refreshToken, user) => set({ token, accessToken: token, refreshToken, user, isAuthenticated: true }),
+      clearAuth: () => set({ token: null, accessToken: null, refreshToken: null, user: null, isAuthenticated: false }),
     }),
     {
       name: 'auth-storage',

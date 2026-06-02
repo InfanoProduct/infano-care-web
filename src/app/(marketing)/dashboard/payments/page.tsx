@@ -137,9 +137,14 @@ export default function CustomerPaymentsOverview() {
                             {new Date(enr.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </span>
                         </div>
-                        <h3 className="text-lg font-black text-slate-800">
-                          {enr.program.title} Program • {enr.program.classRange}
-                        </h3>
+                          <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
+                            {enr.program.title} Program
+                            {enr.user?.id && user?.id && enr.user.id !== user.id && (
+                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider ${enr.user?.role === 'TEEN' ? 'bg-purple-50 text-purple-600 border-purple-200' : 'bg-blue-50 text-blue-600 border-blue-200'}`}>
+                                By {enr.user?.role === 'TEEN' ? 'Daughter' : 'Parent'}
+                              </span>
+                            )}
+                          </h3>
                       </div>
 
                       <div className="text-left sm:text-right shrink-0">

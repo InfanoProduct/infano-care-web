@@ -109,7 +109,14 @@ class ApiClient {
       });
     };
 
-    let response = await fetchWithToken(token);
+    let response: Response;
+    try {
+      response = await fetchWithToken(token);
+    } catch (err: any) {
+      // Catch network errors (like CORS, DNS, or server down) and throw a clearer error
+      console.error(`[ApiClient] Network Error when fetching ${url}:`, err);
+      throw new Error(`Network Error: Unable to reach the server at ${url}. Please check if the backend is running.`);
+    }
 
     // Handle 401 Unauthorized - Attempt refresh (skip for auth endpoints)
     const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/admin/login') || url.includes('/auth/refresh');

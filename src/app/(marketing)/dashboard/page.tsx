@@ -3,13 +3,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   BookOpen, Calendar, ShieldCheck, Star, Sparkles,
-  ChevronRight, Play, Loader2, Award, Layers, Compass, X, Check, ArrowRight, User, Users
+  ChevronRight, Play, Loader2, Award, Layers, Compass, X, Check, ArrowRight, User, Users, Bookmark, Heart
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 import { ProgramsService, Program, ProgramEnrollment } from '@/services/programs.service';
 import { toast } from 'react-hot-toast';
 import { ParentService } from '@/services/parent.service';
 import { DashboardSummary } from "@/features/parent/components/DashboardSummary";
+import { ResourceCard } from '@/features/parent/components/ResourceCard';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -58,11 +59,11 @@ const DEFAULT_STYLE = {
 };
 
 const ENROLLED_THEMES: Record<string, { accent: string; gradient: string; border: string; badge: string; }> = {
-  'SPARK':       { accent: 'text-rose-600',    gradient: 'from-rose-500 to-pink-600',     border: 'border-rose-100',    badge: 'bg-rose-50 border-rose-100 text-rose-700' },
-  'RISE':        { accent: 'text-violet-600',  gradient: 'from-violet-500 to-indigo-600', border: 'border-violet-100',  badge: 'bg-violet-50 border-violet-100 text-violet-700' },
-  'BLOOM':       { accent: 'text-emerald-600', gradient: 'from-emerald-500 to-teal-600',  border: 'border-emerald-100', badge: 'bg-emerald-50 border-emerald-100 text-emerald-700' },
-  'IGNITE':      { accent: 'text-fuchsia-600', gradient: 'from-fuchsia-500 to-pink-600',  border: 'border-fuchsia-100', badge: 'bg-fuchsia-50 border-fuchsia-100 text-fuchsia-700' },
-  'UNSTOPPABLE': { accent: 'text-amber-600',   gradient: 'from-amber-500 to-orange-600',  border: 'border-amber-100',   badge: 'bg-amber-50 border-amber-100 text-amber-700' },
+  'SPARK': { accent: 'text-rose-600', gradient: 'from-rose-500 to-pink-600', border: 'border-rose-100', badge: 'bg-rose-50 border-rose-100 text-rose-700' },
+  'RISE': { accent: 'text-violet-600', gradient: 'from-violet-500 to-indigo-600', border: 'border-violet-100', badge: 'bg-violet-50 border-violet-100 text-violet-700' },
+  'BLOOM': { accent: 'text-emerald-600', gradient: 'from-emerald-500 to-teal-600', border: 'border-emerald-100', badge: 'bg-emerald-50 border-emerald-100 text-emerald-700' },
+  'IGNITE': { accent: 'text-fuchsia-600', gradient: 'from-fuchsia-500 to-pink-600', border: 'border-fuchsia-100', badge: 'bg-fuchsia-50 border-fuchsia-100 text-fuchsia-700' },
+  'UNSTOPPABLE': { accent: 'text-amber-600', gradient: 'from-amber-500 to-orange-600', border: 'border-amber-100', badge: 'bg-amber-50 border-amber-100 text-amber-700' },
 };
 const DEFAULT_ENROLLED_THEME = { accent: 'text-primary', gradient: 'from-primary to-accent', border: 'border-primary/20', badge: 'bg-primary/10 border-primary/20 text-primary' };
 
@@ -74,6 +75,7 @@ export default function CustomerDashboardOverview() {
   const [allPrograms, setAllPrograms] = useState<Program[]>([]);
   const [isLinked, setIsLinked] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [parentBookmarks, setParentBookmarks] = useState<any[]>([]);
 
   // Enrollment modal state
   const [enrollModalProg, setEnrollModalProg] = useState<Program | null>(null);
@@ -94,7 +96,15 @@ export default function CustomerDashboardOverview() {
       ]);
       setEnrollments(enrollRes.data || []);
       setAllPrograms(programsRes);
-      setIsLinked(linksRes.some((link: any) => link.status === 'LINKED'));
+      const linked = linksRes.some((link: any) => link.status === 'LINKED');
+      setIsLinked(linked);
+
+      // If teen user is linked, fetch parent's bookmarked articles
+      if (user?.role === 'TEEN' && linked) {
+        ParentService.getTeenParentBookmarks()
+          .then(data => setParentBookmarks(data || []))
+          .catch(() => setParentBookmarks([]));
+      }
     } catch {
       toast.error('Failed to load dashboard data.');
     } finally {
@@ -112,11 +122,11 @@ export default function CustomerDashboardOverview() {
       return;
     }
     setEnrollSubmitting(true);
-    
+
     try {
       const prog = enrollModalProg;
       const bookId = `${prog.title.toLowerCase()}-${enrollFormat === 'PRIVATE' ? 'private' : 'group'}`;
-      
+
       const orderData = {
         guestName: enrollName,
         guestEmail: enrollEmail,
@@ -305,7 +315,47 @@ export default function CustomerDashboardOverview() {
         )}
       </div>
 
-      {!isTeen && <DashboardSummary />}
+      {/* {!isTeen && <DashboardSummary />}
+
+       PARENT BOOKMARKS FOR TEEN 
+      {isTeen && parentBookmarks.length > 0 && (
+        <div className="bg-white border border-slate-100 rounded-3xl p-8 md:p-10 shadow-xl shadow-slate-200/40">
+          <div className="flex items-center justify-between mb-8 border-b border-slate-100 pb-6">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-100 to-pink-100 flex items-center justify-center">
+                  <Heart size={20} className="text-rose-500 fill-rose-500" />
+                </div>
+                <h3 className="text-2xl font-extrabold text-slate-800">Recommended by Parent</h3>
+              </div>
+              <p className="text-sm font-semibold text-slate-400 ml-[52px]">Your parent bookmarked these articles for you to read</p>
+            </div>
+            <span className="text-[10px] font-black bg-rose-50 text-rose-600 border border-rose-100 px-3 py-1.5 rounded-full uppercase tracking-widest">
+              {parentBookmarks.length} {parentBookmarks.length === 1 ? 'Article' : 'Articles'}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {parentBookmarks.slice(0, 6).map((post: any) => (
+              <ResourceCard
+                key={post.id}
+                post={post}
+                isBookmarkedInitial={false}
+                hideBookmark={true}
+              />
+            ))}
+          </div>
+          {parentBookmarks.length > 6 && (
+            <div className="text-center mt-6 pt-6 border-t border-slate-100">
+              <Link
+                href="/dashboard/resources"
+                className="inline-flex items-center gap-2 text-sm font-extrabold text-primary hover:underline"
+              >
+                View All {parentBookmarks.length} Articles <ChevronRight size={16} />
+              </Link>
+            </div>
+          )}
+        </div>
+      )} */}
 
       <div className="space-y-12">
         {/* COMPACT PROGRAM PROGRESS OVERVIEW */}
@@ -458,7 +508,50 @@ export default function CustomerDashboardOverview() {
             </div>
           </div>
         )}
+
+
+
+
       </div>
+      {/* PARENT BOOKMARKS FOR TEEN */}
+      {isTeen && parentBookmarks.length > 0 && (
+        <div className="bg-white border border-slate-100 rounded-3xl p-8 md:p-10 shadow-xl shadow-slate-200/40">
+          <div className="flex items-center justify-between mb-8 border-b border-slate-100 pb-6">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-100 to-pink-100 flex items-center justify-center">
+                  <Heart size={20} className="text-rose-500 fill-rose-500" />
+                </div>
+                <h3 className="text-2xl font-extrabold text-slate-800">Recommended by Parent</h3>
+              </div>
+              <p className="text-sm font-semibold text-slate-400 ml-[52px]">Your parent bookmarked these articles for you to read</p>
+            </div>
+            <span className="text-[10px] font-black bg-rose-50 text-rose-600 border border-rose-100 px-3 py-1.5 rounded-full uppercase tracking-widest">
+              {parentBookmarks.length} {parentBookmarks.length === 1 ? 'Article' : 'Articles'}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {parentBookmarks.slice(0, 6).map((post: any) => (
+              <ResourceCard
+                key={post.id}
+                post={post}
+                isBookmarkedInitial={false}
+                hideBookmark={true}
+              />
+            ))}
+          </div>
+          {parentBookmarks.length > 6 && (
+            <div className="text-center mt-6 pt-6 border-t border-slate-100">
+              <Link
+                href="/dashboard/resources"
+                className="inline-flex items-center gap-2 text-sm font-extrabold text-primary hover:underline"
+              >
+                View All {parentBookmarks.length} Articles <ChevronRight size={16} />
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

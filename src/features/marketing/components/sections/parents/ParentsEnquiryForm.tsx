@@ -10,6 +10,8 @@ import {
   MessageCircle, Target, HelpCircle, ArrowRight, Clock
 } from 'lucide-react';
 import { ProgramsService } from '@/services/programs.service';
+import { AuthService } from '@/services/auth.service';
+import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'react-hot-toast';
 
 // 5 default premium programs data
@@ -187,16 +189,16 @@ const QUESTIONS = [
 ];
 
 interface ParentsEnquiryFormProps {
-  phase?: 'questions' | 'recommendation' | 'success';
-  onPhaseChange?: (phase: 'questions' | 'recommendation' | 'success') => void;
+  phase?: 'role-check' | 'questions' | 'recommendation' | 'success';
+  onPhaseChange?: (phase: 'role-check' | 'questions' | 'recommendation' | 'success') => void;
 }
 
 export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsEnquiryFormProps) {
   const router = useRouter();
-  const [internalPhase, setInternalPhase] = useState<'questions' | 'recommendation' | 'success'>('questions');
+  const [internalPhase, setInternalPhase] = useState<'role-check' | 'questions' | 'recommendation' | 'success'>('role-check');
   
   const phase = propPhase !== undefined ? propPhase : internalPhase;
-  const setPhase = (newPhase: 'questions' | 'recommendation' | 'success') => {
+  const setPhase = (newPhase: 'role-check' | 'questions' | 'recommendation' | 'success') => {
     if (onPhaseChange) {
       onPhaseChange(newPhase);
     } else {
@@ -218,12 +220,20 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
   });
 
   // Recommendation & Contact details
-  const [parentName, setParentName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
+  const { user } = useAuthStore();
+  const [parentName, setParentName] = useState(user?.profile?.displayName || user?.username || '');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [email, setEmail] = useState(user?.email || '');
   const [selectedFormat, setSelectedFormat] = useState<'PRIVATE' | 'GROUP' | 'BOTH'>('BOTH');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Sync state if user data is fetched post-mount
+  useEffect(() => {
+    setParentName(prev => user?.profile?.displayName || user?.username || prev);
+    setEmail(prev => user?.email || prev);
+    setPhone(prev => user?.phone || prev);
+  }, [user]);
 
   // Selected suggested program IDs state
   const [selectedProgramIds, setSelectedProgramIds] = useState<string[]>([]);
@@ -233,6 +243,34 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
   const [selectedMonthIndex, setSelectedMonthIndex] = useState(0); // 0 to 3
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string>('');
+
+  const [userExists, setUserExists] = useState(false);
+  const [isCheckingUser, setIsCheckingUser] = useState(false);
+
+  useEffect(() => {
+    const checkUserExists = async () => {
+      const cleanPhone = phone.replace(/\D/g, '');
+      if (cleanPhone.length >= 10) {
+        try {
+          setIsCheckingUser(true);
+          const formattedPhone = cleanPhone.startsWith('91') && cleanPhone.length === 12 
+            ? '+' + cleanPhone 
+            : (cleanPhone.length === 10 ? '+91' + cleanPhone : '+' + cleanPhone);
+          const res = await AuthService.checkUser(formattedPhone);
+          setUserExists(res.exists);
+        } catch (e) {
+          setUserExists(false);
+        } finally {
+          setIsCheckingUser(false);
+        }
+      } else {
+        setUserExists(false);
+      }
+    };
+
+    const timer = setTimeout(checkUserExists, 500);
+    return () => clearTimeout(timer);
+  }, [phone]);
 
   // Update selected suggested program IDs when classRange changes
   useEffect(() => {
@@ -373,6 +411,59 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
 
   return (
     <div className="w-full">
+      {/* ─── PHASE 0: ROLE CHECK ─── */}
+      {phase === 'role-check' && (
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -15 }}
+          className="space-y-6 text-center py-6"
+        >
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Users className="w-8 h-8 text-primary" />
+          </div>
+          <h3 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight leading-tight">
+            Who is enrolling today?
+          </h3>
+          <p className="text-sm font-medium text-slate-500 max-w-md mx-auto">
+            Please select your role so we can guide you to the right experience.
+          </p>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 max-w-lg mx-auto">
+            <button
+              type="button"
+              onClick={() => setPhase('questions')}
+              className="p-5 rounded-2xl border-2 border-slate-100 hover:border-primary hover:bg-primary/5 transition-all group flex flex-col items-center gap-3 text-center"
+            >
+              <div className="w-12 h-12 rounded-xl bg-slate-50 group-hover:bg-white group-hover:text-primary flex items-center justify-center text-slate-400 transition-colors shadow-sm">
+                <Heart size={24} />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-800 group-hover:text-primary transition-colors">I am a Parent</h4>
+                <p className="text-xs text-slate-500 mt-1">Enrolling for my daughter</p>
+              </div>
+            </button>
+            
+            <button
+              type="button"
+              onClick={() => {
+                toast("This form is for parents. If you're a teen, please explore our programs directly!", { icon: "👋" });
+                router.push('/programs');
+              }}
+              className="p-5 rounded-2xl border-2 border-slate-100 hover:border-fuchsia-500 hover:bg-fuchsia-50 transition-all group flex flex-col items-center gap-3 text-center"
+            >
+              <div className="w-12 h-12 rounded-xl bg-slate-50 group-hover:bg-white group-hover:text-fuchsia-500 flex items-center justify-center text-slate-400 transition-colors shadow-sm">
+                <Sparkles size={24} />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-800 group-hover:text-fuchsia-600 transition-colors">I am a Teen</h4>
+                <p className="text-xs text-slate-500 mt-1">Exploring for myself</p>
+              </div>
+            </button>
+          </div>
+        </motion.div>
+      )}
+
       {/* ─── PHASE 1: QUESTIONNAIRE ─── */}
       {phase === 'questions' && (
         <div>
@@ -992,12 +1083,21 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                     </button>
 
                     {/* Direct Enroll Button */}
-                    <Link
-                      href={`/checkout?bookId=${suggestedPrograms[0] ? suggestedPrograms[0].id.toLowerCase() : 'spark'}-${selectedFormat === 'PRIVATE' ? 'private' : 'group'}&name=${encodeURIComponent(parentName)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&class=${encodeURIComponent(suggestedPrograms[0] ? suggestedPrograms[0].classRange : ("Class " + answers.classRange))}&format=${encodeURIComponent(selectedFormat === 'PRIVATE' ? '1:1 Private Mentoring' : 'Group Cohort (4 Girls)')}&date=${encodeURIComponent(selectedDay ? selectedDay.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '')}&time=${encodeURIComponent(selectedTime ? selectedTime.replace('_', ' ') : '')}`}
-                      className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99] text-center"
-                    >
-                      Enroll Now
-                    </Link>
+                    {userExists ? (
+                      <Link
+                        href="/login"
+                        className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99] text-center"
+                      >
+                        You are already a user, pls login
+                      </Link>
+                    ) : (
+                      <Link
+                        href={`/checkout?bookId=${suggestedPrograms[0] ? suggestedPrograms[0].id.toLowerCase() : 'spark'}-${selectedFormat === 'PRIVATE' ? 'private' : 'group'}&name=${encodeURIComponent(parentName)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&class=${encodeURIComponent(suggestedPrograms[0] ? suggestedPrograms[0].classRange : ("Class " + answers.classRange))}&format=${encodeURIComponent(selectedFormat === 'PRIVATE' ? '1:1 Private Mentoring' : 'Group Cohort (4 Girls)')}&date=${encodeURIComponent(selectedDay ? selectedDay.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '')}&time=${encodeURIComponent(selectedTime ? selectedTime.replace('_', ' ') : '')}`}
+                        className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99] text-center"
+                      >
+                        Enroll Now
+                      </Link>
+                    )}
                   </div>
                 </form>
 

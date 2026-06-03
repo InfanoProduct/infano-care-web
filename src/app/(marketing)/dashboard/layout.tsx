@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { ShieldCheck, LogOut, LayoutDashboard, Calendar, Compass, User, Sparkles, CreditCard, BookOpen } from 'lucide-react';
+import { ShieldCheck, LogOut, LayoutDashboard, Calendar, Compass, User, Sparkles, CreditCard, BookOpen, Layers } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
 import { AuthService } from '@/services/auth.service';
@@ -15,7 +15,7 @@ export default function CustomerDashboardLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, clearAuth, user, refreshToken, setAuth } = useAuthStore();
+  const { isAuthenticated, clearAuth, user, refreshToken, accessToken, setAuth } = useAuthStore();
   const [mounted, setMounted] = useState(false);
   const refreshedRef = useRef(false);
 
@@ -42,6 +42,35 @@ export default function CustomerDashboardLayout({
     const refreshTimeout = setTimeout(doRefresh, 14 * 60 * 1000);
     return () => clearTimeout(refreshTimeout);
   }, [isAuthenticated, refreshToken, user, setAuth]);
+
+  // Fetch full user profile (including name and email) on mount — once only
+  const profileFetchedRef = useRef(false);
+  useEffect(() => {
+    if (!isAuthenticated || !user || !accessToken || profileFetchedRef.current) return;
+    // Skip if we already have profile data
+    if (user.profile) {
+      profileFetchedRef.current = true;
+      return;
+    }
+
+    profileFetchedRef.current = true;
+    const fetchUserProfile = async () => {
+      try {
+        const fullUser = await AuthService.getMe();
+        if (fullUser) {
+          setAuth(accessToken, refreshToken || '', {
+            ...user,
+            email: fullUser.email,
+            profile: fullUser.profile,
+          });
+        }
+      } catch (err) {
+        console.warn('[Dashboard] Failed to fetch user profile:', err);
+      }
+    };
+
+    fetchUserProfile();
+  }, [isAuthenticated, accessToken]);
 
   // Auth Guard
   useEffect(() => {
@@ -77,7 +106,7 @@ export default function CustomerDashboardLayout({
   const isTeen = user.role === 'TEEN';
 
   return (
-    <div className="min-h-screen bg-[#FFFBF9] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#FFFBF9] flex flex-col customer-dashboard font-sans">
       {/* Premium Header */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100 px-6 py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-6">
@@ -148,6 +177,17 @@ export default function CustomerDashboardLayout({
                   Overview
                 </Link>
                 <Link 
+                  href="/dashboard/enrolled-programs" 
+                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all duration-200 ${
+                    isActive('/dashboard/enrolled-programs') 
+                      ? 'bg-primary/10 text-primary shadow-sm' 
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                  }`}
+                >
+                  <Layers size={16} />
+                  Enrolled Programs
+                </Link>
+                <Link 
                   href="/dashboard/payments" 
                   className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all duration-200 ${
                     isActive('/dashboard/payments') 
@@ -207,6 +247,17 @@ export default function CustomerDashboardLayout({
                 >
                   <User size={16} />
                   {isTeen ? 'Link Parent' : 'Link Daughter'}
+                </Link>
+                <Link 
+                  href="/dashboard/profile" 
+                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all duration-200 ${
+                    isActive('/dashboard/profile') 
+                      ? 'bg-primary/10 text-primary shadow-sm' 
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                  }`}
+                >
+                  <User size={16} />
+                  Profile
                 </Link>
               </nav>
             </div>

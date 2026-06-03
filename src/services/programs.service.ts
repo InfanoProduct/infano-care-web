@@ -35,6 +35,8 @@ export interface ProgramEnrollment {
   updatedAt: string;
   program: Program;
   user: {
+    id?: string;
+    role?: string;
     username: string;
     phone: string;
     parentEmail: string | null;

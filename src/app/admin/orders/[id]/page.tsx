@@ -177,25 +177,36 @@ export default function OrderDetailPage() {
                 Order Items
               </h2>
             </div>
-            <div className="divide-y divide-border">
-              {order.items.map((item: any) => (
+              <div className="divide-y divide-border">
+              {order.items.map((item: any) => {
+                const book = item.book || {};
+                const title = book.title || item.bookTitle || item.name || item.bookId || 'Product Item';
+                const isProgram = !!(book.sessions || book.classRange || book.duration || (book.title && book.title.toLowerCase().includes('program')));
+                const isbnId = (book.id || item.bookId || 'unknown').toString().slice(0, 6).toUpperCase();
+                const unitPrice = item.price || book.price || 0;
+                return (
                 <div key={item.id} className="p-8 flex gap-8 items-center group">
                   <div className="w-24 h-32 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-[10px] font-bold shadow-lg p-3 text-center transition-transform group-hover:scale-105">
-                    {item.book.title}
+                    {isProgram ? 'Program' : 'Book'}
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-black text-xl text-foreground">{item.book.title}</h3>
+                    <h3 className="font-black text-xl text-foreground">{isProgram ? `Program Enrollment: ${title}` : title}</h3>
                     <p className="text-muted-foreground font-bold mt-1">Quantity: {item.quantity}</p>
                     <div className="mt-4 flex items-center gap-2">
-                       <span className="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-bold text-slate-500">ISBN: INF-{item.book.id.slice(0, 6)}</span>
+                      {!isProgram && (
+                       <span className="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-bold text-slate-500">ISBN: INF-{isbnId}</span>
+                      )}
+                      {isProgram && (
+                       <span className="px-3 py-1 bg-purple-50 rounded-lg text-[10px] font-bold text-purple-600">Enrollment Item</span>
+                      )}
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-black text-2xl">₹{item.price * item.quantity}</p>
-                    <p className="text-sm font-bold text-muted-foreground">₹{item.price} per copy</p>
+                    <p className="font-black text-2xl">₹{unitPrice * item.quantity}</p>
+                    <p className="text-sm font-bold text-muted-foreground">₹{unitPrice} per copy</p>
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
             
             {/* Financials Breakdown */}

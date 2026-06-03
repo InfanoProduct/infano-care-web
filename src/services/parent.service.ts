@@ -9,11 +9,13 @@ export interface ParentLink {
   status: "PENDING" | "LINKED" | "CANCELLED";
   createdAt: string;
   parent?: {
+    phone?: string;
     profile?: {
       displayName: string;
     };
   };
   teen?: {
+    phone?: string;
     profile?: {
       displayName: string;
     };

@@ -12,7 +12,7 @@ export default function MarketingLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isDashboard = pathname?.startsWith('/peerline/dashboard');
+  const isDashboard = pathname?.startsWith('/peerline/dashboard') || pathname?.startsWith('/dashboard');
   const isPortal = isDashboard;
 
   return (

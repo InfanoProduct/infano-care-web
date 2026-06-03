@@ -301,9 +301,34 @@
    ========================================== */
 
 .admin-panel {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
   background-color: #f8fafc !important; /* Elegant slate background */
 }
+
+.customer-dashboard {
+  font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+.customer-dashboard h1,
+.customer-dashboard h2,
+.customer-dashboard h3,
+.customer-dashboard h4,
+.customer-dashboard h5,
+.customer-dashboard h6,
+.customer-dashboard .font-heading {
+  font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+/* Downscale font weights from "bulky & blunt" to "classic & sleek" just like the admin panel */
+.customer-dashboard .font-black,
+.customer-dashboard .font-extrabold {
+  font-weight: 600 !important;   /* Semibold */
+}
+
+.customer-dashboard .font-bold {
+  font-weight: 500 !important;   /* Medium */
+}
+
 
 /* --- 1. Typography & Weight Normalization --- */
 .admin-panel h1,

@@ -39,6 +39,24 @@ export default function CustomerPaymentsOverview() {
     loadPaymentData();
   }, [loadPaymentData]);
 
+  // Helper to detect program-like items vs book items
+  const isProgramItem = (it: any) => {
+    const book = it.book || {};
+    const bookId = (it.bookId || '').toLowerCase();
+    const bookTitle = (book.title || it.bookTitle || '').toLowerCase();
+    
+    // Check if it's a program by fields
+    if (book.sessions || book.classRange || book.duration) return true;
+    
+    // Check by title or id
+    if (bookId.includes('program') || bookId.includes('private') || bookId.includes('group') || bookId.includes('cohort')) return true;
+    if (bookTitle.includes('program') || bookTitle.includes('mentoring') || bookTitle.includes('cohort')) return true;
+    
+    return false;
+  };
+
+  const productOrders = orders.filter((o: any) => (o.items || []).some((it: any) => !isProgramItem(it)));
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-32 gap-4 text-primary">
@@ -95,7 +113,7 @@ export default function CustomerPaymentsOverview() {
               }`}
             >
               <ShoppingBag size={15} />
-              Product Orders ({orders.length})
+              Product Orders ({productOrders.length})
             </button>
           </div>
 
@@ -183,7 +201,7 @@ export default function CustomerPaymentsOverview() {
           {/* Tab 2: Book Orders list */}
           {activeTab === 'books' && (
             <div className="space-y-4">
-              {orders.length === 0 ? (
+              {productOrders.length === 0 ? (
                 <div className="text-center py-16 bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/20 space-y-4">
                   <div className="w-16 h-16 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center mx-auto text-slate-300">
                     <ShoppingBag size={28} />
@@ -202,7 +220,7 @@ export default function CustomerPaymentsOverview() {
                   </Link>
                 </div>
               ) : (
-                orders.map((order) => (
+                productOrders.map((order) => (
                   <div 
                     key={order.id}
                     className="bg-white border border-slate-100/80 rounded-2xl p-6 shadow-xl shadow-slate-200/25 relative overflow-hidden"
@@ -229,7 +247,11 @@ export default function CustomerPaymentsOverview() {
                           </span>
                         </div>
                         <h4 className="text-base font-extrabold text-slate-800">
-                          {order.items?.map((it: any) => `${it.book.title} (x${it.quantity})`).join(', ') || 'Survival Guide Order'}
+                          {order.items?.filter((it: any) => !isProgramItem(it)).map((it: any) => {
+                            const book = it.book || {};
+                            const title = book.title || it.bookTitle || it.name || 'Book Order';
+                            return `${title} (x${it.quantity})`;
+                          }).join(', ') || 'Book Order'}
                         </h4>
                       </div>
 

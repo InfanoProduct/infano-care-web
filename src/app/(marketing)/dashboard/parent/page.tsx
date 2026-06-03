@@ -1,7 +1,14 @@
+'use client';
+
 import { ParentLinkManager } from "@/features/parent/components/ParentLinkManager";
 import { HelpCircle } from "lucide-react";
+import { useAuthStore } from "@/store/auth-store";
 
 export default function ParentDashboardPage() {
+  const { user } = useAuthStore();
+  const isTeen = user?.role === 'TEEN';
+  const targetLabel = isTeen ? "parent's" : "daughter's";
+
   return (
     <div className="space-y-8">
       <div className="admin-header">
@@ -27,9 +34,9 @@ export default function ParentDashboardPage() {
               <HelpCircle size={16} className="text-primary" /> How do I link an account?
             </h3>
             <p className="text-sm text-slate-600 leading-relaxed">
-              1. One person must generate a Link Code.<br/>
-              2. Share this secure 6-digit pin.<br/>
-              3. The other person enters it to confirm the connection.
+              1. Enter your {targetLabel} phone number in the linking form and send the invite.<br/>
+              2. They will receive a link request notification on their dashboard (via the bell icon).<br/>
+              3. Once they accept the notification, your accounts will be actively linked.
             </p>
           </div>
 

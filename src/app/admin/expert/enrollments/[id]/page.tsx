@@ -208,15 +208,32 @@ export default function EnrollmentDetail({ params }: { params: Promise<{ id: str
 
                   {/* Mark completed button */}
                   {existingSession?.status === 'SCHEDULED' && (
-                    <button
-                      onClick={() => handleComplete(existingSession.id)}
-                      disabled={completing === existingSession.id}
-                      className="w-full px-6 py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-all shadow-md shadow-green-500/20 flex items-center justify-center gap-2 disabled:opacity-70"
-                    >
-                      {completing === existingSession.id
-                        ? <Loader2 size={16} className="animate-spin" />
-                        : 'Mark Completed'}
-                    </button>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => handleComplete(existingSession.id)}
+                        disabled={completing === existingSession.id}
+                        className="w-full px-6 py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-all shadow-md shadow-green-500/20 flex items-center justify-center gap-2 disabled:opacity-70"
+                      >
+                        {completing === existingSession.id
+                          ? <Loader2 size={16} className="animate-spin" />
+                          : 'Mark Completed'}
+                      </button>
+
+                      {new Date(existingSession.scheduledAt) < new Date() && (
+                        <button
+                          onClick={() => {
+                            setSchedulingSessionNum(sessionNum);
+                            const d = new Date(existingSession.scheduledAt);
+                            setScheduleDate(d.toISOString().split('T')[0]);
+                            setScheduleTime(d.toTimeString().slice(0, 5));
+                            setMeetLink(existingSession.meetLink || '');
+                          }}
+                          className="w-full px-6 py-3 bg-white text-primary border border-primary rounded-xl font-bold hover:bg-primary/5 transition-all shadow-sm flex items-center justify-center gap-2"
+                        >
+                          Reschedule Session
+                        </button>
+                      )}
+                    </div>
                   )}
 
                   {/* Completed — no action needed */}

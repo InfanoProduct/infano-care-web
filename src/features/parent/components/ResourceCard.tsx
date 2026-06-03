@@ -8,9 +8,10 @@ interface ResourceCardProps {
   isBookmarkedInitial: boolean;
   onBookmarkChange?: (postId: string, isBookmarked: boolean) => void;
   hideBookmark?: boolean;
+  compact?: boolean;
 }
 
-export function ResourceCard({ post, isBookmarkedInitial, onBookmarkChange, hideBookmark = false }: ResourceCardProps) {
+export function ResourceCard({ post, isBookmarkedInitial, onBookmarkChange, hideBookmark = false, compact = false }: ResourceCardProps) {
   const [isBookmarked, setIsBookmarked] = useState(isBookmarkedInitial);
   const [loading, setLoading] = useState(false);
 
@@ -36,8 +37,13 @@ export function ResourceCard({ post, isBookmarkedInitial, onBookmarkChange, hide
   };
 
   return (
-    <Link href={`/blog/${post.slug || post.id}`} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col h-full block">
-      <div className="relative h-48 w-full shrink-0 overflow-hidden bg-slate-100">
+    <Link 
+      href={`/blog/${post.slug || post.id}`} 
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col h-full block ${compact ? 'text-sm' : ''}`}
+    >
+      <div className={`relative w-full shrink-0 overflow-hidden bg-slate-100 ${compact ? 'h-28' : 'h-48'}`}>
         {post.thumbnailUrl ? (
           <img 
             src={post.thumbnailUrl} 
@@ -63,10 +69,10 @@ export function ResourceCard({ post, isBookmarkedInitial, onBookmarkChange, hide
           </button>
         )}
       </div>
-      <div className="p-5 flex flex-col flex-1">
+      <div className={`${compact ? 'p-3' : 'p-5'} flex flex-col flex-1`}>
         <div className="flex flex-wrap items-center gap-2 mb-3">
           {post.tags?.slice(0, 2).map((tag: string) => (
-            <span key={tag} className="px-2 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-bold uppercase tracking-wider rounded-md border border-indigo-100/50">
+            <span key={tag} className={`px-2 ${compact ? 'py-0.5 text-[9px]' : 'py-1 text-[10px]'} bg-indigo-50 text-indigo-600 font-bold uppercase tracking-wider rounded-md border border-indigo-100/50`}>
               {tag}
             </span>
           ))}
@@ -77,15 +83,15 @@ export function ResourceCard({ post, isBookmarkedInitial, onBookmarkChange, hide
           ))}
         </div>
         
-        <h3 className="text-base font-bold text-slate-800 line-clamp-2 mb-2 group-hover:text-indigo-600 transition-colors">
+        <h3 className={`${compact ? 'text-sm' : 'text-base'} font-bold text-slate-800 line-clamp-2 mb-2 group-hover:text-indigo-600 transition-colors`}>
           {post.title}
         </h3>
         
-        <p className="text-sm text-slate-500 line-clamp-2 mb-4 flex-1">
+        <p className={`${compact ? 'text-xs mb-2' : 'text-sm mb-4'} text-slate-500 line-clamp-2 flex-1`}>
           {post.summary || "Read this article to learn more about the topic and support your daughter's journey."}
         </p>
         
-        <div className="flex items-center justify-between text-[11px] font-bold tracking-wide text-slate-400 border-t border-slate-50 pt-4 mt-auto">
+        <div className={`flex items-center justify-between text-[11px] font-bold tracking-wide text-slate-400 border-t border-slate-50 ${compact ? 'pt-2' : 'pt-4'} mt-auto`}>
           <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md">
             <Clock size={12} className="text-slate-500" />
             {post.readTime || 5} MIN READ

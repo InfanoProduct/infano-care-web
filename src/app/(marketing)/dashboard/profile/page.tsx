@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { User, Bell, Camera, Loader2, Save, HelpCircle, Link2, ShieldAlert, Sparkles, Send, BookOpen, Calendar } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
+import { apiClient } from '@/lib/api-client';
 
 export default function ProfilePage() {
   const { user, setAuth } = useAuthStore();
@@ -48,23 +49,28 @@ export default function ProfilePage() {
     e.preventDefault();
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(r => setTimeout(r, 1000));
+      await apiClient.put('/user/profile', {
+        displayName: formData.displayName,
+        email: formData.email,
+      });
+      
       toast.success('Profile preferences updated!');
       
       if (user) {
         setAuth(
-          useAuthStore.getState().accessToken || '',
+          useAuthStore.getState().token || '',
           useAuthStore.getState().refreshToken || '',
           {
             ...user,
             email: formData.email,
-            profile: { ...user.profile, displayName: formData.displayName }
+            profile: user.profile 
+              ? { ...user.profile, displayName: formData.displayName }
+              : { displayName: formData.displayName }
           }
         );
       }
-    } catch (error) {
-      toast.error('Failed to update profile');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update profile');
     } finally {
       setLoading(false);
     }

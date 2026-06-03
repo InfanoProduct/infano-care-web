@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Calendar, BookOpen, Activity, HeartPulse } from "lucide-react";
+import { Loader2, Calendar, BookOpen, HeartPulse, Sparkles, ShieldCheck, AlertCircle, TrendingUp, Info } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
+import Link from "next/link";
 
 interface MoodTrend {
   date: string;
@@ -19,24 +20,29 @@ interface DashboardSummaryData {
 }
 
 const getMoodColor = (mood: string | null) => {
-  if (!mood) return "bg-gray-200";
+  if (!mood) return "bg-gray-255";
+  return "bg-purple-255";
+};
+
+const getMoodCategory = (mood: string | null): 'positive' | 'neutral' | 'low' | 'none' => {
+  if (!mood) return 'none';
   const m = mood.toLowerCase();
-  if (["happy", "joyful", "excited", "calm"].includes(m)) return "bg-green-500";
-  if (["sad", "down", "tired"].includes(m)) return "bg-blue-400";
-  if (["angry", "frustrated", "stressed"].includes(m)) return "bg-red-500";
-  if (["anxious", "nervous"].includes(m)) return "bg-yellow-400";
-  return "bg-purple-400"; // default vibrant color
+  // Map positive states
+  if (["happy", "joyful", "excited", "calm", "energetic", "content", "positive"].some(k => m.includes(k))) return 'positive';
+  // Map low states
+  if (["sad", "down", "tired", "depressed", "lonely", "unhappy", "low", "angry", "frustrated", "stressed", "anxious", "nervous", "scared", "worried"].some(k => m.includes(k))) return 'low';
+  // Default to neutral
+  return 'neutral';
 };
 
 export function DashboardSummary() {
   const [data, setData] = useState<DashboardSummaryData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [daysRange, setDaysRange] = useState<7 | 30>(7);
 
   const fetchSummary = async () => {
     try {
-      const response = await apiClient.request<any>("/parent/dashboard-summary", {
-        method: "GET",
-      });
+      const response = await apiClient.get<any>("/parent/dashboard-summary");
       if (response) {
         setData(response);
       }
@@ -47,155 +53,310 @@ export function DashboardSummary() {
     }
   };
 
-  // Real-time refresh every 5 minutes and focus-refresh
   useEffect(() => {
     fetchSummary();
-
-    const interval = setInterval(() => {
-      fetchSummary();
-    }, 5 * 60 * 1000); // 5 mins
-
-    const onFocus = () => fetchSummary();
-    window.addEventListener("focus", onFocus);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("focus", onFocus);
-    };
   }, []);
 
   if (loading) {
     return (
-      <div className="flex justify-center py-8">
+      <div className="flex flex-col items-center justify-center py-16 gap-3 text-slate-500">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="text-xs font-bold uppercase tracking-wider">Syncing Family Data...</span>
       </div>
     );
   }
 
   if (!data?.isLinked) {
-    return null; // Don't show summary if not linked
+    return null; // Hide summary entirely if not linked
+  }
+
+  // Count actual valid mood entries logged by the daughter
+  const validMoodLogs = (data.moodTrend || []).filter(l => l.moodPrimary !== null);
+  const totalLoggedMoods = validMoodLogs.length;
+  const isMoodLocked = totalLoggedMoods < 3;
+
+  // Generate calendar days for the past N days
+  const getPastDays = (numDays: number) => {
+    const days = [];
+    for (let i = numDays - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      days.push(d);
+    }
+    return days;
+  };
+
+  // Normalize logged moods for comparison
+  const normalizedLogs = validMoodLogs.map(log => ({
+    dateStr: new Date(log.date).toDateString(),
+    moodPrimary: log.moodPrimary
+  }));
+
+  // Build sequential list of days to plot
+  const chartDays = getPastDays(daysRange).map(d => {
+    const log = normalizedLogs.find(log => log.dateStr === d.toDateString());
+    const category = getMoodCategory(log?.moodPrimary || null);
+    return {
+      date: d,
+      dateLabel: d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+      category,
+      mood: log?.moodPrimary || null,
+      hasLog: !!log
+    };
+  });
+
+  // Calculate runs of 3+ consecutive low days
+  const isRed = new Array(chartDays.length).fill(false);
+  let consecutiveLowCount = 0;
+  let startIdx = -1;
+
+  for (let i = 0; i < chartDays.length; i++) {
+    if (chartDays[i].category === 'low') {
+      if (consecutiveLowCount === 0) {
+        startIdx = i;
+      }
+      consecutiveLowCount++;
+    } else if (chartDays[i].category === 'none') {
+      // Missing log breaks the streak
+      if (consecutiveLowCount >= 3) {
+        for (let j = startIdx; j < i; j++) {
+          if (chartDays[j].category === 'low') isRed[j] = true;
+        }
+      }
+      consecutiveLowCount = 0;
+      startIdx = -1;
+    } else {
+      // Positive/neutral breaks the streak
+      if (consecutiveLowCount >= 3) {
+        for (let j = startIdx; j < i; j++) {
+          if (chartDays[j].category === 'low') isRed[j] = true;
+        }
+      }
+      consecutiveLowCount = 0;
+      startIdx = -1;
+    }
+  }
+
+  // Handle run at the end of the array
+  if (consecutiveLowCount >= 3) {
+    for (let j = startIdx; j < chartDays.length; j++) {
+      if (chartDays[j].category === 'low') isRed[j] = true;
+    }
   }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold tracking-tight">
-        {data.daughterName}&apos;s Wellness
-      </h2>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 4-Column Top Grid for Metrics & Insights */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        
         {/* Active Journey */}
-        <div className="bg-white/50 backdrop-blur-sm border border-white/20 shadow-lg hover:shadow-xl transition-all rounded-xl overflow-hidden">
-          <div className="p-4 pb-2">
-            <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+        <div className="bg-white border border-slate-100/80 rounded-2xl p-5 shadow-xl shadow-slate-200/20 flex flex-col justify-between min-h-[220px]">
+          <div className="space-y-2">
+            <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-2">
               <BookOpen className="h-4 w-4 text-pink-500" />
-              Active Journey
+              Learning Journey
             </h3>
-          </div>
-          <div className="p-4 pt-0">
             {data.activeJourney ? (
-              <div className="space-y-2">
-                <p className="font-semibold text-lg leading-tight truncate" title={data.activeJourney.name}>
-                  {data.activeJourney.name}
-                </p>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{data.activeJourney.percentComplete}% Complete</span>
-                </div>
-                <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-primary transition-all duration-500 ease-in-out" 
-                    style={{ width: `${data.activeJourney.percentComplete}%` }}
-                  />
-                </div>
-              </div>
+              <p className="font-extrabold text-base text-slate-800 leading-snug mt-1 truncate" title={data.activeJourney.name}>
+                {data.activeJourney.name}
+              </p>
             ) : (
-              <p className="text-sm text-muted-foreground mt-2">No active journey</p>
+              <p className="text-xs font-bold text-slate-400 mt-2">No active journey</p>
             )}
           </div>
-        </div>
-
-        {/* Mood Trend */}
-        <div className="bg-white/50 backdrop-blur-sm border border-white/20 shadow-lg hover:shadow-xl transition-all rounded-xl overflow-hidden">
-          <div className="p-4 pb-2">
-            <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Activity className="h-4 w-4 text-purple-500" />
-              Mood Trend (7 Days)
-            </h3>
-          </div>
-          <div className="p-4 pt-0">
-            {data.moodTrend && data.moodTrend.length > 0 ? (
-              <div className="flex items-end h-12 gap-1 pt-2">
-                {Array.from({ length: 7 }).map((_, i) => {
-                  // Pad with empty days if less than 7 logs
-                  const log = data.moodTrend[data.moodTrend.length - 1 - i];
-                  const color = getMoodColor(log?.moodPrimary || null);
-                  return (
-                    <div 
-                      key={i} 
-                      className={`flex-1 rounded-sm ${color} transition-all hover:opacity-80`}
-                      style={{ height: log ? '100%' : '20%' }}
-                      title={log?.moodPrimary || "No data"}
-                    />
-                  );
-                }).reverse()}
+          {data.activeJourney && (
+            <div className="space-y-1.5 pt-3">
+              <div className="flex items-center justify-between text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                <span>{data.activeJourney.percentComplete}% Complete</span>
               </div>
-            ) : (
-              <p className="text-sm text-muted-foreground mt-2">No recent mood logs</p>
-            )}
-          </div>
+              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-pink-500 transition-all duration-500" 
+                  style={{ width: `${data.activeJourney.percentComplete}%` }}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Next Expert Session */}
-        <div className="bg-white/50 backdrop-blur-sm border border-white/20 shadow-lg hover:shadow-xl transition-all rounded-xl overflow-hidden">
-          <div className="p-4 pb-2">
-            <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+        <div className="bg-white border border-slate-100/80 rounded-2xl p-5 shadow-xl shadow-slate-200/20 flex flex-col justify-between min-h-[220px]">
+          <div className="space-y-2">
+            <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-2">
               <Calendar className="h-4 w-4 text-blue-500" />
-              Next Expert Session
+              Next Session
             </h3>
-          </div>
-          <div className="p-4 pt-0">
             {data.nextExpertSession ? (
-              <div className="pt-1">
-                <p className="font-semibold text-lg">
-                  {new Date(data.nextExpertSession).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+              <div className="mt-1 space-y-0.5">
+                <p className="font-extrabold text-base text-slate-800">
+                  {new Date(data.nextExpertSession).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  {new Date(data.nextExpertSession).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+                <p className="text-xs font-bold text-slate-500">
+                  {new Date(data.nextExpertSession).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })}
                 </p>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground mt-2">None booked</p>
+              <p className="text-xs font-bold text-slate-400 mt-2">No sessions booked</p>
             )}
           </div>
+          {data.nextExpertSession && (
+            <div className="text-[9px] font-black uppercase text-blue-600 tracking-wider">
+              Link activates on schedule
+            </div>
+          )}
         </div>
 
-        {/* Programs */}
-        <div className="bg-white/50 backdrop-blur-sm border border-white/20 shadow-lg hover:shadow-xl transition-all rounded-xl overflow-hidden">
-          <div className="p-4 pb-2">
-            <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+        {/* Programs Catalog */}
+        <div className="bg-white border border-slate-100/80 rounded-2xl p-5 shadow-xl shadow-slate-200/20 flex flex-col justify-between min-h-[220px]">
+          <div className="space-y-2">
+            <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-2">
               <HeartPulse className="h-4 w-4 text-emerald-500" />
-              Programs
+              Active Programs
             </h3>
-          </div>
-          <div className="p-4 pt-0">
             {data.programs && data.programs.length > 0 ? (
-              <ul className="space-y-1 mt-1">
+              <div className="mt-1 space-y-1">
                 {data.programs.slice(0, 2).map((prog, i) => (
-                  <li key={i} className="text-sm font-medium truncate" title={prog}>
-                    • {prog}
-                  </li>
+                  <p key={i} className="text-xs font-semibold text-slate-700 truncate" title={prog}>
+                    ✓ {prog}
+                  </p>
                 ))}
                 {data.programs.length > 2 && (
-                  <li className="text-xs text-muted-foreground">
-                    +{data.programs.length - 2} more
-                  </li>
+                  <p className="text-[9px] font-bold text-slate-400 mt-0.5">
+                    +{data.programs.length - 2} more programs
+                  </p>
                 )}
-              </ul>
+              </div>
             ) : (
-              <p className="text-sm text-muted-foreground mt-2">No active programs</p>
+              <p className="text-xs font-bold text-slate-400 mt-2">No active programs</p>
             )}
           </div>
+          <Link 
+            href="/dashboard/enrolled-programs" 
+            className="text-[10px] font-black uppercase text-emerald-600 tracking-wider hover:underline block pt-2"
+          >
+            View Programs &rarr;
+          </Link>
         </div>
+
+        {/* Daughter's Mood Insights */}
+        <div className="bg-white border border-slate-100/80 rounded-2xl p-5 shadow-xl shadow-slate-200/20 flex flex-col justify-between min-h-[220px] relative overflow-visible">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+              <TrendingUp className="h-4 w-4 text-purple-500" />
+              Mood Insights
+            </h3>
+            <div className="flex items-center gap-1.5">
+              {!isMoodLocked && (
+                <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200/60 w-fit select-none">
+                  <button
+                    onClick={() => setDaysRange(7)}
+                    className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider transition-all ${daysRange === 7 ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                  >
+                    7D
+                  </button>
+                  <button
+                    onClick={() => setDaysRange(30)}
+                    className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider transition-all ${daysRange === 30 ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                  >
+                    30D
+                  </button>
+                </div>
+              )}
+              {/* Privacy Shield Icon with Tooltip */}
+              <div className="group relative">
+                <ShieldCheck className="h-4.5 w-4.5 text-emerald-500 cursor-help hover:text-emerald-600 transition-colors" />
+                <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block bg-slate-900 text-white text-[10px] font-medium p-3 rounded-xl shadow-xl w-56 z-50 pointer-events-none leading-normal">
+                  <p className="font-bold text-emerald-400 mb-1">Privacy Shield Active</p>
+                  Only daily wellness aggregates are shared. Raw logs, symptoms, and written notes remain private.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Chart Viewport */}
+          {isMoodLocked ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-center py-2 px-1">
+              <Info size={14} className="text-slate-400 mb-1" />
+              <h4 className="font-extrabold text-slate-800 text-[10px] uppercase tracking-wider">Syncing Trend</h4>
+              <p className="text-[9px] font-semibold text-slate-400 mt-0.5 leading-normal max-w-[170px]">
+                Unlocks after 3 entries. (Logged: {totalLoggedMoods}/3)
+              </p>
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col justify-end pt-3">
+              {/* Compact Bar Chart */}
+              <div className="flex items-end justify-between gap-[2px] h-20 relative border-b border-slate-200/60 pb-0.5 overflow-visible">
+                {/* Horizontal reference lines */}
+                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none text-[8px] font-bold text-slate-100 select-none pb-4 pt-2">
+                  <div className="border-t border-slate-100 w-full" />
+                  <div className="border-t border-slate-100 w-full" />
+                </div>
+
+                {chartDays.map((day, idx) => {
+                  let heightPercent = 15; // default fallback if no log
+                  let colorClass = 'bg-slate-100 border-slate-200';
+                  let statusText = 'No entry';
+
+                  if (day.hasLog) {
+                    if (day.category === 'positive') {
+                      heightPercent = 90;
+                      colorClass = 'bg-green-500 hover:bg-green-600 shadow-sm shadow-green-500/10';
+                      statusText = 'Positive Mood';
+                    } else if (day.category === 'neutral') {
+                      heightPercent = 55;
+                      colorClass = 'bg-amber-500 hover:bg-amber-600 shadow-sm shadow-amber-500/10';
+                      statusText = 'Neutral Mood';
+                    } else if (day.category === 'low') {
+                      heightPercent = 25;
+                      if (isRed[idx]) {
+                        colorClass = 'bg-red-500 hover:bg-red-600 shadow-sm shadow-red-500/10 animate-pulse';
+                        statusText = 'Low Mood (Sustained)';
+                      } else {
+                        colorClass = 'bg-amber-500 hover:bg-amber-600 shadow-sm shadow-amber-500/10';
+                        statusText = 'Low Mood (Single Off-Day)';
+                      }
+                    }
+                  }
+
+                  return (
+                    <div 
+                      key={idx} 
+                      className="group relative flex flex-col items-center flex-1 h-full justify-end"
+                    >
+                      {/* Tooltip */}
+                      <div className="absolute bottom-full mb-1.5 hidden group-hover:flex flex-col bg-slate-900 text-white text-[9px] font-bold py-1.5 px-2 rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none">
+                        <span className="text-slate-400">{day.dateLabel}</span>
+                        <span className="mt-0.5">{statusText}</span>
+                      </div>
+                      
+                      {/* Bar Pillar */}
+                      <div 
+                        className={`w-full rounded-t-[2px] transition-all duration-500 cursor-pointer ${colorClass}`}
+                        style={{ 
+                          height: `${heightPercent}%`,
+                          maxWidth: daysRange === 7 ? '12px' : '4px'
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Timeline boundary labels */}
+              <div className="flex justify-between items-center text-[8px] font-black uppercase text-slate-400 mt-1.5 px-0.5 tracking-wider">
+                <span>{chartDays[0].date.getDate()} {chartDays[0].date.toLocaleDateString('en-IN', { month: 'short' })}</span>
+                <span className="text-[7px] bg-slate-50 border border-slate-100 px-1 py-0.5 rounded text-slate-500">
+                  {daysRange}D Trend
+                </span>
+                <span>{chartDays[chartDays.length - 1].date.getDate()} {chartDays[chartDays.length - 1].date.toLocaleDateString('en-IN', { month: 'short' })}</span>
+              </div>
+            </div>
+          )}
+        </div>
+
       </div>
+
     </div>
   );
 }

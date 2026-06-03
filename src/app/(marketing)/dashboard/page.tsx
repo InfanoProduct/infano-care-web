@@ -135,7 +135,7 @@ export default function CustomerDashboardOverview() {
         city: "Online",
         state: "Online",
         pincode: "000000",
-        paymentMethod: "ONLINE",
+        paymentMethod: "ONLINE" as const,
         userId: user?.id,
         items: [{ bookId: bookId, quantity: 1 }],
       };
@@ -315,49 +315,10 @@ export default function CustomerDashboardOverview() {
         )}
       </div>
 
-      {/* {!isTeen && <DashboardSummary />}
+      {!isTeen && <DashboardSummary />}
 
-       PARENT BOOKMARKS FOR TEEN 
-      {isTeen && parentBookmarks.length > 0 && (
-        <div className="bg-white border border-slate-100 rounded-3xl p-8 md:p-10 shadow-xl shadow-slate-200/40">
-          <div className="flex items-center justify-between mb-8 border-b border-slate-100 pb-6">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-100 to-pink-100 flex items-center justify-center">
-                  <Heart size={20} className="text-rose-500 fill-rose-500" />
-                </div>
-                <h3 className="text-2xl font-extrabold text-slate-800">Recommended by Parent</h3>
-              </div>
-              <p className="text-sm font-semibold text-slate-400 ml-[52px]">Your parent bookmarked these articles for you to read</p>
-            </div>
-            <span className="text-[10px] font-black bg-rose-50 text-rose-600 border border-rose-100 px-3 py-1.5 rounded-full uppercase tracking-widest">
-              {parentBookmarks.length} {parentBookmarks.length === 1 ? 'Article' : 'Articles'}
-            </span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {parentBookmarks.slice(0, 6).map((post: any) => (
-              <ResourceCard
-                key={post.id}
-                post={post}
-                isBookmarkedInitial={false}
-                hideBookmark={true}
-              />
-            ))}
-          </div>
-          {parentBookmarks.length > 6 && (
-            <div className="text-center mt-6 pt-6 border-t border-slate-100">
-              <Link
-                href="/dashboard/resources"
-                className="inline-flex items-center gap-2 text-sm font-extrabold text-primary hover:underline"
-              >
-                View All {parentBookmarks.length} Articles <ChevronRight size={16} />
-              </Link>
-            </div>
-          )}
-        </div>
-      )} */}
-
-      <div className="space-y-12">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-12">
         {/* COMPACT PROGRAM PROGRESS OVERVIEW */}
         {enrollments.length > 0 && (
           <div className="bg-white border border-slate-100 rounded-3xl p-8 md:p-10 shadow-xl shadow-slate-200/40">
@@ -512,46 +473,52 @@ export default function CustomerDashboardOverview() {
 
 
 
-      </div>
-      {/* PARENT BOOKMARKS FOR TEEN */}
-      {isTeen && parentBookmarks.length > 0 && (
-        <div className="bg-white border border-slate-100 rounded-3xl p-8 md:p-10 shadow-xl shadow-slate-200/40">
-          <div className="flex items-center justify-between mb-8 border-b border-slate-100 pb-6">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-100 to-pink-100 flex items-center justify-center">
-                  <Heart size={20} className="text-rose-500 fill-rose-500" />
+        </div>
+        {/* RIGHT SIDEBAR: PARENT BOOKMARKS FOR TEEN */}
+        <div className="space-y-0">
+          {isTeen && parentBookmarks.length > 0 && (
+            <div className="bg-white border border-slate-100 rounded-3xl p-4 md:p-6 shadow-xl shadow-slate-200/30">
+              <div className="flex items-center justify-between mb-4 pb-2">
+                <div>
+                  <div className="flex items-center gap-3 mb-1">
+                    <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-rose-100 to-pink-100 flex items-center justify-center">
+                      <Heart size={18} className="text-rose-500 fill-rose-500" />
+                    </div>
+                    <h4 className="text-lg font-extrabold text-slate-800">Recommended by Parent</h4>
+                  </div>
+                  <p className="text-xs font-semibold text-slate-400 ml-[44px]">Your parent bookmarked these articles for you</p>
                 </div>
-                <h3 className="text-2xl font-extrabold text-slate-800">Recommended by Parent</h3>
+                <span className="text-[10px] font-black bg-rose-50 text-rose-600 border border-rose-100 px-2.5 py-1 rounded-full uppercase tracking-widest">
+                  {parentBookmarks.length}
+                </span>
               </div>
-              <p className="text-sm font-semibold text-slate-400 ml-[52px]">Your parent bookmarked these articles for you to read</p>
-            </div>
-            <span className="text-[10px] font-black bg-rose-50 text-rose-600 border border-rose-100 px-3 py-1.5 rounded-full uppercase tracking-widest">
-              {parentBookmarks.length} {parentBookmarks.length === 1 ? 'Article' : 'Articles'}
-            </span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {parentBookmarks.slice(0, 6).map((post: any) => (
-              <ResourceCard
-                key={post.id}
-                post={post}
-                isBookmarkedInitial={false}
-                hideBookmark={true}
-              />
-            ))}
-          </div>
-          {parentBookmarks.length > 6 && (
-            <div className="text-center mt-6 pt-6 border-t border-slate-100">
-              <Link
-                href="/dashboard/resources"
-                className="inline-flex items-center gap-2 text-sm font-extrabold text-primary hover:underline"
-              >
-                View All {parentBookmarks.length} Articles <ChevronRight size={16} />
-              </Link>
+
+              <div className="grid grid-cols-1 gap-3">
+                {parentBookmarks.slice(0, 6).map((post: any) => (
+                  <ResourceCard
+                    key={post.id}
+                    post={post}
+                    isBookmarkedInitial={false}
+                    hideBookmark={true}
+                    compact={true}
+                  />
+                ))}
+              </div>
+
+              {parentBookmarks.length > 6 && (
+                <div className="text-center mt-4 pt-4 border-t border-slate-100">
+                  <Link
+                    href="/dashboard/resources"
+                    className="inline-flex items-center gap-2 text-sm font-extrabold text-primary hover:underline"
+                  >
+                    View All {parentBookmarks.length} Articles <ChevronRight size={16} />
+                  </Link>
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

@@ -106,7 +106,7 @@ export default function CustomerDashboardLayout({
   const isTeen = user.role === 'TEEN';
 
   return (
-    <div className="min-h-screen bg-[#FFFBF9] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#FFFBF9] flex flex-col customer-dashboard font-sans">
       {/* Premium Header */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100 px-6 py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-6">

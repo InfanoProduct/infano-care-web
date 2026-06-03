@@ -160,7 +160,8 @@ export function ParentLinkManager() {
           <div className="space-y-4">
             {linkedAccounts.map((link) => {
               const otherUser = isTeen ? link.parent : link.teen;
-              const displayName = otherUser?.profile?.displayName || link.receiverPhone || 'Linked Account';
+              const displayName = otherUser?.profile?.displayName || 'Linked Account';
+              const displayPhone = otherUser?.phone || link.receiverPhone || '';
               return (
                 <div key={link.id} className="flex items-center justify-between p-5 bg-emerald-50/50 border border-emerald-100 rounded-2xl">
                   <div className="flex items-center gap-4">
@@ -168,7 +169,9 @@ export function ParentLinkManager() {
                       {displayName.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="font-extrabold text-slate-800">{displayName}</p>
+                      <p className="font-extrabold text-slate-800">
+                        {displayName} {displayPhone && <span className="font-semibold text-slate-500 text-xs ml-1">({displayPhone})</span>}
+                      </p>
                       <p className="text-xs font-semibold text-emerald-600 flex items-center gap-1 mt-0.5">
                         <CheckCircle2 size={11} /> Actively Linked
                       </p>

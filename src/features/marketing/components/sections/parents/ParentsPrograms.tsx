@@ -93,79 +93,7 @@ const DEFAULT_STYLE = {
   metaBg: 'bg-white border-slate-100',
 };
 
-// Beautiful Static Data Fallback in case Backend is unreachable or empty during loading
-const STATIC_FALLBACK_PROGRAMS: Omit<Program, 'id' | 'createdAt' | 'updatedAt'>[] = [
-  {
-    title: 'SPARK',
-    tagline: 'She wakes up to herself.',
-    description: 'A foundational, sensitive entry point for girls beginning puberty.',
-    classRange: 'Class 5',
-    minClass: 5,
-    maxClass: 5,
-    sessions: 8,
-    duration: '2 Months',
-    topics: ['Body Unfiltered', 'Period. Full Stop.', 'Myth Busters: Family Edition', 'My Body My Boundary', 'The Filter Lie', 'Feel It to Deal It'],
-    pricePrivate: 6499,
-    priceGroup: 3999,
-    isActive: true,
-  },
-  {
-    title: 'RISE',
-    tagline: 'She learns who she is - and who gets access.',
-    description: 'Empowers girls with digital safety, consent frameworks, and emotional regulation.',
-    classRange: 'Class 6',
-    minClass: 6,
-    maxClass: 6,
-    sessions: 10,
-    duration: '2.5 Months',
-    topics: ['Consent Is Not Just About Sex', 'Grooming Has a Script', 'Your Digital Footprint Is Permanent', 'Red Flags & Green Flags', 'The Hormone Weather Report', 'Who Am I When No One Is Watching'],
-    pricePrivate: 7999,
-    priceGroup: 4999,
-    isActive: true,
-  },
-  {
-    title: 'BLOOM',
-    tagline: 'She faces the hard stuff before it faces her.',
-    description: 'Equips older girls with tools to tackle adolescent mental health and social dynamics.',
-    classRange: 'Class 7',
-    minClass: 7,
-    maxClass: 7,
-    sessions: 10,
-    duration: '2.5 Months',
-    topics: ['Anxiety Is Real - Not Drama', 'Depression Doesn\'t Look Like the Movies', 'Friendship Expiry Dates', 'The Comparison Trap', 'PCOS & Pain: Unfiltered', 'Safe Havens: Finding Help'],
-    pricePrivate: 9499,
-    priceGroup: 5999,
-    isActive: true,
-  },
-  {
-    title: 'IGNITE',
-    tagline: 'She learns how the world works - and how to work it.',
-    description: 'A powerful transition kit for leadership, confidence, and media literacy.',
-    classRange: 'Class 8',
-    minClass: 8,
-    maxClass: 8,
-    sessions: 12,
-    duration: '3 Months',
-    topics: ['Feminism: Not A Bad Word', 'Financial Literacy for Teen Girls', 'Negotiating Your Worth', 'Unmasking Media Influence', 'Leadership Under Pressure', 'Designing My Future'],
-    pricePrivate: 8999,
-    priceGroup: 5499,
-    isActive: true,
-  },
-  {
-    title: 'UNSTOPPABLE',
-    tagline: 'She walks into adult life prepared, not blindsided.',
-    description: 'The ultimate preparatory package to step into independent adulthood with confidence and complete clarity.',
-    classRange: 'Class 9',
-    minClass: 9,
-    maxClass: 9,
-    sessions: 12,
-    duration: '3 Months',
-    topics: ['Life on My Own Terms', 'Adulting 101: Survival Pack', 'Healthy Intimacy & Relationships', 'Career Blueprinting', 'Resilience: Bouncing Back Higher', 'Becoming My Own Anchor'],
-    pricePrivate: 10999,
-    priceGroup: 6999,
-    isActive: true,
-  }
-];
+// STATIC_FALLBACK_PROGRAMS removed to ensure all program curriculum data is backend driven.
 
 export function ParentsPrograms() {
   const [programs, setPrograms] = useState<Program[]>([]);
@@ -180,13 +108,13 @@ export function ParentsPrograms() {
         if (data && data.length > 0) {
           setPrograms(data);
         } else {
-          // If the backend returns success but an empty list, fallback safely
-          setPrograms(STATIC_FALLBACK_PROGRAMS as Program[]);
+          setError(true);
+          setPrograms([]);
         }
       } catch (err) {
-        console.warn('Programs dynamic fetch failed, using beautiful fallback data:', err);
+        console.error('Programs dynamic fetch failed:', err);
         setError(true);
-        setPrograms(STATIC_FALLBACK_PROGRAMS as Program[]);
+        setPrograms([]);
       } finally {
         setLoading(false);
       }
@@ -353,9 +281,9 @@ export function ParentsPrograms() {
                   {/* Direct Link CTA */}
                   <Link
                     href={`/programs/${program.title.toLowerCase()}`}
-                    className={`w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-2xl text-white font-bold text-xs uppercase tracking-widest transition-all ${styles.btnBg} relative z-10`}
+                    className={`w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-2xl text-white font-semibold  transition-all ${styles.btnBg} relative z-10`}
                   >
-                    <span>Explore Program</span>
+                    <span>Enroll Now</span>
                     <ArrowRight size={14} className="transition-transform group-hover:translate-x-1 duration-300" />
                   </Link>
                 </motion.div>

@@ -5,7 +5,7 @@ import { ParentsEnquiryForm } from '@/features/marketing/components/sections/par
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ProgramEnrollmentPage() {
-  const [phase, setPhase] = useState<'role-check' | 'questions' | 'recommendation' | 'success'>('role-check');
+  const [phase, setPhase] = useState<'role-check' | 'questions' | 'recommendation' | 'success'>('questions');
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center py-4 sm:py-6 px-4 sm:px-6 lg:px-8 relative overflow-hidden">

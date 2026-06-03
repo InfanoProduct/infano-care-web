@@ -46,5 +46,13 @@ export const AuthService = {
 
   async requestNewCredentials(username: string, phone: string): Promise<any> {
     return apiClient.post('/auth/coordinator/request-credentials', { username, phone });
+  },
+
+  async getMe(): Promise<any> {
+    return apiClient.get('/user/me');
+  },
+
+  async checkUser(phone: string): Promise<{ exists: boolean; role?: string }> {
+    return apiClient.post('/auth/check-user', { phone });
   }
 };

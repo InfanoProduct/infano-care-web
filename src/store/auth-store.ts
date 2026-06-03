@@ -11,6 +11,7 @@ interface AuthState {
     phone?: string;
     email?: string;
     role: string;
+    schoolId?: string;
     peerApplicationStatus?: string;
     profile?: {
       displayName?: string;

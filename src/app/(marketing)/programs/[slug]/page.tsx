@@ -4,18 +4,18 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ArrowLeft, 
-  BookOpen, 
-  Clock, 
-  Calendar, 
-  Shield, 
-  Sparkles, 
-  Check, 
-  Loader2, 
-  CheckCircle2, 
-  Users, 
-  User, 
+import {
+  ArrowLeft,
+  BookOpen,
+  Clock,
+  Calendar,
+  Shield,
+  Sparkles,
+  Check,
+  Loader2,
+  CheckCircle2,
+  Users,
+  User,
   HelpCircle,
   AlertCircle
 } from 'lucide-react';
@@ -89,141 +89,7 @@ const DEFAULT_THEME = {
   btn: 'bg-slate-900 hover:bg-slate-800 shadow-slate-900/20',
 };
 
-// Rich Static Fallback Programs containing default sessions
-const STATIC_PROGRAMS: Record<string, Omit<Program, 'id' | 'createdAt' | 'updatedAt'>> = {
-  'spark': {
-    title: 'SPARK',
-    tagline: 'She wakes up to herself.',
-    description: 'A foundational, sensitive entry point for girls beginning puberty. SPARK provides an empathetic space to discuss body changes, emotional growth, and basic social media navigation.',
-    classRange: 'Class 5',
-    minClass: 5,
-    maxClass: 5,
-    sessions: 8,
-    duration: '2 Months',
-    topics: ['Body Unfiltered', 'Period. Full Stop.', 'Myth Busters: Family Edition', 'My Body My Boundary', 'The Filter Lie', 'Feel It to Deal It'],
-    pricePrivate: 6499,
-    priceGroup: 3999,
-    isActive: true,
-    sessionsList: [
-      { title: "Session 1: The Blueprint of You", description: "Understanding human growth as a natural, unique, and positive timeline for every individual." },
-      { title: "Session 2: Body Unfiltered", description: "Demystifying the physical shifts, developmental stages, and growth spurts of early adolescence." },
-      { title: "Session 3: Period. Full Stop.", description: "A complete, shame-free first period survival guide, from biological facts to practical management and comfort." },
-      { title: "Session 4: Myth Busters: Family Edition", description: "Breaking down ancient taboos and cultural legends, and starting positive, open conversations at home." },
-      { title: "Session 5: My Body, My Boundary", description: "Establishing strong, comfortable personal zones and mastering the art of the confident boundary." },
-      { title: "Session 6: The Filter Lie", description: "Decoding social media perfection, airbrushing, and cultivating love for your authentic, unfiltered self." },
-      { title: "Session 7: Feel It to Deal It", description: "Understanding emotional tides, mapping mood patterns, and practicing healthy coping mechanisms." },
-      { title: "Session 8: Becoming My Own Champion", description: "Celebrating personal milestones, practicing self-compassion, and designing a path of ongoing confidence." }
-    ]
-  },
-  'rise': {
-    title: 'RISE',
-    tagline: 'She learns who she is - and who gets access.',
-    description: 'Empowers girls with digital safety, consent frameworks, and emotional regulation. RISE helps girls build a stronger sense of digital wellness and real-life boundaries.',
-    classRange: 'Class 6',
-    minClass: 6,
-    maxClass: 6,
-    sessions: 10,
-    duration: '2.5 Months',
-    topics: ['Consent Is Not Just About Sex', 'Grooming Has a Script', 'Your Digital Footprint Is Permanent', 'Red Flags & Green Flags', 'The Hormone Weather Report', 'Who Am I When No One Is Watching'],
-    pricePrivate: 7999,
-    priceGroup: 4999,
-    isActive: true,
-    sessionsList: [
-      { title: "Session 1: Who Am I When No One is Watching?", description: "Deeply exploring self-identity, personal values, and defining your own core character." },
-      { title: "Session 2: Consent is Not Just a Buzzword", description: "Setting robust rules for your own physical, emotional, and social boundaries." },
-      { title: "Session 3: Grooming Has a Script", description: "Learning to spot early manipulation patterns, unsafe environments, and protect boundaries." },
-      { title: "Session 4: Your Digital Footprint is Permanent", description: "Smart management of online reputation, private data, sharing habits, and screen ethics." },
-      { title: "Session 5: Red Flags & Green Flags", description: "Identifying healthy, collaborative dynamics vs. toxic, manipulative patterns in peer relationships." },
-      { title: "Session 6: The Hormone Weather Report", description: "Decoding chemical shifts and emotional weather reports to manage mood variability." },
-      { title: "Session 7: Digital Wellness & Screen Balance", description: "Strategies to beat screen fatigue, doomscrolling, and establishing high-yield offline hobbies." },
-      { title: "Session 8: Negotiating Peer Pressure", description: "Mastering custom scripts and assertive verbal templates to stay safe and true to yourself." },
-      { title: "Session 9: The Power of Trusted Circles", description: "How to audit, assemble, and safely leverage your support system of parents and mentors." },
-      { title: "Session 10: Stepping Into Your Voice", description: "Synthesizing the Rise curriculum with a personal boundary action plan and graduation." }
-    ]
-  },
-  'bloom': {
-    title: 'BLOOM',
-    tagline: 'She faces the hard stuff before it faces her.',
-    description: 'Equips older girls with tools to tackle adolescent mental health, academic stress, body image, and shifting friendship dynamics with professional psychology insights.',
-    classRange: 'Class 7',
-    minClass: 7,
-    maxClass: 7,
-    sessions: 10,
-    duration: '2.5 Months',
-    topics: ['Anxiety Is Real - Not Drama', 'Depression Doesn\'t Look Like the Movies', 'Friendship Expiry Dates', 'The Comparison Trap', 'PCOS & Pain: Unfiltered', 'Safe Havens: Finding Help'],
-    pricePrivate: 9499,
-    priceGroup: 5999,
-    isActive: true,
-    sessionsList: [
-      { title: "Session 1: Mental Health is Not 'Drama'", description: "De-stigmatizing intense stress, mood fluctuations, and identifying the spectrum of anxiety and wellness." },
-      { title: "Session 2: Depression Doesn't Look Like the Movies", description: "Spotting signs of prolonged sadness in yourself and friends, and understanding when to seek active help." },
-      { title: "Session 3: Friendship Expiry Dates", description: "Gracefully navigating changing social dynamics, outgrowing school circles, and ending relationships safely." },
-      { title: "Session 4: The Comparison Trap", description: "Breaking free from the toxic patterns of comparing grades, bodies, lifestyles, and aesthetics online." },
-      { title: "Session 5: PCOS & Pain: Unfiltered", description: "Understanding reproductive health disorders, hormonal balance, and talking confidently to doctors." },
-      { title: "Session 6: Safe Havens & Professional Support", description: "Demystifying therapy, student counseling, medical resources, and removing the fear of asking." },
-      { title: "Session 7: Emotional First Aid", description: "Practical mindfulness, vagus nerve stimulation, and quick breathing techniques to halt panic states." },
-      { title: "Session 8: Self-Compassion in Action", description: "Silencing the harsh inner critic and implementing daily habits of authentic self-acceptance." },
-      { title: "Session 9: Parent-Teen Bridge Building", description: "Formulating mutual respect pathways, managing daily friction, and communicating emotional needs." },
-      { title: "Session 10: Blooming Into Resilience", description: "Constructing a strong bounce-back architecture for academic and personal life, with graduation." }
-    ]
-  },
-  'ignite': {
-    title: 'IGNITE',
-    tagline: 'She learns how the world works - and how to work it.',
-    description: 'A powerful transition kit for leadership, confidence, media literacy, negotiation, and early financial intelligence.',
-    classRange: 'Class 8',
-    minClass: 8,
-    maxClass: 8,
-    sessions: 12,
-    duration: '3 Months',
-    topics: ['Feminism: Not A Bad Word', 'Financial Literacy for Teen Girls', 'Negotiating Your Worth', 'Unmasking Media Influence', 'Leadership Under Pressure', 'Designing My Future'],
-    pricePrivate: 8999,
-    priceGroup: 5499,
-    isActive: true,
-    sessionsList: [
-      { title: "Session 1: Feminism: Decoded & Debunked", description: "Examining equity, historic struggles, modern stereotypes, and cultivating sisterhood and allyship." },
-      { title: "Session 2: Financial Literacy: Part 1", description: "Understanding money flow, power of compound interest, basic personal savings, and budgeting." },
-      { title: "Session 3: Financial Literacy: Part 2", description: "Decoding digital banking, cards, online safety, investment assets, and financial independence goals." },
-      { title: "Session 4: Negotiating Your Worth", description: "Learning confident advocacy in academic, family, and social environments with structured talk paths." },
-      { title: "Session 5: Unmasking Media Influence", description: "Analyzing hidden agendas, advertising psychology, body norms, and media bias." },
-      { title: "Session 6: Leadership Under Pressure", description: "Making crucial, ethical choices, maintaining team performance, and staying resilient under crisis." },
-      { title: "Session 7: Designing Your Future Vision", description: "Formulating long-term visions, career tracking, and identifying your natural passions and strengths." },
-      { title: "Session 8: Communication Mastery", description: "Assertive body language, tone modulation, public confidence, and active listening scripts." },
-      { title: "Session 9: Time Management & Focus Hacks", description: "Beating procrastination through custom workflows, calendars, and digital prioritization." },
-      { title: "Session 10: Public Speaking & Pitching", description: "Structuring short speeches, presenting school projects, and pitching ideas with absolute poise." },
-      { title: "Session 11: Mentor Relationship Building", description: "Identifying, approaching, and building collaborative relationships with professional mentors." },
-      { title: "Session 12: Sparking Your Ignite Pitch", description: "Showcasing your personal leadership project, graduation celebration, and looking forward." }
-    ]
-  },
-  'unstoppable': {
-    title: 'UNSTOPPABLE',
-    tagline: 'She walks into adult life prepared, not blindsided.',
-    description: 'The ultimate preparatory package to step into independent adulthood with confidence, complete clarity, career blueprints, and relationship insights.',
-    classRange: 'Class 9',
-    minClass: 9,
-    maxClass: 9,
-    sessions: 12,
-    duration: '3 Months',
-    topics: ['Life on My Own Terms', 'Adulting 101: Survival Pack', 'Healthy Intimacy & Relationships', 'Career Blueprinting', 'Resilience: Bouncing Back Higher', 'Becoming My Own Anchor'],
-    pricePrivate: 10999,
-    priceGroup: 6999,
-    isActive: true,
-    sessionsList: [
-      { title: "Session 1: Life on My Own Terms", description: "Developing your personal manifesto, establishing independent core values, and charting growth." },
-      { title: "Session 2: Adulting 101: The Basics", description: "Essential home skills, nutrition planning, laundry, space organization, and independent routine setup." },
-      { title: "Session 3: Adulting 101: Taxes & Rent", description: "Practical guide to rental agreements, tenant laws, tax brackets, utilities, and emergency funds." },
-      { title: "Session 4: Healthy Intimacy & Love", description: "Safe boundaries, relationship safety, healthy dating patterns, and signs of mutual growth." },
-      { title: "Session 5: Recognizing Toxic Dynamics", description: "Spotting manipulation, narcissism, gaslighting, emotional abuse, and enforcing swift exits." },
-      { title: "Session 6: Career Blueprinting & CVs", description: "Crafting modern resumes, optimization of digital footprints (LinkedIn), and job interview simulation." },
-      { title: "Session 7: Networking & Professional Circles", description: "Effective follow-ups, informational interviews, and leveraging standard professional networks." },
-      { title: "Session 8: Bounce-Back Resilience", description: "Handling academic failure, job rejection, personal setbacks, and coping with dynamic shifts." },
-      { title: "Session 9: Safe Travel & Solo Survival", description: "Navigating new cities, public transit safety, personal protection plans, and emergency response." },
-      { title: "Session 10: Becoming Your Own Anchor", description: "Managing solitary transitions, building deep self-comfort, and prioritizing long-term mental wellness." },
-      { title: "Session 11: Healthy Lifelong Habits", description: "Maintaining sleep integrity, periodic medical tests, balanced routines, and structural work-life harmony." },
-      { title: "Session 12: Unstoppable Graduation", description: "Final reflection presentation, sharing positive cohort affirmations, and official program graduation." }
-    ]
-  }
-};
+// STATIC_PROGRAMS removed to ensure all program curriculum data is backend driven.
 
 const INTERESTS_OPTIONS = [
   "Body Unfiltered & Biology",
@@ -263,13 +129,14 @@ export default function ProgramDetailsPage() {
   const [parentInvolvement, setParentInvolvement] = useState('');
   const [slotDate, setSlotDate] = useState('');
   const [slotTime, setSlotTime] = useState('');
+  const [showSlotSelection, setShowSlotSelection] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   // Role selection step
-  const [selectedRole, setSelectedRole] = useState<'PARENT' | 'TEEN' | null>(null);
+  const [selectedRole, setSelectedRole] = useState<'PARENT' | 'TEEN'>('PARENT');
 
   const [userExists, setUserExists] = useState(false);
   const [isCheckingUser, setIsCheckingUser] = useState(false);
@@ -280,8 +147,8 @@ export default function ProgramDetailsPage() {
       if (cleanPhone.length >= 10) {
         try {
           setIsCheckingUser(true);
-          const formattedPhone = cleanPhone.startsWith('91') && cleanPhone.length === 12 
-            ? '+' + cleanPhone 
+          const formattedPhone = cleanPhone.startsWith('91') && cleanPhone.length === 12
+            ? '+' + cleanPhone
             : (cleanPhone.length === 10 ? '+91' + cleanPhone : '+' + cleanPhone);
           const res = await AuthService.checkUser(formattedPhone);
           setUserExists(res.exists);
@@ -304,7 +171,7 @@ export default function ProgramDetailsPage() {
       try {
         setLoading(true);
         setErrorMsg(null);
-        
+
         // Attempt backend fetch
         const data = await ProgramsService.getProgram(id);
         if (data) {
@@ -314,23 +181,8 @@ export default function ProgramDetailsPage() {
           throw new Error('Not found');
         }
       } catch (err: any) {
-        console.warn('Program details API fetch failed, trying static slug resolver:', err);
-        
-        // Resolve slug title fallback
-        const slug = id.toLowerCase();
-        const fallback = STATIC_PROGRAMS[slug];
-        
-        if (fallback) {
-          setProgram({
-            ...fallback,
-            id: 'static-' + slug,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          } as Program);
-          setClassRange(fallback.classRange);
-        } else {
-          setErrorMsg('We couldn\'t find the program you were looking for. It may have been relocated or updated.');
-        }
+        console.error('Program details API fetch failed:', err);
+        setErrorMsg(err.response?.data?.message || 'We couldn\'t find the program you were looking for. It may have been relocated or updated.');
       } finally {
         setLoading(false);
       }
@@ -342,13 +194,13 @@ export default function ProgramDetailsPage() {
   }, [id]);
 
   const toggleInterest = (interest: string) => {
-    setInterests(prev => 
+    setInterests(prev =>
       prev.includes(interest) ? prev.filter(i => i !== interest) : [...prev, interest]
     );
   };
 
   const toggleChallenge = (challenge: string) => {
-    setChallenges(prev => 
+    setChallenges(prev =>
       prev.includes(challenge) ? prev.filter(c => c !== challenge) : [...prev, challenge]
     );
   };
@@ -395,6 +247,18 @@ export default function ProgramDetailsPage() {
     }
   };
 
+  const handleBookDemoClick = (e: React.MouseEvent) => {
+    if (!showSlotSelection) {
+      e.preventDefault();
+      if (!parentName.trim() || !phone.trim()) {
+        setFormError('Please fill out Name and Phone Number first.');
+        return;
+      }
+      setFormError(null);
+      setShowSlotSelection(true);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#FAFBFE] flex flex-col items-center justify-center py-20">
@@ -427,7 +291,7 @@ export default function ProgramDetailsPage() {
 
   return (
     <div className="min-h-screen bg-[#FAFBFE] text-slate-900 relative">
-      
+
       {/* Decorative Orbs */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-40">
         <div className="absolute top-[10%] left-[-10%] w-[55%] h-[55%] bg-violet-200/25 rounded-full blur-[140px]" />
@@ -435,11 +299,11 @@ export default function ProgramDetailsPage() {
       </div>
 
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 py-12 relative z-10">
-        
+
         {/* Navigation / Breadcrumb */}
         <div className="mb-10 flex items-center justify-between">
-          <Link 
-            href="/parents" 
+          <Link
+            href="/parents"
             className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-slate-700 transition-colors uppercase tracking-widest group"
           >
             <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1 duration-300" />
@@ -456,7 +320,7 @@ export default function ProgramDetailsPage() {
 
           {/* LEFT COLUMN: Program Details & Session Breakdown */}
           <div className="lg:col-span-7 flex flex-col">
-            
+
             {/* Title & Tagline Header */}
             <div className="mb-10">
               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${theme.badge} mb-4`}>
@@ -526,7 +390,7 @@ export default function ProgramDetailsPage() {
               {sessionsList.length > 0 ? (
                 <div className="relative pl-6 border-l border-slate-200/80 space-y-6">
                   {sessionsList.map((session, idx) => (
-                    <motion.div 
+                    <motion.div
                       key={idx}
                       initial={{ opacity: 0, x: -10 }}
                       whileInView={{ opacity: 1, x: 0 }}
@@ -560,11 +424,11 @@ export default function ProgramDetailsPage() {
           {/* RIGHT COLUMN: Sticky Demo Booking Form */}
           <div className="lg:col-span-5 relative">
             <div className="lg:sticky lg:top-24 self-start">
-              
+
               <AnimatePresence mode="wait">
                 {!submitted ? (
                   /* THE BOOKING FORM */
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -15 }}
@@ -575,95 +439,13 @@ export default function ProgramDetailsPage() {
                     <div className={`absolute top-0 left-0 right-0 h-2 bg-gradient-to-r ${theme.gradient}`} />
 
                     <div className="mb-6 relative z-10">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Book a Demo Session</span>
+
                       <h3 className="text-2xl font-bold font-heading text-slate-800 tracking-tight leading-tight">
-                        Schedule a Consultation
+                        Enroll for this program
                       </h3>
                       <p className="text-xs text-slate-400 font-medium leading-relaxed mt-1">
-                        Meet our coordinators and discover the Infano curriculum difference customized for your daughter.
+                        Its a safe space for young girls, surrounded by experts and peer mentors
                       </p>
-                    </div>
-
-                    {/* ─── ROLE SELECTION STEP ─── */}
-                    {!selectedRole && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="space-y-4"
-                      >
-                        <p className="text-center text-xs font-bold text-slate-400 uppercase tracking-widest">Who is this for?</p>
-                        <div className="grid grid-cols-2 gap-4">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedRole('PARENT')}
-                            className="group flex flex-col items-center gap-3 p-5 rounded-2xl border-2 border-slate-100 hover:border-primary hover:bg-primary/5 transition-all"
-                          >
-                            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-2xl group-hover:scale-110 transition-transform">
-                              💜
-                            </div>
-                            <div className="text-center">
-                              <p className="font-bold text-slate-800 text-sm group-hover:text-primary transition-colors">I am a Parent</p>
-                              <p className="text-[10px] text-slate-400 mt-0.5">Enrolling for my daughter</p>
-                            </div>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedRole('TEEN')}
-                            className="group flex flex-col items-center gap-3 p-5 rounded-2xl border-2 border-slate-100 hover:border-amber-400 hover:bg-amber-50 transition-all"
-                          >
-                            <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-amber-500 text-2xl group-hover:scale-110 transition-transform">
-                              ✨
-                            </div>
-                            <div className="text-center">
-                              <p className="font-bold text-slate-800 text-sm group-hover:text-amber-600 transition-colors">I am a Teen</p>
-                              <p className="text-[10px] text-slate-400 mt-0.5">Exploring for myself</p>
-                            </div>
-                          </button>
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {/* Teen Redirect Message */}
-                    {selectedRole === 'TEEN' && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="text-center py-4 space-y-4"
-                      >
-                        <div className="text-4xl">👋</div>
-                        <h4 className="font-bold text-slate-800">Hey there! 🌸</h4>
-                        <p className="text-sm text-slate-500 leading-relaxed">
-                          This enrollment form is designed for parents. Please ask your mum or dad to fill this in!
-                          <br /><br />
-                          In the meantime, you can explore all our programs and read more about what excites you.
-                        </p>
-                        <div className="flex flex-col gap-2 pt-2">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedRole(null)}
-                            className="w-full py-3 rounded-2xl border-2 border-slate-200 hover:border-slate-400 text-slate-600 font-bold text-xs uppercase tracking-widest transition-all"
-                          >
-                            ← Go Back
-                          </button>
-                          <a
-                            href="/parents"
-                            className="w-full py-3 rounded-2xl bg-primary hover:bg-fuchsia-700 text-white font-bold text-xs uppercase tracking-widest transition-all text-center"
-                          >
-                            Explore All Programs
-                          </a>
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {/* Booking form (only for parents) */}
-                    {selectedRole === 'PARENT' && (
-                    <>
-                    <div className="flex items-center gap-2 mb-1">
-                      <button type="button" onClick={() => setSelectedRole(null)} className="text-[10px] text-slate-400 hover:text-slate-600 font-bold uppercase tracking-widest flex items-center gap-1 transition-colors">
-                        ← Change Role
-                      </button>
-                      <span className="ml-auto text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">Parent ✓</span>
                     </div>
 
                     {formError && (
@@ -674,14 +456,43 @@ export default function ProgramDetailsPage() {
                     )}
 
                     <form onSubmit={handleBookDemo} className="space-y-5">
-                      
-                      {/* Name input */}
+
+                      {/* Role Selection Segment Control */}
                       <div>
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">
-                          Parent Name <span className="text-rose-500">*</span>
+                          Enrolling As? <span className="text-rose-500">*</span>
                         </label>
-                        <input 
-                          type="text" 
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedRole('PARENT')}
+                            className={`flex items-center justify-center gap-2 py-3 px-4 rounded-2xl border text-xs font-bold transition-all shadow-sm ${selectedRole === 'PARENT'
+                              ? 'border-primary bg-primary/5 text-primary font-black'
+                              : 'border-slate-200 bg-[#FAFBFE] text-slate-500 hover:border-slate-350 hover:bg-slate-50'
+                              }`}
+                          >
+                            <span>💜</span>
+                            <span>I am a Parent</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedRole('TEEN')}
+                            className={`flex items-center justify-center gap-2 py-3 px-4 rounded-2xl border text-xs font-bold transition-all shadow-sm ${selectedRole === 'TEEN'
+                              ? 'border-amber-400 bg-amber-50 text-amber-750 font-black'
+                              : 'border-slate-200 bg-[#FAFBFE] text-slate-500 hover:border-slate-350 hover:bg-slate-50'
+                              }`}
+                          >
+                            <span>✨</span>
+                            <span>I am a Teen</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Name input */}
+                      <div>
+
+                        <input
+                          type="text"
                           required
                           value={parentName}
                           onChange={(e) => setParentName(e.target.value)}
@@ -693,122 +504,68 @@ export default function ProgramDetailsPage() {
                       {/* Flex grid for phone & email */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">
-                            Phone Number <span className="text-rose-500">*</span>
-                          </label>
-                          <input 
-                            type="tel" 
+
+                          <input
+                            type="tel"
                             required
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
-                            placeholder="Mobile digits"
+                            placeholder="Phone Number"
                             className="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:border-slate-400 focus:outline-none text-slate-800 text-sm font-semibold transition-colors bg-[#FAFBFE]"
                           />
                         </div>
                         <div>
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">
-                            Email ID (Optional)
-                          </label>
-                          <input 
-                            type="email" 
+
+                          <input
+                            type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder="mail@domain.com"
+                            placeholder="Email Address"
                             className="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:border-slate-400 focus:outline-none text-slate-800 text-sm font-semibold transition-colors bg-[#FAFBFE]"
                           />
-                        </div>
-                      </div>
-
-                      {/* Dropdown for class target */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">
-                            Her Class Range <span className="text-rose-500">*</span>
-                          </label>
-                          <select 
-                            required
-                            value={classRange}
-                            onChange={(e) => setClassRange(e.target.value)}
-                            className="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:border-slate-400 focus:outline-none text-slate-800 text-sm font-semibold transition-colors bg-[#FAFBFE]"
-                          >
-                            <option value="">Select Grade</option>
-                            <option value="Class 5">Class 5</option>
-                            <option value="Class 6">Class 6</option>
-                            <option value="Class 7">Class 7</option>
-                            <option value="Class 8">Class 8</option>
-                            <option value="Class 9">Class 9</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">
-                            Learning Format
-                          </label>
-                          <select 
-                            value={learningPref}
-                            onChange={(e) => setLearningPref(e.target.value)}
-                            className="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:border-slate-400 focus:outline-none text-slate-800 text-sm font-semibold transition-colors bg-[#FAFBFE]"
-                          >
-                            <option value="">Preferred setting</option>
-                            <option value="1:1 Mentoring">1:1 Private Mentoring</option>
-                            <option value="Group Cohort">Group Cohort (4 Girls)</option>
-                          </select>
                         </div>
                       </div>
 
                       {/* Slot Booking Date and Time */}
-                      <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-3">
-                          Select Consultation Slot (Optional)
-                        </span>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <input 
-                              type="date"
-                              value={slotDate}
-                              onChange={(e) => setSlotDate(e.target.value)}
-                              className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none text-slate-800 text-xs font-semibold bg-white"
-                            />
-                          </div>
-                          <div>
-                            <select 
-                              value={slotTime}
-                              onChange={(e) => setSlotTime(e.target.value)}
-                              className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none text-slate-800 text-xs font-semibold bg-white"
-                            >
-                              <option value="">Select Time</option>
-                              <option value="10:00 AM">10:00 AM</option>
-                              <option value="11:30 AM">11:30 AM</option>
-                              <option value="02:00 PM">02:00 PM</option>
-                              <option value="03:30 PM">03:30 PM</option>
-                              <option value="05:00 PM">05:00 PM</option>
-                            </select>
+                      {showSlotSelection && (
+                        <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-3">
+                            Select Consultation Slot (Optional)
+                          </span>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <input
+                                type="date"
+                                value={slotDate}
+                                onChange={(e) => setSlotDate(e.target.value)}
+                                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none text-slate-800 text-xs font-semibold bg-white"
+                              />
+                            </div>
+                            <div>
+                              <select
+                                value={slotTime}
+                                onChange={(e) => setSlotTime(e.target.value)}
+                                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none text-slate-800 text-xs font-semibold bg-white"
+                              >
+                                <option value="">Select Time</option>
+                                <option value="10:00 AM">10:00 AM</option>
+                                <option value="11:30 AM">11:30 AM</option>
+                                <option value="02:00 PM">02:00 PM</option>
+                                <option value="03:30 PM">03:30 PM</option>
+                                <option value="05:00 PM">05:00 PM</option>
+                              </select>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
 
-                      {/* Actions Grid */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                        {/* Book Demo Button */}
-                        <button
-                          type="submit"
-                          disabled={submitting}
-                          className={`w-full inline-flex items-center justify-center gap-2 py-4 px-4 rounded-2xl text-white font-bold text-xs uppercase tracking-widest transition-all ${theme.btn} disabled:opacity-50 shadow-md`}
-                        >
-                          {submitting ? (
-                            <>
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              <span>Saving...</span>
-                            </>
-                          ) : (
-                            <span>Book Free Demo</span>
-                          )}
-                        </button>
-
+                      {/* Actions Column */}
+                      <div className="flex flex-col gap-3 pt-2">
                         {/* Direct Enroll Link */}
                         {userExists ? (
                           <Link
                             href="/login"
-                            className="w-full inline-flex items-center justify-center gap-2 py-4 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-md text-center"
+                            className={`w-full inline-flex items-center justify-center gap-2 py-4 px-4 rounded-2xl text-white font-bold text-xs uppercase tracking-widest transition-all ${theme.btn} shadow-md text-center`}
                           >
                             <span>You are already a user, pls login</span>
                           </Link>
@@ -823,20 +580,38 @@ export default function ProgramDetailsPage() {
                                 if (nameInput) (nameInput as HTMLInputElement).focus();
                               }
                             }}
-                            className="w-full inline-flex items-center justify-center gap-2 py-4 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-md text-center"
+                            className={`w-full inline-flex items-center justify-center gap-2 py-4 px-4 rounded-2xl text-white font-bold text-xs uppercase tracking-widest transition-all ${theme.btn} shadow-md text-center`}
                           >
                             <span>Enroll Now</span>
                           </Link>
                         )}
+
+                        {/* Book Demo Button */}
+                        <button
+                          type={showSlotSelection ? "submit" : "button"}
+                          onClick={handleBookDemoClick}
+                          disabled={submitting}
+                          className={`w-full inline-flex items-center justify-center gap-2 py-4 px-4 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all text-center disabled:opacity-50 ${(slotDate && slotTime)
+                              ? 'bg-slate-900 hover:bg-slate-800 text-white shadow-md'
+                              : 'bg-slate-50 hover:bg-slate-100 text-slate-500 border border-slate-200/80'
+                            }`}
+                        >
+                          {submitting ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Saving...</span>
+                            </>
+                          ) : (
+                            <span>Book Free Demo</span>
+                          )}
+                        </button>
                       </div>
 
                     </form>
-                    </>
-                    )}
                   </motion.div>
                 ) : (
                   /* THE SUCCESS SCREEN */
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -15 }}
@@ -875,7 +650,10 @@ export default function ProgramDetailsPage() {
                     </div>
 
                     <button
-                      onClick={() => setSubmitted(false)}
+                      onClick={() => {
+                        setSubmitted(false);
+                        setShowSlotSelection(false);
+                      }}
                       className="w-full inline-flex items-center justify-center gap-2 py-4 px-6 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-widest rounded-2xl transition-all shadow-md"
                     >
                       Book Another Slot

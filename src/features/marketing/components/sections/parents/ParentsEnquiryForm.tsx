@@ -9,94 +9,19 @@ import {
   BookOpen, Users, Calendar, ShieldCheck, Heart, Award, GraduationCap,
   MessageCircle, Target, HelpCircle, ArrowRight, Clock
 } from 'lucide-react';
-import { ProgramsService } from '@/services/programs.service';
+import { ProgramsService, Program } from '@/services/programs.service';
 import { AuthService } from '@/services/auth.service';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'react-hot-toast';
 
-// 5 default premium programs data
-const PROGRAMS_METADATA = [
-  {
-    id: 'spark',
-    title: 'SPARK',
-    classRange: 'Class 5',
-    tagline: 'She wakes up to herself.',
-    description: 'A transformative space designed to ease early adolescent girls into the physical, emotional, and social changes of puberty, building a bulletproof foundation of body confidence.',
-    sessions: 8,
-    duration: '2 Months',
-    topics: ['My Body My Boundary', 'The Filter Lie', 'Feel It to Deal It', 'Body Unfiltered', 'Period. Full Stop.', 'Myth Busters'],
-    pricePrivate: 6499,
-    priceGroup: 3999,
-    gradient: 'from-orange-500 to-rose-500 shadow-orange-500/10',
-    bgLight: 'bg-orange-50/50 border-orange-100',
-    accentColor: 'text-orange-500',
-    pillBg: 'bg-orange-100/60 text-orange-600'
-  },
-  {
-    id: 'rise',
-    title: 'RISE',
-    classRange: 'Class 6',
-    tagline: 'She learns who she is - and who gets access.',
-    description: 'An essential guide to digital safety, consent, and self-identity, helping middle-school girls map out healthy boundaries and understand red & green flags in their online and offline circles.',
-    sessions: 10,
-    duration: '2.5 Months',
-    topics: ['Consent Is Not Just Sex', 'Grooming Has a Script', 'Your Digital Footprint', 'Red & Green Flags', 'Hormone Weather Report', 'Who Am I'],
-    pricePrivate: 7999,
-    priceGroup: 4999,
-    gradient: 'from-purple-500 to-indigo-500 shadow-purple-500/10',
-    bgLight: 'bg-purple-50/50 border-purple-100',
-    accentColor: 'text-purple-500',
-    pillBg: 'bg-purple-100/60 text-purple-600'
-  },
-  {
-    id: 'bloom',
-    title: 'BLOOM',
-    classRange: 'Class 7',
-    tagline: 'She faces the hard stuff before it faces her.',
-    description: 'Tackling the intense academic and emotional hurdles of early high school. Focuses on friendship dynamics, body-image issues, social pressures, and healthy emotional coping mechanisms.',
-    sessions: 10,
-    duration: '2.5 Months',
-    topics: ['Anxiety Is Real - Not Drama', 'Depression Decoded', 'Friendship Power Dynamics', 'Social Media & Self-Worth', 'Navigating Hard Talks'],
-    pricePrivate: 9499,
-    priceGroup: 5999,
-    gradient: 'from-emerald-500 to-teal-500 shadow-emerald-500/10',
-    bgLight: 'bg-emerald-50/50 border-emerald-100',
-    accentColor: 'text-emerald-500',
-    pillBg: 'bg-emerald-100/60 text-emerald-600'
-  },
-  {
-    id: 'ignite',
-    title: 'IGNITE',
-    classRange: 'Class 8',
-    tagline: 'She learns how the world works - and how to work it.',
-    description: 'An advanced leadership, critical thinking, and financial intelligence curriculum, preparing young women to stand up against media bias, negotiate boundaries, and set real goals.',
-    sessions: 12,
-    duration: '3 Months',
-    topics: ['Financial Literacy 101', 'Media Bias & Critical Thinking', 'Negotiation Skills', 'Goal Mapping', 'Saying No Comfortably'],
-    pricePrivate: 8999,
-    priceGroup: 5499,
-    gradient: 'from-violet-600 to-fuchsia-600 shadow-violet-600/10',
-    bgLight: 'bg-violet-50/50 border-violet-100',
-    accentColor: 'text-violet-600',
-    pillBg: 'bg-violet-100/60 text-violet-600'
-  },
-  {
-    id: 'unstoppable',
-    title: 'UNSTOPPABLE',
-    classRange: 'Class 9',
-    tagline: 'She walks into adult life prepared, not blindsided.',
-    description: 'The ultimate preparatory milestone program focusing on career planning, college transition, independent adulting, stress mitigation, and maintaining healthy personal relationships.',
-    sessions: 12,
-    duration: '3 Months',
-    topics: ['Career Path & Skill Mapping', 'Adulting 101', 'Healthy Relationship Circles', 'Stress & Time Allocation', 'College/Adult Transition'],
-    pricePrivate: 10999,
-    priceGroup: 6999,
-    gradient: 'from-amber-500 to-yellow-600 shadow-amber-500/10',
-    bgLight: 'bg-amber-50/50 border-amber-100',
-    accentColor: 'text-amber-600',
-    pillBg: 'bg-amber-100/60 text-amber-600'
-  }
-];
+// PROGRAMS_METADATA removed to ensure all program curriculum data is backend driven.
+const GRADIENTS_MAP: Record<string, string> = {
+  'SPARK': 'from-orange-500 to-rose-500 shadow-orange-500/10',
+  'RISE': 'from-purple-500 to-indigo-500 shadow-purple-500/10',
+  'BLOOM': 'from-emerald-500 to-teal-500 shadow-emerald-500/10',
+  'IGNITE': 'from-violet-600 to-fuchsia-600 shadow-violet-600/10',
+  'UNSTOPPABLE': 'from-amber-500 to-yellow-600 shadow-amber-500/10',
+};
 
 // Definition of 7 empathetic questions
 const QUESTIONS = [
@@ -195,7 +120,7 @@ interface ParentsEnquiryFormProps {
 
 export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsEnquiryFormProps) {
   const router = useRouter();
-  const [internalPhase, setInternalPhase] = useState<'role-check' | 'questions' | 'recommendation' | 'success'>('role-check');
+  const [internalPhase, setInternalPhase] = useState<'role-check' | 'questions' | 'recommendation' | 'success'>('questions');
   
   const phase = propPhase !== undefined ? propPhase : internalPhase;
   const setPhase = (newPhase: 'role-check' | 'questions' | 'recommendation' | 'success') => {
@@ -207,6 +132,19 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
   };
 
   const [currentStep, setCurrentStep] = useState(0);
+  const [programsList, setProgramsList] = useState<Program[]>([]);
+
+  useEffect(() => {
+    const fetchProgramsList = async () => {
+      try {
+        const data = await ProgramsService.getPrograms();
+        setProgramsList(data || []);
+      } catch (err) {
+        console.error("Failed to load programs list:", err);
+      }
+    };
+    fetchProgramsList();
+  }, []);
   
   // Form State
   const [answers, setAnswers] = useState({
@@ -281,7 +219,7 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
         setActiveProgramTab(suggested[0].id);
       }
     }
-  }, [answers.classRange]);
+  }, [answers.classRange, programsList]);
 
   // Handle single-select question option selection
   const handleSelectOption = (questionId: string, optionValue: string) => {
@@ -293,9 +231,11 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
         setCurrentStep((prev) => prev + 1);
       }, 200);
     } else {
-      // Transition to recommendation phase
+      // Redirect to the recommended program details page
       setTimeout(() => {
-        setPhase('recommendation');
+        const suggested = getSuggestedPrograms();
+        const targetProgramId = suggested[0]?.id || 'spark';
+        router.push(`/programs/${targetProgramId}`);
       }, 300);
     }
   };
@@ -328,7 +268,9 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
     if (currentStep < QUESTIONS.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      setPhase('recommendation');
+      const suggested = getSuggestedPrograms();
+      const targetProgramId = suggested[0]?.id || 'spark';
+      router.push(`/programs/${targetProgramId}`);
     }
   };
 
@@ -341,9 +283,15 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
   // Find the appropriate program metadata based on class range selection
   const getSuggestedPrograms = () => {
     const selectedClass = answers.classRange;
-    if (!selectedClass) return [PROGRAMS_METADATA[0]]; // fallback
-    const matched = PROGRAMS_METADATA.find((p) => p.classRange.includes(selectedClass));
-    return matched ? [matched] : [PROGRAMS_METADATA[0]];
+    if (!selectedClass || programsList.length === 0) return [];
+    const matched = programsList.find((p) => {
+      const classNum = parseInt(selectedClass);
+      if (!isNaN(classNum)) {
+        return p.minClass <= classNum && classNum <= p.maxClass;
+      }
+      return p.classRange.toLowerCase().includes(selectedClass.toLowerCase());
+    });
+    return matched ? [matched] : [programsList[0]];
   };
 
   const suggestedPrograms = getSuggestedPrograms();
@@ -761,7 +709,7 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                         </div>
 
                         {/* Gradient Top Banner Accent */}
-                        <div className={`absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r ${prog.gradient}`} />
+                        <div className={`absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r ${GRADIENTS_MAP[prog.title.toUpperCase()] || 'from-slate-500 to-slate-700'}`} />
 
                         {/* Title / Class */}
                         <div className="flex flex-col gap-1">
@@ -1121,7 +1069,7 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
 
       {/* ─── PHASE 3: SUCCESS STATE ─── */}
       {phase === 'success' && (() => {
-        const bookedPrograms = PROGRAMS_METADATA.filter(p => selectedProgramIds.includes(p.id));
+        const bookedPrograms = programsList.filter(p => selectedProgramIds.includes(p.id));
         const bookedProgramTitles = bookedPrograms.length > 0 
           ? bookedPrograms.map(p => p.title).join(' & ') 
           : (suggestedPrograms[0]?.title || 'SPARK');

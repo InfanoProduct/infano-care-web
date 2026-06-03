@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ChevronLeft, Calendar, Clock, Share2 } from 'lucide-react';
-import { getImageUrl, getCategoryColor } from '@/lib/utils';
+import { getImageUrl, getCategoryColor, copyToClipboard } from '@/lib/utils';
 
 interface BlogHeaderProps {
   post: any;
@@ -34,7 +34,7 @@ const Youtube = () => (
 );
 
 export function BlogHeader({ post }: BlogHeaderProps) {
-  const handleShare = () => {
+  const handleShare = async () => {
     if (navigator.share) {
       navigator.share({
         title: post.title,
@@ -42,8 +42,12 @@ export function BlogHeader({ post }: BlogHeaderProps) {
         url: window.location.href,
       }).catch(console.error);
     } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
+      const success = await copyToClipboard(window.location.href);
+      if (success) {
+        alert('Link copied to clipboard!');
+      } else {
+        alert('Failed to copy link');
+      }
     }
   };
 

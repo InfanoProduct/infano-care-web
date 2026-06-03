@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { AssetsService, Asset } from '@/services/assets.service';
 import { toast } from 'react-hot-toast';
+import { copyToClipboard } from '@/lib/utils';
 
 export default function AssetsManagement() {
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -70,14 +71,14 @@ export default function AssetsManagement() {
 
   // Clipboard copy
   const handleCopyUrl = async (url: string, filename: string) => {
-    try {
-      await navigator.clipboard.writeText(url);
+    const success = await copyToClipboard(url);
+    if (success) {
       setCopiedFilename(filename);
       toast.success('Copied image URL to clipboard!');
       setTimeout(() => {
         setCopiedFilename(null);
       }, 2000);
-    } catch (err) {
+    } else {
       toast.error('Failed to copy link');
     }
   };

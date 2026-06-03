@@ -8,6 +8,7 @@ import {
 import { SchoolService, School } from '@/services/school.service';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'react-hot-toast';
+import { copyToClipboard } from '@/lib/utils';
 
 export default function SchoolCoordinatorStudentsPage() {
   const { user } = useAuthStore();
@@ -53,10 +54,14 @@ export default function SchoolCoordinatorStudentsPage() {
   const appActivated = Math.round(enrolledStudents * 0.68);
   const weeklyActive = Math.round(enrolledStudents * 0.43);
 
-  const copyAccessCode = (grade: string) => {
+  const copyAccessCode = async (grade: string) => {
     const code = `INF-${school.schoolId.split('-')[2]}-${grade.replace(' ', '').toUpperCase()}`;
-    navigator.clipboard.writeText(code);
-    toast.success(`Access code for ${grade} copied: ${code}`);
+    const success = await copyToClipboard(code);
+    if (success) {
+      toast.success(`Access code for ${grade} copied: ${code}`);
+    } else {
+      toast.error('Failed to copy access code');
+    }
   };
 
   return (

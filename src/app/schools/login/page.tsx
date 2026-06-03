@@ -9,6 +9,7 @@ import {
 import { AuthService } from '@/services/auth.service';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'react-hot-toast';
+import { copyToClipboard } from '@/lib/utils';
 
 export default function SchoolLoginPage() {
   const [username, setUsername] = useState('');
@@ -178,12 +179,16 @@ export default function SchoolLoginPage() {
     }
   };
 
-  const handleCopyRecoveredPassword = () => {
+  const handleCopyRecoveredPassword = async () => {
     if (!recoveredCredentials) return;
-    navigator.clipboard.writeText(recoveredCredentials);
-    setIsCopied(true);
-    toast.success('Password copied!');
-    setTimeout(() => setIsCopied(false), 2000);
+    const success = await copyToClipboard(recoveredCredentials);
+    if (success) {
+      setIsCopied(true);
+      toast.success('Password copied!');
+      setTimeout(() => setIsCopied(false), 2000);
+    } else {
+      toast.error('Failed to copy password');
+    }
   };
 
   return (

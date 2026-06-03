@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { SchoolService } from '@/services/school.service';
 import { toast } from 'react-hot-toast';
+import { copyToClipboard } from '@/lib/utils';
 
 export default function AdminNewSchoolPage() {
   const router = useRouter();
@@ -82,7 +83,7 @@ export default function AdminNewSchoolPage() {
     }
   };
 
-  const handleCopyCredentials = () => {
+  const handleCopyCredentials = async () => {
     if (!credentials) return;
     const text = `Infano.Care School Login Details:
 School ID: ${credentials.school.schoolId}
@@ -91,8 +92,12 @@ Coordinator Username/Email: ${credentials.coordinatorUser.username}
 Phone: ${credentials.coordinatorUser.phone}
 Login URL: ${window.location.origin}/schools/login`;
 
-    navigator.clipboard.writeText(text);
-    toast.success('Credentials copied to clipboard!');
+    const success = await copyToClipboard(text);
+    if (success) {
+      toast.success('Credentials copied to clipboard!');
+    } else {
+      toast.error('Failed to copy credentials');
+    }
   };
 
   return (

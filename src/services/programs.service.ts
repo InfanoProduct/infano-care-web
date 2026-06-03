@@ -41,6 +41,7 @@ export interface ProgramEnrollment {
     profile?: {
       displayName: string;
     };
+    scheduledSessions?: any[];
   };
 }
 

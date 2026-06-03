@@ -6,6 +6,7 @@ export interface AdminLoginResponse {
   userId: string;
   username: string;
   role: string;
+  requiresPasswordReset?: boolean;
 }
 
 export const AuthService = {
@@ -33,5 +34,17 @@ export const AuthService = {
 
   async updateRole(role: string) {
     return apiClient.patch<any>('/user/role', { role });
+  },
+
+  async resetCoordinatorPassword(newPassword: string, token: string): Promise<any> {
+    return apiClient.post('/auth/coordinator/reset-password', { newPassword }, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  },
+
+  async requestNewCredentials(username: string, phone: string): Promise<any> {
+    return apiClient.post('/auth/coordinator/request-credentials', { username, phone });
   }
 };

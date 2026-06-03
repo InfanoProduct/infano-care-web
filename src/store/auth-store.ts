@@ -10,6 +10,7 @@ interface AuthState {
     phone?: string;
     role: string;
     peerApplicationStatus?: string;
+    schoolId?: string;
   } | null;
   setAuth: (token: string, refreshToken: string, user: AuthState['user']) => void;
   clearAuth: () => void;

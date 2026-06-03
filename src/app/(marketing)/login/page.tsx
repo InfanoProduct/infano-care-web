@@ -19,15 +19,21 @@ export default function CustomerLoginPage() {
   const [tempAuthData, setTempAuthData] = useState<any>(null);
 
   const router = useRouter();
-  const { setAuth, isAuthenticated } = useAuthStore();
+  const { setAuth, isAuthenticated, user } = useAuthStore();
 
   useEffect(() => {
     setMounted(true);
-    // If already authenticated, redirect straight to dashboard
-    if (isAuthenticated) {
-      router.push('/dashboard');
+    // Role-based already authenticated checks
+    if (isAuthenticated && user) {
+      if (user.role === 'SCHOOL_COORDINATOR') {
+        router.push('/schools/dashboard');
+      } else if (user.role === 'OPS_MANAGER' || user.role === 'ADMIN') {
+        router.push('/admin/schools');
+      } else {
+        router.push('/dashboard');
+      }
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, user, router]);
 
   if (!mounted) return null;
 
@@ -158,7 +164,14 @@ export default function CustomerLoginPage() {
     document.cookie = `customer-token=${accessToken}; path=/; expires=${expires.toUTCString()}; SameSite=Strict`;
 
     toast.success('Signed in successfully!');
-    router.push('/dashboard');
+    
+    if (userPayload.role === 'SCHOOL_COORDINATOR') {
+      router.push('/schools/dashboard');
+    } else if (userPayload.role === 'OPS_MANAGER' || userPayload.role === 'ADMIN') {
+      router.push('/admin/schools');
+    } else {
+      router.push('/dashboard');
+    }
   };
 
   return (

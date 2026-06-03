@@ -25,6 +25,14 @@ export default function AdminLayout({
   
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, href: '/admin/dashboard' },
+    { 
+      name: 'School Partnerships', 
+      icon: ShieldCheck, 
+      subItems: [
+        { name: 'Partners List', icon: ShieldCheck, href: '/admin/schools' },
+        { name: 'Sessions Calendar', icon: Calendar, href: '/admin/schools/sessions-calendar' },
+      ]
+    },
     { name: 'User Management', icon: Users, href: '/admin/users' },
     { name: 'Learning Journeys', icon: BookOpen, href: '/admin/learning' },
     { name: 'Learning Programs', icon: Award, href: '/admin/programs' },

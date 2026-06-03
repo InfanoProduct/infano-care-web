@@ -5,6 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Heart, Shield, Users, X, Download, Loader2, CheckCircle2 } from 'lucide-react';
+import { apiClient } from '@/lib/api-client';
+import { toast } from 'react-hot-toast';
 
 export function ParentsHero() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -16,11 +18,24 @@ export function ParentsHero() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate API call or just show success for now
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      await apiClient.post('/enquiry/submit', {
+        type: 'parent',
+        contactName: formData.name,
+        phone: formData.phone,
+        details: 'Requested Parent Guide PDF from Parents Page.',
+      });
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+      // Automatically attempt to download/open the guide PDF
+      window.open('http://109.199.120.104:8084/uploads/assets/file-1780515770686-bb4008e0-b17f-4149-8578-b75920a01e11.pdf', '_blank');
+
+      setIsSubmitted(true);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Failed to submit enquiry');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const closeModal = () => {
@@ -207,12 +222,21 @@ export function ParentsHero() {
                       <CheckCircle2 size={40} />
                     </div>
                     <h3 className="text-2xl font-bold text-slate-900 mb-2">Thank You!</h3>
-                    <p className="text-slate-500 mb-8 font-medium">
-                      Your guide is being prepared and will be sent to your phone/email shortly.
+                    <p className="text-slate-500 mb-6 font-medium">
+                      Your enquiry has been successfully submitted. Click below to download the guide:
                     </p>
+                    <a
+                      href="http://109.199.120.104:8084/uploads/assets/file-1780515770686-bb4008e0-b17f-4149-8578-b75920a01e11.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full btn-primary py-4 rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-2 mb-4 font-bold text-white bg-primary text-sm"
+                    >
+                      <Download size={20} />
+                      Download Guide PDF
+                    </a>
                     <button
                       onClick={closeModal}
-                      className="w-full py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all"
+                      className="w-full py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all text-sm"
                     >
                       Close
                     </button>

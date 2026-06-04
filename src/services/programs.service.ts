@@ -128,6 +128,21 @@ export const ProgramsService = {
   },
 
   /**
+   * Manually creates an enrollment in the admin panel
+   */
+  async adminCreateEnrollment(data: any): Promise<{ success: boolean; enrollment: ProgramEnrollment }> {
+    return apiClient.post<{ success: boolean; enrollment: ProgramEnrollment }>('/admin/programs/enrollments', data);
+  },
+
+  /**
+   * Checks if a user exists by phone and gets their active enrolled program IDs
+   */
+  async checkUserByPhone(phone: string): Promise<{ success: boolean; exists: boolean; user: { id: string; phone: string; email: string; role: 'PARENT' | 'TEEN'; name: string } | null; enrolledProgramIds: string[] }> {
+    return apiClient.get<{ success: boolean; exists: boolean; user: { id: string; phone: string; email: string; role: 'PARENT' | 'TEEN'; name: string } | null; enrolledProgramIds: string[] }>('/admin/programs/check-user', { params: { phone } });
+  },
+
+
+  /**
    * Fetches all demo session bookings for the admin panel
    */
   async getAdminDemos(): Promise<DemoSession[]> {
@@ -160,5 +175,12 @@ export const ProgramsService = {
    */
   async getUserEnrollments(): Promise<{ success: boolean; data: ProgramEnrollment[] }> {
     return apiClient.get<{ success: boolean; data: ProgramEnrollment[] }>('/programs/me');
+  },
+
+  /**
+   * Fetches all demo sessions booked by the current logged-in user
+   */
+  async getUserDemos(): Promise<{ success: boolean; data: DemoSession[] }> {
+    return apiClient.get<{ success: boolean; data: DemoSession[] }>('/programs/me/demos');
   }
 };

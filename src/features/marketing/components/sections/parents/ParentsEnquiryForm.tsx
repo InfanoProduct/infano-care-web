@@ -162,7 +162,7 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
   const [parentName, setParentName] = useState(user?.profile?.displayName || user?.username || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [email, setEmail] = useState(user?.email || '');
-  const [selectedFormat, setSelectedFormat] = useState<'PRIVATE' | 'GROUP' | 'BOTH'>('BOTH');
+  const [selectedFormat, setSelectedFormat] = useState<'PRIVATE' | 'GROUP' | 'BOTH'>('PRIVATE');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -808,21 +808,8 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                   {/* Format Preference consolidated inside Booking Card */}
                   <div className="space-y-1">
                     <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">Learning Format Preference</label>
-                    <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 text-xs font-semibold shadow-sm w-full select-none">
-                      {(['PRIVATE', 'GROUP', 'BOTH'] as const).map((format) => (
-                        <button
-                          key={format}
-                          type="button"
-                          onClick={() => setSelectedFormat(format)}
-                          className={`flex-1 text-center py-1.5 rounded-lg transition-all text-xs ${
-                            selectedFormat === format
-                              ? 'bg-primary text-white shadow-sm font-semibold'
-                              : 'text-slate-500 hover:text-slate-800'
-                          }`}
-                        >
-                          {format === 'BOTH' ? 'Both Formats' : format === 'PRIVATE' ? '1:1 Private' : 'Group Cohort'}
-                        </button>
-                      ))}
+                    <div className="p-3 bg-white rounded-xl border border-slate-200 text-xs font-bold text-slate-700 shadow-sm text-center">
+                      1:1 Private Mentoring
                     </div>
                   </div>
 
@@ -1018,14 +1005,13 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
 
                   {error && <p className="text-red-500 text-xs font-semibold text-center mt-0.5">{error}</p>}
 
-                  {/* Submit demo slot */}
                   {/* Actions Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-0.5">
+                  <div className="mt-0.5">
                     {/* Book Demo Button */}
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full btn-primary py-2.5 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 group text-white bg-primary font-semibold text-xs transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-75"
+                      className="w-full btn-primary py-3 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 group text-white bg-primary font-semibold text-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-75"
                     >
                       {isSubmitting ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -1036,23 +1022,6 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                         </>
                       )}
                     </button>
-
-                    {/* Direct Enroll Button */}
-                    {userExists ? (
-                      <Link
-                        href="/login"
-                        className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99] text-center"
-                      >
-                        You are already a user, pls login
-                      </Link>
-                    ) : (
-                      <Link
-                        href={`/checkout?bookId=${suggestedPrograms[0] ? suggestedPrograms[0].id.toLowerCase() : 'spark'}-${selectedFormat === 'PRIVATE' ? 'private' : 'group'}&name=${encodeURIComponent(parentName)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&class=${encodeURIComponent(suggestedPrograms[0] ? suggestedPrograms[0].classRange : ("Class " + answers.classRange))}&format=${encodeURIComponent(selectedFormat === 'PRIVATE' ? '1:1 Private Mentoring' : 'Group Cohort (4 Girls)')}&date=${encodeURIComponent(selectedDay ? selectedDay.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '')}&time=${encodeURIComponent(selectedTime ? selectedTime.replace('_', ' ') : '')}`}
-                        className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99] text-center"
-                      >
-                        Enroll Now
-                      </Link>
-                    )}
                   </div>
                 </form>
 

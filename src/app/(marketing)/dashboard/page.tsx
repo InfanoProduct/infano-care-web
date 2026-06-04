@@ -76,26 +76,41 @@ export default function CustomerDashboardOverview() {
   const [isLinked, setIsLinked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [parentBookmarks, setParentBookmarks] = useState<any[]>([]);
+  const [demoSessions, setDemoSessions] = useState<any[]>([]);
+  const [demosLoading, setDemosLoading] = useState(false);
 
-  // Enrollment modal state
-  const [enrollModalProg, setEnrollModalProg] = useState<Program | null>(null);
-  const [enrollName, setEnrollName] = useState(user?.profile?.displayName || user?.username || '');
-  const [enrollEmail, setEnrollEmail] = useState(user?.email || '');
-  const [enrollFormat, setEnrollFormat] = useState<'GROUP' | 'PRIVATE'>('GROUP');
-  const [enrollSubmitting, setEnrollSubmitting] = useState(false);
+  // Demo booking modal state
+  const [demoModalProg, setDemoModalProg] = useState<Program | null>(null);
+  const [demoName, setDemoName] = useState(user?.profile?.displayName || user?.username || '');
+  const [demoEmail, setDemoEmail] = useState(user?.email || '');
+  const [demoPhone, setDemoPhone] = useState(user?.phone || '');
+  const [demoSlotDate, setDemoSlotDate] = useState('');
+  const [demoSlotTime, setDemoSlotTime] = useState('');
+  const [demoSubmitting, setDemoSubmitting] = useState(false);
+  const [demoSuccess, setDemoSuccess] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setDemoName(user.profile?.displayName || user.username || '');
+      setDemoEmail(user.email || '');
+      setDemoPhone(user.phone || '');
+    }
+  }, [user]);
 
   const isTeen = user?.role === 'TEEN';
 
   const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
-      const [enrollRes, programsRes, linksRes] = await Promise.all([
+      const [enrollRes, programsRes, linksRes, demosRes] = await Promise.all([
         ProgramsService.getUserEnrollments().catch(() => ({ success: true, data: [] })),
         ProgramsService.getPrograms().catch(() => []),
-        ParentService.getLinks().catch(() => [])
+        ParentService.getLinks().catch(() => []),
+        ProgramsService.getUserDemos().catch(() => ({ success: true, data: [] }))
       ]);
       setEnrollments(enrollRes.data || []);
       setAllPrograms(programsRes);
+      setDemoSessions(demosRes.data || []);
       const linked = linksRes.some((link: any) => link.status === 'LINKED');
       setIsLinked(linked);
 
@@ -110,85 +125,71 @@ export default function CustomerDashboardOverview() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => { loadDashboardData(); }, [loadDashboardData]);
 
-  const handleEnrollSubmit = async (e: React.FormEvent) => {
+  const handleBookDemoClick = (program: Program) => {
+    setDemoModalProg(program);
+    setDemoName(user?.profile?.displayName || user?.username || '');
+    setDemoEmail(user?.email || '');
+    setDemoPhone(user?.phone || '');
+    setDemoSlotDate('');
+    setDemoSlotTime('');
+    setDemoSuccess(false);
+  };
+
+  const handleDemoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!enrollModalProg) return;
-    if (!enrollName.trim() || !enrollEmail.trim()) {
-      toast.error('Please fill in your name and email.');
+    if (!demoModalProg) return;
+    if (!demoName.trim()) {
+      toast.error('Please enter your name.');
       return;
     }
-    setEnrollSubmitting(true);
+    if (!demoPhone.trim()) {
+      toast.error('Please enter your phone number.');
+      return;
+    }
+    if (!demoSlotDate) {
+      toast.error('Please select a date for your demo.');
+      return;
+    }
+    if (!demoSlotTime) {
+      toast.error('Please select a time slot.');
+      return;
+    }
 
+    setDemoSubmitting(true);
     try {
-      const prog = enrollModalProg;
-      const bookId = `${prog.title.toLowerCase()}-${enrollFormat === 'PRIVATE' ? 'private' : 'group'}`;
-
-      const orderData = {
-        guestName: enrollName,
-        guestEmail: enrollEmail,
-        guestPhone: user?.phone || '0000000000',
-        shippingAddress: "Virtual Enrollment",
-        city: "Online",
-        state: "Online",
-        pincode: "000000",
-        paymentMethod: "ONLINE" as const,
-        userId: user?.id,
-        items: [{ bookId: bookId, quantity: 1 }],
+      const bookingData = {
+        parentName: demoName,
+        phone: demoPhone,
+        email: demoEmail || null,
+        classRange: demoModalProg.classRange,
+        confidence: "",
+        interests: [],
+        hasMentor: "",
+        challenges: [],
+        learningPref: "1:1 Private Mentoring",
+        parentInvolvement: "",
+        suggestedPrograms: [demoModalProg.title],
+        slotDate: demoSlotDate,
+        slotTime: demoSlotTime
       };
 
-      const order = await ShopService.createOrder(orderData);
-
-      if (order.razorpayOrderId) {
-        if (typeof (window as any).Razorpay === 'undefined') {
-          toast.error('Payment gateway is loading. Try again in a few seconds.');
-          setEnrollSubmitting(false);
-          return;
-        }
-        const options = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-          amount: order.totalAmount * 100,
-          currency: 'INR',
-          name: 'Infano.care',
-          description: `Enrollment: ${prog.title}`,
-          order_id: order.razorpayOrderId,
-          handler: async function (response: any) {
-            try {
-              await ShopService.verifyPayment({
-                razorpayOrderId: response.razorpay_order_id,
-                razorpayPaymentId: response.razorpay_payment_id,
-                razorpaySignature: response.razorpay_signature,
-              });
-              toast.success('Successfully Enrolled!');
-              setEnrollModalProg(null);
-              loadDashboardData();
-            } catch (err) {
-              toast.error('Payment verification failed.');
-            } finally {
-              setEnrollSubmitting(false);
-            }
-          },
-          prefill: {
-            name: enrollName,
-            email: enrollEmail,
-            contact: user?.phone || '',
-          },
-          modal: { ondismiss: () => setEnrollSubmitting(false) }
-        };
-        const rzp = new (window as any).Razorpay(options);
-        rzp.open();
-      } else {
-        toast.success('Successfully Enrolled!');
-        setEnrollModalProg(null);
+      const result = await ProgramsService.bookDemoSession(bookingData);
+      if (result.success) {
+        setDemoSuccess(true);
+        toast.success('Demo session booked successfully!');
         loadDashboardData();
-        setEnrollSubmitting(false);
+      } else {
+        throw new Error('Booking failed');
       }
+
     } catch (err: any) {
-      toast.error(err.message || 'Enrollment failed');
-      setEnrollSubmitting(false);
+      toast.error(err.message || 'Failed to book demo session.');
+    } finally {
+      setDemoSubmitting(false);
     }
   };
 
@@ -203,77 +204,136 @@ export default function CustomerDashboardOverview() {
 
   const enrolledProgramIds = enrollments.map(e => e.programId);
   const availablePrograms = allPrograms.filter(p => !enrolledProgramIds.includes(p.id));
+  const showSidebar = isTeen && parentBookmarks.length > 0;
+
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl mx-auto">
 
-      {/* Enrollment Detail Modal */}
-      {enrollModalProg && (
+      {/* Demo Booking Modal */}
+      {demoModalProg && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => { setEnrollModalProg(null); setEnrollName(user?.profile?.displayName || user?.username || ''); setEnrollEmail(user?.email || ''); }} />
+          <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => setDemoModalProg(null)} />
           <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden z-10">
             {(() => {
-              const theme = ENROLLED_THEMES[enrollModalProg.title?.toUpperCase()] || DEFAULT_ENROLLED_THEME;
+              const theme = ENROLLED_THEMES[demoModalProg.title?.toUpperCase()] || DEFAULT_ENROLLED_THEME;
               return (
                 <>
                   <div className={`h-2 w-full bg-gradient-to-r ${theme.gradient}`} />
                   <div className="p-8">
-                    <button onClick={() => { setEnrollModalProg(null); setEnrollName(user?.profile?.displayName || user?.username || ''); setEnrollEmail(user?.email || ''); }} className="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all">
+                    <button onClick={() => setDemoModalProg(null)} className="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all">
                       <X size={18} />
                     </button>
-                    <div className="mb-6">
-                      <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${theme.badge}`}>Enrolling Now</span>
-                      <h3 className={`text-2xl font-extrabold mt-2 ${theme.accent}`}>{enrollModalProg.title} Program</h3>
-                      <p className="text-xs text-slate-500 font-semibold mt-1">{enrollModalProg.classRange} • {enrollModalProg.sessions} Sessions • {enrollModalProg.duration}</p>
-                    </div>
-
-                    <form onSubmit={handleEnrollSubmit} className="space-y-4">
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5">Full Name *</label>
-                        <input
-                          type="text"
-                          required
-                          value={enrollName}
-                          onChange={e => setEnrollName(e.target.value)}
-                          placeholder="e.g. Anjali Sharma"
-                          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5">Email Address *</label>
-                        <input
-                          type="email"
-                          required
-                          value={enrollEmail}
-                          onChange={e => setEnrollEmail(e.target.value)}
-                          placeholder="e.g. parent@email.com"
-                          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5">Learning Format</label>
-                        <div className="grid grid-cols-2 gap-3">
-                          {(['GROUP', 'PRIVATE'] as const).map(fmt => (
-                            <button
-                              key={fmt}
-                              type="button"
-                              onClick={() => setEnrollFormat(fmt)}
-                              className={`py-2.5 px-3 rounded-xl border-2 text-xs font-extrabold uppercase tracking-wider transition-all ${enrollFormat === fmt ? `${theme.border} ${theme.accent} bg-white shadow-sm` : 'border-slate-100 text-slate-400 hover:border-slate-200'}`}
-                            >
-                              {fmt === 'GROUP' ? `Group — ₹${enrollModalProg.priceGroup?.toLocaleString()}` : `1:1 Private — ₹${enrollModalProg.pricePrivate?.toLocaleString()}`}
-                            </button>
-                          ))}
+                    
+                    {demoSuccess ? (
+                      <div className="text-center py-4">
+                        <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto mb-4 text-emerald-600 shadow-md">
+                          <Check size={32} strokeWidth={2.5} />
                         </div>
+                        <h3 className="text-xl font-extrabold text-slate-800 mb-2">Demo Booked Successfully!</h3>
+                        <p className="text-slate-500 text-xs leading-relaxed mb-6 font-semibold">
+                          Your demo session for <strong className={theme.accent}>{demoModalProg.title} Program</strong> is requested for <strong className="text-slate-800">{demoSlotDate}</strong> at <strong className="text-slate-800">{demoSlotTime}</strong>. A guide will call you at <strong className="text-slate-800">{demoPhone}</strong>.
+                        </p>
+                        <button
+                          onClick={() => setDemoModalProg(null)}
+                          className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs uppercase tracking-widest rounded-2xl transition-all shadow-md active:scale-95 animate-in fade-in"
+                        >
+                          Close Window
+                        </button>
                       </div>
+                    ) : (
+                      <>
+                        <div className="mb-5">
+                          <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${theme.badge}`}>Book Demo Session</span>
+                          <h3 className={`text-2xl font-extrabold mt-2 ${theme.accent}`}>{demoModalProg.title} Program</h3>
+                          <p className="text-xs text-slate-500 font-semibold mt-1">{demoModalProg.classRange} • {demoModalProg.sessions} Sessions • {demoModalProg.duration}</p>
+                        </div>
 
-                      <button
-                        type="submit"
-                        disabled={enrollSubmitting}
-                        className={`w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-4 rounded-2xl shadow-md flex items-center justify-center gap-2 text-sm transition-all active:scale-95 disabled:opacity-70 mt-2`}
-                      >
-                        {enrollSubmitting ? <Loader2 size={18} className="animate-spin" /> : <><ArrowRight size={16} /> Proceed to Checkout</>}
-                      </button>
-                    </form>
+                        <form onSubmit={handleDemoSubmit} className="space-y-4">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Full Name *</label>
+                            <input
+                              type="text"
+                              required
+                              value={demoName}
+                              onChange={e => setDemoName(e.target.value)}
+                              placeholder="Your full name"
+                              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-850 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Phone Number *</label>
+                            <input
+                              type="tel"
+                              required
+                              value={demoPhone}
+                              onChange={e => setDemoPhone(e.target.value)}
+                              placeholder="Your phone number"
+                              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-850 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Email Address (Optional)</label>
+                            <input
+                              type="email"
+                              value={demoEmail}
+                              onChange={e => setDemoEmail(e.target.value)}
+                              placeholder="Your email address"
+                              className="w-full px-4 py-3 bg-[#FAFBFE] border border-slate-200 rounded-xl text-sm font-semibold text-slate-850 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Preferred Date *</label>
+                              <input
+                                type="date"
+                                required
+                                min={(() => {
+                                  const today = new Date();
+                                  const tomorrow = new Date(today);
+                                  tomorrow.setDate(today.getDate() + 1);
+                                  return tomorrow.toISOString().split('T')[0];
+                                })()}
+                                value={demoSlotDate}
+                                onChange={e => setDemoSlotDate(e.target.value)}
+                                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-750 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm cursor-pointer"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Preferred Time *</label>
+                              <select
+                                required
+                                value={demoSlotTime}
+                                onChange={e => setDemoSlotTime(e.target.value)}
+                                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-750 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm cursor-pointer"
+                              >
+                                <option value="">Select Time</option>
+                                <option value="10:00 AM - 11:00 AM">10:00 AM - 11:00 AM</option>
+                                <option value="11:00 AM - 12:00 PM">11:00 AM - 12:00 PM</option>
+                                <option value="12:00 PM - 01:00 PM">12:00 PM - 01:00 PM</option>
+                                <option value="02:00 PM - 03:00 PM">02:00 PM - 03:00 PM</option>
+                                <option value="03:00 PM - 04:00 PM">03:00 PM - 04:00 PM</option>
+                                <option value="04:00 PM - 05:00 PM">04:00 PM - 05:00 PM</option>
+                                <option value="05:00 PM - 06:00 PM">05:00 PM - 06:00 PM</option>
+                                <option value="06:00 PM - 07:00 PM">06:00 PM - 07:00 PM</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <button
+                            type="submit"
+                            disabled={demoSubmitting}
+                            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-4 rounded-2xl shadow-lg shadow-slate-900/10 flex items-center justify-center gap-2 text-sm transition-all active:scale-95 disabled:opacity-70 mt-4 cursor-pointer"
+                          >
+                            {demoSubmitting ? <Loader2 size={18} className="animate-spin" /> : <><ArrowRight size={16} /> Book Free Demo</>}
+                          </button>
+                        </form>
+                      </>
+                    )}
                   </div>
                 </>
               );
@@ -281,9 +341,6 @@ export default function CustomerDashboardOverview() {
           </div>
         </div>
       )}
-
-      {/* Razorpay Script */}
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" />
 
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-primary/10 via-accent/5 to-white p-8 rounded-2xl border border-primary/10 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden shadow-sm">
@@ -317,10 +374,60 @@ export default function CustomerDashboardOverview() {
 
       {!isTeen && <DashboardSummary />}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-12">
-        {/* COMPACT PROGRAM PROGRESS OVERVIEW */}
-        {enrollments.length > 0 && (
+      <div className={showSidebar ? "grid grid-cols-1 lg:grid-cols-3 gap-6" : "space-y-12 w-full"}>
+        <div className={showSidebar ? "lg:col-span-2 space-y-12" : "space-y-12 w-full"}>
+          {/* DEMO SESSIONS GLIMPSE */}
+          {demoSessions.length > 0 && (
+            <div className="bg-white border border-slate-100 rounded-3xl p-8 md:p-10 shadow-xl shadow-slate-200/40 space-y-6">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-5">
+                <div>
+                  <h3 className="text-2xl font-extrabold text-slate-800 flex items-center gap-2">
+                    <Calendar className="text-primary" size={26} /> Booked Demo Sessions
+                  </h3>
+                  <p className="text-sm font-semibold text-slate-400 mt-1">Status of your consultation slot bookings</p>
+                </div>
+                <Link href="/dashboard/expert-sessions?tab=demos" className="text-sm font-extrabold text-primary hover:underline flex items-center gap-1">
+                  View Details <ChevronRight size={16} />
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {demoSessions.slice(0, 2).map((demo: any) => {
+                  const progName = demo.suggestedPrograms?.[0] || 'Learning Program';
+                  const theme = ENROLLED_THEMES[progName.toUpperCase()] || DEFAULT_ENROLLED_THEME;
+                  return (
+                    <div key={demo.id} className={`p-5 bg-white border ${theme.border} rounded-2xl flex items-center justify-between gap-4 hover:shadow-sm transition-all`}>
+                      <div className="space-y-1.5 min-w-0">
+                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${theme.badge} inline-block`}>
+                          Demo Session
+                        </span>
+                        <h4 className={`font-extrabold text-base truncate ${theme.accent}`}>{progName}</h4>
+                        <div className="flex items-center gap-2 text-xs font-bold text-slate-500 mt-1">
+                          <Calendar size={12} className="text-slate-400" />
+                          <span>{demo.slotDate}</span>
+                          <span>·</span>
+                          <span>{demo.slotTime}</span>
+                        </div>
+                      </div>
+                      
+                      <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border shrink-0 ${
+                        demo.status === 'PENDING' ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' :
+                        demo.status === 'CONTACTED' ? 'bg-teal-500/10 text-teal-600 border-teal-500/20' :
+                        demo.status === 'SCHEDULED' ? 'bg-purple-500/10 text-purple-600 border-purple-500/20' :
+                        demo.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
+                        'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                      }`}>
+                        {demo.status}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* COMPACT PROGRAM PROGRESS OVERVIEW */}
+          {enrollments.length > 0 && (
           <div className="bg-white border border-slate-100 rounded-3xl p-8 md:p-10 shadow-xl shadow-slate-200/40">
             <div className="flex items-center justify-between mb-8 border-b border-slate-100 pb-6">
               <div>
@@ -394,7 +501,7 @@ export default function CustomerDashboardOverview() {
               </h3>
               <p className="text-sm font-semibold text-slate-500 mt-2">Enroll in specialized expert cohorts designed to empower her growth</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
+            <div className={`grid grid-cols-1 md:grid-cols-2 ${showSidebar ? "" : "lg:grid-cols-3"} gap-8 lg:gap-10`}>
               {availablePrograms.map((program) => {
                 const styles = STYLES_MAP[program.title.toUpperCase()] || DEFAULT_STYLE;
                 const formattedPricePrivate = program.pricePrivate?.toLocaleString('en-IN') || 0;
@@ -455,12 +562,12 @@ export default function CustomerDashboardOverview() {
                       </ul>
                     </div>
 
-                    {/* Direct Link CTA */}
+                    {/* Book Demo CTA */}
                     <button
-                      onClick={() => { setEnrollModalProg(program); setEnrollName(user?.profile?.displayName || user?.username || ''); setEnrollEmail(user?.email || ''); setEnrollFormat('GROUP'); }}
+                      onClick={() => handleBookDemoClick(program)}
                       className={`w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-2xl text-white font-bold text-sm uppercase tracking-widest transition-all ${styles.btnBg} relative z-10`}
                     >
-                      <span>Enroll Now</span>
+                      <span>Book Free Demo</span>
                       <ArrowRight size={16} className="transition-transform group-hover:translate-x-1 duration-300" />
                     </button>
                   </motion.div>
@@ -475,8 +582,8 @@ export default function CustomerDashboardOverview() {
 
         </div>
         {/* RIGHT SIDEBAR: PARENT BOOKMARKS FOR TEEN */}
-        <div className="space-y-0">
-          {isTeen && parentBookmarks.length > 0 && (
+        {showSidebar && (
+          <div className="space-y-0">
             <div className="bg-white border border-slate-100 rounded-3xl p-4 md:p-6 shadow-xl shadow-slate-200/30">
               <div className="flex items-center justify-between mb-4 pb-2">
                 <div>
@@ -516,8 +623,8 @@ export default function CustomerDashboardOverview() {
                 </div>
               )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

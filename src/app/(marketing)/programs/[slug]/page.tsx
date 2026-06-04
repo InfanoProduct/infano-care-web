@@ -152,7 +152,8 @@ export default function ProgramDetailsPage() {
   const [parentInvolvement, setParentInvolvement] = useState('');
   const [slotDate, setSlotDate] = useState('');
   const [slotTime, setSlotTime] = useState('');
-  const [showSlotSelection, setShowSlotSelection] = useState(false);
+  const [showSlotSelection, setShowSlotSelection] = useState(true);
+
 
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -686,39 +687,11 @@ export default function ProgramDetailsPage() {
 
                       {/* Actions Column */}
                       <div className="flex flex-col gap-3 pt-2">
-                        {/* Direct Enroll Link */}
-                        {userExists ? (
-                          <Link
-                            href="/login"
-                            className={`w-full inline-flex items-center justify-center gap-2 py-4 px-4 rounded-2xl text-white font-bold text-xs uppercase tracking-widest transition-all ${theme.btn} shadow-md text-center`}
-                          >
-                            <span>You are already a user, pls login</span>
-                          </Link>
-                        ) : (
-                          <Link
-                            href={`/checkout?bookId=${program ? program.title.toLowerCase() : 'spark'}-${learningPref.includes('Private') || learningPref.includes('1:1') ? 'private' : 'group'}&name=${encodeURIComponent(parentName)}&phone=${encodeURIComponent(getFullNormalizedPhone())}&email=${encodeURIComponent(email)}&class=${encodeURIComponent(classRange)}&format=${encodeURIComponent(learningPref)}&date=${encodeURIComponent(slotDate)}&time=${encodeURIComponent(slotTime)}`}
-                            onClick={(e) => {
-                              if (!validateForm()) {
-                                e.preventDefault();
-                                const nameInput = document.querySelector('input[placeholder="Your name"]');
-                                if (nameInput) (nameInput as HTMLInputElement).focus();
-                              }
-                            }}
-                            className={`w-full inline-flex items-center justify-center gap-2 py-4 px-4 rounded-2xl text-white font-bold text-xs uppercase tracking-widest transition-all ${theme.btn} shadow-md text-center`}
-                          >
-                            <span>Enroll Now</span>
-                          </Link>
-                        )}
-
                         {/* Book Demo Button */}
                         <button
-                          type={showSlotSelection ? "submit" : "button"}
-                          onClick={handleBookDemoClick}
+                          type="submit"
                           disabled={submitting}
-                          className={`w-full inline-flex items-center justify-center gap-2 py-4 px-4 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all text-center disabled:opacity-50 ${(slotDate && slotTime)
-                              ? 'bg-slate-900 hover:bg-slate-800 text-white shadow-md'
-                              : 'bg-slate-50 hover:bg-slate-100 text-slate-500 border border-slate-200/80'
-                            }`}
+                          className={`w-full inline-flex items-center justify-center gap-2 py-4 px-4 rounded-2xl text-white font-bold text-xs uppercase tracking-widest transition-all shadow-md text-center disabled:opacity-50 ${theme.btn}`}
                         >
                           {submitting ? (
                             <>
@@ -730,6 +703,7 @@ export default function ProgramDetailsPage() {
                           )}
                         </button>
                       </div>
+
 
                     </form>
                   </motion.div>

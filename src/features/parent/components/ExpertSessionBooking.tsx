@@ -4,10 +4,21 @@ import { useState, useEffect } from 'react';
 import Script from 'next/script';
 import { ParentService } from '@/services/parent.service';
 import { useAuthStore } from '@/store/auth-store';
+import { ProgramsService } from '@/services/programs.service';
 import {
   Loader2, Search, Filter, Star, Clock, Video, Calendar,
   X, ChevronRight, AlertCircle, CheckCircle2, XCircle, RefreshCw
 } from 'lucide-react';
+
+const ENROLLED_THEMES: Record<string, { accent: string; gradient: string; border: string; badge: string; }> = {
+  'SPARK': { accent: 'text-rose-600', gradient: 'from-rose-500 to-pink-600', border: 'border-rose-100', badge: 'bg-rose-50 border-rose-100 text-rose-700' },
+  'RISE': { accent: 'text-violet-600', gradient: 'from-violet-500 to-indigo-600', border: 'border-violet-100', badge: 'bg-violet-50 border-violet-100 text-violet-700' },
+  'BLOOM': { accent: 'text-emerald-600', gradient: 'from-emerald-500 to-teal-600', border: 'border-emerald-100', badge: 'bg-emerald-50 border-emerald-100 text-emerald-700' },
+  'IGNITE': { accent: 'text-fuchsia-600', gradient: 'from-fuchsia-500 to-pink-600', border: 'border-fuchsia-100', badge: 'bg-fuchsia-50 border-fuchsia-100 text-fuchsia-700' },
+  'UNSTOPPABLE': { accent: 'text-amber-600', gradient: 'from-amber-500 to-orange-600', border: 'border-amber-100', badge: 'bg-amber-50 border-amber-100 text-amber-700' },
+};
+const DEFAULT_ENROLLED_THEME = { accent: 'text-primary', gradient: 'from-primary to-accent', border: 'border-primary/20', badge: 'bg-primary/10 border-primary/20 text-primary' };
+
 
 interface Expert {
   id: string;
@@ -61,12 +72,14 @@ function generateSlots(): string[] {
   return slots;
 }
 
-export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | 'sessions' } = {}) {
+export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | 'sessions' | 'demos' } = {}) {
   const { user } = useAuthStore();
   const [experts, setExperts] = useState<Expert[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [demoSessions, setDemoSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [sessionsLoading, setSessionsLoading] = useState(true);
+  const [demosLoading, setDemosLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -81,16 +94,30 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
   const [rescheduleSession, setRescheduleSession] = useState<Session | null>(null);
   const [rescheduleSlot, setRescheduleSlot] = useState<string | null>(null);
 
-  const [tab, setTab] = useState<'browse' | 'sessions'>(initialTab || 'browse');
+  const [tab, setTab] = useState<'browse' | 'sessions' | 'demos'>(initialTab || 'browse');
+
 
   useEffect(() => {
     fetchExperts();
     fetchSessions();
+    fetchDemoSessions();
   }, []);
 
   useEffect(() => {
     fetchExperts();
   }, [activeFilter]);
+
+  const fetchDemoSessions = async () => {
+    try {
+      setDemosLoading(true);
+      const res = await ProgramsService.getUserDemos();
+      setDemoSessions(res.data || []);
+    } catch (err) {
+      console.error('Failed to fetch user demo sessions', err);
+    } finally {
+      setDemosLoading(false);
+    }
+  };
 
   const fetchExperts = async () => {
     try {
@@ -120,6 +147,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
       setSessionsLoading(false);
     }
   };
+
 
   const openBookingModal = (expert: Expert) => {
     setSelectedExpert(expert);
@@ -270,7 +298,23 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
             </span>
           )}
         </button>
+        <button
+          onClick={() => setTab('demos')}
+          className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 ${
+            tab === 'demos'
+              ? 'bg-white text-primary shadow-sm'
+              : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          Demo Sessions
+          {demoSessions.length > 0 && (
+            <span className="w-5 h-5 bg-primary text-white rounded-full text-[10px] font-black flex items-center justify-center">
+              {demoSessions.length}
+            </span>
+          )}
+        </button>
       </div>
+
 
       {/* ========== BROWSE EXPERTS TAB ========== */}
       {tab === 'browse' && (
@@ -479,6 +523,104 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
           )}
         </div>
       )}
+
+      {/* ========== DEMO SESSIONS TAB ========== */}
+      {tab === 'demos' && (
+        <div className="space-y-6">
+          {demosLoading ? (
+            <div className="flex justify-center py-16">
+              <Loader2 className="animate-spin text-primary" size={32} />
+            </div>
+          ) : demoSessions.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Calendar size={24} className="text-slate-400" />
+              </div>
+              <p className="text-slate-500 font-semibold text-sm">No demo sessions booked yet.</p>
+              <p className="text-slate-400 text-xs mt-1">Explore our programs and book a free demo consultation!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {demoSessions.map((demo: any) => {
+                const progName = demo.suggestedPrograms?.[0] || 'Learning Program';
+                const theme = ENROLLED_THEMES[progName.toUpperCase()] || DEFAULT_ENROLLED_THEME;
+                
+                return (
+                  <div
+                    key={demo.id}
+                    className="bg-white rounded-3xl border border-slate-150 p-6 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col justify-between relative overflow-hidden group"
+                  >
+                    {/* Top gradient border matching the program */}
+                    <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${theme.gradient}`} />
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-start justify-between flex-wrap gap-2">
+                        <div>
+                          <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${theme.badge} inline-block mb-2`}>
+                            Free Demo Session
+                          </span>
+                          <h4 className={`text-xl font-extrabold tracking-tight ${theme.accent}`}>{progName}</h4>
+                          <p className="text-xs font-semibold text-slate-400 mt-0.5">Cohort Target: {demo.classRange}</p>
+                        </div>
+                        
+                        <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 border shadow-sm ${
+                          demo.status === 'PENDING' ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' :
+                          demo.status === 'CONTACTED' ? 'bg-teal-500/10 text-teal-600 border-teal-500/20' :
+                          demo.status === 'SCHEDULED' ? 'bg-purple-500/10 text-purple-600 border-purple-500/20' :
+                          demo.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
+                          'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                        }`}>
+                          <div className={`w-1.5 h-1.5 rounded-full ${
+                            demo.status === 'PENDING' ? 'bg-amber-500 animate-pulse' :
+                            demo.status === 'CONTACTED' ? 'bg-teal-500' :
+                            demo.status === 'SCHEDULED' ? 'bg-purple-500' :
+                            demo.status === 'COMPLETED' ? 'bg-emerald-500' :
+                            'bg-rose-500'
+                          }`} />
+                          {demo.status}
+                        </span>
+                      </div>
+
+                      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                            <Calendar size={16} />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Scheduled Date</p>
+                            <p className="text-sm font-extrabold text-slate-800 mt-0.5">{demo.slotDate || 'Not set'}</p>
+                          </div>
+                        </div>
+
+                        <div className="h-8 w-[1px] bg-slate-200" />
+
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                            <Clock size={16} />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Time Slot</p>
+                            <p className="text-sm font-extrabold text-slate-800 mt-0.5">{demo.slotTime || 'Not set'}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                        {demo.status === 'PENDING' && "We have received your demo request. An expert advisor will reach out to you shortly via phone/WhatsApp to confirm the session."}
+                        {demo.status === 'CONTACTED' && "Our expert advisor has contacted you. We are finalising the onboarding details."}
+                        {demo.status === 'SCHEDULED' && "Your demo session is officially scheduled! A calendar invitation and video link have been sent to your email/phone."}
+                        {demo.status === 'COMPLETED' && "This demo session has been successfully completed. If you want to enroll in the full course, please contact the support team."}
+                        {demo.status === 'CANCELLED' && "This request was cancelled."}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
 
       {/* ========== BOOKING MODAL ========== */}
       {selectedExpert && (

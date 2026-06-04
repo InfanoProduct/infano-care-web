@@ -142,11 +142,11 @@ function CheckoutContent() {
   useEffect(() => {
     if (!loading && book) {
       const isProg = book.id.endsWith('-private') || book.id.endsWith('-group');
-      if (isProg && (!nameParam || !phoneParam)) {
+      if (isProg && !user && (!nameParam || !phoneParam)) {
         setMissingDetails(true);
       }
     }
-  }, [loading, book, nameParam, phoneParam]);
+  }, [loading, book, nameParam, phoneParam, user]);
 
   useEffect(() => {
     if (missingDetails) {
@@ -446,7 +446,7 @@ function CheckoutContent() {
               </div>
               <div className="flex justify-between text-xs font-bold text-slate-500">
                 <span>Learning Format</span>
-                <span className="text-slate-800">{formatParam || 'Group Cohort'}</span>
+                <span className="text-slate-800">{formatParam || '1:1 Private Mentoring'}</span>
               </div>
             </div>
 

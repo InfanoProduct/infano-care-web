@@ -101,6 +101,25 @@ export default function ProgramsManagement() {
   const [selectedDemo, setSelectedDemo] = useState<DemoSession | null>(null);
   const [showDemoModal, setShowDemoModal] = useState(false);
 
+  // Add Student manual enrollment state
+  const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+  const [addStudentName, setAddStudentName] = useState('');
+  const [addStudentPhone, setAddStudentPhone] = useState('');
+  const [addStudentEmail, setAddStudentEmail] = useState('');
+  const [addStudentRole, setAddStudentRole] = useState<'PARENT' | 'TEEN'>('PARENT');
+  const [addStudentProgramId, setAddStudentProgramId] = useState('');
+  const [addStudentType, setAddStudentType] = useState<'PRIVATE' | 'GROUP'>('PRIVATE');
+  const [addStudentPricePaid, setAddStudentPricePaid] = useState('');
+  const [addStudentSubmitting, setAddStudentSubmitting] = useState(false);
+  const [enrollStep, setEnrollStep] = useState<1 | 2>(1);
+  const [checkingPhone, setCheckingPhone] = useState(false);
+  const [existingUserData, setExistingUserData] = useState<{
+    exists: boolean;
+    user: { id: string; phone: string; email: string; role: 'PARENT' | 'TEEN'; name: string } | null;
+    enrolledProgramIds: string[];
+  } | null>(null);
+
+
   // Modal State
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
@@ -171,6 +190,90 @@ export default function ProgramsManagement() {
       setLoadingEnrollments(false);
     }
   };
+
+  const handleCheckPhone = async () => {
+    const rawPhone = addStudentPhone.trim();
+    if (!rawPhone) {
+      toast.error('Please enter a phone number.');
+      return;
+    }
+    setCheckingPhone(true);
+    try {
+      const res = await ProgramsService.checkUserByPhone(rawPhone);
+      setExistingUserData(res);
+      if (res.exists && res.user) {
+        setAddStudentName(res.user.name || '');
+        setAddStudentEmail(res.user.email || '');
+        setAddStudentRole(res.user.role || 'PARENT');
+        toast.success('Existing user found! Details auto-filled.');
+      } else {
+        setAddStudentName('');
+        setAddStudentEmail('');
+        setAddStudentRole('PARENT');
+        toast('New user. Please enter details.');
+      }
+
+      setEnrollStep(2);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to check phone number.');
+    } finally {
+      setCheckingPhone(false);
+    }
+  };
+
+  const handleAddStudentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addStudentName.trim() || !addStudentPhone.trim() || !addStudentProgramId || !addStudentType) {
+      toast.error('Please fill in all required fields.');
+      return;
+    }
+
+    setAddStudentSubmitting(true);
+    try {
+      const payload = {
+        studentName: addStudentName,
+        phone: addStudentPhone,
+        email: addStudentEmail || undefined,
+        role: addStudentRole,
+        programId: addStudentProgramId,
+        type: addStudentType,
+        pricePaid: addStudentPricePaid !== '' ? parseFloat(addStudentPricePaid) : undefined
+      };
+
+      const res = await ProgramsService.adminCreateEnrollment(payload);
+      if (res.success) {
+        toast.success('Student enrolled successfully!');
+        setShowAddStudentModal(false);
+        // Reset state
+        setAddStudentName('');
+        setAddStudentPhone('');
+        setAddStudentEmail('');
+        setAddStudentRole('PARENT');
+        setAddStudentProgramId('');
+        setAddStudentType('PRIVATE');
+        setAddStudentPricePaid('');
+        setEnrollStep(1);
+        setExistingUserData(null);
+        
+        // Reload enrollments
+        loadEnrollments();
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to enroll student.');
+    } finally {
+      setAddStudentSubmitting(false);
+    }
+  };
+
+  const handleSubmitWrapper = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (enrollStep === 1) {
+      handleCheckPhone();
+    } else {
+      handleAddStudentSubmit(e);
+    }
+  };
+
 
   const loadDemos = async () => {
     setLoadingDemos(true);
@@ -1064,25 +1167,46 @@ export default function ProgramsManagement() {
                 className="bg-transparent border-none outline-none w-full text-sm font-semibold placeholder:text-muted-foreground/60 text-foreground"
               />
             </div>
-            
-            <div className="flex items-center gap-3 shrink-0 self-start md:self-auto">
-              <Filter className="text-muted-foreground" size={16} />
-              <span className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Status:</span>
-              <div className="flex bg-secondary/50 rounded-xl p-1 border border-border/50 font-bold text-xs">
-                {['ALL', 'ACTIVE', 'COMPLETED', 'CANCELLED'].map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => setStatusFilter(status)}
-                    className={`px-3 py-1.5 rounded-lg transition-all capitalize ${
-                      statusFilter === status 
-                        ? 'bg-primary text-white shadow-md' 
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    {status.toLowerCase()}
-                  </button>
-                ))}
+            <div className="flex flex-wrap items-center gap-4 self-start md:self-auto">
+              <div className="flex items-center gap-3 shrink-0">
+                <Filter className="text-muted-foreground" size={16} />
+                <span className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Status:</span>
+                <div className="flex bg-secondary/50 rounded-xl p-1 border border-border/50 font-bold text-xs">
+                  {['ALL', 'ACTIVE', 'COMPLETED', 'CANCELLED'].map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => setStatusFilter(status)}
+                      className={`px-3 py-1.5 rounded-lg transition-all capitalize ${
+                        statusFilter === status 
+                          ? 'bg-primary text-white shadow-md' 
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {status.toLowerCase()}
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              <button 
+                onClick={() => {
+                  setAddStudentName('');
+                  setAddStudentPhone('');
+                  setAddStudentEmail('');
+                  setAddStudentRole('PARENT');
+                  setAddStudentProgramId(programs[0]?.id || '');
+                  setAddStudentType('PRIVATE');
+                  setAddStudentPricePaid('');
+                  setEnrollStep(1);
+                  setExistingUserData(null);
+                  setShowAddStudentModal(true);
+                }}
+                className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl shadow-md text-white bg-primary text-xs font-bold transition-all hover:scale-105 active:scale-95"
+              >
+
+                <Plus size={16} />
+                <span>Add Student</span>
+              </button>
             </div>
           </div>
 
@@ -1669,7 +1793,195 @@ export default function ProgramsManagement() {
           </div>
         </div>
       )}
+      {/* --- ADD STUDENT MODAL --- */}
+      {showAddStudentModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[250] flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] border border-border/30 shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-primary to-accent p-6 text-white flex flex-col gap-1 relative shadow-md shrink-0">
+              <button 
+                onClick={() => setShowAddStudentModal(false)} 
+                className="absolute top-5 right-5 p-2 bg-white/20 hover:bg-white/30 text-white rounded-full transition-all"
+              >
+                <X size={16} />
+              </button>
+              <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
+                <Plus size={22} className="stroke-[3px]" />
+                Add Student Enrollment
+              </h2>
+              <p className="text-white/80 text-xs font-semibold">Manually enroll a student to a program cohort.</p>
+            </div>
 
+            {/* Modal Form */}
+            <form onSubmit={handleSubmitWrapper} className="p-6 space-y-4 overflow-y-auto flex-1">
+
+
+              {enrollStep === 1 ? (
+                // Step 1: Only Ask Phone Number
+                <>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Phone Number *</label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="e.g. +919876543210"
+                      value={addStudentPhone}
+                      onChange={(e) => setAddStudentPhone(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+                    />
+                  </div>
+
+                  {/* Form Footer for Step 1 */}
+                  <div className="border-t border-border/30 pt-4 flex justify-end gap-3 mt-4 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddStudentModal(false)}
+                      className="px-5 py-2.5 bg-secondary text-muted-foreground font-bold rounded-xl transition-all border border-border/50 text-xs shadow-sm"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={checkingPhone}
+                      className="px-5 py-2.5 bg-primary text-white font-bold rounded-xl shadow-md flex items-center gap-1.5 text-xs transition-all hover:scale-105 active:scale-95"
+                    >
+                      {checkingPhone && <Loader2 className="animate-spin" size={14} />}
+                      <span>{checkingPhone ? 'Checking...' : 'Next'}</span>
+                    </button>
+                  </div>
+                </>
+              ) : (
+                // Step 2: Show phone (read-only) and ask remaining details
+                <>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1 font-heading">Phone Number</label>
+                    <div className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold text-slate-500 shadow-sm flex items-center justify-between">
+                      <span>{addStudentPhone}</span>
+                      <span className="text-[10px] bg-slate-200 text-slate-650 px-2 py-0.5 rounded-full font-black">
+                        Verified
+                      </span>
+                    </div>
+                  </div>
+
+                  {existingUserData?.exists && (
+                    <div className="bg-emerald-50 border border-emerald-250 text-emerald-800 rounded-xl p-3 text-xs font-semibold flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                      Existing user profile found. Details auto-filled!
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Student / Parent Name *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Anjali Sharma"
+                      value={addStudentName}
+                      onChange={(e) => setAddStudentName(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Email Address (Optional)</label>
+                    <input
+                      type="email"
+                      placeholder="e.g. email@domain.com"
+                      value={addStudentEmail}
+                      onChange={(e) => setAddStudentEmail(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-[#FAFBFE] border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">User Role *</label>
+                      <select
+                        required
+                        value={addStudentRole}
+                        onChange={(e) => setAddStudentRole(e.target.value as any)}
+                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-750 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm cursor-pointer"
+                      >
+                        <option value="PARENT">Parent</option>
+                        <option value="TEEN">Teen</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Format *</label>
+                      <select
+                        required
+                        value={addStudentType}
+                        onChange={(e) => setAddStudentType(e.target.value as any)}
+                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-750 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm cursor-pointer"
+                      >
+                        <option value="PRIVATE">1:1 Private</option>
+                        <option value="GROUP">Group Cohort</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Program *</label>
+                    <select
+                      required
+                      value={addStudentProgramId}
+                      onChange={(e) => setAddStudentProgramId(e.target.value)}
+                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-750 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm cursor-pointer"
+                    >
+                      <option value="">Select a Program</option>
+                      {programs.map((prog) => (
+                        <option key={prog.id} value={prog.id}>
+                          {prog.title} ({prog.classRange})
+                        </option>
+                      ))}
+                    </select>
+                    {existingUserData?.exists && addStudentProgramId && existingUserData.enrolledProgramIds.includes(addStudentProgramId) && (
+                      <p className="text-red-500 text-xs font-semibold mt-1">
+                        This user is already enrolled in the selected program.
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Custom Price Paid (Optional)</label>
+                    <input
+                      type="number"
+                      placeholder="Defaults to Program standard price"
+                      value={addStudentPricePaid}
+                      onChange={(e) => setAddStudentPricePaid(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-[#FAFBFE] border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+                    />
+                  </div>
+
+                  {/* Form Footer for Step 2 */}
+                  <div className="border-t border-border/30 pt-4 flex justify-end gap-3 mt-4 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEnrollStep(1);
+                        setExistingUserData(null);
+                      }}
+                      className="px-5 py-2.5 bg-secondary text-muted-foreground font-bold rounded-xl transition-all border border-border/50 text-xs shadow-sm"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={addStudentSubmitting || (!!existingUserData?.exists && !!addStudentProgramId && existingUserData.enrolledProgramIds.includes(addStudentProgramId))}
+                      className="px-5 py-2.5 bg-primary text-white font-bold rounded-xl shadow-md flex items-center gap-1.5 text-xs transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:pointer-events-none"
+                    >
+                      {addStudentSubmitting && <Loader2 className="animate-spin" size={14} />}
+                      <span>{addStudentSubmitting ? 'Enrolling...' : 'Confirm Enrollment'}</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </form>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

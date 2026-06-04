@@ -1,11 +1,25 @@
 "use client";
 
+import { useState, useEffect } from 'react';
 import { ExpertSessionBooking } from "@/features/parent/components/ExpertSessionBooking";
 import { useAuthStore } from '@/store/auth-store';
 
+
 export default function ExpertSessionsPage() {
   const { user } = useAuthStore();
-  const initialTab = user?.role === 'TEEN' ? 'sessions' : 'browse';
+  const [initialTab, setInitialTab] = useState<'browse' | 'sessions' | 'demos'>('browse');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      if (tabParam === 'demos') {
+        setInitialTab('demos');
+      } else {
+        setInitialTab(user?.role === 'TEEN' ? 'sessions' : 'browse');
+      }
+    }
+  }, [user]);
 
   return (
     <div className="space-y-8">
@@ -16,7 +30,8 @@ export default function ExpertSessionsPage() {
         </p>
       </div>
 
-      <ExpertSessionBooking initialTab={initialTab} />
+      <ExpertSessionBooking key={initialTab} initialTab={initialTab} />
     </div>
   );
 }
+

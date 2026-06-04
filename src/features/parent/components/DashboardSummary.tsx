@@ -146,49 +146,60 @@ export function DashboardSummary() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-      
+
+      {/* Daughter's Indicator Label */}
+      <div className="flex items-center gap-2.5 px-1 select-none">
+        <div className="h-2 w-2 rounded-full bg-pink-500 animate-pulse shrink-0" />
+        <span className="text-[11px] font-black uppercase tracking-widest text-slate-400">
+          Showing updates of {data.daughterName}
+        </span>
+        <div className="h-px bg-slate-100 flex-1" />
+      </div>
+
       {/* 4-Column Top Grid for Metrics & Insights */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        
+
         {/* Active Journey */}
-        <div className="bg-white border border-slate-100/80 rounded-2xl p-5 shadow-xl shadow-slate-200/20 flex flex-col justify-between min-h-[220px]">
-          <div className="space-y-2">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-2">
-              <BookOpen className="h-4 w-4 text-pink-500" />
-              Learning Journey
-            </h3>
+        <div className="bg-white border border-slate-100/80 rounded-2xl p-5 shadow-xl shadow-slate-200/20 flex flex-col justify-between items-center text-center min-h-[220px]">
+          <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center justify-center gap-2">
+            <BookOpen className="h-4 w-4 text-pink-500" />
+            Learning Journey
+          </h3>
+          <div className="flex-1 flex flex-col justify-center items-center w-full">
             {data.activeJourney ? (
-              <p className="font-extrabold text-base text-slate-800 leading-snug mt-1 truncate" title={data.activeJourney.name}>
+              <p className="font-extrabold text-base text-slate-800 leading-snug mt-1 max-w-[190px] truncate" title={data.activeJourney.name}>
                 {data.activeJourney.name}
               </p>
             ) : (
               <p className="text-xs font-bold text-slate-400 mt-2">No active journey</p>
             )}
           </div>
-          {data.activeJourney && (
-            <div className="space-y-1.5 pt-3">
-              <div className="flex items-center justify-between text-[10px] font-black text-slate-500 uppercase tracking-wider">
-                <span>{data.activeJourney.percentComplete}% Complete</span>
+          <div className="w-full flex flex-col items-center min-h-[40px] justify-end">
+            {data.activeJourney && (
+              <div className="space-y-1.5 pt-1 w-full flex flex-col items-center">
+                <div className="flex items-center justify-center text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                  <span>{data.activeJourney.percentComplete}% Complete</span>
+                </div>
+                <div className="h-2 w-full max-w-[150px] bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-pink-500 transition-all duration-500"
+                    style={{ width: `${data.activeJourney.percentComplete}%` }}
+                  />
+                </div>
               </div>
-              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-pink-500 transition-all duration-500" 
-                  style={{ width: `${data.activeJourney.percentComplete}%` }}
-                />
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Next Expert Session */}
-        <div className="bg-white border border-slate-100/80 rounded-2xl p-5 shadow-xl shadow-slate-200/20 flex flex-col justify-between min-h-[220px]">
-          <div className="space-y-2">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-blue-500" />
-              Next Session
-            </h3>
+        <div className="bg-white border border-slate-100/80 rounded-2xl p-5 shadow-xl shadow-slate-200/20 flex flex-col justify-between items-center text-center min-h-[220px]">
+          <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center justify-center gap-2">
+            <Calendar className="h-4 w-4 text-blue-500" />
+            Next Session
+          </h3>
+          <div className="flex-1 flex flex-col justify-center items-center w-full">
             {data.nextExpertSession ? (
-              <div className="mt-1 space-y-0.5">
+              <div className="mt-1 space-y-0.5 flex flex-col items-center">
                 <p className="font-extrabold text-base text-slate-800">
                   {new Date(data.nextExpertSession).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
                 </p>
@@ -200,24 +211,26 @@ export function DashboardSummary() {
               <p className="text-xs font-bold text-slate-400 mt-2">No sessions booked</p>
             )}
           </div>
-          {data.nextExpertSession && (
-            <div className="text-[9px] font-black uppercase text-blue-600 tracking-wider">
-              Link activates on schedule
-            </div>
-          )}
+          <div className="w-full flex flex-col items-center min-h-[40px] justify-end">
+            {data.nextExpertSession && (
+              <div className="text-[9px] font-black uppercase text-blue-600 tracking-wider">
+                Link activates on schedule
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Programs Catalog */}
-        <div className="bg-white border border-slate-100/80 rounded-2xl p-5 shadow-xl shadow-slate-200/20 flex flex-col justify-between min-h-[220px]">
-          <div className="space-y-2">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-2">
-              <HeartPulse className="h-4 w-4 text-emerald-500" />
-              Active Programs
-            </h3>
+        <div className="bg-white border border-slate-100/80 rounded-2xl p-5 shadow-xl shadow-slate-200/20 flex flex-col justify-between items-center text-center min-h-[220px]">
+          <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center justify-center gap-2">
+            <HeartPulse className="h-4 w-4 text-emerald-500" />
+            Active Programs
+          </h3>
+          <div className="flex-1 flex flex-col justify-center items-center w-full">
             {data.programs && data.programs.length > 0 ? (
-              <div className="mt-1 space-y-1">
+              <div className="mt-1 space-y-1 flex flex-col items-center">
                 {data.programs.slice(0, 2).map((prog, i) => (
-                  <p key={i} className="text-xs font-semibold text-slate-700 truncate" title={prog}>
+                  <p key={i} className="text-xs font-semibold text-slate-700 max-w-[180px] truncate" title={prog}>
                     ✓ {prog}
                   </p>
                 ))}
@@ -231,22 +244,25 @@ export function DashboardSummary() {
               <p className="text-xs font-bold text-slate-400 mt-2">No active programs</p>
             )}
           </div>
-          <Link 
-            href="/dashboard/enrolled-programs" 
-            className="text-[10px] font-black uppercase text-emerald-600 tracking-wider hover:underline block pt-2"
-          >
-            View Programs &rarr;
-          </Link>
+          <div className="w-full flex flex-col items-center min-h-[40px] justify-end">
+            <Link
+              href="/dashboard/enrolled-programs"
+              className="text-[10px] font-black uppercase text-emerald-600 tracking-wider hover:underline block text-center"
+            >
+              View Programs &rarr;
+            </Link>
+          </div>
         </div>
 
         {/* Daughter's Mood Insights */}
-        <div className="bg-white border border-slate-100/80 rounded-2xl p-5 shadow-xl shadow-slate-200/20 flex flex-col justify-between min-h-[220px] relative overflow-visible">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+        <div className="bg-white border border-slate-100/80 rounded-2xl p-5 shadow-xl shadow-slate-200/20 flex flex-col justify-between items-center text-center min-h-[220px] relative overflow-visible">
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center w-full">
+            <div />
+            <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center justify-center gap-1.5 whitespace-nowrap">
               <TrendingUp className="h-4 w-4 text-purple-500" />
               Mood Insights
             </h3>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center justify-end gap-1.5 shrink-0">
               {!isMoodLocked && (
                 <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200/60 w-fit select-none">
                   <button
@@ -266,7 +282,7 @@ export function DashboardSummary() {
               {/* Privacy Shield Icon with Tooltip */}
               <div className="group relative">
                 <ShieldCheck className="h-4.5 w-4.5 text-emerald-500 cursor-help hover:text-emerald-600 transition-colors" />
-                <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block bg-slate-900 text-white text-[10px] font-medium p-3 rounded-xl shadow-xl w-56 z-50 pointer-events-none leading-normal">
+                <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block bg-slate-900 text-white text-[10px] font-medium p-3 rounded-xl shadow-xl w-56 z-50 pointer-events-none leading-normal text-left">
                   <p className="font-bold text-emerald-400 mb-1">Privacy Shield Active</p>
                   Only daily wellness aggregates are shared. Raw logs, symptoms, and written notes remain private.
                 </div>
@@ -320,8 +336,8 @@ export function DashboardSummary() {
                   }
 
                   return (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       className="group relative flex flex-col items-center flex-1 h-full justify-end"
                     >
                       {/* Tooltip */}
@@ -329,11 +345,11 @@ export function DashboardSummary() {
                         <span className="text-slate-400">{day.dateLabel}</span>
                         <span className="mt-0.5">{statusText}</span>
                       </div>
-                      
+
                       {/* Bar Pillar */}
-                      <div 
+                      <div
                         className={`w-full rounded-t-[2px] transition-all duration-500 cursor-pointer ${colorClass}`}
-                        style={{ 
+                        style={{
                           height: `${heightPercent}%`,
                           maxWidth: daysRange === 7 ? '12px' : '4px'
                         }}
@@ -342,7 +358,7 @@ export function DashboardSummary() {
                   );
                 })}
               </div>
-              
+
               {/* Timeline boundary labels */}
               <div className="flex justify-between items-center text-[8px] font-black uppercase text-slate-400 mt-1.5 px-0.5 tracking-wider">
                 <span>{chartDays[0].date.getDate()} {chartDays[0].date.toLocaleDateString('en-IN', { month: 'short' })}</span>

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   BookOpen, Calendar, ShieldCheck, Star, Sparkles,
-  ChevronRight, Play, Loader2, Award, Layers, Compass, X, Check, ArrowRight, User, Users, Bookmark, Heart
+  ChevronRight, Play, Loader2, Award, Layers, Compass, X, Check, ArrowRight, User, Users, Bookmark, Heart, GraduationCap
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 import { ProgramsService, Program, ProgramEnrollment } from '@/services/programs.service';
@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ShopService } from '@/services/shop.service';
+import { LearningService, LearningJourney, UserProgress } from '@/services/learning.service';
 import Script from 'next/script';
 
 // Same STYLES_MAP as ParentsPrograms.tsx for exact match
@@ -76,6 +77,8 @@ export default function CustomerDashboardOverview() {
   const [isLinked, setIsLinked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [parentBookmarks, setParentBookmarks] = useState<any[]>([]);
+  const [learningJourneys, setLearningJourneys] = useState<LearningJourney[]>([]);
+  const [learningProgress, setLearningProgress] = useState<UserProgress[]>([]);
 
   // Enrollment modal state
   const [enrollModalProg, setEnrollModalProg] = useState<Program | null>(null);
@@ -105,6 +108,17 @@ export default function CustomerDashboardOverview() {
           .then(data => setParentBookmarks(data || []))
           .catch(() => setParentBookmarks([]));
       }
+      // Fetch learning data
+      const [learningJourneysRes, learningProgressRes] = await Promise.all([
+        LearningService.getJourneys().catch(() => []),
+        LearningService.getMyProgress().catch(() => []),
+      ]);
+      // Exclude peerline certification from main user dashboard
+      const userJourneys = learningJourneysRes.filter(
+        journey => journey.slug !== 'peerline-mentor-certification'
+      );
+      setLearningJourneys(userJourneys);
+      setLearningProgress(learningProgressRes);
     } catch {
       toast.error('Failed to load dashboard data.');
     } finally {
@@ -386,6 +400,87 @@ export default function CustomerDashboardOverview() {
         )}
 
         {/* AVAILABLE PROGRAMS CATALOG */}
+
+        {/* LEARNING JOURNEYS COMPACT PROGRESS */}
+        {learningJourneys.length > 0 && (() => {
+          const journeyStats = learningJourneys.map(journey => {
+            const episodeIds = new Set(journey.episodes?.map(e => e.id) || []);
+            const completedCount = learningProgress.filter(p => episodeIds.has(p.episodeId) && p.completed).length;
+            const totalCount = journey.episodes?.length || 0;
+            const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+            const isMastered = totalCount > 0 && completedCount === totalCount;
+            return { journey, completedCount, totalCount, pct, isMastered };
+          });
+
+          return (
+            <div className="bg-white border border-slate-100 rounded-3xl p-8 md:p-10 shadow-xl shadow-slate-200/40">
+              <div className="flex items-center justify-between mb-8 border-b border-slate-100 pb-6">
+                <div>
+                  <h3 className="text-2xl font-extrabold text-slate-800 flex items-center gap-2">
+                    <GraduationCap className="text-purple-500" size={26} /> Learning Journeys
+                  </h3>
+                  <p className="text-sm font-semibold text-slate-400 mt-1">Interactive learning paths with episodes and XP</p>
+                </div>
+                <Link href="/dashboard/learning-journeys" className="text-sm font-extrabold text-primary hover:underline flex items-center gap-1">
+                  View All <ChevronRight size={16} />
+                </Link>
+              </div>
+
+              <div className="space-y-4">
+                {journeyStats.slice(0, 3).map(({ journey, completedCount, totalCount, pct, isMastered }) => (
+                  <Link
+                    key={journey.id}
+                    href={`/dashboard/learning-journeys/${journey.id}`}
+                    className={`block p-5 bg-white border ${isMastered ? 'border-emerald-200' : 'border-slate-100'} rounded-2xl hover:shadow-md transition-all group`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-xl shrink-0 flex items-center justify-center ${
+                        isMastered ? 'bg-emerald-100' : 'bg-purple-100'
+                      }`}>
+                        {isMastered
+                          ? <Check size={20} className="text-emerald-500" />
+                          : <GraduationCap size={20} className="text-purple-500" />
+                        }
+                      </div>
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="font-extrabold text-slate-800 truncate">{journey.title}</h4>
+                          <span className={`text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest shrink-0 ${
+                            isMastered
+                              ? 'bg-emerald-50 border border-emerald-200 text-emerald-700'
+                              : 'bg-purple-50 border border-purple-100 text-purple-700'
+                          }`}>
+                            {isMastered ? 'Mastered' : pct > 0 ? 'In Progress' : 'New'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-[11px] font-bold text-slate-500">
+                          <span>{completedCount}/{totalCount} episodes</span>
+                          <span className={isMastered ? 'text-emerald-600' : 'text-purple-600'}>{pct}%</span>
+                        </div>
+                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full ${isMastered ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : 'bg-gradient-to-r from-purple-400 to-indigo-500'} transition-all duration-700 rounded-full`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                      <ChevronRight size={16} className="text-slate-300 shrink-0 group-hover:text-primary transition-colors" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              {journeyStats.length > 3 && (
+                <div className="text-center mt-4 pt-4 border-t border-slate-100">
+                  <Link href="/dashboard/learning-journeys" className="inline-flex items-center gap-2 text-xs font-extrabold text-primary hover:underline">
+                    View All {journeyStats.length} Journeys <ChevronRight size={14} />
+                  </Link>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         {availablePrograms.length > 0 && (
           <div className="space-y-8">
             <div className="mb-6">

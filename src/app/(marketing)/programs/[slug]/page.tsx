@@ -271,6 +271,18 @@ export default function ProgramDetailsPage() {
         return false;
       }
     }
+
+    if (showSlotSelection) {
+      if (!slotDate) {
+        setFormError("Please select a date for your consultation slot.");
+        return false;
+      }
+      if (!slotTime) {
+        setFormError("Please select a time for your consultation slot.");
+        return false;
+      }
+    }
+
     return true;
   };
 
@@ -639,7 +651,7 @@ export default function ProgramDetailsPage() {
                       {showSlotSelection && (
                         <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-3">
-                            Select Consultation Slot (Optional)
+                            Select Consultation Slot *
                           </span>
                           <div className="grid grid-cols-2 gap-3">
                             <div>

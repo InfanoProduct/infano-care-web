@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Shield, Phone, ArrowRight, Loader2, KeyRound, Heart, Star, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { Shield, Phone, ArrowRight, ArrowLeft, Loader2, KeyRound, Heart, Star, Sparkles } from 'lucide-react';
 import { AuthService } from '@/services/auth.service';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'react-hot-toast';
@@ -175,7 +176,16 @@ export default function CustomerLoginPage() {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center bg-[#FFFAF7] relative overflow-hidden py-12 px-6">
+    <div className="min-h-screen flex items-center justify-center bg-[#FFFAF7] relative overflow-hidden py-12 px-6">
+      {/* Back Button */}
+      <Link
+        href="/"
+        className="absolute top-6 left-6 z-20 flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 rounded-full border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 text-xs sm:text-sm font-bold backdrop-blur-md"
+      >
+        <ArrowLeft size={16} className="text-slate-500" />
+        <span>Back to Home</span>
+      </Link>
+
       {/* Background Shapes */}
       <div className="absolute top-[-10%] left-[-10%] w-[45%] h-[45%] bg-primary/5 rounded-full blur-[120px]" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[45%] h-[45%] bg-accent/5 rounded-full blur-[120px]" />

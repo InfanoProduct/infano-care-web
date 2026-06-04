@@ -14,7 +14,8 @@ export default function MarketingLayout({
   const pathname = usePathname();
   const isDashboard = pathname?.startsWith('/peerline/dashboard') || pathname?.startsWith('/dashboard');
   const isProgramDetail = pathname?.startsWith('/programs/') && pathname !== '/programs' && pathname !== '/programs/';
-  const isPortal = isDashboard || isProgramDetail;
+  const isLogin = pathname === '/login' || pathname === '/login/';
+  const isPortal = isDashboard || isProgramDetail || isLogin;
 
   return (
     <div className="flex flex-col min-h-screen">

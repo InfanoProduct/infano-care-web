@@ -11,7 +11,6 @@ import { BookCTA } from '@/features/marketing/components/sections/the-book/BookC
 import { BookDetailedSection } from '@/features/marketing/components/sections/the-book/BookDetailedSection';
 import { BookAchieve } from '@/features/marketing/components/sections/the-book/BookAchieve';
 import { BookChapters } from '@/features/marketing/components/sections/the-book/BookChapters';
-import { BookReaders } from '@/features/marketing/components/sections/the-book/BookReaders';
 import { BookTrust } from '@/features/marketing/components/sections/the-book/BookTrust';
 
 const DEFAULT_BOOK: Book = {
@@ -49,7 +48,6 @@ export function TheBookClient() {
       <BookChapters />
       <BookPreview />
       <BookTrust />
-      <BookReaders />
       <ReaderVoices />
       <PurchaseOptions book={book} />
       <BookCTA book={book} />

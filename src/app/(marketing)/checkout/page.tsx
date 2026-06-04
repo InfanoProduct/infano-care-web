@@ -101,7 +101,7 @@ function CheckoutContent() {
           sessions: 8,
           duration: '2 Months',
           benefits: [
-            'Clinical & Peer Led Curriculum',
+            '3 Free Consultation',
             'Certified Female Senior Guides',
             'Flexible session rescheduling',
             'Safe learning & parents updates'

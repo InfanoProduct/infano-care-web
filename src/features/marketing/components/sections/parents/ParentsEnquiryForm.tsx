@@ -53,8 +53,8 @@ const QUESTIONS = [
   {
     id: 'interests',
     title: "What are your primary areas of interest for her development?",
-    subtitle: "Pick the one that aligns closest with your immediate parenting focus.",
-    type: 'select',
+    subtitle: "Select all that apply. This helps us customize her learning journey.",
+    type: 'multiselect',
     options: [
       { value: 'puberty', label: 'Puberty & Body Changes', desc: 'Understanding physical growth, menstrual cycles, and safe boundaries.' },
       { value: 'emotional', label: 'Emotional Balance', desc: 'Managing big feelings, anxiety, school stress, and mood swings.' },
@@ -91,8 +91,8 @@ const QUESTIONS = [
   {
     id: 'learningPref',
     title: "How does she prefer to absorb and learn new things?",
-    subtitle: "We design our interactive workshops to respect her learning style.",
-    type: 'select',
+    subtitle: "Select all that apply. We design our interactive workshops to respect her learning style.",
+    type: 'multiselect',
     options: [
       { value: 'talking', label: 'Empathetic Discussion', desc: 'Sharing feelings and thoughts 1-on-1 in conversational circles.' },
       { value: 'doing', label: 'Hands-on Activities', desc: 'Interactive worksheets, practical goals, and self-discovery journals.' },
@@ -150,10 +150,10 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
   const [answers, setAnswers] = useState({
     classRange: '',
     confidence: [] as string[],
-    interests: '',
+    interests: [] as string[],
     hasMentor: '',
     challenges: [] as string[],
-    learningPref: '',
+    learningPref: [] as string[],
     parentInvolvement: '',
   });
 
@@ -188,12 +188,13 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
   useEffect(() => {
     const checkUserExists = async () => {
       const cleanPhone = phone.replace(/\D/g, '');
-      if (cleanPhone.length >= 10) {
+      const normalizedMobile = cleanPhone.startsWith('0') ? cleanPhone.substring(1) : cleanPhone;
+      if (normalizedMobile.length >= 10) {
         try {
           setIsCheckingUser(true);
-          const formattedPhone = cleanPhone.startsWith('91') && cleanPhone.length === 12 
-            ? '+' + cleanPhone 
-            : (cleanPhone.length === 10 ? '+91' + cleanPhone : '+' + cleanPhone);
+          const formattedPhone = normalizedMobile.startsWith('91') && normalizedMobile.length === 12 
+            ? '+' + normalizedMobile 
+            : (normalizedMobile.length === 10 ? '+91' + normalizedMobile : '+' + normalizedMobile);
           const res = await AuthService.checkUser(formattedPhone);
           setUserExists(res.exists);
         } catch (e) {
@@ -329,18 +330,23 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
     const mm = String(selectedDay.getMonth() + 1).padStart(2, '0');
     const dd = String(selectedDay.getDate()).padStart(2, '0');
     const formattedDateStr = `${yyyy}-${mm}-${dd}`;
+    const cleanPhone = phone.replace(/\D/g, '');
+    const normalizedMobile = cleanPhone.startsWith('0') ? cleanPhone.substring(1) : cleanPhone;
+    const finalPhone = normalizedMobile.startsWith('91') && normalizedMobile.length === 12 
+      ? '+' + normalizedMobile 
+      : (normalizedMobile.length === 10 ? '+91' + normalizedMobile : '+' + normalizedMobile);
 
     try {
       await ProgramsService.bookDemoSession({
         parentName,
-        phone,
+        phone: finalPhone,
         email: email || null,
         classRange: `Class ${answers.classRange}`,
         confidence: answers.confidence.join(','),
-        interests: [answers.interests],
+        interests: answers.interests,
         hasMentor: answers.hasMentor,
         challenges: answers.challenges,
-        learningPref: answers.learningPref,
+        learningPref: answers.learningPref.join(','),
         parentInvolvement: answers.parentInvolvement,
         suggestedPrograms: programFormats,
         slotDate: formattedDateStr,
@@ -609,8 +615,8 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
           // Add real days
           for (let i = 1; i <= totalDays; i++) {
             const d = new Date(year, month, i);
-            // Disable past days for the current month
-            const isPast = year === today.getFullYear() && month === today.getMonth() && i < today.getDate();
+            // Disable past days and current day for the current month
+            const isPast = year === today.getFullYear() && month === today.getMonth() && i <= today.getDate();
             daysList.push({
               date: d,
               dayNum: i,
@@ -625,13 +631,14 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
 
         // Time slot options
         const TIME_SLOTS = [
-          { value: '10:00 AM', label: '10:00 AM', period: 'Morning' },
-          { value: '11:30 AM', label: '11:30 AM', period: 'Morning' },
-          { value: '02:00 PM', label: '02:00 PM', period: 'Afternoon' },
-          { value: '03:30 PM', label: '03:30 PM', period: 'Afternoon' },
-          { value: '05:00 PM', label: '05:00 PM', period: 'Evening' },
-          { value: '06:30 PM', label: '06:30 PM', period: 'Evening' },
-          { value: '08:00 PM', label: '08:00 PM', period: 'Evening' },
+          { value: '10:00 AM - 11:00 AM', label: '10:00 AM - 11:00 AM', period: 'Morning' },
+          { value: '11:00 AM - 12:00 PM', label: '11:00 AM - 12:00 PM', period: 'Morning' },
+          { value: '12:00 PM - 01:00 PM', label: '12:00 PM - 01:00 PM', period: 'Afternoon' },
+          { value: '02:00 PM - 03:00 PM', label: '02:00 PM - 03:00 PM', period: 'Afternoon' },
+          { value: '03:00 PM - 04:00 PM', label: '03:00 PM - 04:00 PM', period: 'Afternoon' },
+          { value: '04:00 PM - 05:00 PM', label: '04:00 PM - 05:00 PM', period: 'Evening' },
+          { value: '05:00 PM - 06:00 PM', label: '05:00 PM - 06:00 PM', period: 'Evening' },
+          { value: '06:00 PM - 07:00 PM', label: '06:00 PM - 07:00 PM', period: 'Evening' },
         ];
 
         return (
@@ -1120,9 +1127,13 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                 <div>
                   <p className="text-slate-400 font-medium">Learning Style</p>
                   <p className="font-semibold text-slate-800 mt-0.5 capitalize">
-                    {answers.learningPref === 'talking' ? 'Empathetic Sharing' : 
-                     answers.learningPref === 'doing' ? 'Hands-on Activities' : 
-                     answers.learningPref === 'reading' ? 'Self-paced Reading' : 'Group Cohorts'}
+                    {answers.learningPref.map((pref: string) => {
+                      if (pref === 'talking') return 'Empathetic Sharing';
+                      if (pref === 'doing') return 'Hands-on Activities';
+                      if (pref === 'reading') return 'Self-paced Reading';
+                      if (pref === 'group') return 'Group Cohorts';
+                      return pref;
+                    }).join(', ')}
                   </p>
                 </div>
                 <div>

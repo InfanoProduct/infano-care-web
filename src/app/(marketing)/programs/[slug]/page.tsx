@@ -17,7 +17,8 @@ import {
   Users,
   User,
   HelpCircle,
-  AlertCircle
+  AlertCircle,
+  ChevronDown
 } from 'lucide-react';
 import { ProgramsService, Program, ProgramSession } from '@/services/programs.service';
 import { AuthService } from '@/services/auth.service';
@@ -91,6 +92,16 @@ const DEFAULT_THEME = {
 
 // STATIC_PROGRAMS removed to ensure all program curriculum data is backend driven.
 
+const getTomorrowString = () => {
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  const yyyy = tomorrow.getFullYear();
+  const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+  const dd = String(tomorrow.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
+
 const INTERESTS_OPTIONS = [
   "Body Unfiltered & Biology",
   "Periods & Hormonal Health",
@@ -107,6 +118,15 @@ const CHALLENGES_OPTIONS = [
   "Body image / Low confidence"
 ];
 
+const COUNTRIES = [
+  { code: '+91', iso: 'in', name: 'India' },
+  { code: '+1', iso: 'us', name: 'United States' },
+  { code: '+44', iso: 'gb', name: 'United Kingdom' },
+  { code: '+65', iso: 'sg', name: 'Singapore' },
+  { code: '+971', iso: 'ae', name: 'United Arab Emirates' },
+  { code: '+61', iso: 'au', name: 'Australia' }
+];
+
 export default function ProgramDetailsPage() {
   const { slug } = useParams() as { slug: string };
   const id = slug;
@@ -119,6 +139,9 @@ export default function ProgramDetailsPage() {
   // Form states
   const [parentName, setParentName] = useState('');
   const [phone, setPhone] = useState('');
+  const [selectedCountryCode, setSelectedCountryCode] = useState('+91');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState({ code: '+91', iso: 'in', name: 'India' });
   const [email, setEmail] = useState('');
   const [classRange, setClassRange] = useState('');
   const [confidence, setConfidence] = useState('');
@@ -141,15 +164,21 @@ export default function ProgramDetailsPage() {
   const [userExists, setUserExists] = useState(false);
   const [isCheckingUser, setIsCheckingUser] = useState(false);
 
+  const getFullNormalizedPhone = () => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    const normalizedMobile = cleanPhone.startsWith('0') ? cleanPhone.substring(1) : cleanPhone;
+    return `${selectedCountryCode}${normalizedMobile}`;
+  };
+
   useEffect(() => {
     const checkUserExists = async () => {
       const cleanPhone = phone.replace(/\D/g, '');
-      if (cleanPhone.length >= 10) {
+      const normalizedMobile = cleanPhone.startsWith('0') ? cleanPhone.substring(1) : cleanPhone;
+      
+      if (normalizedMobile.length >= 10) {
         try {
           setIsCheckingUser(true);
-          const formattedPhone = cleanPhone.startsWith('91') && cleanPhone.length === 12
-            ? '+' + cleanPhone
-            : (cleanPhone.length === 10 ? '+91' + cleanPhone : '+' + cleanPhone);
+          const formattedPhone = `${selectedCountryCode}${normalizedMobile}`;
           const res = await AuthService.checkUser(formattedPhone);
           setUserExists(res.exists);
         } catch (e) {
@@ -164,7 +193,7 @@ export default function ProgramDetailsPage() {
 
     const timer = setTimeout(checkUserExists, 500);
     return () => clearTimeout(timer);
-  }, [phone]);
+  }, [phone, selectedCountryCode]);
 
   useEffect(() => {
     async function fetchProgramDetail() {
@@ -205,20 +234,55 @@ export default function ProgramDetailsPage() {
     );
   };
 
+  const validateForm = (): boolean => {
+    setFormError(null);
+    if (!parentName.trim()) {
+      setFormError("Please enter your name.");
+      return false;
+    }
+    if (parentName.trim().length < 2) {
+      setFormError("Name must be at least 2 characters long.");
+      return false;
+    }
+    if (!phone.trim()) {
+      setFormError("Please enter your phone number.");
+      return false;
+    }
+    
+    const cleanPhone = phone.replace(/\D/g, '');
+    const normalizedMobile = cleanPhone.startsWith('0') ? cleanPhone.substring(1) : cleanPhone;
+    
+    if (selectedCountryCode === '+91') {
+      if (normalizedMobile.length !== 10) {
+        setFormError("Please enter a valid 10-digit mobile number.");
+        return false;
+      }
+    } else {
+      if (normalizedMobile.length < 7 || normalizedMobile.length > 15) {
+        setFormError("Please enter a valid phone number (7 to 15 digits).");
+        return false;
+      }
+    }
+    
+    if (email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email.trim())) {
+        setFormError("Please enter a valid email address.");
+        return false;
+      }
+    }
+    return true;
+  };
+
   const handleBookDemo = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormError(null);
-
-    if (!parentName.trim() || !phone.trim() || !classRange) {
-      setFormError('Please fill out all required fields (Name, Phone, and Target Class).');
-      return;
-    }
+    if (!validateForm()) return;
 
     try {
       setSubmitting(true);
       const bookingData = {
         parentName,
-        phone,
+        phone: getFullNormalizedPhone(),
         email: email || null,
         classRange,
         confidence,
@@ -250,11 +314,7 @@ export default function ProgramDetailsPage() {
   const handleBookDemoClick = (e: React.MouseEvent) => {
     if (!showSlotSelection) {
       e.preventDefault();
-      if (!parentName.trim() || !phone.trim()) {
-        setFormError('Please fill out Name and Phone Number first.');
-        return;
-      }
-      setFormError(null);
+      if (!validateForm()) return;
       setShowSlotSelection(true);
     }
   };
@@ -369,8 +429,8 @@ export default function ProgramDetailsPage() {
                     <Shield size={18} />
                   </div>
                   <div>
-                    <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pillars</h5>
-                    <p className="text-slate-800 font-bold text-sm">Clinical & Peer Led</p>
+                    <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Consultations</h5>
+                    <p className="text-slate-800 font-bold text-sm">3 Free Consultation</p>
                   </div>
                 </div>
               </div>
@@ -489,41 +549,90 @@ export default function ProgramDetailsPage() {
                       </div>
 
                       {/* Name input */}
-                      <div>
-
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block ml-0.5">
+                          Your Name <span className="text-rose-500">*</span>
+                        </label>
                         <input
                           type="text"
                           required
                           value={parentName}
                           onChange={(e) => setParentName(e.target.value)}
                           placeholder="Your name"
-                          className="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:border-slate-400 focus:outline-none text-slate-800 text-sm font-semibold transition-colors bg-[#FAFBFE]"
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-slate-400 focus:outline-none text-slate-800 text-sm font-semibold transition-colors bg-[#FAFBFE] shadow-sm"
                         />
                       </div>
 
-                      {/* Flex grid for phone & email */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-
+                      {/* Phone Input with Country Code Dropdown */}
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block ml-0.5">
+                          Phone Number <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="flex bg-[#FAFBFE] border border-slate-200 rounded-xl focus-within:border-slate-400 focus-within:ring-4 focus-within:ring-primary/5 transition-colors overflow-visible relative shadow-sm">
+                          {/* Dropdown Container */}
+                          <div className="relative">
+                            <button
+                              type="button"
+                              onClick={() => setDropdownOpen(!dropdownOpen)}
+                              className="flex items-center gap-1.5 pl-3.5 pr-2.5 py-3 border-r border-slate-200 bg-transparent hover:bg-slate-50 transition-colors cursor-pointer select-none h-full"
+                            >
+                              <img 
+                                src={`https://flagcdn.com/w40/${selectedCountry.iso}.png`} 
+                                className="w-5 h-3.5 object-cover rounded-sm shrink-0 border border-slate-200/50" 
+                                alt={selectedCountry.name} 
+                              />
+                              <span className="text-sm font-bold text-slate-700">{selectedCountry.code}</span>
+                              <ChevronDown size={14} className={`text-slate-400 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
+                            </button>
+                            
+                            {dropdownOpen && (
+                              <div className="absolute left-0 mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 py-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                                {COUNTRIES.map((country) => (
+                                  <button
+                                    key={country.iso}
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedCountry(country);
+                                      setSelectedCountryCode(country.code);
+                                      setDropdownOpen(false);
+                                    }}
+                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm font-semibold hover:bg-slate-50 transition-colors text-slate-700"
+                                  >
+                                    <img 
+                                      src={`https://flagcdn.com/w40/${country.iso}.png`} 
+                                      className="w-5.5 h-4 object-cover rounded-sm border border-slate-200/50 shrink-0" 
+                                      alt={country.name} 
+                                    />
+                                    <span className="flex-1">{country.name}</span>
+                                    <span className="text-slate-400 font-bold text-xs">{country.code}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                           <input
                             type="tel"
                             required
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
                             placeholder="Phone Number"
-                            className="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:border-slate-400 focus:outline-none text-slate-800 text-sm font-semibold transition-colors bg-[#FAFBFE]"
+                            className="w-full px-4 py-3 outline-none text-slate-800 text-sm font-semibold bg-transparent"
                           />
                         </div>
-                        <div>
+                      </div>
 
-                          <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="Email Address"
-                            className="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:border-slate-400 focus:outline-none text-slate-800 text-sm font-semibold transition-colors bg-[#FAFBFE]"
-                          />
-                        </div>
+                      {/* Email input */}
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block ml-0.5">
+                          Email Address (Optional)
+                        </label>
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="Email Address"
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-slate-400 focus:outline-none text-slate-800 text-sm font-semibold transition-colors bg-[#FAFBFE] shadow-sm"
+                        />
                       </div>
 
                       {/* Slot Booking Date and Time */}
@@ -536,6 +645,7 @@ export default function ProgramDetailsPage() {
                             <div>
                               <input
                                 type="date"
+                                min={getTomorrowString()}
                                 value={slotDate}
                                 onChange={(e) => setSlotDate(e.target.value)}
                                 className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none text-slate-800 text-xs font-semibold bg-white"
@@ -548,11 +658,14 @@ export default function ProgramDetailsPage() {
                                 className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none text-slate-800 text-xs font-semibold bg-white"
                               >
                                 <option value="">Select Time</option>
-                                <option value="10:00 AM">10:00 AM</option>
-                                <option value="11:30 AM">11:30 AM</option>
-                                <option value="02:00 PM">02:00 PM</option>
-                                <option value="03:30 PM">03:30 PM</option>
-                                <option value="05:00 PM">05:00 PM</option>
+                                <option value="10:00 AM - 11:00 AM">10:00 AM - 11:00 AM</option>
+                                <option value="11:00 AM - 12:00 PM">11:00 AM - 12:00 PM</option>
+                                <option value="12:00 PM - 01:00 PM">12:00 PM - 01:00 PM</option>
+                                <option value="02:00 PM - 03:00 PM">02:00 PM - 03:00 PM</option>
+                                <option value="03:00 PM - 04:00 PM">03:00 PM - 04:00 PM</option>
+                                <option value="04:00 PM - 05:00 PM">04:00 PM - 05:00 PM</option>
+                                <option value="05:00 PM - 06:00 PM">05:00 PM - 06:00 PM</option>
+                                <option value="06:00 PM - 07:00 PM">06:00 PM - 07:00 PM</option>
                               </select>
                             </div>
                           </div>
@@ -571,11 +684,10 @@ export default function ProgramDetailsPage() {
                           </Link>
                         ) : (
                           <Link
-                            href={`/checkout?bookId=${program ? program.title.toLowerCase() : 'spark'}-${learningPref.includes('Private') || learningPref.includes('1:1') ? 'private' : 'group'}&name=${encodeURIComponent(parentName)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&class=${encodeURIComponent(classRange)}&format=${encodeURIComponent(learningPref)}&date=${encodeURIComponent(slotDate)}&time=${encodeURIComponent(slotTime)}`}
+                            href={`/checkout?bookId=${program ? program.title.toLowerCase() : 'spark'}-${learningPref.includes('Private') || learningPref.includes('1:1') ? 'private' : 'group'}&name=${encodeURIComponent(parentName)}&phone=${encodeURIComponent(getFullNormalizedPhone())}&email=${encodeURIComponent(email)}&class=${encodeURIComponent(classRange)}&format=${encodeURIComponent(learningPref)}&date=${encodeURIComponent(slotDate)}&time=${encodeURIComponent(slotTime)}`}
                             onClick={(e) => {
-                              if (!parentName || !phone) {
+                              if (!validateForm()) {
                                 e.preventDefault();
-                                setFormError("Please enter your name and phone number in the form above to enroll.");
                                 const nameInput = document.querySelector('input[placeholder="Your name"]');
                                 if (nameInput) (nameInput as HTMLInputElement).focus();
                               }

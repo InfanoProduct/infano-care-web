@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeft, ChevronLeft, ChevronRight, ChevronDown, Star, CheckCircle2, AlertCircle,
-  BookOpen, HelpCircle, Sparkles, Trophy, Loader2, Info, Check, Lock,
+  BookOpen, HelpCircle, Sparkles, Trophy, Loader2, Info, Check, Lock, Zap,
   ShieldAlert, PenTool, Bookmark, Menu, AlertTriangle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -210,6 +210,7 @@ export default function EpisodePlayerPage() {
   const [sidebarNotice, setSidebarNotice] = useState<string | null>(null);
   const [quizNotice, setQuizNotice] = useState<Record<number, { type: 'success' | 'error'; message: string } | null>>({});
   const [completionNotice, setCompletionNotice] = useState<{ success?: string; error?: string } | null>(null);
+  const [nextEpisode, setNextEpisode] = useState<{ id: string; title: string } | null>(null);
 
   useEffect(() => {
     if (sidebarNotice) {
@@ -245,6 +246,9 @@ export default function EpisodePlayerPage() {
   // Journal/Reflection state
   const [reflectionText, setReflectionText] = useState('');
   const [reflectionMode, setReflectionMode] = useState<'private' | 'community'>('private');
+  const [journalSubmitted, setJournalSubmitted] = useState(false);
+  const [journalNotice, setJournalNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [isSubmittingJournal, setIsSubmittingJournal] = useState(false);
 
   // LMS Outline expansion state
   const [expandedSteps, setExpandedSteps] = useState<Record<string, boolean>>({});
@@ -259,11 +263,21 @@ export default function EpisodePlayerPage() {
       try {
         setLoading(true);
         
-        // Fetch learning journey to get category
+        // Fetch learning journey to get category and find next episode
         try {
           const journeyData = await LearningService.getJourney(journeyId);
           if (journeyData) {
             setJourneyCategory(journeyData.category);
+            // Find current episode index and determine next episode
+            if (journeyData.episodes && journeyData.episodes.length > 0) {
+              const currentIdx = journeyData.episodes.findIndex((ep: any) => ep.id === episodeId);
+              if (currentIdx !== -1 && currentIdx < journeyData.episodes.length - 1) {
+                const next = journeyData.episodes[currentIdx + 1];
+                setNextEpisode({ id: next.id, title: next.title });
+              } else {
+                setNextEpisode(null); // Last episode
+              }
+            }
           }
         } catch (e) {
           console.error("Failed to load journey category:", e);
@@ -304,6 +318,14 @@ export default function EpisodePlayerPage() {
         // Fetch user progress for this episode to resume
         let initialStepIndex = 0;
         let doneSteps: string[] = [];
+        let answers: Record<number, number> = {};
+        let locked: Record<number, boolean> = {};
+        let incorrect: Record<number, number> = {};
+        let notices: Record<number, { type: 'success' | 'error'; message: string } | null> = {};
+        let savedReflectionText = '';
+        let savedReflectionMode: 'private' | 'community' = 'private';
+        let savedJournalSubmitted = false;
+
         try {
           const progressList = await LearningService.getMyProgress();
           const epProgress = progressList.find(p => p.episodeId === episodeId);
@@ -322,22 +344,76 @@ export default function EpisodePlayerPage() {
                 }
               }
             }
+
+            // Restore history: answers, locked, incorrect attempts
+            if (epProgress.history) {
+              let historyObj = epProgress.history;
+              if (typeof historyObj === 'string') {
+                try {
+                  historyObj = JSON.parse(historyObj);
+                } catch (e) {
+                  console.error("Failed to parse history JSON string:", e);
+                }
+              }
+              if (historyObj && typeof historyObj === 'object') {
+                if (historyObj.quizAnswers) answers = historyObj.quizAnswers;
+                if (historyObj.quizLocked) locked = historyObj.quizLocked;
+                if (historyObj.incorrectAttempts) incorrect = historyObj.incorrectAttempts;
+                
+                // For all questions present in quizLocked, populate quizNotice with success feedback
+                if (locked) {
+                  Object.keys(locked).forEach((key) => {
+                    const qIdx = parseInt(key, 10);
+                    if (locked[qIdx]) {
+                      notices[qIdx] = { type: 'success', message: 'Correct answer!' };
+                    }
+                  });
+                }
+
+                // Restore journal state
+                if (historyObj.reflectionText) {
+                  savedReflectionText = historyObj.reflectionText;
+                }
+                if (historyObj.reflectionMode) {
+                  savedReflectionMode = historyObj.reflectionMode;
+                }
+                if (historyObj.journalSubmitted) {
+                  savedJournalSubmitted = historyObj.journalSubmitted;
+                }
+              }
+            }
+
+            // If episode was already completed, restore the success CTA state
+            if (epProgress.completed) {
+              setCompletionNotice({ success: 'Episode already completed! 🎉' });
+            }
           }
         } catch (err) {
           console.error("Failed to load user progress:", err);
         }
 
+        // Find first unanswered quiz question index if quiz is in slides
+        let resumeQuizIdx = 0;
+        if (norm.quiz?.questions && norm.quiz.questions.length > 0) {
+          const firstUnanswered = norm.quiz.questions.findIndex((_, idx) => !locked[idx]);
+          if (firstUnanswered !== -1) {
+            resumeQuizIdx = firstUnanswered;
+          }
+        }
+
         setCompletedSteps(doneSteps);
         setCurrentStepIndex(initialStepIndex);
         setCurrentStoryPage(0);
-        setCurrentQuizIndex(0);
+        setCurrentQuizIndex(resumeQuizIdx);
         setCurrentModuleIndex(0);
         setCurrentSafeProtocolIndex(0);
-        setQuizAnswers({});
-        setQuizLocked({});
-        setIncorrectAttempts({});
-        setReflectionText('');
-        setReflectionMode('private');
+        setQuizAnswers(answers);
+        setQuizLocked(locked);
+        setIncorrectAttempts(incorrect);
+        setQuizNotice(notices);
+        setReflectionText(savedReflectionText);
+        setReflectionMode(savedReflectionMode);
+        setJournalSubmitted(savedJournalSubmitted);
       } catch (err) {
         setLoadError('Failed to load episode details.');
       } finally {
@@ -391,7 +467,7 @@ export default function EpisodePlayerPage() {
         return quizLocked[currentQuizIndex] && quizAnswers[currentQuizIndex] === currentQ.correctIndex;
       }
       if (currentStep === 'journal') {
-        return reflectionText.trim().length >= 20;
+        return journalSubmitted;
       }
     } else {
       if (currentStep === 'reflection') {
@@ -399,7 +475,7 @@ export default function EpisodePlayerPage() {
       }
     }
     return true;
-  }, [currentStep, isPeerTraining, content, currentQuizIndex, quizAnswers, quizLocked, reflectionText]);
+  }, [currentStep, isPeerTraining, content, currentQuizIndex, quizAnswers, quizLocked, reflectionText, journalSubmitted]);
 
   // Sync current progress in database
   const saveProgress = async (nextStepIndex: number) => {
@@ -419,7 +495,15 @@ export default function EpisodePlayerPage() {
     try {
       await LearningService.updateEpisodeProgress(episode.id, {
         completedItems: newCompleted,
-        lastViewedItemId: nextStepName
+        lastViewedItemId: nextStepName,
+        history: {
+          quizAnswers,
+          quizLocked,
+          incorrectAttempts,
+          reflectionText,
+          reflectionMode,
+          journalSubmitted
+        }
       });
     } catch (err) {
       console.error("Failed to save episode progress:", err);
@@ -593,20 +677,70 @@ export default function EpisodePlayerPage() {
   const handleQuizSelect = (qIdx: number, optIdx: number, correctIdx: number) => {
     if (quizLocked[qIdx]) return;
 
-    setQuizAnswers(prev => ({ ...prev, [qIdx]: optIdx }));
+    const updatedAnswers = { ...quizAnswers, [qIdx]: optIdx };
+    const updatedLocked = { ...quizLocked };
+    const updatedIncorrect = { ...incorrectAttempts };
 
     if (optIdx === correctIdx) {
+      updatedLocked[qIdx] = true;
       setQuizLocked(prev => ({ ...prev, [qIdx]: true }));
       setQuizNotice(prev => ({
         ...prev,
         [qIdx]: { type: 'success', message: 'Correct answer!' }
       }));
     } else {
+      updatedIncorrect[qIdx] = (incorrectAttempts[qIdx] || 0) + 1;
       setIncorrectAttempts(prev => ({ ...prev, [qIdx]: (prev[qIdx] || 0) + 1 }));
       setQuizNotice(prev => ({
         ...prev,
         [qIdx]: { type: 'error', message: 'Incorrect. Try again!' }
       }));
+    }
+
+    setQuizAnswers(prev => ({ ...prev, [qIdx]: optIdx }));
+
+    // Save history immediately to backend
+    if (episode) {
+      LearningService.updateEpisodeProgress(episode.id, {
+        completedItems: completedSteps,
+        lastViewedItemId: steps[currentStepIndex],
+        history: {
+          quizAnswers: updatedAnswers,
+          quizLocked: updatedLocked,
+          incorrectAttempts: updatedIncorrect,
+          reflectionText,
+          reflectionMode,
+          journalSubmitted
+        }
+      }).catch(err => console.error("Failed to update progress history:", err));
+    }
+  };
+
+  // Handle journal save / submit
+  const handleJournalSave = async () => {
+    if (!episode || reflectionText.trim().length < 20) return;
+    setIsSubmittingJournal(true);
+    setJournalNotice(null);
+
+    try {
+      await LearningService.updateEpisodeProgress(episode.id, {
+        completedItems: completedSteps,
+        lastViewedItemId: steps[currentStepIndex],
+        history: {
+          quizAnswers,
+          quizLocked,
+          incorrectAttempts,
+          reflectionText,
+          reflectionMode,
+          journalSubmitted: true
+        }
+      });
+      setJournalSubmitted(true);
+      setJournalNotice({ type: 'success', message: 'Journal saved! You can now continue.' });
+    } catch (err) {
+      setJournalNotice({ type: 'error', message: 'Failed to save journal. Please try again.' });
+    } finally {
+      setIsSubmittingJournal(false);
     }
   };
 
@@ -630,7 +764,15 @@ export default function EpisodePlayerPage() {
     try {
       await LearningService.updateEpisodeProgress(episode.id, {
         completedItems: steps,
-        lastViewedItemId: steps[steps.length - 1]
+        lastViewedItemId: steps[steps.length - 1],
+        history: {
+          quizAnswers,
+          quizLocked,
+          incorrectAttempts,
+          reflectionText,
+          reflectionMode,
+          journalSubmitted
+        }
       });
 
       const res = await LearningService.completeEpisode(episode.id, {
@@ -642,10 +784,6 @@ export default function EpisodePlayerPage() {
       setCompletionNotice({
         success: `Episode completed! +${res.pointsEarned} XP Earned 🎉`
       });
-
-      setTimeout(() => {
-        router.push(`/dashboard/learning-journeys/${journeyId}`);
-      }, 2500);
 
     } catch (err: any) {
       setCompletionNotice({
@@ -712,17 +850,26 @@ export default function EpisodePlayerPage() {
           </div>
         </div>
 
-        {/* Global Progress Bar */}
-        <div className="hidden md:flex items-center gap-3 w-48 shrink-0">
-          <div className="h-2 bg-slate-100 rounded-full flex-1 overflow-hidden">
-            <div 
-              className={`h-full bg-gradient-to-r ${theme.gradient} transition-all duration-500`} 
-              style={{ width: `${((currentStepIndex + 1) / steps.length) * 100}%` }}
+        {/* Global Progress Bar — uses max of completed/current so never regresses */}
+        <div className="hidden md:flex flex-col gap-1 w-56 shrink-0">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+              {getStepMeta(currentStep || steps[0])?.label || 'Loading...'}
+            </span>
+            <span className="text-[9px] font-black text-slate-400">
+              {Math.max(completedSteps.length, currentStepIndex + 1)} / {steps.length}
+            </span>
+          </div>
+          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div
+              className={`h-full bg-gradient-to-r ${theme.gradient} transition-all duration-500 rounded-full`}
+              style={{ width: `${(Math.max(completedSteps.length, currentStepIndex + 1) / steps.length) * 100}%` }}
             />
           </div>
-          <span className="text-[11px] font-black text-slate-400 shrink-0">
-            {currentStepIndex + 1} / {steps.length}
-          </span>
+          <div className="flex items-center gap-1">
+            <Zap size={9} className="text-amber-500 fill-amber-400" />
+            <span className="text-[9px] font-black text-amber-600">+{episode?.points || 75} XP on completion</span>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -742,7 +889,7 @@ export default function EpisodePlayerPage() {
         {/* Main Content Area */}
         <main className="flex-1 overflow-hidden px-4 py-4 md:py-6 md:px-8 flex flex-col justify-between items-center">
           
-          <div className="w-full max-w-3xl flex-1 flex flex-col justify-center items-center min-h-0 overflow-hidden">
+          <div className="w-full max-w-5xl flex-1 flex flex-col justify-center items-center min-h-0 overflow-hidden">
             
             {/* Step Sub-Header */}
             <div className="text-center mb-3 max-w-xl shrink-0">
@@ -786,12 +933,12 @@ export default function EpisodePlayerPage() {
                   {currentStep === 'story' && content.story?.pages && (
                     <div className="space-y-4 flex flex-col items-center justify-center flex-1 min-h-0 w-full">
                       <div className="text-center shrink-0">
-                        <h2 className="text-lg sm:text-xl font-black text-slate-850 tracking-tight">Flip through the story cards</h2>
+                        <h2 className="text-lg sm:text-xl font-black text-slate-855 tracking-tight">Flip through the story cards</h2>
                         <p className="text-xs font-semibold text-slate-400 mt-1">Page {currentStoryPage + 1} of {content.story.pages.length}</p>
                       </div>
 
                       {/* Premium Story Frame */}
-                      <div className="relative h-[min(48vh,380px)] aspect-[3/4] bg-white rounded-3xl overflow-hidden shadow-premium border border-slate-100 group transition-all duration-300 hover:shadow-glow mx-auto shrink-0">
+                      <div className="relative h-[min(48vh,400px)] aspect-[16/9] bg-white rounded-3xl overflow-hidden shadow-premium border border-slate-100 group transition-all duration-300 hover:shadow-glow mx-auto shrink-0">
                         {content.story.pages[currentStoryPage] ? (
                           <img
                             src={content.story.pages[currentStoryPage]}
@@ -799,7 +946,7 @@ export default function EpisodePlayerPage() {
                             className="w-full h-full object-cover select-none pointer-events-none"
                           />
                         ) : (
-                          <div className="w-full h-full flex flex-col items-center justify-center text-slate-350 p-8 text-center bg-slate-50">
+                          <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 p-8 text-center bg-slate-50">
                             <BookOpen size={48} className="opacity-10 mb-3" />
                             <p className="text-sm font-bold">Image URL not specified.</p>
                           </div>
@@ -945,9 +1092,9 @@ export default function EpisodePlayerPage() {
                         <p className="text-xs font-semibold text-slate-400 mt-1">Reflect on what you've learned to lock in your knowledge</p>
                       </div>
 
-                      <div className="bg-rose-50/10 border border-rose-100 rounded-2xl p-5 space-y-4">
+                      <div className={`border rounded-2xl p-5 space-y-4 transition-all duration-300 ${journalSubmitted ? 'bg-emerald-50/30 border-emerald-200' : 'bg-rose-50/10 border-rose-100'}`}>
                         <div className="space-y-1.5">
-                          <h4 className="text-[10px] font-black text-rose-500 uppercase tracking-widest">Journal Prompt</h4>
+                          <h4 className={`text-[10px] font-black uppercase tracking-widest ${journalSubmitted ? 'text-emerald-600' : 'text-rose-500'}`}>Journal Prompt</h4>
                           <p className="text-sm font-bold text-slate-800 leading-snug">
                             {content.journal.prompt}
                           </p>
@@ -956,36 +1103,49 @@ export default function EpisodePlayerPage() {
                         <div className="space-y-3">
                           <textarea
                             value={reflectionText}
-                            onChange={(e) => setReflectionText(e.target.value)}
+                            onChange={(e) => {
+                              setReflectionText(e.target.value);
+                              if (journalSubmitted) {
+                                setJournalSubmitted(false);
+                                setJournalNotice(null);
+                              }
+                            }}
+                            disabled={journalSubmitted}
                             placeholder="Type your reflection here (minimum 20 characters)..."
-                            className="w-full p-4 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-700 placeholder:text-slate-300 min-h-[140px] outline-none focus:border-rose-350 focus:ring-4 focus:ring-rose-350/5 transition-all shadow-sm"
+                            className={`w-full p-4 bg-white border rounded-xl text-xs sm:text-sm font-medium text-slate-700 placeholder:text-slate-300 min-h-[140px] outline-none transition-all shadow-sm ${
+                              journalSubmitted
+                                ? 'border-emerald-200 bg-emerald-50/20 text-slate-500 cursor-not-allowed'
+                                : 'border-slate-200 focus:border-rose-400 focus:ring-4 focus:ring-rose-100/50'
+                            }`}
                           />
                           
                           <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
-                            <span className={`text-xs font-bold ${reflectionText.trim().length >= 20 ? 'text-emerald-600' : 'text-slate-450'}`}>
-                              Characters: {reflectionText.length} / 20 min
+                            <span className={`text-xs font-bold ${reflectionText.trim().length >= 20 ? 'text-emerald-600' : 'text-slate-400'}`}>
+                              {reflectionText.trim().length >= 20 ? `✓ ${reflectionText.length} characters` : `${reflectionText.length} / 20 min`}
                             </span>
                             
                             <div className="flex gap-1.5">
                               <button
                                 type="button"
                                 onClick={() => setReflectionMode('private')}
+                                disabled={journalSubmitted}
                                 className={`px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all ${
                                   reflectionMode === 'private'
                                     ? 'bg-slate-900 border-slate-900 text-white shadow-sm'
                                     : 'border-slate-200 text-slate-400 hover:border-slate-300'
-                                }`}
+                                } ${journalSubmitted ? 'opacity-60 cursor-not-allowed' : ''}`}
                               >
                                 Private
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setReflectionMode('community')}
+                                disabled={journalSubmitted}
                                 className={`px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all ${
                                   reflectionMode === 'community'
                                     ? 'bg-slate-900 border-slate-900 text-white shadow-sm'
                                     : 'border-slate-200 text-slate-400 hover:border-slate-300'
-                                }`}
+                                } ${journalSubmitted ? 'opacity-60 cursor-not-allowed' : ''}`}
                               >
                                 Community
                               </button>
@@ -996,10 +1156,66 @@ export default function EpisodePlayerPage() {
                               ? '🔒 Private: Only you can view this journal entry in your dashboard.' 
                               : '👥 Community: Anonymous peer reflection shared in Gigis Circle feed.'}
                           </p>
+
+                          {/* Journal notice banner */}
+                          {journalNotice && (
+                            <div className={`p-3 rounded-xl flex items-center gap-2 text-xs font-bold animate-in slide-in-from-top-1 duration-200 border ${
+                              journalNotice.type === 'success'
+                                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                                : 'bg-rose-50 border-rose-200 text-rose-800'
+                            }`}>
+                              {journalNotice.type === 'success' ? (
+                                <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
+                              ) : (
+                                <AlertCircle size={14} className="text-rose-600 shrink-0" />
+                              )}
+                              <span>{journalNotice.message}</span>
+                            </div>
+                          )}
+
+                          {/* Submit / Edit button */}
+                          <div className="pt-1">
+                            {journalSubmitted ? (
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs">
+                                  <CheckCircle2 size={16} className="text-emerald-500" />
+                                  Journal saved — click Next to continue
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setJournalSubmitted(false);
+                                    setJournalNotice(null);
+                                  }}
+                                  className="px-3 py-1.5 border border-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-slate-50 transition-all"
+                                >
+                                  Edit
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={handleJournalSave}
+                                disabled={isSubmittingJournal || reflectionText.trim().length < 20}
+                                className={`w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
+                                  reflectionText.trim().length < 20 || isSubmittingJournal
+                                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                    : 'bg-rose-500 hover:bg-rose-600 text-white shadow-sm hover:shadow-md active:scale-[0.98]'
+                                }`}
+                              >
+                                {isSubmittingJournal ? (
+                                  <><Loader2 className="animate-spin" size={13} /> Saving...</>
+                                ) : (
+                                  <>Save Journal Entry</>
+                                )}
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
                   )}
+
 
                   {/* 5. SUMMARY */}
                   {currentStep === 'summary' && (
@@ -1021,43 +1237,74 @@ export default function EpisodePlayerPage() {
                         </p>
                       </div>
 
-                      <div className="pt-4 flex flex-col items-center w-full">
-                        {completionNotice && (
-                          <div className={`w-full max-w-xs mb-4 p-3 rounded-2xl flex items-start gap-2.5 text-xs font-bold animate-in fade-in duration-200 border ${
-                            completionNotice.success
-                              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                              : 'bg-rose-50 border-rose-200 text-rose-800'
-                          }`}>
-                            {completionNotice.success ? (
-                              <CheckCircle2 size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                      <div className="pt-4 flex flex-col items-center w-full gap-3">
+                        {completionNotice?.success ? (
+                          <>
+                            {/* XP Earned Banner */}
+                            <div className="w-full max-w-sm p-4 rounded-2xl flex items-center gap-3 animate-in fade-in duration-300 border bg-emerald-50 border-emerald-200 text-emerald-800">
+                              <CheckCircle2 size={20} className="text-emerald-500 shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-black text-emerald-800 leading-snug">{completionNotice.success}</p>
+                                <p className="text-[10px] text-emerald-600 mt-0.5 font-semibold">Great job completing this episode!</p>
+                              </div>
+                            </div>
+
+                            {/* Next Episode CTA */}
+                            {nextEpisode ? (
+                              <div className="w-full max-w-sm space-y-2">
+                                <button
+                                  onClick={() => router.push(`/dashboard/learning-journeys/${journeyId}/episodes/${nextEpisode.id}`)}
+                                  className="w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all font-black text-xs sm:text-sm uppercase tracking-widest shadow-md text-white bg-purple-600 hover:bg-purple-700 hover:scale-[1.01] active:scale-[0.99]"
+                                >
+                                  Next Episode <ChevronRight size={16} />
+                                </button>
+                                <p className="text-[10px] text-center text-slate-400 font-semibold truncate px-2">{nextEpisode.title}</p>
+                                <button
+                                  onClick={() => router.push(`/dashboard/learning-journeys/${journeyId}`)}
+                                  className="w-full py-2 rounded-2xl flex items-center justify-center gap-2 transition-all font-black text-xs uppercase tracking-widest border border-slate-200 text-slate-500 hover:bg-slate-50"
+                                >
+                                  <ArrowLeft size={14} /> Back to Journey
+                                </button>
+                              </div>
                             ) : (
-                              <AlertCircle size={16} className="text-rose-600 shrink-0 mt-0.5" />
+                              <div className="w-full max-w-sm space-y-2">
+                                <div className="w-full p-4 rounded-2xl bg-amber-50 border border-amber-200 text-center">
+                                  <p className="text-sm font-black text-amber-800">🏆 Journey Complete!</p>
+                                  <p className="text-[10px] text-amber-600 mt-1 font-semibold">You've finished all episodes in this journey.</p>
+                                </div>
+                                <button
+                                  onClick={() => router.push(`/dashboard/learning-journeys/${journeyId}`)}
+                                  className="w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all font-black text-xs sm:text-sm uppercase tracking-widest shadow-md text-white bg-slate-800 hover:bg-slate-900 hover:scale-[1.01] active:scale-[0.99]"
+                                >
+                                  <Trophy size={16} /> Back to Journey
+                                </button>
+                              </div>
                             )}
-                            <span className="text-left leading-relaxed">{completionNotice.success || completionNotice.error}</span>
-                          </div>
+                          </>
+                        ) : (
+                          <>
+                            {completionNotice?.error && (
+                              <div className="w-full max-w-xs p-3 rounded-2xl flex items-start gap-2.5 text-xs font-bold animate-in fade-in duration-200 border bg-rose-50 border-rose-200 text-rose-800">
+                                <AlertCircle size={16} className="text-rose-600 shrink-0 mt-0.5" />
+                                <span className="text-left leading-relaxed">{completionNotice.error}</span>
+                              </div>
+                            )}
+                            <button
+                              onClick={handleComplete}
+                              disabled={isSubmitting}
+                              className="btn-primary w-full max-w-xs py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all font-black text-xs sm:text-sm uppercase tracking-widest shadow-md disabled:opacity-50"
+                            >
+                              {isSubmitting ? (
+                                <><Loader2 className="animate-spin" size={16} /> Submitting...</>
+                              ) : (
+                                <>Complete Episode <Trophy size={16} /></>
+                              )}
+                            </button>
+                            <p className="text-[10px] text-slate-400 font-semibold">
+                              Earn +{episode?.points || 75} XP points for your profile.
+                            </p>
+                          </>
                         )}
-                        <button
-                          onClick={handleComplete}
-                          disabled={isSubmitting || !!completionNotice?.success}
-                          className="btn-primary w-full max-w-xs py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all font-black text-xs sm:text-sm uppercase tracking-widest shadow-md disabled:opacity-50"
-                        >
-                          {isSubmitting ? (
-                            <>
-                              <Loader2 className="animate-spin" size={16} /> Submitting...
-                            </>
-                          ) : completionNotice?.success ? (
-                            <>
-                              Success! Redirecting...
-                            </>
-                          ) : (
-                            <>
-                              Complete Episode <Trophy size={16} />
-                            </>
-                          )}
-                        </button>
-                        <p className="text-[10px] text-slate-400 mt-3 font-semibold">
-                          Earn +{episode?.points || 75} XP points for your profile.
-                        </p>
                       </div>
                     </div>
                   )}
@@ -1331,7 +1578,7 @@ export default function EpisodePlayerPage() {
           </div>
 
           {/* Footer Controls Slat */}
-          <footer className="w-full max-w-3xl mt-4 pt-3 border-t border-slate-100/60 flex items-center justify-between shrink-0">
+          <footer className="w-full max-w-5xl mt-4 pt-3 border-t border-slate-100/60 flex items-center justify-between shrink-0">
             {/* Back Button */}
             <button
               onClick={handlePrev}
@@ -1345,26 +1592,47 @@ export default function EpisodePlayerPage() {
               <ChevronLeft size={16} /> Back
             </button>
 
-            {/* Stepper Dots (centered desktop representation) */}
+            {/* Stepper Dots — green once completed, never regresses */}
             <div className="hidden sm:flex items-center gap-1.5">
-              {steps.map((s, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => handleSidebarClick(idx)}
-                  className={`h-2 rounded-full cursor-pointer transition-all duration-300 ${
-                    idx === currentStepIndex
-                      ? `w-8 bg-gradient-to-r ${theme.gradient} shadow-sm`
-                      : idx < currentStepIndex
-                      ? 'w-2 bg-emerald-500'
-                      : 'w-2 bg-slate-200 hover:bg-slate-300'
-                  }`}
-                  title={`Go to step ${idx + 1}`}
-                />
-              ))}
+              {steps.map((s, idx) => {
+                const isDone = completedSteps.includes(s);
+                const isCurr = idx === currentStepIndex;
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => handleSidebarClick(idx)}
+                    className={`h-2 rounded-full cursor-pointer transition-all duration-300 ${
+                      isCurr
+                        ? `w-8 bg-gradient-to-r ${theme.gradient} shadow-sm`
+                        : isDone
+                        ? 'w-2 bg-emerald-500'
+                        : 'w-2 bg-slate-200 hover:bg-slate-300'
+                    }`}
+                    title={getStepMeta(s)?.label || s}
+                  />
+                );
+              })}
             </div>
 
-            {/* Next / Complete Button */}
-            {currentStepIndex === steps.length - 1 ? (
+            {/* Next / Complete / Already Done Button */}
+            {completionNotice?.success ? (
+              // Episode already completed — show contextual CTA
+              nextEpisode ? (
+                <button
+                  onClick={() => router.push(`/dashboard/learning-journeys/${journeyId}/episodes/${nextEpisode.id}`)}
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all text-white bg-purple-600 shadow-sm hover:scale-[1.02] hover:bg-purple-700 active:scale-[0.98]"
+                >
+                  Next Episode <ChevronRight size={16} />
+                </button>
+              ) : (
+                <button
+                  onClick={() => router.push(`/dashboard/learning-journeys/${journeyId}`)}
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all text-white bg-slate-800 shadow-sm hover:scale-[1.02] hover:bg-slate-900 active:scale-[0.98]"
+                >
+                  <Trophy size={14} /> Back to Journey
+                </button>
+              )
+            ) : currentStepIndex === steps.length - 1 ? (
               <button
                 onClick={handleComplete}
                 disabled={isSubmitting || !canProceed()}
@@ -1375,13 +1643,9 @@ export default function EpisodePlayerPage() {
                 }`}
               >
                 {isSubmitting ? (
-                  <>
-                    <Loader2 className="animate-spin" size={14} /> Saving
-                  </>
+                  <><Loader2 className="animate-spin" size={14} /> Saving</>
                 ) : (
-                  <>
-                    Complete <Check size={14} />
-                  </>
+                  <>Complete <Check size={14} /></>
                 )}
               </button>
             ) : (
@@ -1401,10 +1665,10 @@ export default function EpisodePlayerPage() {
 
         </main>
 
-        {/* Right Sidebar Checklist Panel (Desktop fixed) */}
+              {/* Right Sidebar Checklist Panel (Desktop fixed) */}
         <aside className="hidden md:flex w-72 border-l border-slate-200 flex-col bg-white overflow-hidden z-10 shrink-0">
           <div className="p-4 border-b border-slate-200 bg-slate-50/50 shrink-0">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-500">Course Contents</h3>
+            <h3 className="text-xs font-black uppercase tracking-wider text-slate-500">Episode Contents</h3>
             {sidebarNotice && (
               <div className="mt-2 p-2 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg text-[10px] font-bold flex items-start gap-1.5 animate-in slide-in-from-top-1 duration-200 shadow-sm leading-normal">
                 <AlertTriangle size={11} className="text-amber-600 shrink-0 mt-0.5" />
@@ -1425,69 +1689,80 @@ export default function EpisodePlayerPage() {
               const isExpanded = expandedSteps[stepName] ?? isCurrent;
 
               return (
-                <div key={stepName} className="space-y-0.5 w-full">
-                  <div
-                    onClick={(e) => handleStepHeaderClick(idx, stepName, e)}
-                    className={`w-full flex items-center justify-between py-2 px-3 rounded-lg cursor-pointer transition-all ${
-                      isCurrent
-                        ? 'bg-slate-100/90 text-slate-900 font-bold border-l-4 border-purple-600'
-                        : isUnlocked
-                        ? 'text-slate-700 hover:bg-slate-100'
-                        : 'text-slate-400 cursor-not-allowed bg-slate-50/30'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      {hasSubItems ? (
-                        <button
-                          onClick={(e) => toggleStepExpansion(stepName, e)}
-                          className="p-0.5 rounded hover:bg-slate-200 text-slate-400 hover:text-slate-700 shrink-0"
-                        >
-                          <ChevronDown
-                            size={14}
-                            className={`transform transition-transform ${isExpanded ? '' : '-rotate-90'}`}
-                          />
-                        </button>
-                      ) : (
-                        <div className="w-4 h-4 shrink-0" />
-                      )}
-                      
-                      <Icon size={14} className={isCurrent ? 'text-purple-600' : 'text-slate-400'} />
-                      <span className="text-[13px] truncate">{meta.label}</span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                      {isCompleted ? (
-                        <CheckCircle2 size={13} className="text-emerald-500" />
-                      ) : !isUnlocked ? (
-                        <Lock size={11} className="text-slate-400" />
-                      ) : null}
-                    </div>
-                  </div>
-
-                  {hasSubItems && isExpanded && (
-                    <div className="ml-7 pl-3.5 border-l border-slate-200 space-y-0.5 py-1 animate-in fade-in duration-200">
-                      {subItems.map((sub) => {
-                        const isSubActive = getSubActiveState(stepName, sub.index);
-                        const isSubCompleted = getSubCompletedState(stepName, sub.index);
-
-                        return (
+                <div key={stepName} className="w-full">
+                  <div className="space-y-0.5 w-full">
+                    <div
+                      onClick={(e) => handleStepHeaderClick(idx, stepName, e)}
+                      className={`w-full flex items-center justify-between py-2 px-3 rounded-lg cursor-pointer transition-all ${
+                        isCurrent
+                          ? 'bg-slate-100/90 text-slate-900 font-bold border-l-4 border-purple-600'
+                          : isUnlocked
+                          ? 'text-slate-700 hover:bg-slate-100'
+                          : 'text-slate-400 cursor-not-allowed bg-slate-50/30'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {hasSubItems ? (
                           <button
-                            key={sub.index}
-                            onClick={() => handleSubClick(stepName, sub.index)}
-                            className={`w-full flex items-center justify-between text-left py-1.5 px-2.5 rounded-md text-[11px] font-semibold transition-colors ${
-                              isSubActive
-                                ? 'bg-purple-50 text-purple-700 font-bold'
-                                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
-                            }`}
+                            onClick={(e) => toggleStepExpansion(stepName, e)}
+                            className="p-0.5 rounded hover:bg-slate-200 text-slate-400 hover:text-slate-700 shrink-0"
                           >
-                            <span className="truncate pr-2">{sub.label}</span>
-                            {isSubCompleted && (
-                              <CheckCircle2 size={10} className="text-emerald-500 shrink-0" />
-                            )}
+                            <ChevronDown
+                              size={14}
+                              className={`transform transition-transform ${isExpanded ? '' : '-rotate-90'}`}
+                            />
                           </button>
-                        );
-                      })}
+                        ) : (
+                          <div className="w-4 h-4 shrink-0" />
+                        )}
+                        
+                        <Icon size={14} className={isCurrent ? 'text-purple-600' : 'text-slate-400'} />
+                        <span className="text-[13px] truncate">{meta.label}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                        {isCompleted ? (
+                          <CheckCircle2 size={13} className="text-emerald-500" />
+                        ) : !isUnlocked ? (
+                          <Lock size={11} className="text-slate-400" />
+                        ) : null}
+                      </div>
                     </div>
+
+                    {hasSubItems && isExpanded && (
+                      <div className="ml-7 pl-3.5 border-l border-slate-200 space-y-0.5 py-1 animate-in fade-in duration-200">
+                        {subItems.map((sub) => {
+                          const isSubActive = getSubActiveState(stepName, sub.index);
+                          const isSubCompleted = getSubCompletedState(stepName, sub.index);
+
+                          return (
+                            <button
+                              key={sub.index}
+                              onClick={() => handleSubClick(stepName, sub.index)}
+                              className={`w-full flex items-center justify-between text-left py-1.5 px-2.5 rounded-md text-[11px] font-semibold transition-colors ${
+                                isSubActive
+                                  ? 'bg-purple-50 text-purple-700 font-bold'
+                                  : 'text-slate-500 hover:bg-slate-55 hover:text-slate-800'
+                              }`}
+                            >
+                              <span className="truncate pr-2 flex items-center gap-1.5">
+                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${
+                                  isSubActive ? 'bg-purple-600' : 'bg-slate-300'
+                                }`} />
+                                {sub.label}
+                              </span>
+                              {isSubCompleted && (
+                                <CheckCircle2 size={10} className="text-emerald-500 shrink-0" />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                  {/* Subtle Separator divider line */}
+                  {idx < steps.length - 1 && (
+                    <div className="my-2 border-b border-slate-100" />
                   )}
                 </div>
               );
@@ -1517,7 +1792,7 @@ export default function EpisodePlayerPage() {
               >
                 <div className="flex flex-col mb-6 gap-2">
                   <div className="flex items-center justify-between">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Curriculum Path</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Episode Contents</p>
                     <button 
                       onClick={() => setSidebarOpen(false)}
                       className="text-slate-400 hover:text-slate-700 p-1 rounded-full hover:bg-slate-50 transition-colors"
@@ -1545,71 +1820,82 @@ export default function EpisodePlayerPage() {
                     const isExpanded = expandedSteps[stepName] ?? isCurrent;
 
                     return (
-                      <div key={stepName} className="space-y-0.5 w-full">
-                        {/* Step Header Row Mobile */}
-                        <div
-                          onClick={(e) => handleStepHeaderClick(idx, stepName, e)}
-                          className={`w-full flex items-center justify-between py-2 px-3 rounded-lg cursor-pointer transition-all ${
-                            isCurrent
-                              ? 'bg-slate-100/90 text-slate-900 font-bold border-l-4 border-purple-600'
-                              : isUnlocked
-                              ? 'text-slate-700 hover:bg-slate-100'
-                              : 'text-slate-400 cursor-not-allowed bg-slate-50/30'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            {hasSubItems ? (
-                              <button
-                                onClick={(e) => toggleStepExpansion(stepName, e)}
-                                className="p-0.5 rounded hover:bg-slate-200 text-slate-400 hover:text-slate-700 shrink-0"
-                              >
-                                <ChevronDown
-                                  size={14}
-                                  className={`transform transition-transform ${isExpanded ? '' : '-rotate-90'}`}
-                                />
-                              </button>
-                            ) : (
-                              <div className="w-4 h-4 shrink-0" />
-                            )}
-                            
-                            <Icon size={14} className={isCurrent ? 'text-purple-600' : 'text-slate-400'} />
-                            <span className="text-[13px] truncate">{meta.label}</span>
-                          </div>
-
-                          <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                            {isCompleted ? (
-                              <CheckCircle2 size={13} className="text-emerald-500" />
-                            ) : !isUnlocked ? (
-                              <Lock size={11} className="text-slate-400" />
-                            ) : null}
-                          </div>
-                        </div>
-
-                        {/* Indented Sub-items mobile */}
-                        {hasSubItems && isExpanded && (
-                          <div className="ml-7 pl-3.5 border-l border-slate-200 space-y-0.5 py-1 animate-in fade-in duration-200">
-                            {subItems.map((sub) => {
-                              const isSubActive = getSubActiveState(stepName, sub.index);
-                              const isSubCompleted = getSubCompletedState(stepName, sub.index);
-
-                              return (
+                      <div key={stepName} className="w-full">
+                        <div className="space-y-0.5 w-full">
+                          {/* Step Header Row Mobile */}
+                          <div
+                            onClick={(e) => handleStepHeaderClick(idx, stepName, e)}
+                            className={`w-full flex items-center justify-between py-2 px-3 rounded-lg cursor-pointer transition-all ${
+                              isCurrent
+                                ? 'bg-slate-100/90 text-slate-900 font-bold border-l-4 border-purple-600'
+                                : isUnlocked
+                                ? 'text-slate-700 hover:bg-slate-100'
+                                : 'text-slate-400 cursor-not-allowed bg-slate-50/30'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              {hasSubItems ? (
                                 <button
-                                  key={sub.index}
-                                  onClick={() => handleSubClick(stepName, sub.index)}
-                                  className={`w-full flex items-center justify-between text-left py-1.5 px-2.5 rounded-md text-[12px] font-semibold transition-colors ${
-                                    isSubActive
-                                      ? 'bg-purple-50 text-purple-700 font-bold'
-                                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
-                                  }`}
+                                  onClick={(e) => toggleStepExpansion(stepName, e)}
+                                  className="p-0.5 rounded hover:bg-slate-200 text-slate-400 hover:text-slate-700 shrink-0"
                                 >
-                                  <span className="truncate pr-2">{sub.label}</span>
-                                  {isSubCompleted && (
-                                    <CheckCircle2 size={10} className="text-emerald-500 shrink-0" />
-                                  )}
+                                  <ChevronDown
+                                    size={14}
+                                    className={`transform transition-transform ${isExpanded ? '' : '-rotate-90'}`}
+                                  />
                                 </button>
-                              );
-                            })}
+                              ) : (
+                                <div className="w-4 h-4 shrink-0" />
+                              )}
+                              
+                              <Icon size={14} className={isCurrent ? 'text-purple-600' : 'text-slate-400'} />
+                              <span className="text-[13px] truncate">{meta.label}</span>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                              {isCompleted ? (
+                                <CheckCircle2 size={13} className="text-emerald-500" />
+                              ) : !isUnlocked ? (
+                                <Lock size={11} className="text-slate-400" />
+                              ) : null}
+                            </div>
                           </div>
+
+                          {/* Indented Sub-items mobile */}
+                          {hasSubItems && isExpanded && (
+                            <div className="ml-7 pl-3.5 border-l border-slate-200 space-y-0.5 py-1 animate-in fade-in duration-200">
+                              {subItems.map((sub) => {
+                                const isSubActive = getSubActiveState(stepName, sub.index);
+                                const isSubCompleted = getSubCompletedState(stepName, sub.index);
+
+                                return (
+                                  <button
+                                    key={sub.index}
+                                    onClick={() => handleSubClick(stepName, sub.index)}
+                                    className={`w-full flex items-center justify-between text-left py-1.5 px-2.5 rounded-md text-[12px] font-semibold transition-colors ${
+                                      isSubActive
+                                        ? 'bg-purple-50 text-purple-700 font-bold'
+                                        : 'text-slate-505 hover:bg-slate-50 hover:text-slate-800'
+                                    }`}
+                                  >
+                                    <span className="truncate pr-2 flex items-center gap-1.5">
+                                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${
+                                        isSubActive ? 'bg-purple-600' : 'bg-slate-300'
+                                      }`} />
+                                      {sub.label}
+                                    </span>
+                                    {isSubCompleted && (
+                                      <CheckCircle2 size={10} className="text-emerald-500 shrink-0" />
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                        {/* Mobile separation line */}
+                        {idx < steps.length - 1 && (
+                          <div className="my-2 border-b border-slate-100" />
                         )}
                       </div>
                     );

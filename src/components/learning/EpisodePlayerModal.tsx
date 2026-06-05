@@ -276,6 +276,10 @@ export default function EpisodePlayerModal({
         // Fetch user progress for this episode to resume
         let initialStepIndex = 0;
         let doneSteps: string[] = [];
+        let answers: Record<number, number> = {};
+        let locked: Record<number, boolean> = {};
+        let incorrect: Record<number, number> = {};
+
         try {
           const progressList = await LearningService.getMyProgress();
           const epProgress = progressList.find(p => p.episodeId === episodeId);
@@ -295,6 +299,23 @@ export default function EpisodePlayerModal({
                 }
               }
             }
+
+            // Restore history: answers, locked, incorrect attempts
+            if (epProgress.history) {
+              let historyObj = epProgress.history;
+              if (typeof historyObj === 'string') {
+                try {
+                  historyObj = JSON.parse(historyObj);
+                } catch (e) {
+                  console.error("Failed to parse history JSON string:", e);
+                }
+              }
+              if (historyObj && typeof historyObj === 'object') {
+                if (historyObj.quizAnswers) answers = historyObj.quizAnswers;
+                if (historyObj.quizLocked) locked = historyObj.quizLocked;
+                if (historyObj.incorrectAttempts) incorrect = historyObj.incorrectAttempts;
+              }
+            }
           }
         } catch (err) {
           console.error("Failed to load user progress:", err);
@@ -303,9 +324,9 @@ export default function EpisodePlayerModal({
         setCompletedSteps(doneSteps);
         setCurrentStepIndex(initialStepIndex);
         setCurrentStoryPage(0);
-        setQuizAnswers({});
-        setQuizLocked({});
-        setIncorrectAttempts({});
+        setQuizAnswers(answers);
+        setQuizLocked(locked);
+        setIncorrectAttempts(incorrect);
         setReflectionText('');
         setReflectionMode('private');
       } catch (err) {
@@ -367,7 +388,12 @@ export default function EpisodePlayerModal({
     try {
       await LearningService.updateEpisodeProgress(episode.id, {
         completedItems: newCompleted,
-        lastViewedItemId: nextStepName
+        lastViewedItemId: nextStepName,
+        history: {
+          quizAnswers,
+          quizLocked,
+          incorrectAttempts
+        }
       });
     } catch (err) {
       console.error("Failed to save episode progress:", err);
@@ -420,14 +446,33 @@ export default function EpisodePlayerModal({
   const handleQuizSelect = (qIdx: number, optIdx: number, correctIdx: number) => {
     if (quizLocked[qIdx]) return; // already locked
 
-    setQuizAnswers(prev => ({ ...prev, [qIdx]: optIdx }));
+    const updatedAnswers = { ...quizAnswers, [qIdx]: optIdx };
+    const updatedLocked = { ...quizLocked };
+    const updatedIncorrect = { ...incorrectAttempts };
 
     if (optIdx === correctIdx) {
+      updatedLocked[qIdx] = true;
       setQuizLocked(prev => ({ ...prev, [qIdx]: true }));
       toast.success('Correct answer!');
     } else {
+      updatedIncorrect[qIdx] = (incorrectAttempts[qIdx] || 0) + 1;
       setIncorrectAttempts(prev => ({ ...prev, [qIdx]: (prev[qIdx] || 0) + 1 }));
       toast.error('Incorrect. Try again!');
+    }
+
+    setQuizAnswers(prev => ({ ...prev, [qIdx]: optIdx }));
+
+    // Save history immediately to backend
+    if (episode) {
+      LearningService.updateEpisodeProgress(episode.id, {
+        completedItems: completedSteps,
+        lastViewedItemId: steps[currentStepIndex],
+        history: {
+          quizAnswers: updatedAnswers,
+          quizLocked: updatedLocked,
+          incorrectAttempts: updatedIncorrect
+        }
+      }).catch(err => console.error("Failed to update progress history:", err));
     }
   };
 
@@ -453,7 +498,12 @@ export default function EpisodePlayerModal({
       // Mark all steps as complete in user progress
       await LearningService.updateEpisodeProgress(episode.id, {
         completedItems: steps,
-        lastViewedItemId: steps[steps.length - 1]
+        lastViewedItemId: steps[steps.length - 1],
+        history: {
+          quizAnswers,
+          quizLocked,
+          incorrectAttempts
+        }
       });
 
       const res = await LearningService.completeEpisode(episode.id, {

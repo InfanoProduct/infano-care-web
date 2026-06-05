@@ -79,6 +79,8 @@ export default function CustomerDashboardOverview() {
   const [parentBookmarks, setParentBookmarks] = useState<any[]>([]);
   const [demoSessions, setDemoSessions] = useState<any[]>([]);
   const [demosLoading, setDemosLoading] = useState(false);
+  const [learningJourneys, setLearningJourneys] = useState<LearningJourney[]>([]);
+  const [learningProgress, setLearningProgress] = useState<UserProgress[]>([]);
 
   // Demo booking modal state
   const [demoModalProg, setDemoModalProg] = useState<Program | null>(null);

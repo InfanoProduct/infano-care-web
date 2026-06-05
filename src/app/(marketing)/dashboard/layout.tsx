@@ -186,6 +186,16 @@ export default function CustomerDashboardLayout({
                   Enrolled Programs
                 </Link>
                 <Link
+                  href="/dashboard/learning-journeys"
+                  className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-bold transition-all duration-200 ${isActivePrefix('/dashboard/learning-journeys')
+                      ? 'bg-primary/10 text-primary shadow-sm'
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                    }`}
+                >
+                  <GraduationCap size={14} />
+                  Learning Journeys
+                </Link>
+                <Link
                   href="/dashboard/payments"
                   className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-bold transition-all duration-200 ${isActive('/dashboard/payments')
                       ? 'bg-primary/10 text-primary shadow-sm'

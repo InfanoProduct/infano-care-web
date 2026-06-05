@@ -119,12 +119,12 @@ const CHALLENGES_OPTIONS = [
 ];
 
 const COUNTRIES = [
-  { code: '+91', iso: 'in', name: 'India' },
-  { code: '+1', iso: 'us', name: 'United States' },
-  { code: '+44', iso: 'gb', name: 'United Kingdom' },
-  { code: '+65', iso: 'sg', name: 'Singapore' },
-  { code: '+971', iso: 'ae', name: 'United Arab Emirates' },
-  { code: '+61', iso: 'au', name: 'Australia' }
+  { code: '+91', iso: 'in', name: 'India', digits: 10 },
+  { code: '+1', iso: 'us', name: 'United States', digits: 10 },
+  { code: '+44', iso: 'gb', name: 'United Kingdom', digits: 10 },
+  { code: '+65', iso: 'sg', name: 'Singapore', digits: 8 },
+  { code: '+971', iso: 'ae', name: 'United Arab Emirates', digits: 9 },
+  { code: '+61', iso: 'au', name: 'Australia', digits: 9 }
 ];
 
 export default function ProgramDetailsPage() {
@@ -141,7 +141,7 @@ export default function ProgramDetailsPage() {
   const [phone, setPhone] = useState('');
   const [selectedCountryCode, setSelectedCountryCode] = useState('+91');
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState({ code: '+91', iso: 'in', name: 'India' });
+  const [selectedCountry, setSelectedCountry] = useState({ code: '+91', iso: 'in', name: 'India', digits: 10 });
   const [email, setEmail] = useState('');
   const [classRange, setClassRange] = useState('');
   const [confidence, setConfidence] = useState('');
@@ -607,6 +607,7 @@ export default function ProgramDetailsPage() {
                                     onClick={() => {
                                       setSelectedCountry(country);
                                       setSelectedCountryCode(country.code);
+                                      setPhone('');
                                       setDropdownOpen(false);
                                     }}
                                     className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm font-semibold hover:bg-slate-50 transition-colors text-slate-700"
@@ -627,8 +628,9 @@ export default function ProgramDetailsPage() {
                             type="tel"
                             required
                             value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            placeholder="Phone Number"
+                            onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
+                            placeholder={`Enter ${selectedCountry.digits}-digit number`}
+                            maxLength={selectedCountry.digits}
                             className="w-full px-4 py-3 outline-none text-slate-800 text-sm font-semibold bg-transparent"
                           />
                         </div>
@@ -690,7 +692,7 @@ export default function ProgramDetailsPage() {
                         {/* Book Demo Button */}
                         <button
                           type="submit"
-                          disabled={submitting}
+                          disabled={submitting || phone.length !== selectedCountry.digits}
                           className={`w-full inline-flex items-center justify-center gap-2 py-4 px-4 rounded-2xl text-white font-bold text-xs uppercase tracking-widest transition-all shadow-md text-center disabled:opacity-50 ${theme.btn}`}
                         >
                           {submitting ? (

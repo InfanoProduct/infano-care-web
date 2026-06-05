@@ -268,14 +268,14 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
 
       {/* Tab Switcher */}
-      <div className="flex gap-2 bg-slate-100 p-1.5 rounded-2xl w-fit">
+      <div className="flex gap-2 bg-slate-100 p-1.5 rounded-lg w-fit">
         <button
           onClick={() => setTab('browse')}
-          className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+          className={`px-5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${
             tab === 'browse'
               ? 'bg-white text-primary shadow-sm'
               : 'text-slate-500 hover:text-slate-700'
@@ -285,7 +285,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
         </button>
         <button
           onClick={() => setTab('sessions')}
-          className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 ${
+          className={`px-5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
             tab === 'sessions'
               ? 'bg-white text-primary shadow-sm'
               : 'text-slate-500 hover:text-slate-700'
@@ -293,14 +293,14 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
         >
           My Sessions
           {upcomingSessions.length > 0 && (
-            <span className="w-5 h-5 bg-primary text-white rounded-full text-[10px] font-black flex items-center justify-center">
+            <span className="w-5 h-5 bg-primary text-white rounded-full text-[10px] font-bold flex items-center justify-center">
               {upcomingSessions.length}
             </span>
           )}
         </button>
         <button
           onClick={() => setTab('demos')}
-          className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 ${
+          className={`px-5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
             tab === 'demos'
               ? 'bg-white text-primary shadow-sm'
               : 'text-slate-500 hover:text-slate-700'
@@ -308,7 +308,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
         >
           Demo Sessions
           {demoSessions.length > 0 && (
-            <span className="w-5 h-5 bg-primary text-white rounded-full text-[10px] font-black flex items-center justify-center">
+            <span className="w-5 h-5 bg-primary text-white rounded-full text-[10px] font-bold flex items-center justify-center">
               {demoSessions.length}
             </span>
           )}
@@ -326,7 +326,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
               <input
                 type="text"
                 placeholder="Search experts by name or specialisation..."
-                className="w-full pl-11 pr-4 py-3 rounded-2xl border border-slate-200 bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary/40 outline-none transition-all font-medium text-sm"
+                className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary/40 outline-none transition-all font-medium text-sm"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -336,9 +336,9 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                 <button
                   key={f.value}
                   onClick={() => setActiveFilter(f.value)}
-                  className={`px-4 py-2.5 rounded-xl text-xs font-bold border transition-all whitespace-nowrap ${
+                  className={`px-4 py-2.5 rounded-lg text-xs font-bold border transition-all whitespace-nowrap ${
                     activeFilter === f.value
-                      ? 'bg-primary text-white border-primary shadow-md shadow-primary/20'
+                      ? 'bg-primary text-white border-primary shadow-sm'
                       : 'bg-white text-slate-600 border-slate-200 hover:border-primary/40 hover:text-primary'
                   }`}
                 >
@@ -354,7 +354,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
               <Loader2 className="animate-spin text-primary" size={32} />
             </div>
           ) : filteredExperts.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-3xl border border-slate-100">
+            <div className="text-center py-16 bg-white rounded-xl border border-slate-100">
               <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search size={24} className="text-slate-400" />
               </div>
@@ -366,25 +366,25 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
               {filteredExperts.map((expert) => (
                 <div
                   key={expert.id}
-                  className="bg-white rounded-3xl border border-slate-100 p-6 shadow-lg shadow-slate-200/20 hover:shadow-xl hover:shadow-slate-200/40 transition-all duration-300 group relative overflow-hidden"
+                  className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm hover:shadow-md transition-all duration-300 group relative overflow-hidden"
                 >
                   {/* Decorative gradient stripe */}
                   <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-purple-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                   <div className="flex items-start gap-4 mb-5">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-purple-100 flex items-center justify-center text-primary font-black text-lg border border-primary/10 shrink-0">
+                    <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-primary/10 to-purple-100 flex items-center justify-center text-primary font-bold text-lg border border-primary/10 shrink-0">
                       {getInitials(expert.displayName)}
                     </div>
                     <div className="min-w-0">
-                      <h3 className="font-black text-slate-800 text-base truncate">{expert.displayName}</h3>
+                      <h3 className="font-bold text-slate-800 text-base truncate">{expert.displayName}</h3>
                       <p className="text-xs font-semibold text-slate-500 mt-0.5">{expert.specialisation}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3 mb-5">
-                    <div className="flex items-center gap-1.5 bg-amber-50 text-amber-600 px-2.5 py-1 rounded-lg border border-amber-100">
+                    <div className="flex items-center gap-1.5 bg-amber-50 text-amber-600 px-2.5 py-1 rounded-md border border-amber-100">
                       <Star size={12} fill="currentColor" />
-                      <span className="text-[10px] font-black">Verified</span>
+                      <span className="text-[10px] font-semibold">Verified</span>
                     </div>
                     <div className="flex items-center gap-1 text-slate-400">
                       <Clock size={12} />
@@ -395,11 +395,11 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                   <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                     <div>
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Per Session</span>
-                      <span className="text-xl font-black text-slate-800">₹{expert.sessionPrice}</span>
+                      <span className="text-xl font-bold text-slate-800">₹{expert.sessionPrice}</span>
                     </div>
                     <button
                       onClick={() => openBookingModal(expert)}
-                      className="px-5 py-2.5 bg-primary text-white rounded-xl font-bold text-xs hover:bg-primary/90 transition-all shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 active:scale-95 flex items-center gap-1.5"
+                      className="px-5 py-2.5 bg-primary text-white rounded-lg font-bold text-xs hover:bg-primary/90 transition-all shadow-sm flex items-center gap-1.5"
                     >
                       Book Now
                       <ChevronRight size={14} />
@@ -420,13 +420,13 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
               <Loader2 className="animate-spin text-primary" size={32} />
             </div>
           ) : sessions.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-3xl border border-slate-100">
+            <div className="text-center py-16 bg-white rounded-xl border border-slate-100">
               <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Calendar size={24} className="text-slate-400" />
               </div>
               <p className="text-slate-500 font-semibold text-sm">No sessions booked yet.</p>
               <p className="text-slate-400 text-xs mt-1">Browse experts and book your first session!</p>
-              <button onClick={() => setTab('browse')} className="mt-4 px-5 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary/90 transition-all">
+              <button onClick={() => setTab('browse')} className="mt-4 px-5 py-2 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary/90 transition-all">
                 Browse Experts
               </button>
             </div>
@@ -435,15 +435,15 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
               {/* Upcoming Sessions */}
               {upcomingSessions.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                     Upcoming Sessions ({upcomingSessions.length})
                   </h3>
                   <div className="space-y-3">
                     {upcomingSessions.map((session) => (
-                      <div key={session.id} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div key={session.id} className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
                             <Video size={20} />
                           </div>
                           <div>
@@ -462,7 +462,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                               href={session.meetLink}
                               target="_blank"
                               rel="noreferrer"
-                              className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary/90 transition-all flex items-center gap-1.5"
+                              className="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary/90 transition-all flex items-center gap-1.5"
                             >
                               <Video size={14} /> Join
                             </a>
@@ -472,7 +472,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                               setRescheduleSession(session);
                               setRescheduleSlot(null);
                             }}
-                            className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
+                            className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
                             title="Reschedule"
                           >
                             <RefreshCw size={16} />
@@ -480,7 +480,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                           <button
                             onClick={() => handleCancel(session.id)}
                             disabled={cancellingId === session.id}
-                            className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all disabled:opacity-50"
+                            className="p-2 text-slate-400 hover:text-rose-50 hover:bg-rose-50 rounded-lg transition-all disabled:opacity-50"
                             title="Cancel"
                           >
                             {cancellingId === session.id ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
@@ -495,11 +495,11 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
               {/* Past Sessions */}
               {pastSessions.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-black text-slate-600 uppercase tracking-wider mb-3">Past Sessions</h3>
+                  <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wider mb-3">Past Sessions</h3>
                   <div className="space-y-3">
                     {pastSessions.map((session) => (
-                      <div key={session.id} className="bg-slate-50 rounded-2xl border border-slate-100 p-5 flex items-center gap-4 opacity-70">
-                        <div className="w-10 h-10 rounded-xl bg-slate-200 flex items-center justify-center text-slate-400 shrink-0">
+                      <div key={session.id} className="bg-slate-50 rounded-xl border border-slate-100 p-5 flex items-center gap-4 opacity-70">
+                        <div className="w-10 h-10 rounded-lg bg-slate-200 flex items-center justify-center text-slate-400 shrink-0">
                           <Clock size={18} />
                         </div>
                         <div>
@@ -532,7 +532,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
               <Loader2 className="animate-spin text-primary" size={32} />
             </div>
           ) : demoSessions.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+            <div className="text-center py-16 bg-white rounded-xl border border-slate-100 p-8 shadow-sm">
               <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Calendar size={24} className="text-slate-400" />
               </div>
@@ -548,7 +548,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                 return (
                   <div
                     key={demo.id}
-                    className="bg-white rounded-3xl border border-slate-150 p-6 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col justify-between relative overflow-hidden group"
+                    className="bg-white rounded-xl border border-slate-150 p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between relative overflow-hidden group"
                   >
                     {/* Top gradient border matching the program */}
                     <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${theme.gradient}`} />
@@ -556,14 +556,14 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                     <div className="space-y-4">
                       <div className="flex items-start justify-between flex-wrap gap-2">
                         <div>
-                          <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${theme.badge} inline-block mb-2`}>
+                          <span className={`text-[9px] font-semibold uppercase tracking-widest px-2.5 py-1 rounded-full ${theme.badge} inline-block mb-2`}>
                             Free Demo Session
                           </span>
-                          <h4 className={`text-xl font-extrabold tracking-tight ${theme.accent}`}>{progName}</h4>
+                          <h4 className={`text-xl font-bold tracking-tight ${theme.accent}`}>{progName}</h4>
                           <p className="text-xs font-semibold text-slate-400 mt-0.5">Cohort Target: {demo.classRange}</p>
                         </div>
                         
-                        <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 border shadow-sm ${
+                        <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 border shadow-sm ${
                           demo.status === 'PENDING' ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' :
                           demo.status === 'CONTACTED' ? 'bg-teal-500/10 text-teal-600 border-teal-500/20' :
                           demo.status === 'SCHEDULED' ? 'bg-purple-500/10 text-purple-600 border-purple-500/20' :
@@ -581,26 +581,26 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                         </span>
                       </div>
 
-                      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between gap-4">
+                      <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                          <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
                             <Calendar size={16} />
                           </div>
                           <div>
                             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Scheduled Date</p>
-                            <p className="text-sm font-extrabold text-slate-800 mt-0.5">{demo.slotDate || 'Not set'}</p>
+                            <p className="text-sm font-bold text-slate-800 mt-0.5">{demo.slotDate || 'Not set'}</p>
                           </div>
                         </div>
 
                         <div className="h-8 w-[1px] bg-slate-200" />
 
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                          <div className="w-9 h-9 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
                             <Clock size={16} />
                           </div>
                           <div>
                             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Time Slot</p>
-                            <p className="text-sm font-extrabold text-slate-800 mt-0.5">{demo.slotTime || 'Not set'}</p>
+                            <p className="text-sm font-bold text-slate-800 mt-0.5">{demo.slotTime || 'Not set'}</p>
                           </div>
                         </div>
                       </div>
@@ -626,21 +626,21 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
       {selectedExpert && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeModal}>
           <div
-            className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-300"
+            className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-300"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white rounded-t-3xl z-10">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white rounded-t-xl z-10">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-purple-100 flex items-center justify-center text-primary font-black text-sm">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/10 to-purple-100 flex items-center justify-center text-primary font-bold text-sm border border-primary/10 shrink-0">
                   {getInitials(selectedExpert.displayName)}
                 </div>
                 <div>
-                  <h3 className="font-black text-slate-800 text-sm">{selectedExpert.displayName}</h3>
+                  <h3 className="font-bold text-slate-800 text-sm">{selectedExpert.displayName}</h3>
                   <p className="text-[11px] text-slate-500 font-semibold">{selectedExpert.specialisation} · ₹{selectedExpert.sessionPrice}</p>
                 </div>
               </div>
-              <button onClick={closeModal} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+              <button onClick={closeModal} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
                 <X size={18} className="text-slate-400" />
               </button>
             </div>
@@ -649,7 +649,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
               {/* Slot Selection */}
               {bookingStep === 'slot' && (
                 <div className="space-y-5">
-                  <h4 className="text-xs font-black text-slate-600 uppercase tracking-wider">Select a Time Slot</h4>
+                  <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Select a Time Slot</h4>
 
                   <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
                     {selectedExpert.availableSlots.map((slot) => {
@@ -660,9 +660,9 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                         <button
                           key={slot}
                           onClick={() => setSelectedSlot(slot)}
-                          className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all text-left ${
+                          className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all text-left ${
                             isSelected
-                              ? 'border-primary bg-primary/5 shadow-md shadow-primary/10'
+                              ? 'border-primary bg-primary/5 shadow-sm'
                               : 'border-slate-100 hover:border-primary/30 hover:bg-slate-50'
                           }`}
                         >
@@ -686,7 +686,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                       if (selectedSlot) setBookingStep('confirm');
                     }}
                     disabled={!selectedSlot}
-                    className="w-full py-3.5 bg-primary text-white rounded-2xl font-bold text-sm shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full py-3 bg-primary text-white rounded-lg font-bold text-sm shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Continue to Confirm
                   </button>
@@ -696,9 +696,9 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
               {/* Confirmation */}
               {bookingStep === 'confirm' && selectedSlot && (
                 <div className="space-y-5">
-                  <h4 className="text-xs font-black text-slate-600 uppercase tracking-wider">Confirm Your Booking</h4>
+                  <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Confirm Your Booking</h4>
 
-                  <div className="bg-slate-50 rounded-2xl border border-slate-100 p-5 space-y-3">
+                  <div className="bg-slate-50 rounded-xl border border-slate-100 p-5 space-y-3">
                     <div className="flex justify-between text-sm">
                       <span className="text-slate-500 font-medium">Expert</span>
                       <span className="font-bold text-slate-800">{selectedExpert.displayName}</span>
@@ -713,12 +713,12 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                     </div>
                     <div className="flex justify-between text-sm pt-2 border-t border-slate-200">
                       <span className="text-slate-500 font-medium">Amount</span>
-                      <span className="font-black text-lg text-primary">₹{selectedExpert.sessionPrice}</span>
+                      <span className="font-bold text-lg text-primary">₹{selectedExpert.sessionPrice}</span>
                     </div>
                   </div>
 
                   {bookingError && (
-                    <div className="flex items-center gap-2 p-3 bg-rose-50 text-rose-600 rounded-xl text-xs font-semibold border border-rose-100">
+                    <div className="flex items-center gap-2 p-3 bg-rose-50 text-rose-600 rounded-lg text-xs font-semibold border border-rose-100">
                       <AlertCircle size={14} />
                       {bookingError}
                     </div>
@@ -727,13 +727,13 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                   <div className="flex gap-3">
                     <button
                       onClick={() => setBookingStep('slot')}
-                      className="flex-1 py-3 border border-slate-200 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-50 transition-all"
+                      className="flex-1 py-3 border border-slate-200 text-slate-600 rounded-lg font-bold text-sm hover:bg-slate-50 transition-all"
                     >
                       Back
                     </button>
                     <button
                       onClick={handleBookSession}
-                      className="flex-1 py-3 bg-primary text-white rounded-2xl font-bold text-sm shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all"
+                      className="flex-1 py-3 bg-primary text-white rounded-lg font-bold text-sm shadow-sm transition-all"
                     >
                       Pay ₹{selectedExpert.sessionPrice}
                     </button>
@@ -756,12 +756,12 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                     <CheckCircle2 size={36} />
                   </div>
                   <div className="text-center">
-                    <h4 className="text-lg font-black text-slate-800 mb-1">Booking Confirmed! 🎉</h4>
+                    <h4 className="text-lg font-bold text-slate-800 mb-1">Booking Confirmed! 🎉</h4>
                     <p className="text-sm text-slate-500 font-medium">Your session with {selectedExpert.displayName} has been booked.</p>
                   </div>
                   <button
                     onClick={() => { closeModal(); setTab('sessions'); }}
-                    className="px-6 py-3 bg-primary text-white rounded-2xl font-bold text-sm hover:bg-primary/90 transition-all"
+                    className="px-6 py-3 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary/90 transition-all"
                   >
                     View My Sessions
                   </button>
@@ -776,12 +776,12 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
       {rescheduleSession && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeModal}>
           <div
-            className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-300"
+            className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-300"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="font-black text-slate-800 text-sm">Reschedule Session</h3>
-              <button onClick={closeModal} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+              <h3 className="font-bold text-slate-800 text-sm">Reschedule Session</h3>
+              <button onClick={closeModal} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
                 <X size={18} className="text-slate-400" />
               </button>
             </div>
@@ -789,13 +789,13 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
               <p className="text-xs text-slate-500 font-semibold">
                 Current: {formatDate(rescheduleSession.scheduledAt)} at {formatTime(rescheduleSession.scheduledAt)}
               </p>
-              <h4 className="text-xs font-black text-slate-600 uppercase tracking-wider">Pick a New Time</h4>
+              <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Pick a New Time</h4>
               <div className="space-y-2 max-h-52 overflow-y-auto">
                 {generateSlots().map((slot) => (
                   <button
                     key={slot}
                     onClick={() => setRescheduleSlot(slot)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left text-sm transition-all ${
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left text-sm transition-all ${
                       rescheduleSlot === slot ? 'border-primary bg-primary/5' : 'border-slate-100 hover:border-primary/30'
                     }`}
                   >
@@ -808,7 +808,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
               <button
                 onClick={handleReschedule}
                 disabled={!rescheduleSlot}
-                className="w-full py-3 bg-primary text-white rounded-2xl font-bold text-sm disabled:opacity-40 transition-all"
+                className="w-full py-3 bg-primary text-white rounded-lg font-bold text-sm disabled:opacity-40 transition-all"
               >
                 Confirm Reschedule
               </button>

@@ -79,24 +79,23 @@ export default function ProfilePage() {
   const isTeen = user?.role === 'TEEN';
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
+    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12 w-full max-w-[1280px]">
       {/* Premium Header */}
-      <div className="bg-gradient-to-r from-primary/10 via-accent/5 to-white p-8 rounded-3xl border border-primary/10 relative overflow-hidden shadow-sm">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-3xl rounded-full translate-x-1/3 -translate-y-1/3 pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
+      <div className="bg-slate-50 p-6 rounded-xl border border-slate-200/80 relative overflow-hidden shadow-sm">
+        <div className="relative z-10 flex flex-col md:flex-row items-center gap-5">
           <div className="relative group cursor-pointer">
-            <div className="w-24 h-24 bg-gradient-to-br from-primary to-primary-light rounded-full flex items-center justify-center text-white text-3xl font-black shadow-lg">
+            <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary-light rounded-full flex items-center justify-center text-white text-xl font-bold shadow-md">
               {formData.displayName.charAt(0).toUpperCase() || 'U'}
             </div>
             <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <Camera className="text-white" />
+              <Camera className="text-white w-4 h-4" />
             </div>
           </div>
           <div className="text-center md:text-left">
-            <h1 className="text-3xl font-black text-slate-800 tracking-tight">
+            <h1 className="text-xl font-bold text-slate-800 tracking-tight">
               {isTeen ? 'My Space Settings' : 'Parent Profile & Preferences'}
             </h1>
-            <p className="text-sm font-semibold text-slate-500 mt-1 max-w-md">
+            <p className="text-xs font-semibold text-slate-500 mt-1">
               Manage your personal details, notification alerts, and learn how linking works.
             </p>
           </div>
@@ -107,72 +106,72 @@ export default function ProfilePage() {
       <div className="flex items-center gap-2 border-b border-slate-200">
         <button 
           onClick={() => setActiveTab('profile')}
-          className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all ${activeTab === 'profile' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
+          className={`pb-2 px-4 text-xs font-bold border-b-2 transition-all ${activeTab === 'profile' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
         >
           Personal Info
         </button>
         <button 
           onClick={() => setActiveTab('notifications')}
-          className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all ${activeTab === 'notifications' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
+          className={`pb-2 px-4 text-xs font-bold border-b-2 transition-all ${activeTab === 'notifications' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
         >
           Alerts & Notifications
         </button>
       </div>
 
       {/* Content Area */}
-      <div className="grid md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 space-y-6">
+      <div className="grid md:grid-cols-3 gap-6">
+        <div className="md:col-span-2 space-y-5">
           
           {/* TAB 1: Profile */}
           {activeTab === 'profile' && (
-            <form onSubmit={handleSave} className="bg-white border border-slate-100 rounded-3xl p-8 shadow-xl shadow-slate-200/20 space-y-6 animate-in fade-in">
-              <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-4">
-                <User size={18} className="text-primary" /> Personal Information
+            <form onSubmit={handleSave} className="bg-white border border-slate-100 rounded-xl p-5 shadow-sm space-y-5 animate-in fade-in">
+              <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
+                <User size={16} className="text-primary" /> Personal Information
               </h2>
               
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Full Name</label>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">Full Name</label>
                   <input
                     type="text"
                     name="displayName"
                     value={formData.displayName}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Email Address</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Email Address</label>
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Phone Number</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Phone Number</label>
                     <input
                       type="tel"
                       name="phone"
                       value={formData.phone}
                       disabled
-                      className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-sm font-medium text-slate-500 cursor-not-allowed"
+                      className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-sm font-semibold text-slate-500 cursor-not-allowed"
                     />
-                    <p className="text-[10px] text-slate-400 mt-1">Contact support to change primary phone.</p>
+                    <p className="text-[9px] text-slate-400 mt-1">Contact support to change primary phone.</p>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-4 flex justify-end">
+              <div className="pt-3 flex justify-end">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-primary hover:bg-primary-dark text-white px-8 py-3 rounded-xl font-extrabold text-sm flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
+                  className="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm"
                 >
-                  {loading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                  {loading ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                   Save Changes
                 </button>
               </div>
@@ -181,71 +180,71 @@ export default function ProfilePage() {
 
           {/* TAB 2: Notifications */}
           {activeTab === 'notifications' && (
-            <div className="bg-white border border-slate-100 rounded-3xl p-8 shadow-xl shadow-slate-200/20 space-y-6 animate-in fade-in">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                  <Bell size={18} className="text-primary" /> Delivery Channels
+            <div className="bg-white border border-slate-100 rounded-xl p-5 shadow-sm space-y-5 animate-in fade-in">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                  <Bell size={16} className="text-primary" /> Delivery Channels
                 </h2>
               </div>
               
               <div className="flex gap-4">
                 <button 
                   onClick={() => handleToggle('pushEnabled')}
-                  className={`flex-1 p-4 rounded-2xl border-2 transition-all text-center ${notifications.pushEnabled ? 'border-primary bg-primary/5 text-primary' : 'border-slate-100 text-slate-500 hover:border-slate-200'}`}
+                  className={`flex-1 p-3 rounded-lg border-2 transition-all text-center ${notifications.pushEnabled ? 'border-primary bg-primary/5 text-primary' : 'border-slate-100 text-slate-500 hover:border-slate-200'}`}
                 >
-                  <Send className="w-6 h-6 mx-auto mb-2" />
-                  <span className="font-bold text-sm block">Push & Email Alerts</span>
-                  <span className="text-xs opacity-80">{notifications.pushEnabled ? 'Enabled' : 'Disabled'}</span>
+                  <Send className="w-5 h-5 mx-auto mb-1.5" />
+                  <span className="font-semibold text-xs block">Push & Email Alerts</span>
+                  <span className="text-[10px] opacity-80">{notifications.pushEnabled ? 'Enabled' : 'Disabled'}</span>
                 </button>
               </div>
 
-              <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-4 pt-4">
-                <Sparkles size={18} className="text-primary" /> Alert Preferences
+              <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3 pt-3">
+                <Sparkles size={16} className="text-primary" /> Alert Preferences
               </h2>
 
-              <div className="space-y-3">
-                <label className="flex items-center justify-between p-4 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+              <div className="space-y-3.5">
+                <label className="flex items-center justify-between p-3.5 border border-slate-100 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center shrink-0"><ShieldAlert size={18} /></div>
+                    <div className="w-9 h-9 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center shrink-0"><ShieldAlert size={16} /></div>
                     <div>
-                      <p className="font-bold text-sm text-slate-700">Daughter Inactivity (7 Days)</p>
-                      <p className="text-xs text-slate-500">Alert if she hasn't logged in or viewed resources for a week</p>
+                      <p className="font-semibold text-xs text-slate-700">Daughter Inactivity (7 Days)</p>
+                      <p className="text-[11px] text-slate-505">Alert if she hasn't logged in or viewed resources for a week</p>
                     </div>
                   </div>
-                  <input type="checkbox" checked={notifications.inactivityAlert} onChange={() => handleToggle('inactivityAlert')} className="w-5 h-5 accent-primary" />
+                  <input type="checkbox" checked={notifications.inactivityAlert} onChange={() => handleToggle('inactivityAlert')} className="w-4 h-4 accent-primary" />
                 </label>
 
-                <label className="flex items-center justify-between p-4 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                <label className="flex items-center justify-between p-3.5 border border-slate-100 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0"><Calendar size={18} /></div>
+                    <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center shrink-0"><Calendar size={16} /></div>
                     <div>
-                      <p className="font-bold text-sm text-slate-700">Upcoming Sessions</p>
-                      <p className="text-xs text-slate-500">24-hour and 1-hour reminders before expert sessions</p>
+                      <p className="font-semibold text-xs text-slate-700">Upcoming Sessions</p>
+                      <p className="text-[11px] text-slate-505">24-hour and 1-hour reminders before expert sessions</p>
                     </div>
                   </div>
-                  <input type="checkbox" checked={notifications.upcomingSessions} onChange={() => handleToggle('upcomingSessions')} className="w-5 h-5 accent-primary" />
+                  <input type="checkbox" checked={notifications.upcomingSessions} onChange={() => handleToggle('upcomingSessions')} className="w-4 h-4 accent-primary" />
                 </label>
 
-                <label className="flex items-center justify-between p-4 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                <label className="flex items-center justify-between p-3.5 border border-slate-100 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-500 flex items-center justify-center shrink-0"><Sparkles size={18} /></div>
+                    <div className="w-9 h-9 rounded-lg bg-purple-50 text-purple-500 flex items-center justify-center shrink-0"><Sparkles size={16} /></div>
                     <div>
-                      <p className="font-bold text-sm text-slate-700">New Weekly Prompts</p>
-                      <p className="text-xs text-slate-500">Get notified when fresh conversation starters are posted</p>
+                      <p className="font-semibold text-xs text-slate-700">New Weekly Prompts</p>
+                      <p className="text-[11px] text-slate-505">Get notified when fresh conversation starters are posted</p>
                     </div>
                   </div>
-                  <input type="checkbox" checked={notifications.weeklyPrompt} onChange={() => handleToggle('weeklyPrompt')} className="w-5 h-5 accent-primary" />
+                  <input type="checkbox" checked={notifications.weeklyPrompt} onChange={() => handleToggle('weeklyPrompt')} className="w-4 h-4 accent-primary" />
                 </label>
 
-                <label className="flex items-center justify-between p-4 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                <label className="flex items-center justify-between p-3.5 border border-slate-100 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0"><BookOpen size={18} /></div>
+                    <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0"><BookOpen size={16} /></div>
                     <div>
-                      <p className="font-bold text-sm text-slate-700">New Resources Added</p>
-                      <p className="text-xs text-slate-500">Updates when expert articles or worksheets drop in the library</p>
+                      <p className="font-semibold text-xs text-slate-700">New Resources Added</p>
+                      <p className="text-[11px] text-slate-505">Updates when expert articles or worksheets drop in the library</p>
                     </div>
                   </div>
-                  <input type="checkbox" checked={notifications.newResource} onChange={() => handleToggle('newResource')} className="w-5 h-5 accent-primary" />
+                  <input type="checkbox" checked={notifications.newResource} onChange={() => handleToggle('newResource')} className="w-4 h-4 accent-primary" />
                 </label>
               </div>
             </div>
@@ -254,20 +253,20 @@ export default function ProfilePage() {
         </div>
 
         {/* Sidebar Widget */}
-        <div className="space-y-6">
-          <div className="bg-indigo-50 border border-indigo-100 rounded-3xl p-6 text-center space-y-4">
-            <div className="w-14 h-14 bg-white text-indigo-600 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
-              <Link2 size={28} />
+        <div className="space-y-5">
+          <div className="bg-indigo-50/40 border border-indigo-100 rounded-xl p-5 text-center space-y-3">
+            <div className="w-10 h-10 bg-white text-indigo-600 rounded-lg flex items-center justify-center mx-auto shadow-sm">
+              <Link2 size={20} />
             </div>
             <div>
-              <h3 className="font-black text-indigo-900 text-lg">{isTeen ? 'Parent Linking' : 'Daughter Linking'}</h3>
-              <p className="text-xs font-semibold text-indigo-700/80 mt-2 leading-relaxed">
+              <h3 className="font-bold text-indigo-900 text-base">{isTeen ? 'Parent Linking' : 'Daughter Linking'}</h3>
+              <p className="text-[11px] font-medium text-slate-500 mt-1.5 leading-relaxed">
                 Connect accounts to share progress updates and synchronize calendars.
               </p>
             </div>
             <Link 
               href="/dashboard/parent"
-              className="block w-full py-3 bg-indigo-600 text-white border border-indigo-500 rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-md shadow-indigo-500/20"
+              className="block w-full py-2 bg-indigo-600 text-white border border-indigo-500 rounded-lg font-bold text-xs hover:bg-indigo-750 transition-all shadow-sm"
             >
               Manage Links
             </Link>

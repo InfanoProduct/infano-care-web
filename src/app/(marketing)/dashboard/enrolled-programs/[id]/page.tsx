@@ -82,101 +82,101 @@ export default function EnrolledProgramDetailsPage() {
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <Link href="/dashboard/enrolled-programs" className="inline-flex items-center gap-2 text-sm font-extrabold text-slate-500 hover:text-primary transition-colors">
-        <ArrowLeft size={16} /> Back to Enrolled Programs
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-[1280px] mx-auto pb-8">
+      <Link href="/dashboard/enrolled-programs" className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-primary transition-colors">
+        <ArrowLeft size={14} /> Back to Enrolled Programs
       </Link>
 
-      <div className="bg-white border border-slate-100 rounded-2xl shadow-xl shadow-slate-200/30 overflow-hidden">
+      <div className="bg-white border border-slate-100 rounded-xl shadow-md overflow-hidden">
         {/* Program Header */}
-        <div className={`h-2 w-full bg-gradient-to-r ${theme.gradient}`} />
-        <div className="p-8 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div className={`h-1.5 w-full bg-gradient-to-r ${theme.gradient}`} />
+        <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
             <div className="flex items-center gap-2">
-              <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${theme.badge}`}>Live Program Active</span>
+              <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${theme.badge}`}>Live Program Active</span>
               {enrollment.user?.id && user?.id && enrollment.user.id !== user.id && (
-                <span className={`text-[9px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${enrollment.user?.role === 'TEEN' ? 'bg-purple-50 text-purple-600 border-purple-200' : 'bg-blue-50 text-blue-600 border-blue-200'}`}>
+                <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded border uppercase tracking-wider ${enrollment.user?.role === 'TEEN' ? 'bg-purple-50 text-purple-650 border-purple-200' : 'bg-blue-50 text-blue-600 border-blue-200'}`}>
                   Enrolled by: {enrollment.user?.role === 'TEEN' ? 'Daughter' : 'Parent'}
                 </span>
               )}
             </div>
-            <h2 className={`text-3xl font-extrabold mt-2 ${theme.accent}`}>{enrollment.program.title} Program</h2>
-            <p className="text-sm font-semibold text-slate-500 mt-1">
+            <h2 className={`text-xl font-bold mt-1.5 ${theme.accent}`}>{enrollment.program.title} Program</h2>
+            <p className="text-xs font-semibold text-slate-400 mt-1">
               {enrollment.program.classRange} • Enrolled {new Date(enrollment.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} • {enrollment.type === 'PRIVATE' ? '1:1 Private Mentoring' : 'Group Cohort'}
             </p>
           </div>
-          <div className="flex items-center gap-4 shrink-0 bg-slate-50 px-6 py-4 rounded-2xl border border-slate-100">
+          <div className="flex items-center gap-3.5 shrink-0 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100">
             <div className="text-right">
-              <span className="text-3xl font-black text-slate-800">{pct}%</span>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Completed</p>
+              <span className="text-xl font-bold text-slate-800">{pct}%</span>
+              <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Completed</p>
             </div>
-            <div className="w-14 h-14 bg-white border border-slate-100 rounded-xl flex items-center justify-center font-black text-lg text-slate-700 shadow-sm">
+            <div className="w-10 h-10 bg-white border border-slate-100 rounded-lg flex items-center justify-center font-bold text-sm text-slate-700 shadow-sm">
               {completed}/{total}
             </div>
           </div>
         </div>
 
         {/* Sessions grid */}
-        <div className="p-8 bg-slate-50/30">
-          <h4 className="text-sm font-black uppercase tracking-widest text-slate-500 mb-6 flex items-center gap-2"><BookOpen size={16} className="text-slate-400" /> Session Timeline</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="p-6 bg-slate-50/20">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-5 flex items-center gap-2"><BookOpen size={14} className="text-slate-400" /> Session Timeline</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {sessionsWithStatus.map((session: any, index: number) => {
               if (session.status === 'completed') return (
-                <div key={index} className="p-5 bg-white border border-slate-200/60 rounded-2xl shadow-sm hover:shadow-md transition-shadow flex items-start gap-4 relative overflow-hidden">
+                <div key={index} className="p-4 bg-white border border-slate-200/60 rounded-lg shadow-sm hover:shadow-md transition-shadow flex items-start gap-3.5 relative overflow-hidden">
                   <div className="absolute top-0 left-0 h-full w-1 bg-green-500" />
-                  <div className="w-10 h-10 bg-green-50 text-green-600 border border-green-100 rounded-xl flex items-center justify-center shrink-0">
-                    <CheckCircle2 size={20} className="fill-green-100" />
+                  <div className="w-9 h-9 bg-green-50 text-green-600 border border-green-100 rounded-lg flex items-center justify-center shrink-0">
+                    <CheckCircle2 size={18} className="fill-green-100" />
                   </div>
                   <div className="space-y-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[10px] font-black text-green-700 bg-green-100 px-2 py-0.5 rounded-full uppercase tracking-wider">Completed</span>
-                      <span className="text-[11px] text-slate-500 font-bold">{session.formattedDate}</span>
+                      <span className="text-[10px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded-md uppercase tracking-wider">Completed</span>
+                      <span className="text-[11px] text-slate-550 font-semibold">{session.formattedDate}</span>
                     </div>
-                    <h6 className="font-extrabold text-base text-slate-800 leading-tight truncate">{session.title}</h6>
-                    <p className="text-xs text-slate-500 font-semibold leading-relaxed line-clamp-2">{session.description}</p>
+                    <h6 className="font-bold text-sm text-slate-800 leading-tight truncate">{session.title}</h6>
+                    <p className="text-xs text-slate-500 font-medium leading-relaxed line-clamp-2">{session.description}</p>
                   </div>
                 </div>
               );
 
               if (session.status === 'scheduled') return (
-                <div key={index} id="upcoming-session" className="p-5 bg-gradient-to-br from-purple-50 to-indigo-50/50 border-2 border-purple-200 rounded-2xl shadow-lg flex flex-col gap-4 relative overflow-hidden sm:col-span-2">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-purple-600 text-white rounded-xl flex items-center justify-center shrink-0 shadow-md animate-bounce shadow-purple-600/20">
-                      <Play size={20} className="fill-white translate-x-0.5" />
+                <div key={index} id="upcoming-session" className="p-5 bg-gradient-to-br from-purple-50 to-indigo-50/50 border border-purple-200 rounded-lg shadow-md flex flex-col gap-3.5 relative overflow-hidden sm:col-span-2">
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-10 h-10 bg-purple-600 text-white rounded-lg flex items-center justify-center shrink-0 shadow-md animate-pulse">
+                      <Play size={18} className="fill-white translate-x-0.5" />
                     </div>
-                    <div className="space-y-1.5">
+                    <div className="space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[10px] font-black text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full uppercase tracking-widest animate-pulse border border-purple-200">Upcoming Live</span>
-                        <span className="text-[11px] font-extrabold text-indigo-600 flex items-center gap-1"><Calendar size={12} /> {session.formattedDate} at {session.formattedTime}</span>
+                        <span className="text-[10px] font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md uppercase tracking-wider animate-pulse border border-purple-200">Upcoming Live</span>
+                        <span className="text-[11px] font-semibold text-indigo-650 flex items-center gap-1"><Calendar size={11} /> {session.formattedDate} at {session.formattedTime}</span>
                       </div>
-                      <h6 className="font-extrabold text-lg text-slate-900 leading-tight">{session.title}</h6>
-                      <p className="text-xs text-slate-600 font-semibold leading-relaxed max-w-2xl">{session.description}</p>
+                      <h6 className="font-bold text-base text-slate-900 leading-tight">{session.title}</h6>
+                      <p className="text-xs text-slate-605 font-medium leading-relaxed max-w-2xl">{session.description}</p>
                     </div>
                   </div>
-                  <div className="border-t border-purple-200/60 pt-4 flex items-center justify-between gap-4 mt-2">
-                    <div className="flex items-center gap-2 text-sm font-bold text-purple-800 bg-purple-100/50 px-4 py-2 rounded-xl"><Info size={16} /> Prepare your workbook before class</div>
+                  <div className="border-t border-purple-200/50 pt-3 flex items-center justify-between gap-4 mt-1">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-purple-800 bg-purple-100/40 px-3 py-1.5 rounded-lg"><Info size={14} /> Prepare your workbook before class</div>
                     {session.meetLink ? (
-                      <a href={session.meetLink} target="_blank" rel="noopener noreferrer" className="bg-purple-600 hover:bg-purple-700 text-white font-extrabold py-3 px-6 rounded-xl flex items-center gap-2 text-sm transition-all active:scale-95 shadow-md shadow-purple-600/20">
-                        Join Live Class <ChevronRight size={16} />
+                      <a href={session.meetLink} target="_blank" rel="noopener noreferrer" className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-1.5 text-xs transition-all active:scale-95 shadow-sm">
+                        Join Live Class <ChevronRight size={14} />
                       </a>
                     ) : (
-                      <span className="text-sm text-purple-700 font-extrabold bg-purple-100 px-4 py-2.5 rounded-xl border border-purple-200">Link coming soon</span>
+                      <span className="text-xs text-purple-750 font-bold bg-purple-100 px-3 py-1.5 rounded-lg border border-purple-200">Link coming soon</span>
                     )}
                   </div>
                 </div>
               );
 
               return (
-                <div key={index} className="p-5 bg-slate-50 border border-slate-200/60 rounded-2xl flex items-start gap-4 hover:border-slate-300 transition-colors">
-                  <div className="w-10 h-10 bg-white text-slate-400 border border-slate-200 rounded-xl flex items-center justify-center shrink-0 shadow-sm">
-                    <Lock size={18} />
+                <div key={index} className="p-4 bg-slate-50 border border-slate-200/60 rounded-lg flex items-start gap-3.5 hover:border-slate-300 transition-colors">
+                  <div className="w-8 h-8 bg-white text-slate-400 border border-slate-200 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
+                    <Lock size={16} />
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black text-slate-500 bg-slate-200/60 px-2 py-0.5 rounded-full uppercase tracking-wider">Not Scheduled</span>
+                      <span className="text-[10px] font-bold text-slate-500 bg-slate-200/60 px-1.5 py-0.5 rounded-md uppercase tracking-wider">Not Scheduled</span>
                     </div>
-                    <h6 className="font-extrabold text-base text-slate-600 leading-tight">{session.title}</h6>
-                    <p className="text-xs text-slate-500 font-semibold leading-relaxed">{session.description}</p>
+                    <h6 className="font-bold text-sm text-slate-600 leading-tight">{session.title}</h6>
+                    <p className="text-xs text-slate-500 font-medium leading-relaxed">{session.description}</p>
                   </div>
                 </div>
               );

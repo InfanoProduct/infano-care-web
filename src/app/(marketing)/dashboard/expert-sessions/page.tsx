@@ -22,10 +22,10 @@ export default function ExpertSessionsPage() {
   }, [user]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 w-full max-w-[1280px] mx-auto pb-8 font-sans">
       <div className="admin-header">
-        <h1 className="text-3xl font-bold tracking-tight">Expert Sessions</h1>
-        <p className="text-muted-foreground mt-1">
+        <h1 className="text-xl font-bold tracking-tight">Expert Sessions</h1>
+        <p className="text-xs text-slate-505 mt-1">
           Browse verified experts and book 1:1 sessions for your daughter.
         </p>
       </div>

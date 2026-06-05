@@ -3,14 +3,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
-  ArrowLeft, ChevronLeft, ChevronRight, Star, CheckCircle2, AlertCircle,
+  ArrowLeft, ChevronLeft, ChevronRight, ChevronDown, Star, CheckCircle2, AlertCircle,
   BookOpen, HelpCircle, Sparkles, Trophy, Loader2, Info, Check, Lock,
-  ShieldAlert, PenTool, Bookmark, Menu
+  ShieldAlert, PenTool, Bookmark, Menu, AlertTriangle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LearningService, Episode } from '@/services/learning.service';
 import { useAuthStore } from '@/store/auth-store';
-import { toast } from 'react-hot-toast';
 
 interface QuizQuestion {
   question: string;
@@ -163,29 +162,29 @@ const normalizeContent = (content: any): CurriculumContent => {
 const CATEGORY_THEMES: Record<string, { accent: string; gradient: string; bg: string; border: string; iconBg: string; shadow: string; toClass: string }> = {
   'puberty': {
     accent: 'text-rose-600', gradient: 'from-rose-500 to-pink-500', bg: 'bg-rose-50/50',
-    border: 'border-rose-100', iconBg: 'bg-rose-100/60', shadow: 'shadow-rose-105/20', toClass: 'to-rose-50/10'
+    border: 'border-rose-100', iconBg: 'bg-rose-100/60', shadow: 'shadow-rose-500/20', toClass: 'to-rose-50/10'
   },
   'mental-health': {
-    accent: 'text-teal-650', gradient: 'from-teal-500 to-emerald-500', bg: 'bg-teal-50/50',
-    border: 'border-teal-100', iconBg: 'bg-teal-100/60', shadow: 'shadow-teal-105/20', toClass: 'to-teal-50/10'
+    accent: 'text-teal-600', gradient: 'from-teal-500 to-emerald-500', bg: 'bg-teal-50/50',
+    border: 'border-teal-100', iconBg: 'bg-teal-100/60', shadow: 'shadow-teal-500/20', toClass: 'to-teal-50/10'
   },
   'relationships': {
-    accent: 'text-violet-650', gradient: 'from-violet-500 to-purple-500', bg: 'bg-violet-50/50',
-    border: 'border-violet-100', iconBg: 'bg-violet-100/60', shadow: 'shadow-violet-105/20', toClass: 'to-violet-50/10'
+    accent: 'text-violet-600', gradient: 'from-violet-500 to-purple-500', bg: 'bg-violet-50/50',
+    border: 'border-violet-100', iconBg: 'bg-violet-100/60', shadow: 'shadow-violet-500/20', toClass: 'to-violet-50/10'
   },
   'body': {
-    accent: 'text-amber-650', gradient: 'from-amber-500 to-orange-500', bg: 'bg-amber-50/50',
-    border: 'border-amber-100', iconBg: 'bg-amber-100/60', shadow: 'shadow-amber-105/20', toClass: 'to-amber-50/10'
+    accent: 'text-amber-600', gradient: 'from-amber-500 to-orange-500', bg: 'bg-amber-50/50',
+    border: 'border-amber-100', iconBg: 'bg-amber-100/60', shadow: 'shadow-amber-500/20', toClass: 'to-amber-50/10'
   },
   'safety': {
-    accent: 'text-blue-650', gradient: 'from-blue-500 to-indigo-500', bg: 'bg-blue-50/50',
-    border: 'border-blue-100', iconBg: 'bg-blue-100/60', shadow: 'shadow-blue-105/20', toClass: 'to-blue-50/10'
+    accent: 'text-blue-600', gradient: 'from-blue-500 to-indigo-500', bg: 'bg-blue-50/50',
+    border: 'border-blue-100', iconBg: 'bg-blue-100/60', shadow: 'shadow-blue-500/20', toClass: 'to-blue-50/10'
   },
 };
 
 const DEFAULT_THEME = {
-  accent: 'text-purple-605', gradient: 'from-purple-500 to-indigo-500', bg: 'bg-purple-50/50',
-  border: 'border-purple-100', iconBg: 'bg-purple-100/60', shadow: 'shadow-purple-105/20', toClass: 'to-purple-50/10'
+  accent: 'text-purple-600', gradient: 'from-purple-500 to-indigo-500', bg: 'bg-purple-50/50',
+  border: 'border-purple-100', iconBg: 'bg-purple-100/60', shadow: 'shadow-purple-500/20', toClass: 'to-purple-50/10'
 };
 
 function getTheme(category: string | null | undefined) {
@@ -207,6 +206,19 @@ export default function EpisodePlayerPage() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [sidebarNotice, setSidebarNotice] = useState<string | null>(null);
+  const [quizNotice, setQuizNotice] = useState<Record<number, { type: 'success' | 'error'; message: string } | null>>({});
+  const [completionNotice, setCompletionNotice] = useState<{ success?: string; error?: string } | null>(null);
+
+  useEffect(() => {
+    if (sidebarNotice) {
+      const timer = setTimeout(() => {
+        setSidebarNotice(null);
+      }, 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [sidebarNotice]);
 
   // Normalized contents
   const [content, setContent] = useState<CurriculumContent>(DEFAULT_CONTENT);
@@ -221,13 +233,21 @@ export default function EpisodePlayerPage() {
   const [currentStoryPage, setCurrentStoryPage] = useState(0);
 
   // Quiz interactive state
+  const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({});
   const [quizLocked, setQuizLocked] = useState<Record<number, boolean>>({}); // locked after answering
   const [incorrectAttempts, setIncorrectAttempts] = useState<Record<number, number>>({});
 
+  // Peer Flow sub-indices
+  const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
+  const [currentSafeProtocolIndex, setCurrentSafeProtocolIndex] = useState(0);
+
   // Journal/Reflection state
   const [reflectionText, setReflectionText] = useState('');
   const [reflectionMode, setReflectionMode] = useState<'private' | 'community'>('private');
+
+  // LMS Outline expansion state
+  const [expandedSteps, setExpandedSteps] = useState<Record<string, boolean>>({});
 
   const theme = getTheme(journeyCategory || episode?.description);
 
@@ -310,14 +330,16 @@ export default function EpisodePlayerPage() {
         setCompletedSteps(doneSteps);
         setCurrentStepIndex(initialStepIndex);
         setCurrentStoryPage(0);
+        setCurrentQuizIndex(0);
+        setCurrentModuleIndex(0);
+        setCurrentSafeProtocolIndex(0);
         setQuizAnswers({});
         setQuizLocked({});
         setIncorrectAttempts({});
         setReflectionText('');
         setReflectionMode('private');
       } catch (err) {
-        toast.error('Failed to load episode details.');
-        router.push(`/dashboard/learning-journeys/${journeyId}`);
+        setLoadError('Failed to load episode details.');
       } finally {
         setLoading(false);
       }
@@ -328,16 +350,45 @@ export default function EpisodePlayerPage() {
 
   const currentStep = steps[currentStepIndex];
 
+  // LMS outline expansion effect
+  useEffect(() => {
+    if (currentStep) {
+      setExpandedSteps(prev => ({
+        ...prev,
+        [currentStep]: true
+      }));
+    }
+  }, [currentStep]);
+
+  const toggleStepExpansion = (stepName: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedSteps(prev => ({
+      ...prev,
+      [stepName]: !prev[stepName]
+    }));
+  };
+
+  const handleStepHeaderClick = (idx: number, stepName: string, e: React.MouseEvent) => {
+    const subItems = getSubItems(stepName);
+    if (subItems.length > 1) {
+      toggleStepExpansion(stepName, e);
+    } else {
+      handleSidebarClick(idx);
+    }
+  };
+
   // Helper validation to proceed to next slide
   const canProceed = useCallback(() => {
     if (!currentStep) return false;
 
     if (!isPeerTraining) {
       if (currentStep === 'story' && content.story?.pages) {
-        return currentStoryPage >= content.story.pages.length - 1;
+        return true; // Always allow reading next story pages
       }
       if (currentStep === 'quiz' && content.quiz?.questions) {
-        return content.quiz.questions.every((_, idx) => quizLocked[idx] && quizAnswers[idx] === _.correctIndex);
+        const currentQ = content.quiz.questions[currentQuizIndex];
+        if (!currentQ) return false;
+        return quizLocked[currentQuizIndex] && quizAnswers[currentQuizIndex] === currentQ.correctIndex;
       }
       if (currentStep === 'journal') {
         return reflectionText.trim().length >= 20;
@@ -348,7 +399,7 @@ export default function EpisodePlayerPage() {
       }
     }
     return true;
-  }, [currentStep, isPeerTraining, content, currentStoryPage, quizAnswers, quizLocked, reflectionText]);
+  }, [currentStep, isPeerTraining, content, currentQuizIndex, quizAnswers, quizLocked, reflectionText]);
 
   // Sync current progress in database
   const saveProgress = async (nextStepIndex: number) => {
@@ -377,13 +428,35 @@ export default function EpisodePlayerPage() {
 
   // Handle NEXT action
   const handleNext = () => {
+    // 1. Navigate sub-steps inside the active step
     if (currentStep === 'story' && content.story?.pages && currentStoryPage < content.story.pages.length - 1) {
       setCurrentStoryPage(prev => prev + 1);
       return;
     }
+    if (currentStep === 'quiz' && content.quiz?.questions && currentQuizIndex < content.quiz.questions.length - 1) {
+      setCurrentQuizIndex(prev => prev + 1);
+      return;
+    }
+    if (currentStep === 'modules' && content.modules && currentModuleIndex < content.modules.length - 1) {
+      setCurrentModuleIndex(prev => prev + 1);
+      return;
+    }
+    if (currentStep === 'safe-protocol' && content.safeProtocol && currentSafeProtocolIndex < content.safeProtocol.length - 1) {
+      setCurrentSafeProtocolIndex(prev => prev + 1);
+      return;
+    }
 
+    // 2. Move to the next primary step
     if (currentStepIndex < steps.length - 1) {
       const nextIdx = currentStepIndex + 1;
+      const nextStepName = steps[nextIdx];
+
+      // Reset sub-indices of the next step when entering it
+      if (nextStepName === 'story') setCurrentStoryPage(0);
+      if (nextStepName === 'quiz') setCurrentQuizIndex(0);
+      if (nextStepName === 'modules') setCurrentModuleIndex(0);
+      if (nextStepName === 'safe-protocol') setCurrentSafeProtocolIndex(0);
+
       setCurrentStepIndex(nextIdx);
       saveProgress(nextIdx);
     }
@@ -391,13 +464,43 @@ export default function EpisodePlayerPage() {
 
   // Handle PREVIOUS action
   const handlePrev = () => {
+    // 1. Navigate sub-steps inside the active step
     if (currentStep === 'story' && currentStoryPage > 0) {
       setCurrentStoryPage(prev => prev - 1);
       return;
     }
+    if (currentStep === 'quiz' && currentQuizIndex > 0) {
+      setCurrentQuizIndex(prev => prev - 1);
+      return;
+    }
+    if (currentStep === 'modules' && currentModuleIndex > 0) {
+      setCurrentModuleIndex(prev => prev - 1);
+      return;
+    }
+    if (currentStep === 'safe-protocol' && currentSafeProtocolIndex > 0) {
+      setCurrentSafeProtocolIndex(prev => prev - 1);
+      return;
+    }
 
+    // 2. Move to the previous primary step
     if (currentStepIndex > 0) {
       const prevIdx = currentStepIndex - 1;
+      const prevStepName = steps[prevIdx];
+
+      // Set sub-indices of the previous step to its last sub-item
+      if (prevStepName === 'story' && content.story?.pages) {
+        setCurrentStoryPage(content.story.pages.length - 1);
+      }
+      if (prevStepName === 'quiz' && content.quiz?.questions) {
+        setCurrentQuizIndex(content.quiz.questions.length - 1);
+      }
+      if (prevStepName === 'modules' && content.modules) {
+        setCurrentModuleIndex(content.modules.length - 1);
+      }
+      if (prevStepName === 'safe-protocol' && content.safeProtocol) {
+        setCurrentSafeProtocolIndex(content.safeProtocol.length - 1);
+      }
+
       setCurrentStepIndex(prevIdx);
       saveProgress(prevIdx);
     }
@@ -405,17 +508,85 @@ export default function EpisodePlayerPage() {
 
   // Handle sidebar clicks
   const handleSidebarClick = (index: number) => {
+    const stepName = steps[index];
     const isUnlocked = index === 0 || completedSteps.includes(steps[index - 1]);
     if (!isUnlocked) {
-      toast.error('This step is locked. Complete the previous steps first!');
+      setSidebarNotice('This step is locked. Complete the previous steps first!');
       return;
     }
+
+    // Reset sub-indices of the step to 0 when clicking from sidebar
+    if (stepName === 'story') setCurrentStoryPage(0);
+    if (stepName === 'quiz') setCurrentQuizIndex(0);
+    if (stepName === 'modules') setCurrentModuleIndex(0);
+    if (stepName === 'safe-protocol') setCurrentSafeProtocolIndex(0);
+
     setCurrentStepIndex(index);
-    if (steps[index] === 'story') {
-      setCurrentStoryPage(0);
-    }
     saveProgress(index);
     setSidebarOpen(false); // Close sidebar drawer on mobile
+  };
+
+  const getSubItems = (stepName: string) => {
+    if (stepName === 'story' && content.story?.pages) {
+      return content.story.pages.map((_, i) => ({ label: `Page ${i + 1}`, index: i }));
+    }
+    if (stepName === 'quiz' && content.quiz?.questions) {
+      return content.quiz.questions.map((_, i) => ({ label: `Question ${i + 1}`, index: i }));
+    }
+    if (stepName === 'modules' && content.modules) {
+      return content.modules.map((m, i) => ({ label: m.title || `Module ${i + 1}`, index: i }));
+    }
+    if (stepName === 'safe-protocol' && content.safeProtocol) {
+      return content.safeProtocol.map((sp, i) => ({ label: sp.step || `Step ${i + 1}`, index: i }));
+    }
+    return [];
+  };
+
+  const getSubActiveState = (stepName: string, subIdx: number) => {
+    if (stepName !== currentStep) return false;
+    if (stepName === 'story') return currentStoryPage === subIdx;
+    if (stepName === 'quiz') return currentQuizIndex === subIdx;
+    if (stepName === 'modules') return currentModuleIndex === subIdx;
+    if (stepName === 'safe-protocol') return currentSafeProtocolIndex === subIdx;
+    return false;
+  };
+
+  const getSubCompletedState = (stepName: string, subIdx: number) => {
+    if (completedSteps.includes(stepName)) return true;
+    if (stepName !== currentStep) return false;
+    if (stepName === 'story') return subIdx < currentStoryPage;
+    if (stepName === 'quiz') return quizLocked[subIdx] && quizAnswers[subIdx] === content.quiz?.questions[subIdx]?.correctIndex;
+    if (stepName === 'modules') return subIdx < currentModuleIndex;
+    if (stepName === 'safe-protocol') return subIdx < currentSafeProtocolIndex;
+    return false;
+  };
+
+  const handleSubClick = (stepName: string, subIdx: number) => {
+    const primaryIdx = steps.indexOf(stepName);
+    if (primaryIdx === -1) return;
+
+    const isUnlocked = primaryIdx === 0 || completedSteps.includes(steps[primaryIdx - 1]);
+    if (!isUnlocked) {
+      setSidebarNotice('This step is locked. Complete the previous steps first!');
+      return;
+    }
+
+    if (stepName === 'quiz') {
+      for (let i = 0; i < subIdx; i++) {
+        if (!quizLocked[i]) {
+          setSidebarNotice(`Please answer Question ${i + 1} first!`);
+          return;
+        }
+      }
+    }
+
+    if (stepName === 'story') setCurrentStoryPage(subIdx);
+    if (stepName === 'quiz') setCurrentQuizIndex(subIdx);
+    if (stepName === 'modules') setCurrentModuleIndex(subIdx);
+    if (stepName === 'safe-protocol') setCurrentSafeProtocolIndex(subIdx);
+
+    setCurrentStepIndex(primaryIdx);
+    saveProgress(primaryIdx);
   };
 
   // Handle QUIZ option selection
@@ -426,10 +597,16 @@ export default function EpisodePlayerPage() {
 
     if (optIdx === correctIdx) {
       setQuizLocked(prev => ({ ...prev, [qIdx]: true }));
-      toast.success('Correct answer!');
+      setQuizNotice(prev => ({
+        ...prev,
+        [qIdx]: { type: 'success', message: 'Correct answer!' }
+      }));
     } else {
       setIncorrectAttempts(prev => ({ ...prev, [qIdx]: (prev[qIdx] || 0) + 1 }));
-      toast.error('Incorrect. Try again!');
+      setQuizNotice(prev => ({
+        ...prev,
+        [qIdx]: { type: 'error', message: 'Incorrect. Try again!' }
+      }));
     }
   };
 
@@ -437,6 +614,7 @@ export default function EpisodePlayerPage() {
   const handleComplete = async () => {
     if (!episode) return;
     setIsSubmitting(true);
+    setCompletionNotice(null);
 
     let firstTryCount = 0;
     const questionsCount = content.quiz?.questions?.length || 0;
@@ -461,14 +639,18 @@ export default function EpisodePlayerPage() {
         reflectionContent: reflectionText || undefined
       });
 
-      toast.success(`Episode completed! +${res.pointsEarned} XP Earned 🎉`, {
-        duration: 4000,
-        icon: '🏆'
+      setCompletionNotice({
+        success: `Episode completed! +${res.pointsEarned} XP Earned 🎉`
       });
 
-      router.push(`/dashboard/learning-journeys/${journeyId}`);
+      setTimeout(() => {
+        router.push(`/dashboard/learning-journeys/${journeyId}`);
+      }, 2500);
+
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to submit episode completion.');
+      setCompletionNotice({
+        error: err.response?.data?.message || 'Failed to submit episode completion.'
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -483,23 +665,38 @@ export default function EpisodePlayerPage() {
     );
   }
 
+  if (loadError) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#FFFCFA] p-6 text-center">
+        <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto text-red-600 border border-red-205 shadow-sm">
+          <AlertCircle size={32} />
+        </div>
+        <h3 className="font-extrabold text-lg text-slate-800 tracking-wide">{loadError}</h3>
+        <p className="text-sm text-slate-500 max-w-sm">
+          Something went wrong while trying to load this activity. Please check your internet connection or try again.
+        </p>
+        <button
+          onClick={() => router.push(`/dashboard/learning-journeys/${journeyId}`)}
+          className="px-5 py-2.5 bg-slate-900 text-white text-xs font-black uppercase tracking-widest rounded-2xl transition-all hover:scale-[1.02] hover:bg-slate-800 active:scale-[0.98] shadow-sm flex items-center gap-2 mx-auto"
+        >
+          <ArrowLeft size={14} /> Back to Journey
+        </button>
+      </div>
+    );
+  }
+
   // Active step metadata
   const activeStepMeta = getStepMeta(currentStep);
 
   return (
-    <div className="min-h-screen bg-[#FFFCFA] text-slate-900 flex flex-col relative overflow-hidden font-sans">
-      {/* Dynamic Background Blobs */}
-      <div className="absolute inset-0 pointer-events-none z-0">
-        <div className={`absolute top-[-10%] left-[-15%] w-[45vw] h-[45vw] bg-gradient-to-br ${theme.gradient} opacity-[0.04] rounded-full blur-[100px] animate-blob-slow`} />
-        <div className={`absolute bottom-[-10%] right-[-15%] w-[40vw] h-[40vw] bg-gradient-to-tr ${theme.gradient} opacity-[0.03] rounded-full blur-[120px] animate-blob-slow animation-delay-2000`} />
-      </div>
+    <div className="h-screen w-screen bg-slate-50/60 text-slate-900 flex flex-col relative overflow-hidden font-sans">
 
       {/* Modern Fixed Header */}
-      <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-slate-100/80 px-4 md:px-8 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-white border-b border-slate-200 px-4 md:px-8 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4 min-w-0">
           <button
             onClick={() => router.push(`/dashboard/learning-journeys/${journeyId}`)}
-            className="p-2.5 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-all active:scale-90 shrink-0"
+            className="p-2 rounded-full hover:bg-slate-100 text-slate-550 hover:text-slate-900 transition-all active:scale-90 shrink-0"
             title="Back to Journey"
           >
             <ArrowLeft size={18} />
@@ -532,7 +729,7 @@ export default function EpisodePlayerPage() {
           {/* Mobile Path Toggle */}
           <button
             onClick={() => setSidebarOpen(prev => !prev)}
-            className="p-2.5 rounded-xl border border-slate-100 bg-white hover:bg-slate-55 text-slate-500 hover:text-slate-800 transition-all md:hidden active:scale-95 shadow-sm"
+            className="p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-550 hover:text-slate-850 transition-all md:hidden active:scale-95 shadow-sm"
           >
             <Menu size={18} />
           </button>
@@ -543,19 +740,19 @@ export default function EpisodePlayerPage() {
       <div className="flex-1 flex overflow-hidden relative z-10">
         
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto px-4 py-8 md:p-12 flex flex-col justify-between items-center custom-scrollbar">
+        <main className="flex-1 overflow-hidden px-4 py-4 md:py-6 md:px-8 flex flex-col justify-between items-center">
           
-          <div className="w-full max-w-3xl flex-1 flex flex-col justify-center items-center">
+          <div className="w-full max-w-3xl flex-1 flex flex-col justify-center items-center min-h-0 overflow-hidden">
             
             {/* Step Sub-Header */}
-            <div className="text-center mb-6 max-w-xl">
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 bg-white border ${theme.border} rounded-full text-[10px] font-black tracking-widest ${theme.accent} uppercase shadow-sm`}>
+            <div className="text-center mb-3 max-w-xl shrink-0">
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-200 rounded-full text-[10px] font-black tracking-widest ${theme.accent} uppercase shadow-sm`}>
                 {activeStepMeta.label}
               </span>
             </div>
 
             {/* Centered Glassmorphic View Canvas */}
-            <div className="w-full bg-white/70 backdrop-blur-xl border border-slate-100 shadow-premium rounded-3xl p-6 sm:p-10 flex flex-col items-center justify-center relative overflow-hidden transition-all duration-300">
+            <div className="w-full bg-white border border-slate-200 shadow-sm rounded-3xl p-5 sm:p-8 flex flex-col items-center justify-center relative overflow-hidden transition-all duration-300 flex-1 min-h-0">
               
               <AnimatePresence mode="wait">
                 <motion.div
@@ -564,8 +761,10 @@ export default function EpisodePlayerPage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -15 }}
                   transition={{ duration: 0.25, ease: 'easeOut' }}
-                  className="w-full flex flex-col justify-center"
+                  className="w-full flex-1 flex flex-col justify-center min-h-0 overflow-hidden"
                 >
+                  <div className="w-full flex-1 overflow-y-auto py-1 pr-1 custom-scrollbar min-h-0 flex flex-col">
+                    <div className="my-auto w-full">
                   
                   {/* ==================== TEEN (INTERACTIVE) FLOW ==================== */}
 
@@ -585,14 +784,14 @@ export default function EpisodePlayerPage() {
 
                   {/* 2. STORY */}
                   {currentStep === 'story' && content.story?.pages && (
-                    <div className="space-y-6 flex flex-col items-center">
-                      <div className="text-center">
-                        <h2 className="text-xl font-black text-slate-850 tracking-tight">Flip through the story cards</h2>
+                    <div className="space-y-4 flex flex-col items-center justify-center flex-1 min-h-0 w-full">
+                      <div className="text-center shrink-0">
+                        <h2 className="text-lg sm:text-xl font-black text-slate-850 tracking-tight">Flip through the story cards</h2>
                         <p className="text-xs font-semibold text-slate-400 mt-1">Page {currentStoryPage + 1} of {content.story.pages.length}</p>
                       </div>
 
                       {/* Premium Story Frame */}
-                      <div className="relative w-full max-w-sm aspect-[3/4] bg-white rounded-3xl overflow-hidden shadow-premium border border-slate-100 group transition-all duration-300 hover:shadow-glow">
+                      <div className="relative h-[min(48vh,380px)] aspect-[3/4] bg-white rounded-3xl overflow-hidden shadow-premium border border-slate-100 group transition-all duration-300 hover:shadow-glow mx-auto shrink-0">
                         {content.story.pages[currentStoryPage] ? (
                           <img
                             src={content.story.pages[currentStoryPage]}
@@ -643,86 +842,100 @@ export default function EpisodePlayerPage() {
                       </div>
                     </div>
                   )}
+                                  {/* 3. QUIZ */}
+                  {currentStep === 'quiz' && content.quiz?.questions && content.quiz.questions[currentQuizIndex] && (() => {
+                    const qIdx = currentQuizIndex;
+                    const q = content.quiz.questions[qIdx];
+                    const isCorrect = quizLocked[qIdx] && quizAnswers[qIdx] === q.correctIndex;
 
-                  {/* 3. QUIZ */}
-                  {currentStep === 'quiz' && content.quiz?.questions && (
-                    <div className="space-y-6">
-                      <div className="text-center">
-                        <h2 className="text-xl font-black text-slate-850 tracking-tight">Interactive Quiz</h2>
-                        <p className="text-xs font-semibold text-slate-400 mt-1">Answer correctly to lock in your mastery</p>
-                      </div>
+                    return (
+                      <div className="space-y-4 w-full flex flex-col items-center justify-center flex-1 min-h-0">
+                        <div className="text-center shrink-0">
+                          <h2 className="text-lg sm:text-xl font-black text-slate-850 tracking-tight">Interactive Quiz</h2>
+                          <p className="text-xs font-semibold text-slate-400 mt-1">
+                            Question {qIdx + 1} of {content.quiz.questions.length}
+                          </p>
+                        </div>
 
-                      <div className="space-y-6 mt-4">
-                        {content.quiz.questions.map((q, qIdx) => {
-                          const isCorrect = quizLocked[qIdx] && quizAnswers[qIdx] === q.correctIndex;
-                          const hasSelected = quizAnswers[qIdx] !== undefined;
+                        <div className="w-full max-w-xl p-5 sm:p-6 bg-white border border-slate-200 rounded-2xl shadow-sm transition-all duration-300 space-y-4 my-auto">
+                          <div className="flex items-start gap-3">
+                            <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-black uppercase ${
+                              isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-primary/10 text-primary'
+                            }`}>
+                              Q{qIdx + 1}
+                            </span>
+                            <h4 className="text-sm sm:text-base font-bold text-slate-800 leading-snug">
+                              {q.question}
+                            </h4>
+                          </div>
 
-                          return (
-                            <div key={qIdx} className={`p-5 bg-white border ${isCorrect ? 'border-emerald-200 bg-emerald-50/10' : 'border-slate-100'} rounded-2xl transition-all shadow-sm duration-300 space-y-4`}>
-                              <div className="flex items-start gap-3">
-                                <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-black uppercase ${
-                                  isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-primary/10 text-primary'
-                                }`}>
-                                  Q{qIdx + 1}
-                                </span>
-                                <h4 className="text-sm sm:text-base font-bold text-slate-800 leading-snug">
-                                  {q.question}
-                                </h4>
-                              </div>
+                          <div className="grid grid-cols-1 gap-2.5 pt-1">
+                            {q.options.map((opt, optIndex) => {
+                              const isSelected = quizAnswers[qIdx] === optIndex;
+                              const isOptionCorrect = optIndex === q.correctIndex;
+                              const isOptionWrong = isSelected && !isOptionCorrect;
+                              
+                              let btnClass = 'border-slate-200 bg-white hover:border-slate-350 hover:bg-slate-50 text-slate-700';
+                              if (quizLocked[qIdx]) {
+                                if (isOptionCorrect) {
+                                  btnClass = 'border-emerald-500 bg-emerald-50 text-emerald-950 shadow-sm';
+                                } else if (isSelected) {
+                                  btnClass = 'border-rose-300 bg-rose-50 text-rose-950 opacity-60';
+                                } else {
+                                  btnClass = 'border-slate-100 bg-slate-50/40 opacity-40 text-slate-400';
+                                }
+                              } else if (isSelected && isOptionWrong) {
+                                btnClass = 'border-rose-400 bg-rose-50 text-rose-955';
+                              }
 
-                              <div className="grid grid-cols-1 gap-2.5 pt-1">
-                                {q.options.map((opt, optIndex) => {
-                                  const isSelected = quizAnswers[qIdx] === optIndex;
-                                  const isOptionCorrect = optIndex === q.correctIndex;
-                                  const isOptionWrong = isSelected && !isOptionCorrect;
-                                  
-                                  let btnClass = 'border-slate-100 bg-slate-50/40 hover:border-primary/20 hover:bg-primary/5 text-slate-700';
-                                  if (quizLocked[qIdx]) {
-                                    if (isOptionCorrect) {
-                                      btnClass = 'border-emerald-300 bg-emerald-50 text-emerald-800 shadow-sm';
-                                    } else if (isSelected) {
-                                      btnClass = 'border-rose-200 bg-rose-50/50 text-rose-800 opacity-60';
-                                    } else {
-                                      btnClass = 'border-slate-100 bg-white opacity-40';
-                                    }
-                                  } else if (isSelected && isOptionWrong) {
-                                    btnClass = 'border-rose-300 bg-rose-50/30 text-rose-800';
-                                  }
+                              return (
+                                <button
+                                  key={optIndex}
+                                  onClick={() => handleQuizSelect(qIdx, optIndex, q.correctIndex)}
+                                  disabled={quizLocked[qIdx]}
+                                  className={`w-full flex items-center gap-3 p-3.5 rounded-xl border font-bold text-left text-xs sm:text-sm transition-all active:scale-[0.99] hover:shadow-sm ${btnClass}`}
+                                >
+                                  <div className={`w-5.5 h-5.5 rounded-md flex items-center justify-center text-[10px] font-black border uppercase shrink-0 ${
+                                    isSelected
+                                      ? 'bg-current text-white border-transparent'
+                                      : 'bg-white border-slate-200 text-slate-400'
+                                  }`}>
+                                    {String.fromCharCode(65 + optIndex)}
+                                  </div>
+                                  <span className="flex-1 leading-snug">{opt}</span>
+                                  {quizLocked[qIdx] && isOptionCorrect && <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />}
+                                </button>
+                              );
+                            })}
+                          </div>
 
-                                  return (
-                                    <button
-                                      key={optIndex}
-                                      onClick={() => handleQuizSelect(qIdx, optIndex, q.correctIndex)}
-                                      disabled={quizLocked[qIdx]}
-                                      className={`w-full flex items-center gap-3 p-3.5 rounded-xl border font-bold text-left text-xs sm:text-sm transition-all active:scale-[0.99] hover:shadow-sm ${btnClass}`}
-                                    >
-                                      <div className={`w-5.5 h-5.5 rounded-md flex items-center justify-center text-[10px] font-black border uppercase shrink-0 ${
-                                        isSelected
-                                          ? 'bg-current text-white border-transparent'
-                                          : 'bg-white border-slate-200 text-slate-400'
-                                      }`}>
-                                        {String.fromCharCode(65 + optIndex)}
-                                      </div>
-                                      <span className="flex-1 leading-snug">{opt}</span>
-                                      {quizLocked[qIdx] && isOptionCorrect && <CheckCircle2 size={14} className="text-emerald-605 shrink-0" />}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-
-                              {/* Quiz Explanation */}
-                              {quizLocked[qIdx] && q.explanation && (
-                                <div className="p-4 bg-emerald-50/30 border border-emerald-100 rounded-xl flex gap-3 text-emerald-850 text-xs font-semibold animate-in slide-in-from-top-2 duration-300">
-                                  <Info size={16} className="shrink-0 text-emerald-600 mt-0.5" />
-                                  <p className="leading-relaxed">{q.explanation}</p>
-                                </div>
+                          {/* Quiz Answer Inline Feedback */}
+                          {quizNotice[qIdx] && (
+                            <div className={`p-3 rounded-xl flex items-center gap-2 text-xs font-bold animate-in slide-in-from-top-1 duration-200 border ${
+                              quizNotice[qIdx]?.type === 'success'
+                                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                                : 'bg-rose-50 border-rose-200 text-rose-800'
+                            }`}>
+                              {quizNotice[qIdx]?.type === 'success' ? (
+                                <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
+                              ) : (
+                                <AlertCircle size={14} className="text-rose-600 shrink-0" />
                               )}
+                              <span>{quizNotice[qIdx]?.message}</span>
                             </div>
-                          );
-                        })}
+                          )}
+
+                          {/* Quiz Explanation */}
+                          {quizLocked[qIdx] && q.explanation && (
+                            <div className="p-4 bg-emerald-55 border border-emerald-100 rounded-xl flex gap-3 text-emerald-950 text-xs font-semibold animate-in slide-in-from-top-2 duration-300">
+                              <Info size={16} className="shrink-0 text-emerald-600 mt-0.5" />
+                              <p className="leading-relaxed">{q.explanation}</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* 4. JOURNAL */}
                   {currentStep === 'journal' && (
@@ -809,14 +1022,32 @@ export default function EpisodePlayerPage() {
                       </div>
 
                       <div className="pt-4 flex flex-col items-center w-full">
+                        {completionNotice && (
+                          <div className={`w-full max-w-xs mb-4 p-3 rounded-2xl flex items-start gap-2.5 text-xs font-bold animate-in fade-in duration-200 border ${
+                            completionNotice.success
+                              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                              : 'bg-rose-50 border-rose-200 text-rose-800'
+                          }`}>
+                            {completionNotice.success ? (
+                              <CheckCircle2 size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                            ) : (
+                              <AlertCircle size={16} className="text-rose-600 shrink-0 mt-0.5" />
+                            )}
+                            <span className="text-left leading-relaxed">{completionNotice.success || completionNotice.error}</span>
+                          </div>
+                        )}
                         <button
                           onClick={handleComplete}
-                          disabled={isSubmitting}
+                          disabled={isSubmitting || !!completionNotice?.success}
                           className="btn-primary w-full max-w-xs py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all font-black text-xs sm:text-sm uppercase tracking-widest shadow-md disabled:opacity-50"
                         >
                           {isSubmitting ? (
                             <>
                               <Loader2 className="animate-spin" size={16} /> Submitting...
+                            </>
+                          ) : completionNotice?.success ? (
+                            <>
+                              Success! Redirecting...
                             </>
                           ) : (
                             <>
@@ -887,63 +1118,64 @@ export default function EpisodePlayerPage() {
                       </div>
                     </div>
                   )}
+                          {/* C. MODULES */}
+                  {currentStep === 'modules' && content.modules && content.modules[currentModuleIndex] && (() => {
+                    const m = content.modules[currentModuleIndex];
+                    return (
+                      <div className="space-y-4 w-full flex flex-col items-center justify-center flex-1 min-h-0">
+                        <div className="text-center shrink-0">
+                          <h2 className="text-lg sm:text-xl font-black text-slate-850 tracking-tight">Training Modules</h2>
+                          <p className="text-xs font-semibold text-slate-400 mt-1">
+                            Module {currentModuleIndex + 1} of {content.modules.length}
+                          </p>
+                        </div>
 
-                  {/* C. MODULES */}
-                  {currentStep === 'modules' && content.modules && (
-                    <div className="space-y-6">
-                      <div className="text-center">
-                        <h2 className="text-xl font-black text-slate-850 tracking-tight">Training Modules</h2>
-                        <p className="text-xs font-semibold text-slate-400 mt-1">Review the core concepts before proceeding</p>
-                      </div>
-
-                      <div className="grid grid-cols-1 gap-3 mt-4">
-                        {content.modules.map((m, idx) => (
-                          <div key={idx} className="p-5 bg-white border border-slate-100 hover:border-primary/20 rounded-2xl shadow-sm transition-all duration-300 group">
-                            <div className="flex items-start gap-4">
-                              <span className="w-8 h-8 rounded-lg bg-primary/10 text-primary font-black text-sm flex items-center justify-center shrink-0">
-                                {m.id}
-                              </span>
-                              <div className="space-y-1 flex-1 min-w-0">
-                                <h4 className="text-sm sm:text-base font-black text-slate-800 leading-snug">
-                                  {m.title}
-                                </h4>
-                                <p className="text-xs sm:text-sm font-semibold text-slate-500 leading-relaxed select-text">
-                                  {m.detail}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* D. SAFE PROTOCOL */}
-                  {currentStep === 'safe-protocol' && content.safeProtocol && (
-                    <div className="space-y-6">
-                      <div className="text-center">
-                        <h2 className="text-xl font-black text-slate-850 tracking-tight">The SAFE Protocol</h2>
-                        <p className="text-xs font-semibold text-slate-400 mt-1">Critical crisis recognition containment protocol</p>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        {content.safeProtocol.map((sp, idx) => (
-                          <div key={idx} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm flex flex-col relative overflow-hidden">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-rose-50 text-rose-600 border border-rose-100 self-start mb-3">
-                              {sp.step}
+                        <div className="w-full max-w-xl p-6 bg-white border border-slate-200 rounded-2xl shadow-sm transition-all duration-300 group my-auto">
+                          <div className="flex items-start gap-4">
+                            <span className="w-8 h-8 rounded-lg bg-primary/10 text-primary font-black text-sm flex items-center justify-center shrink-0">
+                              {m.id}
                             </span>
-                            <h4 className="text-xs sm:text-sm font-black text-slate-800 leading-snug">{sp.action}</h4>
-                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mt-4 flex-1">
-                              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Example script:</span>
-                              <p className="text-xs font-semibold text-slate-505 leading-relaxed italic">
-                                "{sp.example}"
+                            <div className="space-y-2 flex-1 min-w-0">
+                              <h4 className="text-sm sm:text-base font-black text-slate-850 leading-snug">
+                                {m.title}
+                              </h4>
+                              <p className="text-xs sm:text-sm font-medium text-slate-650 leading-relaxed select-text">
+                                {m.detail}
                               </p>
                             </div>
                           </div>
-                        ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
+
+                  {/* D. SAFE PROTOCOL */}
+                  {currentStep === 'safe-protocol' && content.safeProtocol && content.safeProtocol[currentSafeProtocolIndex] && (() => {
+                    const sp = content.safeProtocol[currentSafeProtocolIndex];
+                    return (
+                      <div className="space-y-4 w-full flex flex-col items-center justify-center flex-1 min-h-0">
+                        <div className="text-center shrink-0">
+                          <h2 className="text-lg sm:text-xl font-black text-slate-850 tracking-tight">The SAFE Protocol</h2>
+                          <p className="text-xs font-semibold text-slate-400 mt-1">
+                            Step {currentSafeProtocolIndex + 1} of {content.safeProtocol.length}
+                          </p>
+                        </div>
+
+                        <div className="w-full max-w-xl bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col relative overflow-hidden my-auto">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-rose-50 text-rose-600 border border-rose-100 self-start mb-3">
+                            {sp.step}
+                          </span>
+                          <h4 className="text-xs sm:text-sm font-black text-slate-800 leading-snug">{sp.action}</h4>
+                          <div className="bg-slate-55 p-4 rounded-xl border border-slate-200 mt-4 flex-1">
+                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Example script:</span>
+                            <p className="text-xs font-semibold text-slate-650 leading-relaxed italic">
+                              "{sp.example}"
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* E. PRACTICE SCENARIO */}
                   {currentStep === 'practice' && content.practice && (
@@ -1049,14 +1281,32 @@ export default function EpisodePlayerPage() {
                       </div>
 
                       <div className="pt-4 flex flex-col items-center w-full">
+                        {completionNotice && (
+                          <div className={`w-full max-w-xs mb-4 p-3 rounded-2xl flex items-start gap-2.5 text-xs font-bold animate-in fade-in duration-200 border ${
+                            completionNotice.success
+                              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                              : 'bg-rose-50 border-rose-200 text-rose-800'
+                          }`}>
+                            {completionNotice.success ? (
+                              <CheckCircle2 size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                            ) : (
+                              <AlertCircle size={16} className="text-rose-600 shrink-0 mt-0.5" />
+                            )}
+                            <span className="text-left leading-relaxed">{completionNotice.success || completionNotice.error}</span>
+                          </div>
+                        )}
                         <button
                           onClick={handleComplete}
-                          disabled={isSubmitting}
+                          disabled={isSubmitting || !!completionNotice?.success}
                           className="btn-primary w-full max-w-xs py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all font-black text-xs sm:text-sm uppercase tracking-widest shadow-md disabled:opacity-50"
                         >
                           {isSubmitting ? (
                             <>
                               <Loader2 className="animate-spin" size={16} /> Submitting...
+                            </>
+                          ) : completionNotice?.success ? (
+                            <>
+                              Success! Redirecting...
                             </>
                           ) : (
                             <>
@@ -1071,6 +1321,8 @@ export default function EpisodePlayerPage() {
                     </div>
                   )}
 
+                    </div>
+                  </div>
                 </motion.div>
               </AnimatePresence>
 
@@ -1079,7 +1331,7 @@ export default function EpisodePlayerPage() {
           </div>
 
           {/* Footer Controls Slat */}
-          <footer className="w-full max-w-3xl mt-8 pt-4 border-t border-slate-100/60 flex items-center justify-between">
+          <footer className="w-full max-w-3xl mt-4 pt-3 border-t border-slate-100/60 flex items-center justify-between shrink-0">
             {/* Back Button */}
             <button
               onClick={handlePrev}
@@ -1136,7 +1388,7 @@ export default function EpisodePlayerPage() {
               <button
                 onClick={handleNext}
                 disabled={!canProceed()}
-                className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all text-white bg-purple-650 shadow-sm ${
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all text-white bg-purple-600 shadow-sm ${
                   !canProceed()
                     ? 'opacity-40 cursor-not-allowed bg-slate-300 shadow-none'
                     : 'hover:scale-[1.02] hover:bg-purple-700 active:scale-[0.98]'
@@ -1150,45 +1402,94 @@ export default function EpisodePlayerPage() {
         </main>
 
         {/* Right Sidebar Checklist Panel (Desktop fixed) */}
-        <aside className="hidden md:flex w-64 border-l border-slate-100 flex-col bg-slate-50/30 p-5 overflow-y-auto z-10">
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-5 px-1">Curriculum Path</p>
-          <div className="space-y-1.5">
+        <aside className="hidden md:flex w-72 border-l border-slate-200 flex-col bg-white overflow-hidden z-10 shrink-0">
+          <div className="p-4 border-b border-slate-200 bg-slate-50/50 shrink-0">
+            <h3 className="text-xs font-black uppercase tracking-wider text-slate-500">Course Contents</h3>
+            {sidebarNotice && (
+              <div className="mt-2 p-2 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg text-[10px] font-bold flex items-start gap-1.5 animate-in slide-in-from-top-1 duration-200 shadow-sm leading-normal">
+                <AlertTriangle size={11} className="text-amber-600 shrink-0 mt-0.5" />
+                <span className="flex-1">{sidebarNotice}</span>
+              </div>
+            )}
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-3 space-y-2">
             {steps.map((stepName, idx) => {
               const meta = getStepMeta(stepName);
               const Icon = meta.icon;
               const isCurrent = idx === currentStepIndex;
               const isCompleted = completedSteps.includes(stepName);
               const isUnlocked = idx === 0 || completedSteps.includes(steps[idx - 1]);
-              
+              const subItems = getSubItems(stepName);
+              const hasSubItems = subItems.length > 1;
+              const isExpanded = expandedSteps[stepName] ?? isCurrent;
+
               return (
-                <button
-                  key={stepName}
-                  onClick={() => handleSidebarClick(idx)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all group relative border ${
-                    isCurrent
-                      ? `bg-gradient-to-r ${theme.gradient} text-white border-transparent shadow-md`
-                      : isUnlocked
-                      ? 'bg-white hover:bg-slate-100 border-slate-100 text-slate-650 hover:text-slate-900 hover:shadow-sm'
-                      : 'opacity-50 cursor-not-allowed text-slate-400 bg-slate-50/40 border-slate-100'
-                  }`}
-                >
-                  <div className={`w-6.5 h-6.5 rounded-lg flex items-center justify-center transition-colors ${
-                    isCurrent ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
-                  }`}>
-                    {isUnlocked ? <Icon size={14} /> : <Lock size={12} />}
+                <div key={stepName} className="space-y-0.5 w-full">
+                  <div
+                    onClick={(e) => handleStepHeaderClick(idx, stepName, e)}
+                    className={`w-full flex items-center justify-between py-2 px-3 rounded-lg cursor-pointer transition-all ${
+                      isCurrent
+                        ? 'bg-slate-100/90 text-slate-900 font-bold border-l-4 border-purple-600'
+                        : isUnlocked
+                        ? 'text-slate-700 hover:bg-slate-100'
+                        : 'text-slate-400 cursor-not-allowed bg-slate-50/30'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {hasSubItems ? (
+                        <button
+                          onClick={(e) => toggleStepExpansion(stepName, e)}
+                          className="p-0.5 rounded hover:bg-slate-200 text-slate-400 hover:text-slate-700 shrink-0"
+                        >
+                          <ChevronDown
+                            size={14}
+                            className={`transform transition-transform ${isExpanded ? '' : '-rotate-90'}`}
+                          />
+                        </button>
+                      ) : (
+                        <div className="w-4 h-4 shrink-0" />
+                      )}
+                      
+                      <Icon size={14} className={isCurrent ? 'text-purple-600' : 'text-slate-400'} />
+                      <span className="text-[13px] truncate">{meta.label}</span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                      {isCompleted ? (
+                        <CheckCircle2 size={13} className="text-emerald-500" />
+                      ) : !isUnlocked ? (
+                        <Lock size={11} className="text-slate-400" />
+                      ) : null}
+                    </div>
                   </div>
-                  <div className="flex-1 text-left min-w-0">
-                    <p className={`text-[12px] font-bold truncate ${isCurrent ? 'text-white' : 'text-slate-700'}`}>
-                      {meta.label}
-                    </p>
-                    <p className={`text-[9px] font-semibold opacity-60 ${isCurrent ? 'text-white' : 'text-slate-400'}`}>
-                      Step {idx + 1}
-                    </p>
-                  </div>
-                  {isCompleted && !isCurrent && (
-                    <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+
+                  {hasSubItems && isExpanded && (
+                    <div className="ml-7 pl-3.5 border-l border-slate-200 space-y-0.5 py-1 animate-in fade-in duration-200">
+                      {subItems.map((sub) => {
+                        const isSubActive = getSubActiveState(stepName, sub.index);
+                        const isSubCompleted = getSubCompletedState(stepName, sub.index);
+
+                        return (
+                          <button
+                            key={sub.index}
+                            onClick={() => handleSubClick(stepName, sub.index)}
+                            className={`w-full flex items-center justify-between text-left py-1.5 px-2.5 rounded-md text-[11px] font-semibold transition-colors ${
+                              isSubActive
+                                ? 'bg-purple-50 text-purple-700 font-bold'
+                                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                            }`}
+                          >
+                            <span className="truncate pr-2">{sub.label}</span>
+                            {isSubCompleted && (
+                              <CheckCircle2 size={10} className="text-emerald-500 shrink-0" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   )}
-                </button>
+                </div>
               );
             })}
           </div>
@@ -1214,14 +1515,22 @@ export default function EpisodePlayerPage() {
                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                 className="fixed right-0 top-0 bottom-0 z-50 w-72 bg-white p-6 shadow-2xl flex flex-col overflow-y-auto md:hidden"
               >
-                <div className="flex items-center justify-between mb-6">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Curriculum Path</p>
-                  <button 
-                    onClick={() => setSidebarOpen(false)}
-                    className="text-slate-400 hover:text-slate-700 p-1 rounded-full hover:bg-slate-50 transition-colors"
-                  >
-                    <ChevronRight size={20} />
-                  </button>
+                <div className="flex flex-col mb-6 gap-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Curriculum Path</p>
+                    <button 
+                      onClick={() => setSidebarOpen(false)}
+                      className="text-slate-400 hover:text-slate-700 p-1 rounded-full hover:bg-slate-50 transition-colors"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                  </div>
+                  {sidebarNotice && (
+                    <div className="p-2 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg text-[10px] font-bold flex items-start gap-1.5 animate-in slide-in-from-top-1 duration-200 shadow-sm leading-normal">
+                      <AlertTriangle size={11} className="text-amber-600 shrink-0 mt-0.5" />
+                      <span className="flex-1">{sidebarNotice}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -1231,36 +1540,78 @@ export default function EpisodePlayerPage() {
                     const isCurrent = idx === currentStepIndex;
                     const isCompleted = completedSteps.includes(stepName);
                     const isUnlocked = idx === 0 || completedSteps.includes(steps[idx - 1]);
-                    
+                    const subItems = getSubItems(stepName);
+                    const hasSubItems = subItems.length > 1;
+                    const isExpanded = expandedSteps[stepName] ?? isCurrent;
+
                     return (
-                      <button
-                        key={stepName}
-                        onClick={() => handleSidebarClick(idx)}
-                        className={`w-full flex items-center gap-3.5 p-3 rounded-xl transition-all border ${
-                          isCurrent
-                            ? `bg-gradient-to-r ${theme.gradient} text-white border-transparent shadow-md`
-                            : isUnlocked
-                            ? 'bg-slate-50/50 hover:bg-slate-100 border-slate-100 text-slate-650 hover:text-slate-900'
-                            : 'opacity-50 cursor-not-allowed text-slate-400 bg-slate-50/10 border-slate-100'
-                        }`}
-                      >
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
-                          isCurrent ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
-                        }`}>
-                          {isUnlocked ? <Icon size={14} /> : <Lock size={12} />}
+                      <div key={stepName} className="space-y-0.5 w-full">
+                        {/* Step Header Row Mobile */}
+                        <div
+                          onClick={(e) => handleStepHeaderClick(idx, stepName, e)}
+                          className={`w-full flex items-center justify-between py-2 px-3 rounded-lg cursor-pointer transition-all ${
+                            isCurrent
+                              ? 'bg-slate-100/90 text-slate-900 font-bold border-l-4 border-purple-600'
+                              : isUnlocked
+                              ? 'text-slate-700 hover:bg-slate-100'
+                              : 'text-slate-400 cursor-not-allowed bg-slate-50/30'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            {hasSubItems ? (
+                              <button
+                                onClick={(e) => toggleStepExpansion(stepName, e)}
+                                className="p-0.5 rounded hover:bg-slate-200 text-slate-400 hover:text-slate-700 shrink-0"
+                              >
+                                <ChevronDown
+                                  size={14}
+                                  className={`transform transition-transform ${isExpanded ? '' : '-rotate-90'}`}
+                                />
+                              </button>
+                            ) : (
+                              <div className="w-4 h-4 shrink-0" />
+                            )}
+                            
+                            <Icon size={14} className={isCurrent ? 'text-purple-600' : 'text-slate-400'} />
+                            <span className="text-[13px] truncate">{meta.label}</span>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                            {isCompleted ? (
+                              <CheckCircle2 size={13} className="text-emerald-500" />
+                            ) : !isUnlocked ? (
+                              <Lock size={11} className="text-slate-400" />
+                            ) : null}
+                          </div>
                         </div>
-                        <div className="flex-1 text-left min-w-0">
-                          <p className={`text-[13px] font-bold truncate ${isCurrent ? 'text-white' : 'text-slate-700'}`}>
-                            {meta.label}
-                          </p>
-                          <p className={`text-[10px] font-semibold opacity-60 ${isCurrent ? 'text-white' : 'text-slate-400'}`}>
-                            Step {idx + 1}
-                          </p>
-                        </div>
-                        {isCompleted && !isCurrent && (
-                          <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+
+                        {/* Indented Sub-items mobile */}
+                        {hasSubItems && isExpanded && (
+                          <div className="ml-7 pl-3.5 border-l border-slate-200 space-y-0.5 py-1 animate-in fade-in duration-200">
+                            {subItems.map((sub) => {
+                              const isSubActive = getSubActiveState(stepName, sub.index);
+                              const isSubCompleted = getSubCompletedState(stepName, sub.index);
+
+                              return (
+                                <button
+                                  key={sub.index}
+                                  onClick={() => handleSubClick(stepName, sub.index)}
+                                  className={`w-full flex items-center justify-between text-left py-1.5 px-2.5 rounded-md text-[12px] font-semibold transition-colors ${
+                                    isSubActive
+                                      ? 'bg-purple-50 text-purple-700 font-bold'
+                                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                                  }`}
+                                >
+                                  <span className="truncate pr-2">{sub.label}</span>
+                                  {isSubCompleted && (
+                                    <CheckCircle2 size={10} className="text-emerald-500 shrink-0" />
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
                         )}
-                      </button>
+                      </div>
                     );
                   })}
                 </div>

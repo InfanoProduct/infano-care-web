@@ -4,11 +4,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeft, Star, BookOpen, Loader2, Lock,
-  CheckCircle2, Play, GraduationCap, Sparkles, Trophy
+  CheckCircle2, Play, GraduationCap, Sparkles, Trophy, AlertCircle, AlertTriangle
 } from 'lucide-react';
 import { LearningService, LearningJourney, UserProgress } from '@/services/learning.service';
 import { useAuthStore } from '@/store/auth-store';
-import { toast } from 'react-hot-toast';
 import Link from 'next/link';
 import EpisodePlayerModal from '@/components/learning/EpisodePlayerModal';
 
@@ -56,6 +55,8 @@ export default function JourneyDetailPage() {
   const [journey, setJourney] = useState<LearningJourney | null>(null);
   const [progress, setProgress] = useState<UserProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lockedNotice, setLockedNotice] = useState<string | null>(null);
 
   // Modal states
   const [selectedEpisodeId, setSelectedEpisodeId] = useState<string | null>(null);
@@ -66,6 +67,7 @@ export default function JourneyDetailPage() {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const [journeyRes, progressRes] = await Promise.all([
         LearningService.getJourney(journeyId),
         LearningService.getMyProgress().catch(() => []),
@@ -73,7 +75,7 @@ export default function JourneyDetailPage() {
       setJourney(journeyRes);
       setProgress(progressRes);
     } catch {
-      toast.error('Failed to load journey details.');
+      setError('Failed to load journey details.');
     } finally {
       setLoading(false);
     }
@@ -81,11 +83,48 @@ export default function JourneyDetailPage() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  useEffect(() => {
+    if (lockedNotice) {
+      const timer = setTimeout(() => {
+        setLockedNotice(null);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [lockedNotice]);
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-32 gap-4">
         <Loader2 className="animate-spin text-primary" size={44} />
         <span className="font-extrabold text-lg text-slate-600 tracking-wide">Loading Journey...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 w-full max-w-[1280px] mx-auto pb-8 font-sans">
+        <Link
+          href="/dashboard/learning-journeys"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-primary transition-colors group"
+        >
+          <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> Back to Learning Journeys
+        </Link>
+        <div className="bg-red-50/50 border border-red-100 rounded-lg p-12 text-center shadow-sm space-y-4 max-w-xl mx-auto mt-8">
+          <div className="w-12 h-12 bg-red-100/50 rounded-lg flex items-center justify-center mx-auto text-red-600 border border-red-200">
+            <AlertCircle size={24} />
+          </div>
+          <h3 className="font-semibold text-sm text-red-700">{error}</h3>
+          <p className="text-xs font-normal text-slate-500 max-w-xs mx-auto">
+            Please check your connection and try again.
+          </p>
+          <button
+            onClick={loadData}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
+          >
+            Retry Loading
+          </button>
+        </div>
       </div>
     );
   }
@@ -257,6 +296,21 @@ export default function JourneyDetailPage() {
           </span>
         </div>
 
+        {lockedNotice && (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg text-xs font-bold flex items-center justify-between animate-in fade-in slide-in-from-top-2 duration-200 shadow-sm">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={14} className="text-amber-600 shrink-0" />
+              <span>{lockedNotice}</span>
+            </div>
+            <button
+              onClick={() => setLockedNotice(null)}
+              className="text-amber-500 hover:text-amber-700 text-sm font-black focus:outline-none px-1"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
         <div className="space-y-4">
           {episodes.map((episode, index) => {
             const isCompleted = completedIds.has(episode.id);
@@ -271,7 +325,7 @@ export default function JourneyDetailPage() {
                   if (isUnlocked) {
                     router.push(`/dashboard/learning-journeys/${journeyId}/episodes/${episode.id}`);
                   } else {
-                    toast.error('This activity is locked. Complete the previous activities to unlock it!');
+                    setLockedNotice('This activity is locked. Complete the previous activities in order to unlock it!');
                   }
                 }}
                 className={`relative p-4 rounded-lg border transition-all ${isCompleted
@@ -329,8 +383,8 @@ export default function JourneyDetailPage() {
                         <Play size={12} className="text-white fill-white ml-0.5" />
                       </div>
                     ) : (
-                      <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center border border-slate-150">
-                        <Lock size={12} className="text-slate-350" />
+                      <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center border border-slate-200">
+                        <Lock size={12} className="text-slate-400" />
                       </div>
                     )}
                   </div>
@@ -339,7 +393,7 @@ export default function JourneyDetailPage() {
                 {/* Connector line to next episode */}
                 {index < episodes.length - 1 && (
                   <div className={`absolute left-[2rem] -bottom-4 w-0.5 h-4 z-10 ${
-                    isCompleted ? 'bg-emerald-300' : 'bg-slate-250'
+                    isCompleted ? 'bg-emerald-300' : 'bg-slate-200'
                   }`} />
                 )}
               </div>

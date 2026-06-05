@@ -3,11 +3,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   GraduationCap, Star, BookOpen, ChevronRight, Loader2,
-  CheckCircle2, Sparkles, Trophy, ArrowRight
+  CheckCircle2, Sparkles, Trophy, ArrowRight, AlertCircle
 } from 'lucide-react';
 import { LearningService, LearningJourney, UserProgress } from '@/services/learning.service';
 import { useAuthStore } from '@/store/auth-store';
-import { toast } from 'react-hot-toast';
 import Link from 'next/link';
 
 // Journey category color themes
@@ -50,15 +49,17 @@ export default function LearningJourneysPage() {
   const [journeys, setJourneys] = useState<LearningJourney[]>([]);
   const [progress, setProgress] = useState<UserProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const isTeen = user?.role === 'TEEN';
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const [journeysRes, progressRes] = await Promise.all([
-        LearningService.getJourneys().catch(() => []),
-        LearningService.getMyProgress().catch(() => []),
+        LearningService.getJourneys(),
+        LearningService.getMyProgress(),
       ]);
       // Exclude peerline certification from main user learning journeys list
       const userJourneys = journeysRes.filter(
@@ -67,7 +68,7 @@ export default function LearningJourneysPage() {
       setJourneys(userJourneys);
       setProgress(progressRes);
     } catch {
-      toast.error('Failed to load learning journeys.');
+      setError('Failed to load learning journeys.');
     } finally {
       setLoading(false);
     }
@@ -80,6 +81,34 @@ export default function LearningJourneysPage() {
       <div className="flex flex-col items-center justify-center py-32 gap-3">
         <Loader2 className="animate-spin text-primary" size={32} />
         <span className="font-semibold text-sm text-slate-500 tracking-wide">Loading Learning Journeys...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 w-full max-w-[1280px] mx-auto pb-8 font-sans">
+        <div>
+          <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <GraduationCap size={18} className="text-primary" /> Learning Journeys
+          </h1>
+          <p className="text-xs font-normal text-slate-400 mt-1">Interactive learning paths to explore and grow</p>
+        </div>
+        <div className="bg-red-50/50 border border-red-100 rounded-lg p-12 text-center shadow-sm space-y-4 max-w-xl mx-auto mt-8">
+          <div className="w-12 h-12 bg-red-100/50 rounded-lg flex items-center justify-center mx-auto text-red-650 border border-red-200">
+            <AlertCircle size={24} />
+          </div>
+          <h3 className="font-semibold text-sm text-red-700">{error}</h3>
+          <p className="text-xs font-normal text-slate-500 max-w-xs mx-auto">
+            Please check your connection and try again.
+          </p>
+          <button
+            onClick={loadData}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
+          >
+            Retry Loading
+          </button>
+        </div>
       </div>
     );
   }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeft, Star, BookOpen, Loader2, Lock,
   CheckCircle2, Play, GraduationCap, Sparkles, Trophy
@@ -49,6 +49,7 @@ function getTheme(category: string | null) {
 
 export default function JourneyDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const journeyId = params.journeyId as string;
   const { user } = useAuthStore();
 
@@ -268,8 +269,7 @@ export default function JourneyDetailPage() {
                 key={episode.id}
                 onClick={() => {
                   if (isUnlocked) {
-                    setSelectedEpisodeId(episode.id);
-                    setIsPlayerOpen(true);
+                    router.push(`/dashboard/learning-journeys/${journeyId}/episodes/${episode.id}`);
                   } else {
                     toast.error('This activity is locked. Complete the previous activities to unlock it!');
                   }

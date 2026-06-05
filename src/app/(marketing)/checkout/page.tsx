@@ -207,7 +207,8 @@ function CheckoutContent() {
         } else {
           const books = await ShopService.getBooks();
           if (books && books.length > 0) {
-            setBook(books[0]);
+            const targetBook = books.find(b => b.id === '7e248707-c9e8-462c-a716-99f3852ef8c0') || books[0];
+            setBook(targetBook);
           } else {
             // Fallback if no books are active or found
             setBook({

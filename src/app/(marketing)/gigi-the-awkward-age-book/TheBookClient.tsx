@@ -30,7 +30,8 @@ export function TheBookClient() {
       try {
         const books = await ShopService.getBooks();
         if (books && books.length > 0) {
-          setBook(books[0]);
+          const targetBook = books.find(b => b.id === DEFAULT_BOOK.id) || books[0];
+          setBook(targetBook);
         }
       } catch (error) {
         console.error('Failed to load book data:', error);

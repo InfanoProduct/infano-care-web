@@ -33,8 +33,6 @@ export function HeroSection() {
     <section className="relative pt-6 pb-12 lg:pt-10 lg:pb-24 overflow-hidden bg-white">
       {/* Background Graphics — GPU-promoted, no JS animations */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none" style={{ contain: 'strict' }}>
-        <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[80px]" style={{ willChange: 'transform' }} />
-        <div className="absolute bottom-[5%] right-[-5%] w-[35%] h-[35%] bg-accent/10 rounded-full blur-[80px]" style={{ willChange: 'transform' }} />
         {/* Subtle Grid Pattern Overlay */}
         <div className="absolute inset-0 opacity-[0.03]"
           style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #4a1e7f 1px, transparent 0)', backgroundSize: '40px 40px' }} />

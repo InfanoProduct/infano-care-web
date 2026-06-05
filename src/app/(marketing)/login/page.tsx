@@ -3,10 +3,19 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Shield, Phone, ArrowRight, ArrowLeft, Loader2, KeyRound, Heart, Star, Sparkles } from 'lucide-react';
+import { Shield, ArrowRight, ArrowLeft, Loader2, Heart, Star, Sparkles, ChevronDown } from 'lucide-react';
 import { AuthService } from '@/services/auth.service';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'react-hot-toast';
+
+const COUNTRIES = [
+  { code: '+91', iso: 'in', name: 'India', digits: 10 },
+  { code: '+1', iso: 'us', name: 'United States', digits: 10 },
+  { code: '+44', iso: 'gb', name: 'United Kingdom', digits: 10 },
+  { code: '+65', iso: 'sg', name: 'Singapore', digits: 8 },
+  { code: '+971', iso: 'ae', name: 'United Arab Emirates', digits: 9 },
+  { code: '+61', iso: 'au', name: 'Australia', digits: 9 }
+];
 
 export default function CustomerLoginPage() {
   const [phone, setPhone] = useState('');
@@ -16,6 +25,16 @@ export default function CustomerLoginPage() {
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
   
+  // Country Code Dropdown State
+  const [selectedCountryCode, setSelectedCountryCode] = useState('+91');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState({ code: '+91', iso: 'in', name: 'India', digits: 10 });
+
+  // Resend Timer States
+  const [resendTimer, setResendTimer] = useState(30);
+  const [canResend, setCanResend] = useState(false);
+  const [resendTrigger, setResendTrigger] = useState(0);
+
   // Store temporary login details for role onboarding selection
   const [tempAuthData, setTempAuthData] = useState<any>(null);
 
@@ -36,19 +55,42 @@ export default function CustomerLoginPage() {
     }
   }, [isAuthenticated, user, router]);
 
+  // Resend OTP timer effect
+  useEffect(() => {
+    if (step !== 'OTP') return;
+    
+    setResendTimer(30);
+    setCanResend(false);
+    
+    const interval = setInterval(() => {
+      setResendTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setCanResend(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [step, resendTrigger]);
+
   if (!mounted) return null;
 
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!phone || phone.length < 10) {
-      setError('Please enter a valid 10-digit phone number');
+  const handleSendOtp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!phone || phone.length < 7) {
+      setError('Please enter a valid phone number');
       return;
     }
 
     setIsLoading(true);
     setError('');
 
-    const formattedPhone = phone.startsWith('+91') ? phone : `+91${phone}`;
+    const cleanPhone = phone.replace(/\D/g, '');
+    const normalizedMobile = cleanPhone.startsWith('0') ? cleanPhone.substring(1) : cleanPhone;
+    const formattedPhone = `${selectedCountryCode}${normalizedMobile}`;
 
     try {
       const response = await AuthService.sendOtp(formattedPhone);
@@ -61,11 +103,33 @@ export default function CustomerLoginPage() {
         return;
       }
 
-      toast.success('OTP sent successfully!');
+      toast.success('Verification code sent successfully!');
       setStep('OTP');
     } catch (err: any) {
       setError(err.response?.data?.error || err.message || 'Failed to send OTP. Please try again.');
-      toast.error('Failed to send OTP.');
+      toast.error('Failed to send verification code.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!canResend || isLoading) return;
+    
+    setIsLoading(true);
+    setError('');
+    
+    const cleanPhone = phone.replace(/\D/g, '');
+    const normalizedMobile = cleanPhone.startsWith('0') ? cleanPhone.substring(1) : cleanPhone;
+    const formattedPhone = `${selectedCountryCode}${normalizedMobile}`;
+
+    try {
+      await AuthService.sendOtp(formattedPhone);
+      toast.success('Verification code resent successfully!');
+      setResendTrigger(prev => prev + 1);
+    } catch (err: any) {
+      setError(err.response?.data?.error || err.message || 'Failed to resend code. Please try again.');
+      toast.error('Failed to resend code.');
     } finally {
       setIsLoading(false);
     }
@@ -74,20 +138,22 @@ export default function CustomerLoginPage() {
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!otp || otp.length < 4) {
-      setError('Please enter a valid 4-digit OTP');
+      setError('Please enter a valid 4-digit verification code');
       return;
     }
 
     setIsLoading(true);
     setError('');
 
-    const formattedPhone = phone.startsWith('+91') ? phone : `+91${phone}`;
+    const cleanPhone = phone.replace(/\D/g, '');
+    const normalizedMobile = cleanPhone.startsWith('0') ? cleanPhone.substring(1) : cleanPhone;
+    const formattedPhone = `${selectedCountryCode}${normalizedMobile}`;
 
     try {
       const data = await AuthService.verifyOtp(formattedPhone, otp);
       handlePostVerifyRedirect(data);
     } catch (err: any) {
-      setError(err.response?.data?.error || err.message || 'Invalid OTP. Please check and try again.');
+      setError(err.response?.data?.error || err.message || 'Invalid code. Please check and try again.');
       toast.error('Verification failed.');
       setIsLoading(false);
     }
@@ -106,10 +172,14 @@ export default function CustomerLoginPage() {
       setIsLoading(false);
     } else {
       // Normal flow: Set auth and redirect directly to dashboard
+      const cleanPhone = phone.replace(/\D/g, '');
+      const normalizedMobile = cleanPhone.startsWith('0') ? cleanPhone.substring(1) : cleanPhone;
+      const formattedPhone = `${selectedCountryCode}${normalizedMobile}`;
+
       saveSessionAndRedirect(data.accessToken, data.refreshToken, {
         id: data.userId,
         role: data.role,
-        phone: phone || data.phone,
+        phone: formattedPhone || data.phone,
         peerApplicationStatus: data.peerApplicationStatus
       });
     }
@@ -121,12 +191,16 @@ export default function CustomerLoginPage() {
     setIsLoading(true);
     setError('');
 
+    const cleanPhone = phone.replace(/\D/g, '');
+    const normalizedMobile = cleanPhone.startsWith('0') ? cleanPhone.substring(1) : cleanPhone;
+    const formattedPhone = `${selectedCountryCode}${normalizedMobile}`;
+
     try {
       // Set temporary auth token in zustand store first so that the API call is authorized
       setAuth(tempAuthData.accessToken, tempAuthData.refreshToken, {
         id: tempAuthData.userId,
         role: tempAuthData.role, // Default 'TEEN'
-        phone: phone || tempAuthData.phone,
+        phone: formattedPhone || tempAuthData.phone,
         peerApplicationStatus: tempAuthData.peerApplicationStatus
       });
 
@@ -143,7 +217,7 @@ export default function CustomerLoginPage() {
       setAuth(tempAuthData.accessToken, tempAuthData.refreshToken, {
         id: tempAuthData.userId,
         role: role,
-        phone: phone || tempAuthData.phone,
+        phone: formattedPhone || tempAuthData.phone,
         peerApplicationStatus: tempAuthData.peerApplicationStatus
       });
 
@@ -180,7 +254,7 @@ export default function CustomerLoginPage() {
       {/* Back Button */}
       <Link
         href="/"
-        className="absolute top-6 left-6 z-20 flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 rounded-full border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 text-xs sm:text-sm font-bold backdrop-blur-md"
+        className="absolute top-6 left-6 z-20 flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 text-xs sm:text-sm font-bold backdrop-blur-md"
       >
         <ArrowLeft size={16} className="text-slate-500" />
         <span>Back to Home</span>
@@ -190,58 +264,99 @@ export default function CustomerLoginPage() {
       <div className="absolute top-[-10%] left-[-10%] w-[45%] h-[45%] bg-primary/5 rounded-full blur-[120px]" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[45%] h-[45%] bg-accent/5 rounded-full blur-[120px]" />
 
-      <div className="w-full max-w-md space-y-8 animate-fade-in relative z-10">
-        <div className="text-center space-y-3">
-          <div className="w-16 h-16 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-primary/20 shadow-md">
-            <Shield className="text-primary animate-pulse" size={28} />
+      <div className="w-full max-w-md space-y-6 animate-fade-in relative z-10">
+        <div className="text-center space-y-2.5">
+          <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3 border border-primary/20 shadow-sm">
+            <Shield className="text-primary" size={24} />
           </div>
-          <h2 className="text-3xl font-extrabold tracking-tight font-heading text-slate-800">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-800">
             Welcome to <span className="text-primary">Infano Care</span>
           </h2>
-          <p className="text-sm font-medium text-slate-500 max-w-xs mx-auto">
+          <p className="text-xs font-semibold text-slate-500 max-w-xs mx-auto">
             Securely sign in to access your learning dashboards and active sessions
           </p>
         </div>
 
-        <div className="bg-white/70 backdrop-blur-xl border border-white p-8 rounded-[2.5rem] shadow-2xl shadow-slate-200/50">
+        <div className="bg-white border border-slate-100 p-8 rounded-xl shadow-xl shadow-slate-200/30">
           {error && (
-            <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-600 text-xs font-bold rounded-2xl text-center">
+            <div className="mb-5 p-3.5 bg-rose-50 border border-rose-100 text-rose-600 text-xs font-semibold rounded-lg text-center">
               {error}
             </div>
           )}
 
           {step === 'PHONE' && (
-            <form onSubmit={handleSendOtp} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 pl-1 uppercase tracking-widest">
+            <form onSubmit={handleSendOtp} className="space-y-5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 pl-0.5">
                   Phone Number
                 </label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-slate-400 font-bold border-r border-slate-200 pr-3">
-                    <span className="text-xs text-slate-500 font-black">+91</span>
+                
+                <div className="flex bg-slate-50 border border-slate-200 rounded-lg focus-within:border-slate-400 focus-within:ring-4 focus-within:ring-primary/5 transition-colors overflow-visible relative shadow-sm">
+                  {/* Dropdown Container */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setDropdownOpen(!dropdownOpen)}
+                      className="flex items-center gap-1.5 pl-3.5 pr-2.5 py-3 border-r border-slate-200 bg-transparent hover:bg-slate-100/50 transition-colors cursor-pointer select-none h-full"
+                    >
+                      <img 
+                        src={`https://flagcdn.com/w40/${selectedCountry.iso}.png`} 
+                        className="w-5 h-3.5 object-cover rounded-sm shrink-0 border border-slate-200/50" 
+                        alt={selectedCountry.name} 
+                      />
+                      <span className="text-sm font-bold text-slate-700">{selectedCountry.code}</span>
+                      <ChevronDown size={14} className={`text-slate-400 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {dropdownOpen && (
+                      <div className="absolute left-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-lg z-50 py-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                        {COUNTRIES.map((country) => (
+                          <button
+                            key={country.iso}
+                            type="button"
+                            onClick={() => {
+                              setSelectedCountry(country);
+                              setSelectedCountryCode(country.code);
+                              setPhone('');
+                              setError('');
+                              setDropdownOpen(false);
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm font-semibold hover:bg-slate-50 transition-colors text-slate-700"
+                          >
+                            <img 
+                              src={`https://flagcdn.com/w40/${country.iso}.png`} 
+                              className="w-5.5 h-4 object-cover rounded-sm border border-slate-200/50 shrink-0" 
+                              alt={country.name} 
+                            />
+                            <span className="flex-1">{country.name}</span>
+                            <span className="text-slate-400 font-bold text-xs">{country.code}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <input
                     type="tel"
+                    required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
-                    className="w-full bg-slate-50/50 border-2 border-slate-100 rounded-2xl py-4 pl-20 pr-4 focus:ring-4 focus:ring-primary/10 focus:border-primary/50 outline-none transition-all font-bold text-slate-800 text-base"
-                    placeholder="Enter 10-digit mobile"
-                    maxLength={10}
-                    required
+                    placeholder={`Enter ${selectedCountry.digits}-digit number`}
+                    maxLength={selectedCountry.digits}
+                    className="w-full px-4 py-3 outline-none text-slate-800 text-sm font-semibold bg-transparent"
                   />
                 </div>
               </div>
 
               <button
                 type="submit"
-                disabled={isLoading}
-                className="w-full py-4 bg-primary hover:bg-primary-dark text-white font-extrabold rounded-2xl flex items-center justify-center gap-2 group hover:shadow-xl hover:shadow-primary/20 transition-all active:scale-95 duration-200"
+                disabled={isLoading || phone.length !== selectedCountry.digits}
+                className="w-full py-3 bg-primary hover:bg-primary-dark text-white font-bold rounded-lg flex items-center justify-center gap-2 group hover:shadow-md transition-all active:scale-95 disabled:opacity-50 duration-200 cursor-pointer"
               >
                 {isLoading ? (
-                  <Loader2 className="animate-spin" size={20} />
+                  <Loader2 className="animate-spin" size={18} />
                 ) : (
                   <>
-                    Send Verification Code <ArrowRight className="group-hover:translate-x-1 transition-transform" size={18} />
+                    Send verification code <ArrowRight className="group-hover:translate-x-0.5 transition-transform" size={16} />
                   </>
                 )}
               </button>
@@ -250,9 +365,9 @@ export default function CustomerLoginPage() {
 
           {step === 'OTP' && (
             <form onSubmit={handleVerifyOtp} className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-              <div className="space-y-4 text-center">
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-xs font-black text-slate-500 pl-1 uppercase tracking-widest">
+              <div className="max-w-[240px] mx-auto w-full space-y-4">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-bold text-slate-500 pl-0.5">
                     Enter Verification Code
                   </label>
                   <button 
@@ -261,9 +376,9 @@ export default function CustomerLoginPage() {
                       setStep('PHONE');
                       setOtp('');
                     }}
-                    className="text-xs font-bold text-primary hover:underline hover:text-primary-dark"
+                    className="text-xs font-bold text-primary hover:underline hover:text-primary-dark cursor-pointer"
                   >
-                    Change Mobile
+                    Change mobile
                   </button>
                 </div>
                 
@@ -299,28 +414,45 @@ export default function CustomerLoginPage() {
                           document.getElementById(`otp-box-${index - 1}`)?.focus();
                         }
                       }}
-                      className="w-14 h-16 text-2xl font-black text-center bg-slate-50/50 border-2 border-slate-100 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary/50 outline-none transition-all text-slate-800"
+                      className="w-12 h-14 text-xl font-bold text-center bg-slate-50 border border-slate-200 rounded-lg focus:ring-4 focus:ring-primary/10 focus:border-primary/40 outline-none transition-all text-slate-800"
                       maxLength={1}
                       required
                     />
                   ))}
                 </div>
                 
-                <p className="text-xs text-slate-400 font-medium">
-                  Verification code sent to <span className="font-bold text-slate-600">+91 {phone}</span>
+                <p className="text-xs text-slate-400 font-medium text-center">
+                  Verification code sent to <span className="font-bold text-slate-600">{selectedCountryCode} {phone}</span>
                 </p>
+
+                <div className="flex justify-between items-center text-xs font-semibold text-slate-500 px-1">
+                  <span>Didn't receive code?</span>
+                  {canResend ? (
+                    <button
+                      type="button"
+                      onClick={handleResendOtp}
+                      className="text-primary hover:underline hover:text-primary-dark font-bold cursor-pointer"
+                    >
+                      Resend code
+                    </button>
+                  ) : (
+                    <span className="text-slate-400 font-medium">
+                      Resend in {resendTimer}s
+                    </span>
+                  )}
+                </div>
               </div>
 
               <button
                 type="submit"
                 disabled={isLoading || otp.length < 4}
-                className="w-full py-4 bg-primary hover:bg-primary-dark text-white font-extrabold rounded-2xl flex items-center justify-center gap-2 group hover:shadow-xl hover:shadow-primary/20 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale transition-all duration-200"
+                className="w-full py-3.5 bg-primary hover:bg-primary-dark text-white font-bold rounded-lg flex items-center justify-center gap-2 group hover:shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:grayscale transition-all duration-200 cursor-pointer"
               >
                 {isLoading ? (
-                  <Loader2 className="animate-spin" size={20} />
+                  <Loader2 className="animate-spin" size={18} />
                 ) : (
                   <>
-                    Verify & Continue <Shield className="ml-1" size={18} />
+                    Verify & continue <Shield className="ml-1" size={16} />
                   </>
                 )}
               </button>
@@ -328,12 +460,12 @@ export default function CustomerLoginPage() {
           )}
 
           {step === 'ROLE_SELECT' && (
-            <div className="space-y-6 animate-in fade-in duration-400">
+            <div className="space-y-5 animate-in fade-in duration-400">
               <div className="text-center space-y-1">
-                <span className="inline-flex items-center gap-1 bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-widest uppercase">
+                <span className="inline-flex items-center gap-1 bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-[10px] font-bold">
                   <Sparkles size={10} /> Profile Setup
                 </span>
-                <h3 className="text-lg font-black text-slate-800">Who is using this workspace?</h3>
+                <h3 className="text-lg font-bold text-slate-800">Who is using this workspace?</h3>
                 <p className="text-xs font-semibold text-slate-400">Choose your workspace dashboard to customize your journey.</p>
               </div>
 
@@ -341,13 +473,13 @@ export default function CustomerLoginPage() {
                 <button
                   type="button"
                   onClick={() => selectRoleAndRegister('TEEN')}
-                  className="flex items-start gap-4 p-5 bg-gradient-to-br from-purple-50/60 to-violet-50/30 hover:from-purple-50 hover:to-violet-50/60 border border-purple-100 hover:border-purple-300 rounded-3xl text-left transition-all duration-300 group hover:shadow-lg hover:shadow-purple-100/30"
+                  className="flex items-start gap-4 p-5 bg-gradient-to-br from-purple-50/60 to-violet-50/30 hover:from-purple-50 hover:to-violet-50/60 border border-purple-100 hover:border-purple-300 rounded-xl text-left transition-all duration-300 group hover:shadow-md hover:shadow-purple-100/10 cursor-pointer"
                 >
-                  <div className="w-12 h-12 bg-white text-purple-600 rounded-2xl flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform border border-purple-100">
+                  <div className="w-12 h-12 bg-white text-purple-600 rounded-lg flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform border border-purple-100">
                     <Heart className="fill-purple-200 text-purple-600" size={22} />
                   </div>
                   <div>
-                    <h4 className="text-sm font-extrabold text-slate-800 group-hover:text-purple-700 transition-colors">I am a Teen (Daughter)</h4>
+                    <h4 className="text-sm font-bold text-slate-800 group-hover:text-purple-700 transition-colors">I am a Teen (Daughter)</h4>
                     <p className="text-[11px] text-slate-400 leading-relaxed font-semibold mt-1">
                       Check your Period Tracker logs, attend live expert cohort sessions, and access your self-learning gamified journey.
                     </p>
@@ -357,13 +489,13 @@ export default function CustomerLoginPage() {
                 <button
                   type="button"
                   onClick={() => selectRoleAndRegister('PARENT')}
-                  className="flex items-start gap-4 p-5 bg-gradient-to-br from-rose-50/60 to-orange-50/30 hover:from-rose-50 hover:to-orange-50/60 border border-rose-100 hover:border-rose-300 rounded-3xl text-left transition-all duration-300 group hover:shadow-lg hover:shadow-rose-100/30"
+                  className="flex items-start gap-4 p-5 bg-gradient-to-br from-rose-50/60 to-orange-50/30 hover:from-rose-50 hover:to-orange-50/60 border border-rose-100 hover:border-rose-300 rounded-xl text-left transition-all duration-300 group hover:shadow-md hover:shadow-rose-100/10 cursor-pointer"
                 >
-                  <div className="w-12 h-12 bg-white text-rose-500 rounded-2xl flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform border border-rose-100">
+                  <div className="w-12 h-12 bg-white text-rose-500 rounded-lg flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform border border-rose-100">
                     <Star className="fill-rose-100 text-rose-500" size={22} />
                   </div>
                   <div>
-                    <h4 className="text-sm font-extrabold text-slate-800 group-hover:text-rose-600 transition-colors">I am a Parent (Mother)</h4>
+                    <h4 className="text-sm font-bold text-slate-800 group-hover:text-rose-600 transition-colors">I am a Parent (Mother)</h4>
                     <p className="text-[11px] text-slate-400 leading-relaxed font-semibold mt-1">
                       Monitor developmental progress, manage learning program enrollments, track booked demo slots, and read curated dinner conversation starters.
                     </p>

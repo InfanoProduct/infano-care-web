@@ -41,7 +41,7 @@ export function ResourceCard({ post, isBookmarkedInitial, onBookmarkChange, hide
       href={`/blog/${post.slug || post.id}`} 
       target="_blank"
       rel="noopener noreferrer"
-      className={`bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col h-full block ${compact ? 'text-sm' : ''}`}
+      className={`bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col h-full block ${compact ? 'text-sm' : ''}`}
     >
       <div className={`relative w-full shrink-0 overflow-hidden bg-slate-100 ${compact ? 'h-28' : 'h-48'}`}>
         {post.thumbnailUrl ? (
@@ -52,7 +52,7 @@ export function ResourceCard({ post, isBookmarkedInitial, onBookmarkChange, hide
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-slate-300 bg-gradient-to-br from-indigo-50 to-purple-50">
-            <span className="font-medium text-xs uppercase tracking-wider text-indigo-300/80">Infano Article</span>
+            <span className="font-medium text-xs text-indigo-300/80">Infano Article</span>
           </div>
         )}
         {!hideBookmark && (
@@ -72,12 +72,12 @@ export function ResourceCard({ post, isBookmarkedInitial, onBookmarkChange, hide
       <div className={`${compact ? 'p-3' : 'p-5'} flex flex-col flex-1`}>
         <div className="flex flex-wrap items-center gap-2 mb-3">
           {post.tags?.slice(0, 2).map((tag: string) => (
-            <span key={tag} className={`px-2 ${compact ? 'py-0.5 text-[9px]' : 'py-1 text-[10px]'} bg-indigo-50 text-indigo-600 font-bold uppercase tracking-wider rounded-md border border-indigo-100/50`}>
+            <span key={tag} className={`px-2 ${compact ? 'py-0.5 text-[9px]' : 'py-1 text-[10px]'} bg-indigo-50 text-indigo-600 font-bold rounded-md border border-indigo-100/50`}>
               {tag}
             </span>
           ))}
           {!post.tags?.length && post.categories?.slice(0, 1).map((cat: any) => (
-            <span key={cat.id} className="px-2 py-1 bg-purple-50 text-purple-600 text-[10px] font-bold uppercase tracking-wider rounded-md border border-purple-100/50">
+            <span key={cat.id} className="px-2 py-1 bg-purple-50 text-purple-600 text-[10px] font-bold rounded-md border border-purple-100/50">
               {cat.name}
             </span>
           ))}
@@ -94,15 +94,15 @@ export function ResourceCard({ post, isBookmarkedInitial, onBookmarkChange, hide
         <div className={`flex items-center justify-between text-[11px] font-bold tracking-wide text-slate-400 border-t border-slate-50 ${compact ? 'pt-2' : 'pt-4'} mt-auto`}>
           <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md">
             <Clock size={12} className="text-slate-500" />
-            {post.readTime || 5} MIN READ
+            {post.readTime || 5} min read
           </div>
           {post.author ? (
             <div className="truncate max-w-[120px] text-slate-500">
-              BY {post.author.name.toUpperCase()}
+              By {post.author.name}
             </div>
           ) : (
             <div className="truncate max-w-[120px] text-slate-500">
-              BY INFANO
+              By Infano
             </div>
           )}
         </div>

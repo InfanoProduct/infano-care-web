@@ -61,7 +61,7 @@ export function SliderCard({ card, index, isFirst, onDragEnd, onClick }: SliderC
       }}
       className="absolute inset-0 cursor-grab active:cursor-grabbing"
     >
-      <div className={`glass-card p-5 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.06)] h-full flex flex-col gap-4 border ${bgColor}`} style={{ contain: 'layout style' }}>
+      <div className={`glass-card p-5 rounded-[2.5rem] shadow-md h-full flex flex-col gap-4 border ${bgColor}`} style={{ contain: 'layout style' }}>
         <div className="relative aspect-[16/10] rounded-[2rem] overflow-hidden">
           <Image
             src={card.image}

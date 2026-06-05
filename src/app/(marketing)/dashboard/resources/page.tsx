@@ -88,82 +88,82 @@ export default function ResourceLibraryPage() {
   const displayList = filteredResources();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 w-full max-w-[1280px] mx-auto pb-8 font-sans">
       <div className="admin-header flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Resource Library</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-xl font-bold tracking-tight">Resource Library</h1>
+          <p className="text-xs text-slate-500 mt-1">
             Expert articles and guides to help you support your daughter's journey.
           </p>
         </div>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
           <input 
             type="text" 
             placeholder="Search articles..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full md:w-64 pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            className="w-full md:w-60 pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
           />
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 pb-4">
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 pb-3">
         <button
           onClick={() => setActiveTab('all')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
             activeTab === 'all' ? 'bg-primary text-white shadow-sm' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
           }`}
         >
-          <Library size={16} />
+          <Library size={14} />
           All Resources
         </button>
         <button
           onClick={() => setActiveTab('puberty')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
             activeTab === 'puberty' ? 'bg-indigo-500 text-white shadow-sm' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
           }`}
         >
-          <BookOpen size={16} />
+          <BookOpen size={14} />
           Puberty Guide
         </button>
         <button
           onClick={() => setActiveTab('parenting')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
             activeTab === 'parenting' ? 'bg-purple-500 text-white shadow-sm' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
           }`}
         >
-          <BookOpen size={16} />
+          <BookOpen size={14} />
           Parenting Tips
         </button>
         <button
           onClick={() => setActiveTab('mental-health')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
             activeTab === 'mental-health' ? 'bg-teal-500 text-white shadow-sm' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
           }`}
         >
-          <BookOpen size={16} />
+          <BookOpen size={14} />
           Mental Health
         </button>
-        <div className="w-px h-6 bg-slate-200 mx-2 hidden md:block" />
+        <div className="w-px h-5 bg-slate-200 mx-2 hidden md:block" />
         <button
           onClick={() => setActiveTab('bookmarks')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
             activeTab === 'bookmarks' ? 'bg-slate-800 text-white shadow-sm' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
           }`}
         >
-          <Bookmark size={16} className={activeTab === 'bookmarks' ? 'fill-white' : ''} />
+          <Bookmark size={14} className={activeTab === 'bookmarks' ? 'fill-white' : ''} />
           My Bookmarks ({bookmarks.length})
         </button>
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 text-slate-400 space-y-4">
-          <Loader2 className="animate-spin text-primary" size={32} />
-          <p className="text-sm font-medium">Loading resources...</p>
+        <div className="flex flex-col items-center justify-center py-20 text-slate-400 space-y-3">
+          <Loader2 className="animate-spin text-primary" size={28} />
+          <p className="text-xs font-medium">Loading resources...</p>
         </div>
       ) : displayList.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {displayList.map(post => (
             <ResourceCard 
               key={post.id} 
@@ -174,14 +174,14 @@ export default function ResourceLibraryPage() {
           ))}
         </div>
       ) : (
-        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-12 text-center flex flex-col items-center justify-center">
-          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-slate-300 mb-4 shadow-sm">
-            {activeTab === 'bookmarks' ? <Bookmark size={24} /> : <Library size={24} />}
+        <div className="bg-slate-50 border border-slate-100 rounded-xl p-10 text-center flex flex-col items-center justify-center">
+          <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-300 mb-3.5 shadow-sm border border-slate-100">
+            {activeTab === 'bookmarks' ? <Bookmark size={20} /> : <Library size={20} />}
           </div>
-          <h3 className="text-lg font-bold text-slate-800 mb-2">
+          <h3 className="text-base font-bold text-slate-800 mb-1.5">
             {activeTab === 'bookmarks' ? 'No bookmarks yet' : 'No resources found'}
           </h3>
-          <p className="text-slate-500 max-w-sm mx-auto text-sm">
+          <p className="text-slate-500 max-w-sm mx-auto text-xs leading-relaxed">
             {activeTab === 'bookmarks' 
               ? 'Articles you bookmark will appear here for easy access, and will be shared with your daughter.'
               : 'Try adjusting your search or selecting a different category to find what you are looking for.'}

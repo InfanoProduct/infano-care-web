@@ -10,6 +10,12 @@ import { AssetsService, Asset } from '@/services/assets.service';
 import { toast } from 'react-hot-toast';
 import { copyToClipboard } from '@/lib/utils';
 
+const isVideo = (urlOrName: string) => {
+  const videoExtensions = ['.mp4', '.mov', '.webm', '.avi', '.mkv', '.ogg', '.3gp'];
+  const lower = urlOrName.toLowerCase();
+  return videoExtensions.some(ext => lower.endsWith(ext));
+};
+
 export default function AssetsManagement() {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,9 +120,22 @@ export default function AssetsManagement() {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       
-      // Basic image or PDF check
-      if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
-        toast.error(`${file.name} is not an image or PDF file`);
+      // Image, PDF, or Video check
+      const isImg = file.type.startsWith('image/');
+      const isPdf = file.type === 'application/pdf';
+      const isVid = file.type.startsWith('video/');
+
+      if (!isImg && !isPdf && !isVid) {
+        toast.error(`${file.name} is not a supported file type (Image, PDF, or Video)`);
+        failCount++;
+        continue;
+      }
+
+      // Size validation (Max 200MB for videos, 50MB for images/PDFs)
+      const maxLimit = isVid ? 200 * 1024 * 1024 : 50 * 1024 * 1024;
+      if (file.size > maxLimit) {
+        const limitStr = isVid ? '200MB' : '50MB';
+        toast.error(`${file.name} exceeds the maximum size limit of ${limitStr}`);
         failCount++;
         continue;
       }
@@ -204,7 +223,7 @@ export default function AssetsManagement() {
           ref={fileInputRef}
           className="hidden"
           multiple
-          accept="image/*,application/pdf"
+          accept="image/*,application/pdf,video/*"
           onChange={(e) => e.target.files && handleUploadFiles(e.target.files)}
         />
       </div>
@@ -275,7 +294,7 @@ export default function AssetsManagement() {
               </p>
             </div>
             <p className="text-[10px] uppercase tracking-wider font-extrabold text-muted-foreground/60">
-              Supports PNG, JPG, JPEG, SVG, WEBP, GIF, PDF
+              Supports PNG, JPG, JPEG, SVG, WEBP, GIF, PDF, MP4, MOV, WEBM, AVI, MKV
             </p>
           </div>
         )}
@@ -343,7 +362,30 @@ export default function AssetsManagement() {
                 >
                   {/* Image/File container */}
                   <div className="relative aspect-video w-full bg-secondary/30 overflow-hidden flex-shrink-0 flex items-center justify-center border-b border-border/30">
-                    {asset.filename.toLowerCase().endsWith('.pdf') || asset.url.toLowerCase().endsWith('.pdf') ? (
+                    {isVideo(asset.filename) ? (
+                      <div className="w-full h-full bg-gradient-to-br from-indigo-500/10 via-violet-500/5 to-transparent flex flex-col items-center justify-center p-0 relative select-none">
+                        <video 
+                          src={asset.url}
+                          className="w-full h-full object-cover absolute inset-0 opacity-80 group-hover:opacity-100 transition-opacity duration-355"
+                          muted
+                          playsInline
+                          loop
+                          preload="metadata"
+                          onMouseEnter={(e) => e.currentTarget.play().catch(() => {})}
+                          onMouseLeave={(e) => e.currentTarget.pause()}
+                        />
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/10 group-hover:bg-black/5 transition-all pointer-events-none">
+                          <div className="w-10 h-10 rounded-full bg-black/45 backdrop-blur-sm flex items-center justify-center text-white border border-white/20 group-hover:scale-110 transition-transform duration-300 shadow-md">
+                            <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 ml-0.5">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </div>
+                          <span className="text-[9px] font-extrabold uppercase text-white tracking-wider bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-md border border-white/10 mt-2">
+                            Video
+                          </span>
+                        </div>
+                      </div>
+                    ) : asset.filename.toLowerCase().endsWith('.pdf') || asset.url.toLowerCase().endsWith('.pdf') ? (
                       <div className="w-full h-full bg-gradient-to-br from-red-500/10 via-rose-500/5 to-transparent flex flex-col items-center justify-center p-4 relative group-hover:scale-105 transition-transform duration-700 select-none">
                         <FileText size={48} className="text-red-500 mb-2 drop-shadow-sm" />
                         <span className="text-[10px] font-extrabold uppercase text-red-500 tracking-wider bg-red-500/10 px-2.5 py-0.5 rounded-md border border-red-500/20">
@@ -454,9 +496,16 @@ export default function AssetsManagement() {
             className="relative bg-white dark:bg-zinc-900 rounded-[2rem] overflow-hidden max-w-4xl w-full shadow-2xl flex flex-col md:flex-row animate-in zoom-in-95 duration-300"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Left: Huge Image / PDF Iframe */}
+            {/* Left: Huge Image / Video / PDF Iframe */}
             <div className="bg-zinc-100 dark:bg-zinc-950 flex items-center justify-center p-6 md:p-10 aspect-video md:aspect-auto md:w-3/5 min-h-[350px] md:min-h-[500px]">
-              {selectedAsset.filename.toLowerCase().endsWith('.pdf') || selectedAsset.url.toLowerCase().endsWith('.pdf') ? (
+              {isVideo(selectedAsset.filename) ? (
+                <video 
+                  src={selectedAsset.url} 
+                  controls
+                  autoPlay
+                  className="w-full max-h-[70vh] rounded-2xl border border-black/10 shadow-lg"
+                />
+              ) : selectedAsset.filename.toLowerCase().endsWith('.pdf') || selectedAsset.url.toLowerCase().endsWith('.pdf') ? (
                 <iframe 
                   src={selectedAsset.url} 
                   className="w-full h-full min-h-[350px] md:min-h-[500px] rounded-2xl border border-black/10 shadow-lg"

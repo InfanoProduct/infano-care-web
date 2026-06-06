@@ -34,7 +34,9 @@ export default function EnrolledProgramDetailsPage() {
         setEnrollment(found);
       } else {
         toast.error('Enrollment not found');
-        router.push('/dashboard/enrolled-programs');
+        setTimeout(() => {
+          router.push('/dashboard/enrolled-programs');
+        }, 100);
       }
     } catch {
       toast.error('Failed to load details.');

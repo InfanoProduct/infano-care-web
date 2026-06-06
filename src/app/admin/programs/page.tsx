@@ -1542,13 +1542,11 @@ export default function ProgramsManagement() {
                         <td className="p-6 text-right">
                           <div className="flex justify-end gap-1.5">
                             <button
-                              onClick={() => {
-                                setSelectedDemo(demo);
-                                setShowDemoModal(true);
-                              }}
-                              className="px-4 py-2 bg-secondary hover:bg-primary/10 hover:text-primary border border-border/50 text-xs font-black rounded-xl transition-all shadow-sm"
+                              onClick={() => router.push(`/admin/expert/demos/${demo.id}`)}
+                              title="view details"
+                              className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-500/15 rounded-xl transition-all shadow-sm"
                             >
-                              View Profile Details
+                              <Eye size={14} className="stroke-[3px]" />
                             </button>
                           </div>
                         </td>

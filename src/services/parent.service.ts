@@ -103,5 +103,29 @@ export const ParentService = {
 
   async getTeenParentBookmarks(): Promise<any[]> {
     return apiClient.get<any[]>('/teen/parent-bookmarks');
+  },
+
+  async getNotifications(): Promise<DbNotification[]> {
+    return apiClient.get<DbNotification[]>('/parent/notifications');
+  },
+
+  async dismissNotification(id: string): Promise<{ success: boolean }> {
+    return apiClient.delete<{ success: boolean }>(`/parent/notifications/${id}`);
+  },
+
+  async clearAllNotifications(): Promise<{ success: boolean }> {
+    return apiClient.delete<{ success: boolean }>('/parent/notifications');
   }
 };
+
+export interface DbNotification {
+  id: string;
+  userId: string;
+  type: 'inactivityAlert' | 'upcomingSessions' | 'weeklyPrompt' | 'newResource';
+  title: string;
+  body: string;
+  deepLink: string | null;
+  payload: any;
+  sentAt: string;
+  openedAt: string | null;
+}

@@ -3,134 +3,79 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Pause, Volume2, VolumeX, Loader2 } from 'lucide-react';
+import { getImageUrl } from '@/lib/utils';
 
 const TESTIMONIALS = [
-  { videoId: 'ScMzIvxBSi4', name: 'Sneha', age: 14, location: 'Pune' },
-  { videoId: '95a2NLIk9mU', name: 'Zoya', age: 12, location: 'Mumbai' },
-  { videoId: 'KeZ-b48_Nog', name: 'Isha', age: 15, location: 'Delhi' }
+  { videoUrl: '/uploads/assets/file-1780777557218-9574c645-caf4-40df-b67a-440f1abc0677.mp4', name: 'Sneha', age: 14, location: 'Pune' },
+  { videoUrl: '/uploads/assets/file-1780777605133-0bc0fefc-22b1-451e-a79a-4590dad5c80c.mp4', name: 'Zoya', age: 12, location: 'Mumbai' },
+  { videoUrl: '/uploads/assets/file-1780777636472-f739e60a-6240-4168-9d6a-a15e75ad2a44.mp4', name: 'Isha', age: 15, location: 'Delhi' }
 ];
 
-interface YouTubePlayerProps {
-  videoId: string;
+interface VideoPlayerProps {
+  videoUrl: string;
   name: string;
   age?: number;
   location: string;
 }
 
-export function YouTubePlayer({ videoId, name, age, location }: YouTubePlayerProps) {
-  const playerRef = useRef<any>(null);
-  const containerId = `yt-player-${videoId}`;
+export function VideoPlayer({ videoUrl, name, age, location }: VideoPlayerProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Check if the script is already loaded
-    const windowAny = window as any;
-    if (!windowAny.YT) {
-      const tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+    // Reset play state when URL changes, but do not autoplay
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+      setIsPlaying(false);
     }
-
-    // Set up callback
-    const previousCallback = windowAny.onYouTubeIframeAPIReady;
-    windowAny.onYouTubeIframeAPIReady = () => {
-      if (previousCallback) previousCallback();
-      initPlayer();
-    };
-
-    // If script is already loaded and YT is available
-    if (windowAny.YT && windowAny.YT.Player) {
-      initPlayer();
-    }
-
-    function initPlayer() {
-      const wAny = window as any;
-      if (playerRef.current || !wAny.YT || !wAny.YT.Player) return;
-
-      playerRef.current = new wAny.YT.Player(containerId, {
-        height: '100%',
-        width: '100%',
-        videoId: videoId,
-        playerVars: {
-          autoplay: 1,
-          mute: 1,
-          controls: 0,
-          rel: 0,
-          showinfo: 0,
-          loop: 1,
-          playlist: videoId,
-          modestbranding: 1,
-          playsinline: 1,
-        },
-        events: {
-          onReady: (event: any) => {
-            setIsReady(true);
-            setIsMuted(true);
-            event.target.playVideo();
-            setIsPlaying(true);
-          },
-          onStateChange: (event: any) => {
-            // YT.PlayerState.PLAYING = 1, YT.PlayerState.PAUSED = 2
-            if (event.data === 1) {
-              setIsPlaying(true);
-            } else if (event.data === 2) {
-              setIsPlaying(false);
-            }
-          },
-        },
-      });
-    }
-
-    return () => {
-      // Clean up player on unmount
-      if (playerRef.current && typeof playerRef.current.destroy === 'function') {
-        playerRef.current.destroy();
-        playerRef.current = null;
-      }
-    };
-  }, [videoId, containerId]);
+  }, [videoUrl]);
 
   const togglePlay = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (!playerRef.current || !isReady) return;
+    if (!videoRef.current) return;
     if (isPlaying) {
-      playerRef.current.pauseVideo();
+      videoRef.current.pause();
       setIsPlaying(false);
     } else {
-      playerRef.current.playVideo();
-      setIsPlaying(true);
+      videoRef.current.play()
+        .then(() => {
+          setIsPlaying(true);
+        })
+        .catch(err => console.error(err));
     }
   };
 
   const toggleMute = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (!playerRef.current || !isReady) return;
-    if (isMuted) {
-      playerRef.current.unMute();
-      setIsMuted(false);
-    } else {
-      playerRef.current.mute();
-      setIsMuted(true);
-    }
+    if (!videoRef.current) return;
+    const newMuted = !isMuted;
+    videoRef.current.muted = newMuted;
+    setIsMuted(newMuted);
   };
+
+  const fullUrl = getImageUrl(videoUrl);
 
   return (
     <div className="relative w-full aspect-[9/16] rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10 bg-slate-950 group">
-      {/* YouTube Player Target - Cropped to Portrait Aspect Ratio */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 aspect-video h-full [&>iframe]:absolute [&>iframe]:inset-0 [&>iframe]:w-full [&>iframe]:h-full">
-          <div id={containerId} className="w-full h-full" />
-        </div>
-      </div>
+      {/* HTML5 Video Element */}
+      <video
+        ref={videoRef}
+        src={fullUrl}
+        className="absolute inset-0 w-full h-full object-cover"
+        loop
+        playsInline
+        muted={isMuted}
+        onCanPlay={() => setIsReady(true)}
+      />
 
       {/* Click to play/pause hit area */}
       <div onClick={() => togglePlay()} className="absolute inset-0 cursor-pointer z-10" />
 
       {/* User Info Tag Overlay */}
-      <div className="absolute top-6 left-6 z-20 flex items-center gap-3 bg-black/45 border border-white/10 backdrop-blur-md py-2.5 px-4 rounded-full shadow-lg">
+      <div className="absolute top-6 right-6 z-20 flex items-center gap-3 bg-black/45 border border-white/10 backdrop-blur-md py-2.5 px-4 rounded-full shadow-lg">
         <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-white text-xs font-black shadow-inner animate-pulse">
           {name.charAt(0)}
         </div>
@@ -242,9 +187,9 @@ export function ReaderVoices() {
         {/* 3-Column Portrait Video Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {TESTIMONIALS.map((t) => (
-            <div key={t.videoId} className="w-full max-w-[320px] mx-auto">
-              <YouTubePlayer
-                videoId={t.videoId}
+            <div key={t.videoUrl} className="w-full max-w-[320px] mx-auto">
+              <VideoPlayer
+                videoUrl={t.videoUrl}
                 name={t.name}
                 age={t.age}
                 location={t.location}

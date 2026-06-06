@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
 import { AuthService } from '@/services/auth.service';
 import { NotificationBell } from '@/features/parent/components/NotificationBell';
+import { GigiChatWidget } from '@/features/parent/components/GigiChatWidget';
 
 export default function CustomerDashboardLayout({
   children,
@@ -24,6 +25,23 @@ export default function CustomerDashboardLayout({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const refreshedRef = useRef(false);
+  const [avatarPhoto, setAvatarPhoto] = useState<string | null>(null);
+
+  // Sync profile photo in layout header
+  useEffect(() => {
+    if (user?.id) {
+      if (user.profile?.avatarUrl) {
+        setAvatarPhoto(user.profile.avatarUrl);
+      } else {
+        const storedPhoto = localStorage.getItem(`profileAvatar_${user.id}`);
+        if (storedPhoto) {
+          setAvatarPhoto(storedPhoto);
+        } else {
+          setAvatarPhoto(null);
+        }
+      }
+    }
+  }, [user]);
 
   useEffect(() => {
     setMounted(true);
@@ -332,14 +350,26 @@ export default function CustomerDashboardLayout({
             <NotificationBell />
 
             <div className="flex items-center gap-2.5 bg-slate-50/50 border border-slate-100/80 py-1 pl-2.5 pr-3.5 rounded-xl">
-              <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs shadow-xs shrink-0 ${
+              <div className={`w-7 h-7 rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-xs shadow-xs shrink-0 ${
                 isTeen ? 'bg-purple-500' : 'bg-rose-500'
               }`}>
-                {user.phone ? user.phone.slice(-4) : 'U'}
+                {avatarPhoto ? (
+                  <img src={avatarPhoto} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  user?.profile?.displayName
+                    ? user.profile.displayName.charAt(0).toUpperCase()
+                    : user?.username
+                    ? user.username.charAt(0).toUpperCase()
+                    : 'U'
+                )}
               </div>
               <div className="text-left leading-none">
-                <p className="text-xs font-semibold text-slate-805 truncate max-w-[100px]">{user.phone || 'User'}</p>
-                <p className="text-[9px] font-bold text-slate-400 mt-0.5 uppercase tracking-wide">{user.role}</p>
+                <p className="text-xs font-semibold text-slate-800 truncate max-w-[120px]" title={user?.profile?.displayName || user?.username || 'User'}>
+                  {user?.profile?.displayName || user?.username || 'User'}
+                </p>
+                <p className="text-[9px] font-bold text-slate-400 mt-0.5 uppercase tracking-wide">
+                  {user.role === 'TEEN' ? 'Teen' : user.role === 'PARENT' ? 'Parent' : (user.role.charAt(0) + user.role.slice(1).toLowerCase())}
+                </p>
               </div>
             </div>
 
@@ -360,6 +390,9 @@ export default function CustomerDashboardLayout({
           </div>
         </main>
       </div>
+
+      {/* Gigi Floating Chat Widget — visible on all dashboard pages for both parent and teen */}
+      <GigiChatWidget />
 
     </div>
   );

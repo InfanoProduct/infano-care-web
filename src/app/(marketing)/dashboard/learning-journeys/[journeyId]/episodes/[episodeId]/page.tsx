@@ -1157,18 +1157,10 @@ export default function EpisodePlayerPage() {
                               : '👥 Community: Anonymous peer reflection shared in Gigis Circle feed.'}
                           </p>
 
-                          {/* Journal notice banner */}
-                          {journalNotice && (
-                            <div className={`p-3 rounded-xl flex items-center gap-2 text-xs font-bold animate-in slide-in-from-top-1 duration-200 border ${
-                              journalNotice.type === 'success'
-                                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                                : 'bg-rose-50 border-rose-200 text-rose-800'
-                            }`}>
-                              {journalNotice.type === 'success' ? (
-                                <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
-                              ) : (
-                                <AlertCircle size={14} className="text-rose-600 shrink-0" />
-                              )}
+                          {/* Only show the notice banner if it's an error; success is handled in the footer area below */}
+                          {journalNotice && journalNotice.type === 'error' && (
+                            <div className="p-3 rounded-xl flex items-center gap-2 text-xs font-bold animate-in slide-in-from-top-1 duration-200 border bg-rose-50 border-rose-200 text-rose-800">
+                              <AlertCircle size={14} className="text-rose-600 shrink-0" />
                               <span>{journalNotice.message}</span>
                             </div>
                           )}

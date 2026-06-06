@@ -150,6 +150,13 @@ export const ProgramsService = {
   },
 
   /**
+   * Fetches a single demo session booking by ID for the admin panel
+   */
+  async getAdminDemo(id: string): Promise<DemoSession> {
+    return apiClient.get<DemoSession>(`/admin/programs/demos/${id}`);
+  },
+
+  /**
    * Updates the status of a demo session request (e.g. PENDING, CONTACTED, SCHEDULED, COMPLETED, CANCELLED)
    */
   async updateDemoStatus(id: string, status: string): Promise<DemoSession> {

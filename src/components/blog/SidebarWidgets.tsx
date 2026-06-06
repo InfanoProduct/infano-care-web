@@ -4,6 +4,13 @@ import { useState, useEffect, useRef } from 'react';
 import { getImageUrl, getCategoryColor } from '@/lib/utils';
 import { ShopService, Book } from '@/services/shop.service';
 
+// ─── Configurable "Don't Miss" CTA background image ────────────────────────
+// To change the image: replace /blog-promo-banner.png in the public/ folder,
+// or update the path below to point to a different file in public/.
+const PROMO_BANNER_IMAGE = '/BookwithCover.png';
+// ────────────────────────────────────────────────────────────────────────────
+
+
 export function PromoBanner() {
   const [book, setBook] = useState<Book | null>(null);
 
@@ -39,10 +46,13 @@ export function PromoBanner() {
     loadBook();
   }, []);
 
+  // Use the book's imageUrl if set in the admin, otherwise fall back to the constant above
+  const bannerImage = book?.imageUrl || PROMO_BANNER_IMAGE;
+
   return (
     <div className="group relative overflow-hidden rounded-xl aspect-square shadow-2xl">
       <Image
-        src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe"
+        src={bannerImage}
         alt="Promotion"
         fill
         className="object-cover group-hover:scale-110 transition-transform duration-700 sharp-image"
@@ -61,6 +71,7 @@ export function PromoBanner() {
     </div>
   );
 }
+
 
 
 export function CategoryWidget({ categories }: { categories: any[] }) {

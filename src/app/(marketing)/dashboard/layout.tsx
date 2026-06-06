@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
 import { AuthService } from '@/services/auth.service';
 import { NotificationBell } from '@/features/parent/components/NotificationBell';
+import { GigiChatWidget } from '@/features/parent/components/GigiChatWidget';
 
 export default function CustomerDashboardLayout({
   children,
@@ -360,6 +361,9 @@ export default function CustomerDashboardLayout({
           </div>
         </main>
       </div>
+
+      {/* Gigi Floating Chat Widget — visible on all dashboard pages for both parent and teen */}
+      <GigiChatWidget />
 
     </div>
   );

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuthStore } from '@/store/auth-store';
-import { User, Bell, Camera, Loader2, Save, HelpCircle, Link2, ShieldAlert, Sparkles, Send, BookOpen, Calendar, X, Edit3 } from 'lucide-react';
+import { User, Bell, Camera, Loader2, Save, HelpCircle, Link2, ShieldAlert, Sparkles, Send, BookOpen, Calendar, X, Edit3, ArrowLeft, Check } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
@@ -32,17 +33,25 @@ export default function ProfilePage() {
     }
   }, [user, editMode]);
 
-  // Avatar upload and circular cropping states
+  // Avatar upload and cropping states
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
-  const [zoom, setZoom] = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [imageNaturalSize, setImageNaturalSize] = useState({ w: 0, h: 0 });
+  const [imgDisplaySize, setImgDisplaySize] = useState({ w: 0, h: 0 });
+  const [cropRect, setCropRect] = useState({ x: 0, y: 0, size: 200 });
+  const [dragMode, setDragMode] = useState<'none' | 'move' | 'nw' | 'ne' | 'sw' | 'se'>('none');
+  const [dragStart, setDragStart] = useState({ mx: 0, my: 0, cx: 0, cy: 0, cs: 0 });
+  const [portalMounted, setPortalMounted] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cropImgRef = useRef<HTMLImageElement>(null);
+
+  // Portal mount detection for createPortal
+  useEffect(() => {
+    setPortalMounted(true);
+  }, []);
 
   // Notification states
   const [notifications, setNotifications] = useState({
@@ -56,9 +65,13 @@ export default function ProfilePage() {
   // Load avatar and notification settings on mount
   useEffect(() => {
     if (user?.id) {
-      const storedPhoto = localStorage.getItem(`profileAvatar_${user.id}`);
-      if (storedPhoto) {
-        setProfilePhoto(storedPhoto);
+      if (user.profile?.avatarUrl) {
+        setProfilePhoto(user.profile.avatarUrl);
+      } else {
+        const storedPhoto = localStorage.getItem(`profileAvatar_${user.id}`);
+        if (storedPhoto) {
+          setProfilePhoto(storedPhoto);
+        }
       }
       const storedPrefs = localStorage.getItem(`notificationPreferences_${user.id}`);
       if (storedPrefs) {
@@ -124,71 +137,124 @@ export default function ProfilePage() {
     setEditMode(false);
   };
 
-  // Mouse and Touch Drag Handlers for circular cropper
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
-  };
+  // ── Google Photos-style Crop Frame Handlers ──
+  const MIN_CROP_SIZE = 60;
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging) {
-      setOffset({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y
-      });
+  // Compute display size when image loads — fits image into available viewport
+  const computeDisplaySize = useCallback((natW: number, natH: number) => {
+    const maxW = Math.min(480, window.innerWidth - 48);
+    const maxH = Math.min(420, window.innerHeight - 140);
+    const aspect = natW / natH;
+    let w = maxW;
+    let h = w / aspect;
+    if (h > maxH) {
+      h = maxH;
+      w = h * aspect;
     }
-  };
+    return { w: Math.round(w), h: Math.round(h) };
+  }, []);
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
+  // Start a drag interaction (move or resize from corner)
+  const startCropInteraction = useCallback((clientX: number, clientY: number, mode: 'move' | 'nw' | 'ne' | 'sw' | 'se') => {
+    setDragMode(mode);
+    setDragStart({ mx: clientX, my: clientY, cx: cropRect.x, cy: cropRect.y, cs: cropRect.size });
+  }, [cropRect]);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches[0]) {
-      setIsDragging(true);
-      setDragStart({
-        x: e.touches[0].clientX - offset.x,
-        y: e.touches[0].clientY - offset.y
-      });
+  // Process drag movement
+  const processCropDrag = useCallback((clientX: number, clientY: number) => {
+    if (dragMode === 'none') return;
+    const dx = clientX - dragStart.mx;
+    const dy = clientY - dragStart.my;
+
+    if (dragMode === 'move') {
+      const newX = Math.max(0, Math.min(imgDisplaySize.w - dragStart.cs, dragStart.cx + dx));
+      const newY = Math.max(0, Math.min(imgDisplaySize.h - dragStart.cs, dragStart.cy + dy));
+      setCropRect(prev => ({ ...prev, x: newX, y: newY }));
+    } else {
+      // Corner resize — use average of dx/dy projections for uniform square sizing
+      let delta = 0;
+      if (dragMode === 'se') delta = (dx + dy) / 2;
+      else if (dragMode === 'nw') delta = -(dx + dy) / 2;
+      else if (dragMode === 'ne') delta = (dx - dy) / 2;
+      else if (dragMode === 'sw') delta = (-dx + dy) / 2;
+
+      let newSize = dragStart.cs + delta;
+
+      // Compute max size based on which corner is anchored
+      let maxSize = newSize;
+      if (dragMode === 'se') maxSize = Math.min(imgDisplaySize.w - dragStart.cx, imgDisplaySize.h - dragStart.cy);
+      else if (dragMode === 'nw') maxSize = Math.min(dragStart.cx + dragStart.cs, dragStart.cy + dragStart.cs);
+      else if (dragMode === 'ne') maxSize = Math.min(imgDisplaySize.w - dragStart.cx, dragStart.cy + dragStart.cs);
+      else if (dragMode === 'sw') maxSize = Math.min(dragStart.cx + dragStart.cs, imgDisplaySize.h - dragStart.cy);
+
+      newSize = Math.max(MIN_CROP_SIZE, Math.min(newSize, maxSize));
+      const sizeDiff = newSize - dragStart.cs;
+
+      let newX = dragStart.cx;
+      let newY = dragStart.cy;
+
+      if (dragMode === 'nw') { newX = dragStart.cx - sizeDiff; newY = dragStart.cy - sizeDiff; }
+      else if (dragMode === 'ne') { newY = dragStart.cy - sizeDiff; }
+      else if (dragMode === 'sw') { newX = dragStart.cx - sizeDiff; }
+      // 'se': x and y stay the same
+
+      // Clamp position
+      newX = Math.max(0, Math.min(newX, imgDisplaySize.w - newSize));
+      newY = Math.max(0, Math.min(newY, imgDisplaySize.h - newSize));
+
+      setCropRect({ x: newX, y: newY, size: newSize });
     }
-  };
+  }, [dragMode, dragStart, imgDisplaySize]);
 
-  const handleTouchMove = (e: TouchEvent) => {
-    if (isDragging && e.touches[0]) {
-      setOffset({
-        x: e.touches[0].clientX - dragStart.x,
-        y: e.touches[0].clientY - dragStart.y
-      });
-    }
-  };
+  const endCropInteraction = useCallback(() => {
+    setDragMode('none');
+  }, []);
 
+  // Global mouse/touch listeners for drag
   useEffect(() => {
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-      window.addEventListener('touchmove', handleTouchMove);
-      window.addEventListener('touchend', handleMouseUp);
-    }
+    if (dragMode === 'none') return;
+
+    const onMouseMove = (e: MouseEvent) => { e.preventDefault(); processCropDrag(e.clientX, e.clientY); };
+    const onTouchMove = (e: TouchEvent) => { if (e.touches[0]) { e.preventDefault(); processCropDrag(e.touches[0].clientX, e.touches[0].clientY); } };
+    const onEnd = () => endCropInteraction();
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onEnd);
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onEnd);
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleMouseUp);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onEnd);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onEnd);
     };
-  }, [isDragging, dragStart]);
+  }, [dragMode, processCropDrag, endCropInteraction]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        setImageToCrop(reader.result as string);
-        setIsCropModalOpen(true);
-        setZoom(1);
-        setOffset({ x: 0, y: 0 });
+        const img = new Image();
+        img.onload = () => {
+          setImageNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
+          const display = computeDisplaySize(img.naturalWidth, img.naturalHeight);
+          setImgDisplaySize(display);
+          // Initialize crop rect — centered square, 80% of smaller dimension
+          const cropSize = Math.min(display.w, display.h) * 0.8;
+          setCropRect({
+            x: (display.w - cropSize) / 2,
+            y: (display.h - cropSize) / 2,
+            size: cropSize,
+          });
+          setImageToCrop(reader.result as string);
+          setIsCropModalOpen(true);
+        };
+        img.src = reader.result as string;
       };
       reader.readAsDataURL(file);
     }
+    if (e.target) e.target.value = '';
   };
 
   const triggerFileInput = () => {
@@ -198,58 +264,111 @@ export default function ProfilePage() {
   };
 
   const handleCropSave = () => {
-    if (!cropImgRef.current) return;
+    if (!cropImgRef.current || !imgDisplaySize.w) return;
     const imgEl = cropImgRef.current;
 
+    const outputSize = 500;
     const canvas = document.createElement('canvas');
-    canvas.width = 250;
-    canvas.height = 250;
+    canvas.width = outputSize;
+    canvas.height = outputSize;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // The crop circle displays inside a 192px circular container.
-    // The canvas is 250x250.
-    const scaleFactor = 250 / 192;
-
+    // Clip output to circle for profile avatar
     ctx.beginPath();
-    ctx.arc(125, 125, 125, 0, Math.PI * 2);
+    ctx.arc(outputSize / 2, outputSize / 2, outputSize / 2, 0, Math.PI * 2);
     ctx.clip();
 
-    const naturalWidth = imgEl.naturalWidth;
-    const naturalHeight = imgEl.naturalHeight;
-    
-    let displayWidth = 192;
-    let displayHeight = 192;
-    if (naturalWidth >= naturalHeight) {
-      displayHeight = 192;
-      displayWidth = 192 * (naturalWidth / naturalHeight);
-    } else {
-      displayWidth = 192;
-      displayHeight = 192 * (naturalHeight / naturalWidth);
-    }
+    // Map crop rect from display coordinates to natural image coordinates
+    const scale = imgEl.naturalWidth / imgDisplaySize.w;
+    const srcX = cropRect.x * scale;
+    const srcY = cropRect.y * scale;
+    const srcSize = cropRect.size * scale;
 
-    const currentWidth = displayWidth * zoom;
-    const currentHeight = displayHeight * zoom;
+    ctx.drawImage(imgEl, srcX, srcY, srcSize, srcSize, 0, 0, outputSize, outputSize);
 
-    // Centered relative coordinates on the 192x192 layout viewport
-    const currentX = (192 - currentWidth) / 2 + offset.x;
-    const currentY = (192 - currentHeight) / 2 + offset.y;
+    canvas.toBlob(async (blob) => {
+      if (!blob) {
+        toast.error('Failed to process cropped image');
+        return;
+      }
 
-    const dx = currentX * scaleFactor;
-    const dy = currentY * scaleFactor;
-    const dw = currentWidth * scaleFactor;
-    const dh = currentHeight * scaleFactor;
+      // Validate image size (must be under 10MB)
+      if (blob.size > 10 * 1024 * 1024) {
+        toast.error('Image size must be less than 10MB');
+        return;
+      }
 
-    ctx.drawImage(imgEl, dx, dy, dw, dh);
+      setUploading(true);
+      try {
+        const formData = new FormData();
+        formData.append('file', blob, 'avatar.jpg');
 
-    const croppedBase64 = canvas.toDataURL('image/jpeg', 0.95);
-    
-    if (user?.id) {
-      localStorage.setItem(`profileAvatar_${user.id}`, croppedBase64);
-    }
-    setProfilePhoto(croppedBase64);
-    setIsCropModalOpen(false);
-    toast.success('Profile image updated!');
+        const response = await apiClient.request<{ success: boolean; avatarUrl: string; profile: any }>(
+          '/user/profile/avatar',
+          {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'Content-Type': 'skip',
+            },
+          }
+        );
+
+        if (response.success && response.avatarUrl) {
+          // Update profile photo locally
+          setProfilePhoto(response.avatarUrl);
+          
+          // Save locally to localStorage as backup
+          if (user?.id) {
+            localStorage.setItem(`profileAvatar_${user.id}`, response.avatarUrl);
+          }
+
+          // Update useAuthStore profile state so other layout parts sync
+          if (user) {
+            setAuth(
+              useAuthStore.getState().token || '',
+              useAuthStore.getState().refreshToken || '',
+              {
+                ...user,
+                profile: {
+                  ...user.profile,
+                  avatarUrl: response.avatarUrl,
+                },
+              }
+            );
+          }
+
+          toast.success('Profile image updated successfully!');
+          setIsCropModalOpen(false);
+        } else {
+          throw new Error('Image upload failed');
+        }
+      } catch (error: any) {
+        toast.error(error.message || 'Failed to upload profile photo');
+        console.error('Avatar upload error:', error);
+      } finally {
+        setUploading(false);
+      }
+    }, 'image/jpeg', 0.9);
+  };
+
+  // Corner handle component for the crop frame
+  const CropCornerHandle = ({ corner, cursor }: { corner: 'nw' | 'ne' | 'sw' | 'se'; cursor: string }) => {
+    const borderClasses = {
+      nw: 'top-[-2px] left-[-2px] border-t-[3px] border-l-[3px]',
+      ne: 'top-[-2px] right-[-2px] border-t-[3px] border-r-[3px]',
+      sw: 'bottom-[-2px] left-[-2px] border-b-[3px] border-l-[3px]',
+      se: 'bottom-[-2px] right-[-2px] border-b-[3px] border-r-[3px]',
+    };
+    return (
+      <div
+        className={`absolute w-6 h-6 border-white ${borderClasses[corner]} z-10`}
+        style={{ cursor }}
+        onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); startCropInteraction(e.clientX, e.clientY, corner); }}
+        onTouchStart={(e) => { e.stopPropagation(); if (e.touches[0]) startCropInteraction(e.touches[0].clientX, e.touches[0].clientY, corner); }}
+      />
+    );
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -605,70 +724,126 @@ export default function ProfilePage() {
       </div>
 
       {/* Crop Modal Dialog */}
-      {isCropModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-100 rounded-xl shadow-xl max-w-sm w-full p-5 space-y-4 animate-in scale-in duration-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-bold text-slate-800 text-sm">Crop Profile Picture</h3>
+      {isCropModalOpen && portalMounted && createPortal(
+        <div 
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4"
+          style={{ zIndex: 99999 }}
+          onClick={() => setIsCropModalOpen(false)}
+        >
+          <div 
+            className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg md:max-w-xl flex flex-col overflow-hidden max-h-[90vh] animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header bar — light background */}
+            <div className="flex items-center justify-between px-6 h-14 shrink-0 border-b border-slate-100 bg-white">
+              <h3 className="text-slate-800 font-bold text-sm tracking-wide">Crop Profile Photo</h3>
               <button 
                 type="button"
                 onClick={() => setIsCropModalOpen(false)} 
-                className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-105 rounded-lg transition-colors"
+                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all"
               >
-                <X size={16} />
+                <X size={18} />
               </button>
             </div>
 
-            <div 
-              className="w-48 h-48 mx-auto rounded-full overflow-hidden border-2 border-primary bg-slate-950 relative cursor-move select-none"
-              onMouseDown={handleMouseDown}
-              onTouchStart={handleTouchStart}
-            >
-              <img
-                src={imageToCrop || ''}
-                alt="To Crop"
-                ref={cropImgRef}
-                className="absolute max-w-none origin-center pointer-events-none"
-                style={{
-                  top: '50%',
-                  left: '50%',
-                  transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px)) scale(${zoom})`,
+            {/* Crop workspace — image with crop overlay, light workspace background */}
+            <div className="flex-1 flex items-center justify-center relative overflow-hidden bg-slate-50 p-6 min-h-[320px] max-h-[55vh]">
+              {/* Image container */}
+              <div 
+                className="relative select-none animate-in fade-in duration-300"
+                style={{ width: imgDisplaySize.w, height: imgDisplaySize.h }}
+              >
+                {/* The actual image */}
+                <img
+                  src={imageToCrop || ''}
+                  alt="Crop preview"
+                  ref={cropImgRef}
+                  draggable={false}
+                  className="w-full h-full block"
+                  style={{ userSelect: 'none' }}
+                />
+
+                {/* Crop frame — circular crop area inside a rectangular cropper border */}
+                <div
+                  className="absolute"
+                  style={{
+                    left: cropRect.x,
+                    top: cropRect.y,
+                    width: cropRect.size,
+                    height: cropRect.size,
+                    cursor: dragMode === 'move' ? 'grabbing' : 'move',
+                  }}
+                  onMouseDown={(e) => { e.preventDefault(); startCropInteraction(e.clientX, e.clientY, 'move'); }}
+                  onTouchStart={(e) => { if (e.touches[0]) startCropInteraction(e.touches[0].clientX, e.touches[0].clientY, 'move'); }}
+                >
+                  {/* Circular Crop Area Mask with shadow cutout */}
+                  <div
+                    className="absolute inset-0 rounded-full pointer-events-none"
+                    style={{
+                      boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.45)',
+                      border: '2px solid rgba(255, 255, 255, 0.85)',
+                    }}
+                  />
+
+                  {/* Rectangular cropper border outer edge */}
+                  <div className="absolute inset-0 border border-white/30 pointer-events-none" />
+
+                  {/* L-shaped corner handles */}
+                  <CropCornerHandle corner="nw" cursor="nwse-resize" />
+                  <CropCornerHandle corner="ne" cursor="nesw-resize" />
+                  <CropCornerHandle corner="sw" cursor="nesw-resize" />
+                  <CropCornerHandle corner="se" cursor="nwse-resize" />
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom action bar — light background */}
+            <div className="flex items-center justify-between px-6 h-16 shrink-0 border-t border-slate-100 bg-slate-50/50">
+              <button
+                type="button"
+                disabled={uploading}
+                onClick={() => {
+                  // Reset crop to centered default
+                  const cropSize = Math.min(imgDisplaySize.w, imgDisplaySize.h) * 0.8;
+                  setCropRect({
+                    x: (imgDisplaySize.w - cropSize) / 2,
+                    y: (imgDisplaySize.h - cropSize) / 2,
+                    size: cropSize,
+                  });
                 }}
-              />
-              <div className="absolute inset-0 rounded-full border-2 border-white/40 pointer-events-none" />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Zoom</label>
-              <input
-                type="range"
-                min="1"
-                max="3"
-                step="0.05"
-                value={zoom}
-                onChange={(e) => setZoom(parseFloat(e.target.value))}
-                className="w-full h-1 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary"
-              />
-            </div>
-
-            <div className="flex items-center gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setIsCropModalOpen(false)}
-                className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-bold text-xs transition-colors border border-slate-200"
+                className="px-4 py-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg font-semibold text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Cancel
+                Reset
               </button>
-              <button
-                type="button"
-                onClick={handleCropSave}
-                className="flex-1 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg font-bold text-xs transition-colors shadow-sm"
-              >
-                Apply Crop
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  disabled={uploading}
+                  onClick={() => setIsCropModalOpen(false)}
+                  className="px-4 py-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg font-semibold text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={uploading}
+                  onClick={handleCropSave}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-xs transition-all shadow-sm shadow-indigo-600/10 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {uploading ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    'Upload'
+                  )}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

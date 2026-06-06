@@ -13,6 +13,7 @@ const PROMO_BANNER_IMAGE = '/BookwithCover.png';
 
 export function PromoBanner() {
   const [book, setBook] = useState<Book | null>(null);
+  const [imgSrc, setImgSrc] = useState<string>(PROMO_BANNER_IMAGE);
 
   useEffect(() => {
     async function loadBook() {
@@ -21,6 +22,16 @@ export function PromoBanner() {
         if (books && books.length > 0) {
           const targetBook = books.find(b => b.id === '7e248707-c9e8-462c-a716-99f3852ef8c0') || books[0];
           setBook(targetBook);
+          
+          if (targetBook.imageUrl) {
+            let processedUrl = targetBook.imageUrl;
+            // Rewrite localhost:4005 backend reference to use correct frontend-configured API host
+            if (processedUrl.startsWith('http://localhost:4005')) {
+              const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4005/api').replace(/\/api$/, '');
+              processedUrl = processedUrl.replace('http://localhost:4005', apiBase);
+            }
+            setImgSrc(processedUrl);
+          }
         } else {
           setBook({
             id: '7e248707-c9e8-462c-a716-99f3852ef8c0',
@@ -46,22 +57,22 @@ export function PromoBanner() {
     loadBook();
   }, []);
 
-  // Use the book's imageUrl if set in the admin, otherwise fall back to the constant above
-  const bannerImage = book?.imageUrl || PROMO_BANNER_IMAGE;
-
   return (
     <div className="group relative overflow-hidden rounded-xl aspect-square shadow-2xl">
       <Image
-        src={bannerImage}
+        src={imgSrc}
         alt="Promotion"
         fill
         className="object-cover group-hover:scale-110 transition-transform duration-700 sharp-image"
         sizes="(max-width: 1024px) 100vw, 33vw"
+        onError={() => {
+          setImgSrc(PROMO_BANNER_IMAGE);
+        }}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
       <div className="absolute inset-0 p-8 flex flex-col justify-end items-center text-center space-y-4">
         <Link 
-          href={book ? `/checkout?bookId=${book.id}` : '/checkout'}
+          href="/gigi-the-awkward-age-book"
           className="px-10 py-4 bg-primary text-white text-[12px] font-black uppercase tracking-widest rounded-lg hover:bg-white hover:text-primary transition-all text-center inline-block"
         >
           Purchase Now

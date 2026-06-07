@@ -8,7 +8,7 @@ import { getImageUrl } from '@/lib/utils';
 const TESTIMONIALS = [
   { videoUrl: 'http://109.199.120.104:8084/uploads/assets/file-1780809322373-fc40f8b7-cf51-4994-a255-1d4bb929cb84.mp4', name: 'Sneha', age: 14, location: 'Pune' },
   { videoUrl: 'http://109.199.120.104:8084/uploads/assets/file-1780810432361-a8a4d034-b98e-4372-a0a6-e282e9eafddf.mp4', name: 'Zoya', age: 12, location: 'Mumbai' },
-  { videoUrl: 'http://109.199.120.104:8084/uploads/assets/file-1780810432361-a8a4d034-b98e-4372-a0a6-e282e9eafddf.mp4', name: 'Isha', age: 15, location: 'Delhi' }
+  { videoUrl: 'http://109.199.120.104:8084/uploads/assets/file-1780810601698-c81a80af-e9f9-4f2a-b38e-c7d1457b3c38.mp4', name: 'Isha', age: 15, location: 'Delhi' }
 ];
 
 interface VideoPlayerProps {

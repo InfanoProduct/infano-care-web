@@ -16,6 +16,17 @@ const isVideo = (urlOrName: string) => {
   return videoExtensions.some(ext => lower.endsWith(ext));
 };
 
+const getDisplayName = (filename: string) => {
+  const extIndex = filename.lastIndexOf('.');
+  const nameWithoutExt = extIndex !== -1 ? filename.substring(0, extIndex) : filename;
+  
+  const uuidPattern = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
+  const suffixRegex = new RegExp(`(?:-\\d+)?-${uuidPattern}$`);
+  
+  const displayName = nameWithoutExt.replace(suffixRegex, '');
+  return displayName || nameWithoutExt;
+};
+
 export default function AssetsManagement() {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
@@ -433,7 +444,7 @@ export default function AssetsManagement() {
                         className="font-bold text-sm text-foreground truncate cursor-help"
                         title={asset.filename}
                       >
-                        {asset.filename.substring(0, asset.filename.lastIndexOf('-') > 0 ? asset.filename.lastIndexOf('-') : asset.filename.length)}
+                        {getDisplayName(asset.filename)}
                       </p>
                       
                       <div className="flex flex-col gap-1 text-[11px] text-muted-foreground font-semibold">

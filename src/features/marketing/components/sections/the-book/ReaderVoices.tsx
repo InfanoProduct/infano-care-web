@@ -6,9 +6,9 @@ import { Play, Pause, Volume2, VolumeX, Loader2 } from 'lucide-react';
 import { getImageUrl } from '@/lib/utils';
 
 const TESTIMONIALS = [
-  { videoUrl: '/uploads/assets/file-1780777557218-9574c645-caf4-40df-b67a-440f1abc0677.mp4', name: 'Sneha', age: 14, location: 'Pune' },
-  { videoUrl: '/uploads/assets/file-1780777605133-0bc0fefc-22b1-451e-a79a-4590dad5c80c.mp4', name: 'Zoya', age: 12, location: 'Mumbai' },
-  { videoUrl: '/uploads/assets/file-1780777636472-f739e60a-6240-4168-9d6a-a15e75ad2a44.mp4', name: 'Isha', age: 15, location: 'Delhi' }
+  { videoUrl: 'http://109.199.120.104:8084/uploads/assets/file-1780809322373-fc40f8b7-cf51-4994-a255-1d4bb929cb84.mp4', name: 'Sneha', age: 14, location: 'Pune' },
+  { videoUrl: 'http://109.199.120.104:8084/uploads/assets/file-1780810432361-a8a4d034-b98e-4372-a0a6-e282e9eafddf.mp4', name: 'Zoya', age: 12, location: 'Mumbai' },
+  { videoUrl: 'http://109.199.120.104:8084/uploads/assets/file-1780810432361-a8a4d034-b98e-4372-a0a6-e282e9eafddf.mp4', name: 'Isha', age: 15, location: 'Delhi' }
 ];
 
 interface VideoPlayerProps {

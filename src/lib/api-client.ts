@@ -41,7 +41,7 @@ class ApiClient {
         if (!response.ok) {
           // If the server explicitly says no (401), it's a known expiry, not a crash
           if (response.status === 401) {
-            return null; 
+            return null;
           }
           throw new Error(`Refresh failed with status ${response.status}`);
         }
@@ -60,7 +60,7 @@ class ApiClient {
         if (error.message !== 'Unauthorized' && !error.message?.includes('401')) {
           console.warn('Token refresh system notice:', error.message || error);
         }
-        
+
         useAuthStore.getState().clearAuth();
         return null;
       } finally {
@@ -133,6 +133,8 @@ class ApiClient {
             window.location.href = '/admin/login';
           } else if (path.startsWith('/peerline') && !path.includes('/login') && !path.includes('onboarding')) {
             window.location.href = '/peerline/login';
+          } else if (path.startsWith('/dashboard')) {
+            window.location.href = '/login';
           }
         }
         throw new Error('Unauthorized');

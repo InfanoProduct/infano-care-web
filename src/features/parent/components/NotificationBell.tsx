@@ -12,22 +12,22 @@ function formatRelativeTime(dateInput: string | Date | number): string {
   const date = new Date(dateInput);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
-  
+
   if (isNaN(diffMs) || diffMs < 0) {
     return 'just now';
   }
-  
+
   const diffMins = Math.floor(diffMs / 60000);
   if (diffMins < 1) return 'just now';
   if (diffMins < 60) return `${diffMins}m ago`;
-  
+
   const diffHours = Math.floor(diffMins / 60);
   if (diffHours < 24) return `${diffHours}h ago`;
-  
+
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays === 1) return 'yesterday';
   if (diffDays < 7) return `${diffDays}d ago`;
-  
+
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
@@ -49,6 +49,11 @@ export function NotificationBell() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const fetchData = async () => {
+    if (!user) {
+      setLinks([]);
+      setDbNotifications([]);
+      return;
+    }
     try {
       const [linksData, alertsData] = await Promise.all([
         ParentService.getLinks(),
@@ -56,19 +61,27 @@ export function NotificationBell() {
       ]);
       setLinks(linksData);
       setDbNotifications(alertsData);
-    } catch (err) {
-      console.error('Failed to fetch notifications data', err);
+    } catch (err: any) {
+      if (err?.message !== 'Unauthorized') {
+        console.error('Failed to fetch notifications data', err);
+      }
     }
   };
 
   const fetchEnrollments = async () => {
+    if (!user) {
+      setEnrollments([]);
+      return;
+    }
     try {
       const res = await ProgramsService.getUserEnrollments();
       if (res && res.success && Array.isArray(res.data)) {
         setEnrollments(res.data);
       }
-    } catch (err) {
-      console.error('Failed to fetch user enrollments', err);
+    } catch (err: any) {
+      if (err?.message !== 'Unauthorized') {
+        console.error('Failed to fetch user enrollments', err);
+      }
     }
   };
 
@@ -76,7 +89,7 @@ export function NotificationBell() {
     setMounted(true);
     fetchData();
     fetchEnrollments();
-    
+
     // Optional: poll every minute
     const interval = setInterval(() => {
       fetchData();
@@ -163,7 +176,7 @@ export function NotificationBell() {
       toast.error('No notifications to clear.');
       return;
     }
-    
+
     // Clear linking requests locally and on server
     const idsToCancel = pendingRequests.map(r => r.id);
     if (idsToCancel.length > 0) {
@@ -238,7 +251,7 @@ export function NotificationBell() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
         className="p-3 text-slate-400 hover:text-primary bg-slate-50 border border-slate-100 hover:bg-primary/5 rounded-2xl transition-all shadow-sm active:scale-95 relative"
       >
@@ -272,7 +285,7 @@ export function NotificationBell() {
               </button>
             </div>
           </div>
-          
+
           <div className="max-h-[300px] overflow-y-auto">
             {pendingRequests.length === 0 && activeAlerts.length === 0 ? (
               <div className="p-6 text-center text-xs font-semibold text-slate-400">
@@ -283,7 +296,7 @@ export function NotificationBell() {
                 {pendingRequests.map(req => {
                   const senderName = req.sender?.profile?.displayName || 'Someone';
                   const senderPhone = req.sender?.phone || '';
-                  
+
                   return (
                     <div key={req.id} className="p-3 bg-white hover:bg-slate-50 rounded-xl border border-transparent hover:border-slate-100 transition-colors">
                       <div className="flex items-start gap-3">
@@ -299,13 +312,13 @@ export function NotificationBell() {
                             <span className="font-bold">{senderName}</span> {senderPhone && <span className="text-slate-500">({senderPhone})</span>} wants to link accounts with you.
                           </p>
                           <div className="flex items-center gap-2 mt-3">
-                            <button 
+                            <button
                               onClick={() => handleAccept(req.id)}
                               className="flex-1 py-1.5 bg-primary text-white text-[10px] font-bold uppercase tracking-wider rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center gap-1"
                             >
                               <Check size={12} /> Accept
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleReject(req.id)}
                               className="flex-1 py-1.5 bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-wider rounded-lg hover:bg-slate-200 transition-colors flex items-center justify-center gap-1"
                             >
@@ -331,7 +344,7 @@ export function NotificationBell() {
                             <span className="text-[9px] text-slate-400 shrink-0">•</span>
                             <span className="text-[9px] text-slate-400 shrink-0">{formatRelativeTime(alert.sentAt)}</span>
                           </div>
-                          <button 
+                          <button
                             onClick={() => handleDismiss(alert.id)}
                             className="p-0.5 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-655 transition-all shrink-0 ml-1"
                             title="dismiss"
@@ -356,11 +369,11 @@ export function NotificationBell() {
       {isSidebarOpen && mounted && createPortal(
         <>
           {/* Backdrop Overlay */}
-          <div 
+          <div
             onClick={() => setIsSidebarOpen(false)}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[190] cursor-pointer" 
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[190] cursor-pointer"
           />
-          
+
           {/* Sidebar Panel */}
           <div className="fixed inset-y-0 right-0 w-80 md:w-96 bg-white z-[200] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
             <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
@@ -379,8 +392,8 @@ export function NotificationBell() {
                     Clear All
                   </button>
                 )}
-                <button 
-                  onClick={() => setIsSidebarOpen(false)} 
+                <button
+                  onClick={() => setIsSidebarOpen(false)}
                   className="p-1.5 hover:bg-slate-200 rounded-lg text-slate-505 transition-all"
                 >
                   <X size={16} />
@@ -399,7 +412,7 @@ export function NotificationBell() {
                   {pendingRequests.map(req => {
                     const senderName = req.sender?.profile?.displayName || 'Someone';
                     const senderPhone = req.sender?.phone || '';
-                    
+
                     return (
                       <div key={req.id} className="p-3 bg-white hover:bg-slate-50 rounded-xl border border-slate-100 hover:border-slate-205 transition-colors shadow-xs">
                         <div className="flex items-start gap-3">
@@ -415,13 +428,13 @@ export function NotificationBell() {
                               <span className="font-bold">{senderName}</span> {senderPhone && <span className="text-slate-500">({senderPhone})</span>} wants to link accounts with you.
                             </p>
                             <div className="flex items-center gap-2 mt-3">
-                              <button 
+                              <button
                                 onClick={() => handleAccept(req.id)}
                                 className="flex-1 py-1.5 bg-primary text-white text-[10px] font-bold uppercase tracking-wider rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center gap-1"
                               >
                                 <Check size={12} /> Accept
                               </button>
-                              <button 
+                              <button
                                 onClick={() => handleReject(req.id)}
                                 className="flex-1 py-1.5 bg-slate-105 text-slate-655 text-[10px] font-bold uppercase tracking-wider rounded-lg hover:bg-slate-200 transition-colors flex items-center justify-center gap-1 border border-slate-200"
                               >
@@ -447,7 +460,7 @@ export function NotificationBell() {
                               <span className="text-[9px] text-slate-400 shrink-0">•</span>
                               <span className="text-[9px] text-slate-400 shrink-0">{formatRelativeTime(alert.sentAt)}</span>
                             </div>
-                            <button 
+                            <button
                               onClick={() => handleDismiss(alert.id)}
                               className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-655 transition-all shrink-0 ml-1"
                               title="dismiss"

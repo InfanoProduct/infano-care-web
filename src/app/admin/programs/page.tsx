@@ -878,15 +878,7 @@ export default function ProgramsManagement() {
           <p className="text-muted-foreground mt-1 font-medium">Configure cohort packages, prices, age targets, and track user enrollments.</p>
         </div>
         
-        {activeTab === 'programs' && (
-          <button 
-            onClick={handleOpenCreateModal}
-            className="btn-primary flex items-center gap-2 px-6 py-3.5 rounded-2xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 text-white bg-primary font-bold self-start md:self-auto"
-          >
-            <Plus size={20} />
-            <span>Add New Program</span>
-          </button>
-        )}
+
       </div>
 
       {/* Tabs Menu */}

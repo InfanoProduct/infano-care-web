@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Send, Sparkles, Loader2, ChevronDown } from 'lucide-react';
+import { X, Send, Loader2, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { ChatService, ChatMessage } from '@/services/chat.service';
+import { useAuthStore } from '@/store/auth-store';
 
 // ── Gigi link parser ────────────────────────────────────────────────────────
 // Converts Gigi's [link:/path] tokens into clickable <Link> elements
@@ -32,8 +33,8 @@ function parseGigiMessage(text: string) {
 function TypingIndicator() {
   return (
     <div className="flex items-end gap-2 justify-start">
-      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-rose-400 flex items-center justify-center shrink-0 shadow-md">
-        <Sparkles size={12} className="text-white" />
+      <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-sm border border-purple-150 overflow-hidden bg-purple-50">
+        <img src="/gigi-avatar.png" alt="Gigi" className="w-full h-full object-cover" />
       </div>
       <div className="bg-white border border-slate-100 rounded-2xl rounded-bl-sm px-4 py-3 shadow-xs">
         <div className="flex gap-1 items-center h-4">
@@ -52,14 +53,14 @@ function MessageBubble({ msg }: { msg: ChatMessage }) {
   return (
     <div className={`flex items-end gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
       {!isUser && (
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-rose-400 flex items-center justify-center shrink-0 shadow-md">
-          <Sparkles size={12} className="text-white" />
+        <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-sm border border-purple-150 overflow-hidden bg-purple-50">
+          <img src="/gigi-avatar.png" alt="Gigi" className="w-full h-full object-cover" />
         </div>
       )}
       <div
         className={`max-w-[78%] px-4 py-2.5 rounded-2xl text-xs leading-relaxed shadow-xs ${
           isUser
-            ? 'bg-gradient-to-br from-violet-500 to-rose-500 text-white rounded-br-sm'
+            ? 'bg-purple-100 border border-purple-200/60 text-purple-950 rounded-br-sm font-medium'
             : 'bg-white border border-slate-100 text-slate-700 rounded-bl-sm'
         }`}
       >
@@ -71,6 +72,7 @@ function MessageBubble({ msg }: { msg: ChatMessage }) {
 
 // ── Main Widget ───────────────────────────────────────────────────────────────
 export function GigiChatWidget() {
+  const { isAuthenticated } = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -147,7 +149,8 @@ export function GigiChatWidget() {
         { ...userMsg, sessionId: sid },
         ...(gigiMsg ? [gigiMsg] : []),
       ]);
-    } catch {
+    } catch (err) {
+      console.error("Gigi Chat widget error:", err);
       setMessages(prev => [
         ...prev.filter(m => m.id !== tempId),
         userMsg,
@@ -171,7 +174,7 @@ export function GigiChatWidget() {
     }
   };
 
-  if (!mounted) return null;
+  if (!mounted || !isAuthenticated) return null;
 
   const chatPanel = isOpen ? (
     <>
@@ -183,7 +186,7 @@ export function GigiChatWidget() {
 
       {/* Chat Card */}
       <div
-        className="fixed z-[999] shadow-2xl rounded-3xl overflow-hidden flex flex-col bg-[#FAFAFA] border border-slate-150"
+        className="fixed z-[999] shadow-2xl rounded-3xl overflow-hidden flex flex-col bg-[#FCF9F7] border border-purple-100/50"
         style={{
           bottom: '156px',
           right: '24px',
@@ -194,27 +197,27 @@ export function GigiChatWidget() {
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="shrink-0 bg-gradient-to-r from-violet-600 via-purple-600 to-rose-500 px-4 py-3 flex items-center justify-between">
+        <div className="shrink-0 bg-gradient-to-r from-purple-100 via-pink-100 to-rose-50 border-b border-purple-200/30 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 shadow">
-              <Sparkles size={15} className="text-white" />
+            <div className="w-8 h-8 rounded-full border border-purple-200/80 overflow-hidden bg-purple-50 shadow-sm flex items-center justify-center">
+              <img src="/gigi-avatar.png" alt="Gigi Logo" className="w-full h-full object-cover" />
             </div>
             <div>
-              <p className="text-white font-black text-sm leading-none">Gigi</p>
-              <p className="text-white/70 text-[10px] font-semibold leading-none mt-0.5">Your AI big sister ✨</p>
+              <p className="text-purple-950 font-black text-sm leading-none">Gigi</p>
+              <p className="text-purple-900/60 text-[10px] font-semibold leading-none mt-0.5">Your AI big sister ✨</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => setIsOpen(false)}
-              className="w-7 h-7 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white transition-all active:scale-95"
+              className="w-7 h-7 rounded-full bg-purple-950/5 hover:bg-purple-950/15 flex items-center justify-center text-purple-900 transition-all active:scale-95"
               title="Minimize"
             >
               <ChevronDown size={15} />
             </button>
             <button
               onClick={() => setIsOpen(false)}
-              className="w-7 h-7 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white transition-all active:scale-95"
+              className="w-7 h-7 rounded-full bg-purple-950/5 hover:bg-purple-950/15 flex items-center justify-center text-purple-900 transition-all active:scale-95"
               title="Close"
             >
               <X size={14} />
@@ -226,16 +229,16 @@ export function GigiChatWidget() {
         <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
           {loadingHistory ? (
             <div className="flex items-center justify-center h-full">
-              <Loader2 size={24} className="animate-spin text-violet-400" />
+              <Loader2 size={24} className="animate-spin text-purple-400" />
             </div>
           ) : messages.length === 0 ? (
             // Welcome state
             <div className="flex flex-col items-center justify-center h-full text-center gap-3 px-2">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-rose-400 flex items-center justify-center shadow-lg shadow-violet-200">
-                <Sparkles size={24} className="text-white" />
+              <div className="w-16 h-16 rounded-full border-2 border-purple-200/80 overflow-hidden bg-purple-50 shadow-md">
+                <img src="/gigi-avatar.png" alt="Gigi Welcome" className="w-full h-full object-cover" />
               </div>
               <div>
-                <p className="font-black text-slate-800 text-sm">Hey! I'm Gigi 👋</p>
+                <p className="font-black text-purple-950 text-sm">Hey! I'm Gigi 👋</p>
                 <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                   Your safe space to talk about anything — feelings, school stress, periods, or just life.
                 </p>
@@ -248,7 +251,7 @@ export function GigiChatWidget() {
                       setInput(prompt);
                       inputRef.current?.focus();
                     }}
-                    className="text-[10px] font-bold px-3 py-1.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 transition-colors active:scale-95"
+                    className="text-[10px] font-bold px-3 py-1.5 rounded-full bg-purple-50 text-purple-700 border border-purple-150 hover:bg-purple-100 transition-colors active:scale-95"
                   >
                     {prompt}
                   </button>
@@ -276,12 +279,12 @@ export function GigiChatWidget() {
             onKeyDown={handleKeyDown}
             placeholder="Talk to Gigi..."
             disabled={isLoading}
-            className="flex-1 text-xs font-medium text-slate-800 placeholder:text-slate-400 bg-slate-50 border border-slate-150 rounded-2xl px-4 py-2.5 outline-none focus:border-violet-300 focus:bg-white transition-all disabled:opacity-50"
+            className="flex-1 text-xs font-medium text-slate-800 placeholder:text-slate-400 bg-slate-50 border border-slate-150 rounded-2xl px-4 py-2.5 outline-none focus:border-purple-300 focus:bg-white transition-all disabled:opacity-50"
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="w-9 h-9 rounded-2xl bg-gradient-to-br from-violet-500 to-rose-500 text-white flex items-center justify-center shadow-md shadow-violet-200 hover:shadow-violet-300 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+            className="w-9 h-9 rounded-2xl bg-gradient-to-br from-purple-200 to-pink-200 border border-purple-300/30 text-purple-950 flex items-center justify-center shadow-md shadow-purple-100 hover:shadow-purple-200 hover:from-purple-300 hover:to-pink-300 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
           >
             {isLoading ? (
               <Loader2 size={14} className="animate-spin" />
@@ -299,15 +302,17 @@ export function GigiChatWidget() {
       {/* Floating Trigger Button — sits above the WhatsApp button (bottom-6) */}
       <button
         onClick={handleOpen}
-        className="fixed z-[997] bottom-24 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-rose-500 text-white shadow-xl shadow-violet-300/50 hover:shadow-violet-400/60 hover:scale-110 transition-all duration-200 active:scale-95 flex items-center justify-center group"
+        className="fixed z-[997] bottom-24 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-purple-200 to-pink-200 text-purple-950 shadow-xl shadow-purple-200/50 hover:shadow-purple-300/60 hover:scale-110 border border-purple-300/30 transition-all duration-200 active:scale-95 flex items-center justify-center group overflow-hidden"
         title="Chat with Gigi"
         aria-label="Open Gigi AI Assistant"
       >
         {/* Pulse ring when closed */}
         {!isOpen && (
-          <span className="absolute inset-0 rounded-full bg-gradient-to-br from-violet-500 to-rose-500 animate-ping opacity-30" />
+          <span className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-200 to-pink-200 animate-ping opacity-30" />
         )}
-        <Sparkles size={22} className="relative z-10 group-hover:rotate-12 transition-transform duration-300" />
+        <div className="relative z-10 w-11 h-11 rounded-full overflow-hidden border border-purple-300/40 shadow-sm bg-white flex items-center justify-center group-hover:rotate-6 transition-transform duration-300">
+          <img src="/gigi-avatar.png" alt="Gigi Avatar" className="w-full h-full object-cover" />
+        </div>
       </button>
 
       {/* Chat Panel via Portal */}

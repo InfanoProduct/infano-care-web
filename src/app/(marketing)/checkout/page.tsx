@@ -195,6 +195,12 @@ function CheckoutContent() {
   }, [orderSuccess, isProgram, router]);
 
   useEffect(() => {
+    if (orderSuccess) {
+      window.scrollTo(0, 0);
+    }
+  }, [orderSuccess]);
+
+  useEffect(() => {
     async function loadBook() {
       try {
         if (bookId) {

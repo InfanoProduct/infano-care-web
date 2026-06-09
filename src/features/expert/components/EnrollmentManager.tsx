@@ -106,11 +106,10 @@ export function EnrollmentManager() {
                       <p className="text-xs text-muted-foreground">{enrollment.program?.sessions || 0} Sessions</p>
                     </td>
                     <td className="py-4 px-4">
-                      <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${
-                        enrollment.type === 'PRIVATE'
+                      <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${enrollment.type === 'PRIVATE'
                           ? 'bg-purple-100 text-purple-700'
                           : 'bg-blue-100 text-blue-700'
-                      }`}>
+                        }`}>
                         {enrollment.type === 'PRIVATE' ? '1:1 Private' : 'Group'}
                       </span>
                     </td>

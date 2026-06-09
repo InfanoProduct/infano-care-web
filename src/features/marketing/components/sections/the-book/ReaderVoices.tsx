@@ -74,16 +74,8 @@ export function VideoPlayer({ videoUrl, name, age, location }: VideoPlayerProps)
       {/* Click to play/pause hit area */}
       <div onClick={() => togglePlay()} className="absolute inset-0 cursor-pointer z-10" />
 
-      {/* User Info Tag Overlay */}
-      <div className="absolute top-6 right-6 z-20 flex items-center gap-3 bg-black/45 border border-white/10 backdrop-blur-md py-2.5 px-4 rounded-full shadow-lg">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-white text-xs font-black shadow-inner animate-pulse">
-          {name.charAt(0)}
-        </div>
-        <div>
-          <p className="text-white font-extrabold text-xs leading-none">{name}{age ? `, ${age}` : ''}</p>
-          <p className="text-[9px] text-white/70 font-semibold tracking-wider mt-0.5 uppercase leading-none">{location}</p>
-        </div>
-      </div>
+
+
 
       {/* Loading Spinner */}
       {!isReady && (

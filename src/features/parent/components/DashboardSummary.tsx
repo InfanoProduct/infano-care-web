@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Loader2, Calendar, BookOpen, HeartPulse, Sparkles, ShieldCheck, AlertCircle, TrendingUp, Info } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import Link from "next/link";
+import { useAuthStore } from "@/store/auth-store";
 
 interface MoodTrend {
   date: string;
@@ -36,6 +37,7 @@ const getMoodCategory = (mood: string | null): 'positive' | 'neutral' | 'low' | 
 };
 
 export function DashboardSummary() {
+  const { isAuthenticated, user } = useAuthStore();
   const [data, setData] = useState<DashboardSummaryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [daysRange, setDaysRange] = useState<7 | 30>(7);
@@ -46,16 +48,21 @@ export function DashboardSummary() {
       if (response) {
         setData(response);
       }
-    } catch (error) {
-      console.error("Failed to fetch dashboard summary", error);
+    } catch (error: any) {
+      if (error?.message !== 'Unauthorized') {
+        console.error("Failed to fetch dashboard summary", error);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    if (!isAuthenticated || !user) return;
     fetchSummary();
-  }, []);
+  }, [isAuthenticated, user]);
+
+  if (!isAuthenticated || !user) return null;
 
   if (loading) {
     return (

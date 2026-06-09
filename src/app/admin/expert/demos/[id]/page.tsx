@@ -103,7 +103,7 @@ export default function DemoSessionDetail({ params }: { params: Promise<{ id: st
     if (!demo) return;
     setUpdating(true);
     try {
-      await ProgramsService.updateDemoStatus(demo.id, status);
+      await ProgramsService.updateDemoStatus(demo.id, { status });
       toast.success(`Booking status updated to ${formatStatus(status)}`);
       fetchDemo();
     } catch (error) {

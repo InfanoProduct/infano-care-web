@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     url: 'https://infano.care/impact',
     images: [
       {
-        url: '/og-images/landing-og-image.png',
+        url: '/og-images/landing-og.png',
         width: 1200,
         height: 630,
         alt: 'Infano Care Impact',
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Infano Care Impact | Empowering Girls & Families',
     description: 'Read the stories and metrics behind our mission to support 10,000+ girls.',
-    images: ['/og-images/landing-og-image.png'],
+    images: ['/og-images/landing-og.png'],
   },
 };
 

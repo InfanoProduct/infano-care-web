@@ -313,7 +313,7 @@ export default function CustomerDashboardOverview() {
                                 })()}
                                 value={demoSlotDate}
                                 onChange={e => setDemoSlotDate(e.target.value)}
-                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+                                className={`w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer ${demoSlotDate ? 'text-slate-700' : 'text-slate-400'}`}
                               />
                             </div>
 
@@ -323,7 +323,7 @@ export default function CustomerDashboardOverview() {
                                 required
                                 value={demoSlotTime}
                                 onChange={e => setDemoSlotTime(e.target.value)}
-                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+                                className={`w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer ${demoSlotTime ? 'text-slate-700' : 'text-slate-400'}`}
                               >
                                 <option value="">Select Time</option>
                                 <option value="10:00 AM - 11:00 AM">10:00 AM - 11:00 AM</option>

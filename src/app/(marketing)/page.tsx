@@ -16,11 +16,20 @@ export const metadata: Metadata = {
     title: 'Empowering Adolescent Girls & Families | Infano Care',
     description: "India's first holistic platform supporting adolescent girls and their parents through puberty education, mental wellness programs, and digital healthcare resources.",
     url: 'https://infano.care',
+    images: [
+      {
+        url: '/og-images/landing-og.png',
+        width: 1200,
+        height: 630,
+        alt: 'Infano Care',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Empowering Adolescent Girls & Families | Infano Care',
     description: "India's first holistic platform supporting adolescent girls and their parents through puberty education, mental wellness programs, and digital healthcare resources.",
+    images: ['/og-images/landing-og.png'],
   },
 };
 

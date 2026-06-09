@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { blogService } from '@/services/blog.service';
+import { getImageUrl } from '@/lib/utils';
 import { BlogPostDetailClient } from './BlogPostDetailClient';
 
 interface PageProps {
@@ -24,7 +25,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const encodedTitle = encodeURIComponent(cleanTitle);
     const encodedCategory = encodeURIComponent(category);
     const encodedAuthor = encodeURIComponent(author);
-    const ogImageUrl = `/api/og?title=${encodedTitle}&category=${encodedCategory}&author=${encodedAuthor}`;
+    const apiOgImageUrl = `/api/og?title=${encodedTitle}&category=${encodedCategory}&author=${encodedAuthor}`;
+    const ogImageUrl = post.thumbnailUrl ? getImageUrl(post.thumbnailUrl) : apiOgImageUrl;
 
     return {
       title: cleanTitle,

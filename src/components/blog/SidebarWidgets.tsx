@@ -72,7 +72,7 @@ export function PromoBanner() {
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
       <div className="absolute inset-0 p-8 flex flex-col justify-end items-center text-center space-y-4">
         <Link 
-          href="/gigi-the-awkward-age-book"
+          href={book ? `/checkout?bookId=${book.id}` : '/checkout'}
           className="px-10 py-4 bg-primary text-white text-[12px] font-black uppercase tracking-widest rounded-lg hover:bg-white hover:text-primary transition-all text-center inline-block"
         >
           Purchase Now

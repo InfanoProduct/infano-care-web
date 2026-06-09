@@ -45,7 +45,22 @@ function BlogPageContent() {
         ]) as [any, any, any];
       // Only show published posts for public view
       setPosts(postsData.items.filter((p: any) => p.isPublished));
-      setCategories(categoriesData);
+      
+      // Sort categories: Trending first, Finance last, others in between
+      const sortedCategories = [...categoriesData].sort((a: any, b: any) => {
+        const aName = a.name?.toLowerCase() || '';
+        const bName = b.name?.toLowerCase() || '';
+        
+        if (aName === 'trending') return -1;
+        if (bName === 'trending') return 1;
+        
+        if (aName === 'finance') return 1;
+        if (bName === 'finance') return -1;
+        
+        return 0; // maintain original order for others
+      });
+      setCategories(sortedCategories);
+      
       setGlobalStats(statsData);
     } catch (error) {
       console.error('Failed to load blog data:', error);

@@ -3,25 +3,31 @@
 import { useState } from 'react';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
-import toast from 'react-hot-toast';
 
 export function Newsletter() {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [message, setMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
 
     setIsSubmitting(true);
+    setStatus('idle');
+    setMessage('');
+    
     try {
       await apiClient.post('/enquiry/subscribe', {
         email: email,
       });
-      toast.success('Successfully subscribed! Check your email for a welcome message.');
+      setStatus('success');
+      setMessage('Successfully subscribed! Check your email for a welcome message.');
       setEmail('');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to subscribe. Please try again.');
+      setStatus('error');
+      setMessage(error.message || 'Failed to subscribe. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -42,7 +48,10 @@ export function Newsletter() {
         <input
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (status === 'error') setStatus('idle');
+          }}
           placeholder="Enter your email"
           required
           className="flex-grow bg-white border border-gray-200 rounded-2xl py-5 px-8 font-bold text-lg focus:ring-4 focus:ring-primary/10 outline-none transition-all shadow-xl"
@@ -62,6 +71,18 @@ export function Newsletter() {
           )}
         </button>
       </form>
+      
+      {status === 'success' && (
+        <div className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-green-100 text-green-700 font-bold text-sm">
+          <Sparkles size={16} />
+          {message}
+        </div>
+      )}
+      {status === 'error' && (
+        <div className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-red-100 text-red-700 font-bold text-sm">
+          {message}
+        </div>
+      )}
     </section>
   );
 }

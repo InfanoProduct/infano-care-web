@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Heart, Shield, Users, X, Download, Loader2, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Heart, Shield, Users, X, Download, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'react-hot-toast';
 
@@ -13,9 +13,23 @@ export function ParentsHero() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [formData, setFormData] = useState({ name: '', phone: '' });
+  const [formError, setFormError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
+
+    if (!formData.name.trim() || formData.name.trim().length < 2) {
+      setFormError("Please enter a valid name.");
+      return;
+    }
+
+    const cleanPhone = formData.phone.replace(/\D/g, '');
+    if (cleanPhone.length < 10 || cleanPhone.length > 15) {
+      setFormError("Please enter a valid phone number.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -41,6 +55,7 @@ export function ParentsHero() {
   const closeModal = () => {
     setIsModalOpen(false);
     setIsSubmitted(false);
+    setFormError(null);
     setFormData({ name: '', phone: '' });
   };
 
@@ -177,12 +192,18 @@ export function ParentsHero() {
                       Understand your daughter's journey better with our comprehensive guide for caregivers.
                     </p>
 
+                    {formError && (
+                      <div className="mb-5 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-start gap-3 text-rose-700 text-xs leading-relaxed font-semibold">
+                        <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                        <span>{formError}</span>
+                      </div>
+                    )}
+
                     <form onSubmit={handleSubmit} className="space-y-4">
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">Full Name</label>
                         <input
                           type="text"
-                          required
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                           placeholder="Your name"
@@ -192,11 +213,11 @@ export function ParentsHero() {
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">Phone Number</label>
                         <input
-                          type="tel"
-                          required
+                          type="text"
                           value={formData.phone}
-                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          placeholder="Your phone number"
+                          maxLength={10}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/[^0-9]/g, '') })}
+                          placeholder="Your 10-digit phone number"
                           className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
                         />
                       </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
+import {
   Award, Plus, Loader2, Calendar, Clock, BookOpen, Users, DollarSign,
   Edit, Trash2, CheckCircle2, XCircle, RefreshCw, Layers, ShieldCheck,
   Search, Filter, Check, X, CreditCard, Mail, Phone, Sliders, Sparkles, Eye,
@@ -74,6 +74,26 @@ const getParentInvolvementLabel = (val: string) => {
   return map[val] || val;
 };
 
+const GoogleMeetIcon = ({ size = 14 }: { size?: number }) => {
+  const width = Math.round(size * 1.215);
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 87.5 72"
+      width={width}
+      height={size}
+    >
+      <path fill="#00832d" d="M49.5 36l8.53 9.75 11.47 7.33 2-17.02-2-16.64-11.69 6.44z" />
+      <path fill="#0066da" d="M0 51.5V66c0 3.315 2.685 6 6 6h14.5l3-10.96-3-9.54-9.95-3z" />
+      <path fill="#e94235" d="M20.5 0L0 20.5l10.55 3 9.95-3 2.95-9.41z" />
+      <path fill="#2684fc" d="M20.5 20.5H0v31h20.5z" />
+      <path fill="#00ac47" d="M82.6 8.68L69.5 19.42v33.66l13.16 10.79c1.97 1.54 4.85.135 4.85-2.37V11c0-2.535-2.945-3.925-4.91-2.32zM49.5 36v15.5h-29V72h43c3.315 0 6-2.685 6-6V53.08z" />
+      <path fill="#ffba00" d="M63.5 0h-43v20.5h29V36l20-16.57V6c0-3.315-2.685-6-6-6z" />
+    </svg>
+  );
+};
+
 export default function ProgramsManagement() {
   const router = useRouter();
   // Tabs
@@ -83,7 +103,7 @@ export default function ProgramsManagement() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [enrollments, setEnrollments] = useState<ProgramEnrollment[]>([]);
   const [demos, setDemos] = useState<DemoSession[]>([]);
-  
+
   // UI Loading States
   const [loadingPrograms, setLoadingPrograms] = useState(true);
   const [loadingEnrollments, setLoadingEnrollments] = useState(false);
@@ -97,9 +117,10 @@ export default function ProgramsManagement() {
   const [demoSearch, setDemoSearch] = useState('');
   const [demoStatusFilter, setDemoStatusFilter] = useState('ALL');
 
-  // Selected Demo Modal State
-  const [selectedDemo, setSelectedDemo] = useState<DemoSession | null>(null);
-  const [showDemoModal, setShowDemoModal] = useState(false);
+
+  // Selected Enrollment Modal State
+  const [selectedEnrollment, setSelectedEnrollment] = useState<ProgramEnrollment | null>(null);
+  const [showEnrollmentModal, setShowEnrollmentModal] = useState(false);
 
   // Add Student manual enrollment state
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
@@ -254,7 +275,7 @@ export default function ProgramsManagement() {
         setAddStudentPricePaid('');
         setEnrollStep(1);
         setExistingUserData(null);
-        
+
         // Reload enrollments
         loadEnrollments();
       }
@@ -288,21 +309,11 @@ export default function ProgramsManagement() {
     }
   };
 
-  const handleUpdateDemoStatus = async (id: string, status: string) => {
-    try {
-      await ProgramsService.updateDemoStatus(id, status);
-      toast.success(`Demo booking status updated to ${status}`);
-      loadDemos();
-      setSelectedDemo(prev => prev && prev.id === id ? { ...prev, status } : prev);
-    } catch (error) {
-      toast.error('Failed to update status');
-    }
-  };
 
   const handleOpenCreateModal = () => {
     setModalMode('create');
     setSelectedProgram(null);
-    
+
     // Reset Form
     setFormTitle('');
     setFormTagline('');
@@ -318,14 +329,14 @@ export default function ProgramsManagement() {
     setFormTopics([]);
     setNewTopicInput('');
     setFormCurriculum([]);
-    
+
     setShowModal(true);
   };
 
   const handleOpenEditModal = (program: Program) => {
     setModalMode('edit');
     setSelectedProgram(program);
-    
+
     // Load Form
     setFormTitle(program.title);
     setFormTagline(program.tagline);
@@ -345,7 +356,7 @@ export default function ProgramsManagement() {
         ? program.curriculum
         : (program.sessionsList || [])
     );
-    
+
     setShowModal(true);
   };
 
@@ -444,13 +455,16 @@ export default function ProgramsManagement() {
       await ProgramsService.updateEnrollmentStatus(id, status);
       toast.success(`Enrollment status updated to ${status}`);
       loadEnrollments();
+      if (selectedEnrollment && selectedEnrollment.id === id) {
+        setSelectedEnrollment(prev => prev ? { ...prev, status } : null);
+      }
     } catch (error) {
       toast.error('Failed to update status');
     }
   };
 
   // Filter & Search Logic
-  const filteredPrograms = programs.filter(p => 
+  const filteredPrograms = programs.filter(p =>
     p.title.toLowerCase().includes(programSearch.toLowerCase()) ||
     p.tagline.toLowerCase().includes(programSearch.toLowerCase()) ||
     p.classRange.toLowerCase().includes(programSearch.toLowerCase())
@@ -458,7 +472,7 @@ export default function ProgramsManagement() {
 
   const filteredEnrollments = enrollments.filter(e => {
     const searchString = enrollmentSearch.toLowerCase();
-    const matchesSearch = 
+    const matchesSearch =
       (e.user.profile?.displayName || '').toLowerCase().includes(searchString) ||
       (e.user.username || '').toLowerCase().includes(searchString) ||
       (e.user.phone || '').toLowerCase().includes(searchString) ||
@@ -472,7 +486,7 @@ export default function ProgramsManagement() {
 
   const filteredDemos = demos.filter(d => {
     const searchString = demoSearch.toLowerCase();
-    const matchesSearch = 
+    const matchesSearch =
       d.parentName.toLowerCase().includes(searchString) ||
       d.phone.toLowerCase().includes(searchString) ||
       (d.email || '').toLowerCase().includes(searchString) ||
@@ -501,7 +515,7 @@ export default function ProgramsManagement() {
         {/* Full screen edit form header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-border/10 pb-6">
           <div>
-            <button 
+            <button
               type="button"
               onClick={() => setShowModal(false)}
               className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-700 transition-colors uppercase tracking-widest mb-2"
@@ -518,11 +532,11 @@ export default function ProgramsManagement() {
         {/* Form container */}
         <div className="bg-white rounded-[2.5rem] border border-border/30 shadow-xl p-8">
           <form onSubmit={handleFormSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
+
             {/* Left Column: General Info (5 cols) */}
             <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-6">
               <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground/80 border-b border-border/30 pb-2">Program Details & Settings</h3>
-              
+
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Program Title *</label>
@@ -535,7 +549,7 @@ export default function ProgramsManagement() {
                     className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Tagline *</label>
                   <input
@@ -684,7 +698,7 @@ export default function ProgramsManagement() {
             {/* Right Column: Curriculum Content (7 cols) */}
             <div className="lg:col-span-7 space-y-6">
               <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground/80 border-b border-border/30 pb-2">Curriculum Content</h3>
-              
+
               {/* Curriculum Topics Tags Manager */}
               <div className="space-y-3">
                 <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Topics Focus Tags ({formTopics.length})</label>
@@ -716,7 +730,7 @@ export default function ProgramsManagement() {
                     <span className="text-xs text-muted-foreground/60 font-semibold italic">No topics defined yet.</span>
                   ) : (
                     formTopics.map((topic, idx) => (
-                      <span 
+                      <span
                         key={idx}
                         className="inline-flex items-center gap-1.5 text-xs font-extrabold bg-primary/10 text-primary px-3 py-1.5 border border-primary/20 rounded-xl"
                       >
@@ -741,12 +755,12 @@ export default function ProgramsManagement() {
                     <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Roadmap Session Builder ({formCurriculum.length})</h3>
                     <p className="text-[10px] text-muted-foreground font-semibold mt-1">Configure each learning session sequence in the timeline.</p>
                   </div>
-                  
+
                   <button
                     type="button"
                     onClick={() => {
                       setFormCurriculum([
-                        ...formCurriculum, 
+                        ...formCurriculum,
                         { title: `Session ${formCurriculum.length + 1}: `, description: '' }
                       ]);
                     }}
@@ -760,7 +774,7 @@ export default function ProgramsManagement() {
                 {/* Session list timeline */}
                 <div className="relative pl-6 border-l border-slate-200/80 space-y-4 mt-4">
                   {formCurriculum.map((session, idx) => (
-                    <div 
+                    <div
                       key={idx}
                       className="p-5 bg-secondary/15 border border-border/40 rounded-2xl relative flex flex-col gap-3 group animate-in fade-in duration-300"
                     >
@@ -782,7 +796,7 @@ export default function ProgramsManagement() {
                           }}
                           className="flex-1 bg-white border border-border/50 rounded-xl px-4 py-2 text-sm text-foreground outline-none focus:border-primary/50 transition-all font-bold"
                         />
-                        
+
                         <div className="flex items-center gap-1 shrink-0">
                           {/* Reordering Chevrons */}
                           <button
@@ -877,7 +891,7 @@ export default function ProgramsManagement() {
           </h1>
           <p className="text-muted-foreground mt-1 font-medium">Configure cohort packages, prices, age targets, and track user enrollments.</p>
         </div>
-        
+
 
       </div>
 
@@ -885,25 +899,23 @@ export default function ProgramsManagement() {
       <div className="flex border-b border-border/30 gap-6">
         <button
           onClick={() => setActiveTab('programs')}
-          className={`pb-4 text-lg font-black tracking-tight relative transition-all ${
-            activeTab === 'programs' 
-              ? 'text-primary' 
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
+          className={`pb-4 text-lg font-black tracking-tight relative transition-all ${activeTab === 'programs'
+            ? 'text-primary'
+            : 'text-muted-foreground hover:text-foreground'
+            }`}
         >
           {activeTab === 'programs' && (
             <span className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />
           )}
           Learning Packages ({programs.length})
         </button>
-        
+
         <button
           onClick={() => setActiveTab('enrollments')}
-          className={`pb-4 text-lg font-black tracking-tight relative transition-all ${
-            activeTab === 'enrollments' 
-              ? 'text-primary' 
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
+          className={`pb-4 text-lg font-black tracking-tight relative transition-all ${activeTab === 'enrollments'
+            ? 'text-primary'
+            : 'text-muted-foreground hover:text-foreground'
+            }`}
         >
           {activeTab === 'enrollments' && (
             <span className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />
@@ -913,11 +925,10 @@ export default function ProgramsManagement() {
 
         <button
           onClick={() => setActiveTab('demos')}
-          className={`pb-4 text-lg font-black tracking-tight relative transition-all ${
-            activeTab === 'demos' 
-              ? 'text-primary' 
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
+          className={`pb-4 text-lg font-black tracking-tight relative transition-all ${activeTab === 'demos'
+            ? 'text-primary'
+            : 'text-muted-foreground hover:text-foreground'
+            }`}
         >
           {activeTab === 'demos' && (
             <span className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />
@@ -933,16 +944,16 @@ export default function ProgramsManagement() {
           <div className="flex items-center justify-between gap-4 bg-white/50 backdrop-blur-md border border-border/50 rounded-2xl p-3 shadow-sm">
             <div className="flex items-center gap-4 bg-secondary/35 rounded-xl px-4 py-2 border border-border/50 w-full max-w-md">
               <Search className="text-muted-foreground shrink-0" size={18} />
-              <input 
-                type="text" 
-                placeholder="Search programs..." 
+              <input
+                type="text"
+                placeholder="Search programs..."
                 value={programSearch}
                 onChange={(e) => setProgramSearch(e.target.value)}
                 className="bg-transparent border-none outline-none w-full text-sm font-semibold placeholder:text-muted-foreground/60 text-slate-800"
               />
             </div>
-            
-            <button 
+
+            <button
               onClick={handleOpenCreateModal}
               className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl shadow-md text-white bg-primary text-xs font-bold transition-all hover:scale-105 active:scale-95"
             >
@@ -967,18 +978,17 @@ export default function ProgramsManagement() {
                 {filteredPrograms.map((program) => {
                   const isSelected = activeProgram?.id === program.id;
                   return (
-                    <div 
+                    <div
                       key={program.id}
                       onClick={() => setActiveProgram(program)}
-                      className={`cursor-pointer p-5 rounded-3xl border transition-all duration-300 flex flex-col gap-3 relative overflow-hidden bg-white hover:shadow-lg ${
-                        isSelected 
-                          ? 'border-primary ring-2 ring-primary/20 shadow-md shadow-primary/5 bg-primary/[0.005]' 
-                          : 'border-border/40 hover:border-border'
-                      }`}
+                      className={`cursor-pointer p-5 rounded-3xl border transition-all duration-300 flex flex-col gap-3 relative overflow-hidden bg-white hover:shadow-lg ${isSelected
+                        ? 'border-primary ring-2 ring-primary/20 shadow-md shadow-primary/5 bg-primary/[0.005]'
+                        : 'border-border/40 hover:border-border'
+                        }`}
                     >
                       {/* Left vertical theme accent border */}
                       <div className={`absolute top-0 left-0 bottom-0 w-1.5 bg-gradient-to-b ${getGradientClass(program.title)}`} />
-                      
+
                       <div className="flex justify-between items-start pl-2">
                         <div>
                           <span className="text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-md border border-slate-200">
@@ -988,13 +998,12 @@ export default function ProgramsManagement() {
                             {program.title}
                           </h3>
                         </div>
-                        
+
                         <div className="flex flex-col items-end gap-1.5">
-                          <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${
-                            program.isActive 
-                              ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/10' 
-                              : 'bg-amber-500/10 text-amber-600 border-amber-500/10'
-                          }`}>
+                          <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${program.isActive
+                            ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/10'
+                            : 'bg-amber-500/10 text-amber-600 border-amber-500/10'
+                            }`}>
                             {program.isActive ? 'Active' : 'Draft'}
                           </span>
                           <span className="text-[10px] font-bold text-slate-500">
@@ -1002,7 +1011,7 @@ export default function ProgramsManagement() {
                           </span>
                         </div>
                       </div>
-                      
+
                       <p className="text-xs text-muted-foreground line-clamp-1 italic pl-2">
                         "{program.tagline}"
                       </p>
@@ -1021,13 +1030,13 @@ export default function ProgramsManagement() {
                         <span className="text-xs font-black uppercase tracking-widest bg-white/25 backdrop-blur-sm px-3.5 py-1 rounded-full border border-white/10 shadow-sm">
                           {activeProgram.classRange}
                         </span>
-                        
+
                         <div className="flex items-center gap-1.5 bg-white/25 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-wider">
                           <div className={`w-1.5 h-1.5 rounded-full ${activeProgram.isActive ? 'bg-emerald-300 animate-pulse' : 'bg-amber-300'}`} />
                           {activeProgram.isActive ? 'Active' : 'Draft'}
                         </div>
                       </div>
-                      
+
                       <h2 className="text-3.5xl font-black tracking-tight mt-2 leading-none">{activeProgram.title}</h2>
                       <p className="text-white/95 text-base font-semibold italic mt-1 leading-snug">"{activeProgram.tagline}"</p>
                     </div>
@@ -1101,11 +1110,10 @@ export default function ProgramsManagement() {
                     <div className="p-5 bg-secondary/10 border-t border-border/30 flex justify-between items-center gap-3 shrink-0">
                       <button
                         onClick={() => toggleProgramStatus(activeProgram)}
-                        className={`px-4 py-2 rounded-xl text-xs font-black shadow-sm border transition-all ${
-                          activeProgram.isActive 
-                            ? 'bg-amber-500/5 hover:bg-amber-500/10 text-amber-500 border-amber-500/10' 
-                            : 'bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-500 border-emerald-500/10'
-                        }`}
+                        className={`px-4 py-2 rounded-xl text-xs font-black shadow-sm border transition-all ${activeProgram.isActive
+                          ? 'bg-amber-500/5 hover:bg-amber-500/10 text-amber-500 border-amber-500/10'
+                          : 'bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-500 border-emerald-500/10'
+                          }`}
                       >
                         {activeProgram.isActive ? 'Set Draft' : 'Publish'}
                       </button>
@@ -1151,9 +1159,9 @@ export default function ProgramsManagement() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/50 backdrop-blur-md border border-border/50 rounded-2xl p-4 shadow-sm">
             <div className="flex items-center gap-4 bg-secondary/50 rounded-xl px-4 py-2 border border-border/50 w-full md:max-w-md">
               <Search className="text-muted-foreground shrink-0" size={18} />
-              <input 
-                type="text" 
-                placeholder="Search by student, username, phone, or parent email..." 
+              <input
+                type="text"
+                placeholder="Search by student, username, phone, or parent email..."
                 value={enrollmentSearch}
                 onChange={(e) => setEnrollmentSearch(e.target.value)}
                 className="bg-transparent border-none outline-none w-full text-sm font-semibold placeholder:text-muted-foreground/60 text-foreground"
@@ -1164,15 +1172,14 @@ export default function ProgramsManagement() {
                 <Filter className="text-muted-foreground" size={16} />
                 <span className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Status:</span>
                 <div className="flex bg-secondary/50 rounded-xl p-1 border border-border/50 font-bold text-xs">
-                  {['ALL', 'ACTIVE', 'COMPLETED', 'CANCELLED'].map((status) => (
+                  {['ALL', 'ACTIVE', 'SUSPENDED', 'COMPLETED', 'CANCELLED'].map((status) => (
                     <button
                       key={status}
                       onClick={() => setStatusFilter(status)}
-                      className={`px-3 py-1.5 rounded-lg transition-all capitalize ${
-                        statusFilter === status 
-                          ? 'bg-primary text-white shadow-md' 
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
+                      className={`px-3 py-1.5 rounded-lg transition-all capitalize ${statusFilter === status
+                        ? 'bg-primary text-white shadow-md'
+                        : 'text-muted-foreground hover:text-foreground'
+                        }`}
                     >
                       {status.toLowerCase()}
                     </button>
@@ -1180,7 +1187,7 @@ export default function ProgramsManagement() {
                 </div>
               </div>
 
-              <button 
+              <button
                 onClick={() => {
                   setAddStudentName('');
                   setAddStudentPhone('');
@@ -1226,19 +1233,32 @@ export default function ProgramsManagement() {
                       <th className="p-6 text-right">Actions</th>
                     </tr>
                   </thead>
-                  
+
                   <tbody className="divide-y divide-border/30">
                     {filteredEnrollments.map((enrollment) => (
                       <tr key={enrollment.id} className="hover:bg-primary/[0.01] transition-all group">
                         {/* Student Info */}
                         <td className="p-6">
                           <div className="flex items-center gap-4">
-                            <div className="w-11 h-11 bg-primary/10 text-primary rounded-full font-black text-lg flex items-center justify-center">
-                              {(enrollment.user.profile?.displayName?.[0] || enrollment.user.username?.[0] || 'U').toUpperCase()}
+                            <div className="w-11 h-11 rounded-full overflow-hidden flex items-center justify-center bg-primary/10 text-primary font-black text-lg shrink-0">
+                              {enrollment.user.profile?.avatarUrl ? (
+                                <img
+                                  src={enrollment.user.profile.avatarUrl}
+                                  alt={enrollment.user.profile.displayName || 'Avatar'}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                (enrollment.user.profile?.displayName?.[0] || enrollment.user.username?.[0] || 'U').toUpperCase()
+                              )}
                             </div>
                             <div>
-                              <p className="font-extrabold text-base tracking-tight text-foreground group-hover:text-primary transition-colors">
-                                {enrollment.user.profile?.displayName || enrollment.user.username || 'Anonymous User'}
+                              <p className="font-extrabold text-base tracking-tight text-foreground group-hover:text-primary transition-colors flex items-center gap-2 flex-wrap">
+                                <span>{enrollment.user.profile?.displayName || enrollment.user.username || 'Anonymous User'}</span>
+                                {enrollment.user.role && (
+                                  <span className="text-[9px] font-bold px-1.5 py-0.5 bg-slate-100 text-slate-500 border border-slate-200 rounded shrink-0">
+                                    {enrollment.user.role.charAt(0) + enrollment.user.role.slice(1).toLowerCase()}
+                                  </span>
+                                )}
                               </p>
                               <div className="flex flex-col gap-1 mt-1 text-xs text-muted-foreground font-semibold">
                                 <span className="flex items-center gap-1.5">
@@ -1271,15 +1291,14 @@ export default function ProgramsManagement() {
                         {/* Tier & Price */}
                         <td className="p-6">
                           <div className="space-y-1">
-                            <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${
-                              enrollment.type === 'PRIVATE' 
-                                ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20' 
-                                : 'bg-sky-500/10 text-sky-600 border-sky-500/20'
-                            }`}>
+                            <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${enrollment.type === 'PRIVATE'
+                              ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20'
+                              : 'bg-sky-500/10 text-sky-600 border-sky-500/20'
+                              }`}>
                               <CreditCard size={10} />
                               {enrollment.type === 'PRIVATE' ? '1:1 Private' : 'Group Cohort'}
                             </span>
-                            
+
                             <p className="font-black text-sm text-foreground flex items-center">
                               ₹{enrollment.pricePaid.toLocaleString()}
                             </p>
@@ -1300,17 +1319,18 @@ export default function ProgramsManagement() {
 
                         {/* Status */}
                         <td className="p-6">
-                          <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 border shadow-sm ${
-                            enrollment.status === 'ACTIVE'
-                              ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                          <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 border shadow-sm ${enrollment.status === 'ACTIVE'
+                            ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                            : enrollment.status === 'SUSPENDED'
+                              ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
                               : enrollment.status === 'COMPLETED'
-                              ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20'
-                              : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
-                          }`}>
-                            <div className={`w-1.5 h-1.5 rounded-full ${
-                              enrollment.status === 'ACTIVE' ? 'bg-emerald-500 animate-pulse' :
-                              enrollment.status === 'COMPLETED' ? 'bg-indigo-500' : 'bg-rose-500'
-                            }`} />
+                                ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20'
+                                : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                            }`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${enrollment.status === 'ACTIVE' ? 'bg-emerald-500 animate-pulse' :
+                              enrollment.status === 'SUSPENDED' ? 'bg-amber-500' :
+                                enrollment.status === 'COMPLETED' ? 'bg-indigo-500' : 'bg-rose-500'
+                              }`} />
                             {enrollment.status}
                           </span>
                         </td>
@@ -1319,40 +1339,19 @@ export default function ProgramsManagement() {
                         <td className="p-6 text-right">
                           <div className="flex justify-end gap-1.5">
                             <button
-                              onClick={() => router.push(`/admin/expert/enrollments/${enrollment.id}`)}
-                              title="View Schedule Details"
-                              className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-500/15 rounded-xl transition-all shadow-sm"
+                              onClick={() => router.push(`/admin/programs/enrollments/${enrollment.id}`)}
+                              title="View Student Details & Manage Status"
+                              className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-500/15 rounded-xl transition-all shadow-sm flex items-center justify-center"
                             >
                               <Eye size={14} className="stroke-[3px]" />
                             </button>
-                            {enrollment.status === 'ACTIVE' && (
-                              <>
-                                <button
-                                  onClick={() => handleUpdateEnrollmentStatus(enrollment.id, 'COMPLETED')}
-                                  title="Mark as Completed"
-                                  className="p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-500/15 rounded-xl transition-all shadow-sm"
-                                >
-                                  <Check size={14} className="stroke-[3px]" />
-                                </button>
-                                <button
-                                  onClick={() => handleUpdateEnrollmentStatus(enrollment.id, 'CANCELLED')}
-                                  title="Cancel Enrollment"
-                                  className="p-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-500/15 rounded-xl transition-all shadow-sm"
-                                >
-                                  <X size={14} className="stroke-[3px]" />
-                                </button>
-                              </>
-                            )}
-                            
-                            {(enrollment.status === 'COMPLETED' || enrollment.status === 'CANCELLED') && (
-                              <button
-                                onClick={() => handleUpdateEnrollmentStatus(enrollment.id, 'ACTIVE')}
-                                title="Re-activate Enrollment"
-                                className="p-2.5 bg-secondary hover:bg-primary/10 text-muted-foreground hover:text-primary border border-border/50 rounded-xl transition-all shadow-sm"
-                              >
-                                <RefreshCw size={14} className="stroke-[2.5px]" />
-                              </button>
-                            )}
+                            <button
+                              onClick={() => router.push(`/admin/expert/enrollments/${enrollment.id}`)}
+                              title="View Schedule Details"
+                              className="p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all shadow-sm flex items-center justify-center"
+                            >
+                              <GoogleMeetIcon size={14} />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -1372,15 +1371,15 @@ export default function ProgramsManagement() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/50 backdrop-blur-md border border-border/50 rounded-2xl p-4 shadow-sm">
             <div className="flex items-center gap-4 bg-secondary/50 rounded-xl px-4 py-2 border border-border/50 w-full md:max-w-md">
               <Search className="text-muted-foreground shrink-0" size={18} />
-              <input 
-                type="text" 
-                placeholder="Search by parent, phone, email, or program..." 
+              <input
+                type="text"
+                placeholder="Search by parent, phone, email, or program..."
                 value={demoSearch}
                 onChange={(e) => setDemoSearch(e.target.value)}
                 className="bg-transparent border-none outline-none w-full text-sm font-semibold placeholder:text-muted-foreground/60 text-foreground"
               />
             </div>
-            
+
             <div className="flex items-center gap-3 shrink-0 self-start md:self-auto">
               <Filter className="text-muted-foreground" size={16} />
               <span className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Status:</span>
@@ -1389,11 +1388,10 @@ export default function ProgramsManagement() {
                   <button
                     key={status}
                     onClick={() => setDemoStatusFilter(status)}
-                    className={`px-3 py-1.5 rounded-lg transition-all capitalize ${
-                      demoStatusFilter === status 
-                        ? 'bg-primary text-white shadow-md' 
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
+                    className={`px-3 py-1.5 rounded-lg transition-all capitalize ${demoStatusFilter === status
+                      ? 'bg-primary text-white shadow-md'
+                      : 'text-muted-foreground hover:text-foreground'
+                      }`}
                   >
                     {status.toLowerCase()}
                   </button>
@@ -1426,7 +1424,7 @@ export default function ProgramsManagement() {
                       <th className="p-6 text-right">Actions</th>
                     </tr>
                   </thead>
-                  
+
                   <tbody className="divide-y divide-border/30">
                     {filteredDemos.map((demo: DemoSession) => (
                       <tr key={demo.id} className="hover:bg-primary/[0.01] transition-all group">
@@ -1512,20 +1510,18 @@ export default function ProgramsManagement() {
 
                         {/* Status badge */}
                         <td className="p-6">
-                          <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 border shadow-sm ${
-                            demo.status === 'PENDING' ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' :
+                          <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 border shadow-sm ${demo.status === 'PENDING' ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' :
                             demo.status === 'CONTACTED' ? 'bg-teal-500/10 text-teal-600 border-teal-500/20' :
-                            demo.status === 'SCHEDULED' ? 'bg-purple-500/10 text-purple-600 border-purple-500/20' :
-                            demo.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
-                            'bg-rose-500/10 text-rose-600 border-rose-500/20'
-                          }`}>
-                            <div className={`w-1.5 h-1.5 rounded-full ${
-                              demo.status === 'PENDING' ? 'bg-amber-500 animate-pulse' :
+                              demo.status === 'SCHEDULED' ? 'bg-purple-500/10 text-purple-600 border-purple-500/20' :
+                                demo.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
+                                  'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                            }`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${demo.status === 'PENDING' ? 'bg-amber-500 animate-pulse' :
                               demo.status === 'CONTACTED' ? 'bg-teal-500' :
-                              demo.status === 'SCHEDULED' ? 'bg-purple-500' :
-                              demo.status === 'COMPLETED' ? 'bg-emerald-500' :
-                              'bg-rose-500'
-                            }`} />
+                                demo.status === 'SCHEDULED' ? 'bg-purple-500' :
+                                  demo.status === 'COMPLETED' ? 'bg-emerald-500' :
+                                    'bg-rose-500'
+                              }`} />
                             {demo.status}
                           </span>
                         </td>
@@ -1534,7 +1530,9 @@ export default function ProgramsManagement() {
                         <td className="p-6 text-right">
                           <div className="flex justify-end gap-1.5">
                             <button
-                              onClick={() => router.push(`/admin/expert/demos/${demo.id}`)}
+                              onClick={() => {
+                                router.push(`/admin/programs/demos/${demo.id}`);
+                              }}
                               title="view details"
                               className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-500/15 rounded-xl transition-all shadow-sm"
                             >
@@ -1552,258 +1550,34 @@ export default function ProgramsManagement() {
         </div>
       )}
 
-      {/* --- DEMO DETAILS MODAL --- */}
-      {showDemoModal && selectedDemo && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2.5rem] border border-border/30 shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto flex flex-col p-8 gap-6 animate-in zoom-in-95 duration-300">
+      {/* --- ADD STUDENT MODAL --- */}
+      {showAddStudentModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[250] flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] border border-border/30 shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto flex flex-col p-8 gap-6 animate-in zoom-in-95 duration-300">
             {/* Modal Header */}
             <div className="flex justify-between items-start border-b border-border/30 pb-5">
               <div>
                 <span className="inline-flex items-center gap-1 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest mb-2">
-                  <Award size={12} />
-                  Demo Session Request
+                  <Plus size={12} className="stroke-[3px]" />
+                  Manual Enrollment
                 </span>
-                <h2 className="text-3xl font-black tracking-tight text-foreground flex items-center gap-2">
-                  {selectedDemo.parentName}
+                <h2 className="text-2.5xl font-black tracking-tight text-slate-800">
+                  Add Student
                 </h2>
-                <p className="text-sm font-semibold text-muted-foreground mt-1">
-                  Requested on {new Date(selectedDemo.createdAt).toLocaleDateString('en-IN', {
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
+                <p className="text-xs font-semibold text-muted-foreground mt-1">
+                  Manually enroll a student to a program cohort.
                 </p>
               </div>
-              <button 
-                onClick={() => {
-                  setShowDemoModal(false);
-                  setSelectedDemo(null);
-                }}
+              <button
+                onClick={() => setShowAddStudentModal(false)}
                 className="p-2 hover:bg-secondary rounded-full transition-all border border-border/50 shadow-sm"
               >
                 <X size={20} />
               </button>
             </div>
 
-            {/* Modal Content Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Left Column: Quick Contact & Status Update */}
-              <div className="md:col-span-1 space-y-6 border-b md:border-b-0 md:border-r border-border/30 pb-6 md:pb-0 md:pr-6">
-                <div>
-                  <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-3">Parent Contact</h3>
-                  <div className="space-y-3 font-semibold text-sm">
-                    <a 
-                      href={`tel:${selectedDemo.phone}`}
-                      className="flex items-center gap-2.5 p-3 rounded-xl bg-secondary/50 border border-border/50 hover:border-primary/30 hover:text-primary transition-all text-foreground"
-                    >
-                      <Phone size={16} className="text-primary shrink-0" />
-                      <span className="break-all">{selectedDemo.phone}</span>
-                    </a>
-                    
-                    {selectedDemo.email ? (
-                      <a 
-                        href={`mailto:${selectedDemo.email}`}
-                        className="flex items-center gap-2.5 p-3 rounded-xl bg-secondary/50 border border-border/50 hover:border-primary/30 hover:text-primary transition-all text-foreground animate-in fade-in"
-                      >
-                        <Mail size={16} className="text-primary shrink-0" />
-                        <span className="break-all text-xs">{selectedDemo.email}</span>
-                      </a>
-                    ) : (
-                      <div className="flex items-center gap-2.5 p-3 rounded-xl bg-secondary/30 border border-border/30 text-muted-foreground italic text-xs">
-                        <Mail size={16} className="shrink-0 text-muted-foreground/60" />
-                        <span>No Email Provided</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground">Class Cohort</h3>
-                  <div className="px-4 py-3 bg-primary/5 text-primary border border-primary/10 rounded-2xl text-center">
-                    <span className="text-lg font-black">{selectedDemo.classRange}</span>
-                  </div>
-                </div>
-
-                {/* Requested Slot details card */}
-                <div className="space-y-3">
-                  <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1">
-                    <Clock size={12} className="text-primary shrink-0" /> Requested Slot
-                  </h3>
-                  {selectedDemo.slotDate && selectedDemo.slotTime ? (
-                    <div className="p-4 bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20 rounded-2xl flex flex-col gap-2 shadow-sm text-left">
-                      <div className="flex items-center gap-2 text-primary">
-                        <Calendar size={14} className="shrink-0" />
-                        <span className="text-xs font-black">
-                          {new Date(selectedDemo.slotDate).toLocaleDateString('en-IN', {
-                            weekday: 'short',
-                            day: '2-digit',
-                            month: 'long',
-                            year: 'numeric'
-                          })}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-primary">
-                        <Clock size={14} className="shrink-0" />
-                        <span className="text-xs font-black uppercase tracking-wider">{selectedDemo.slotTime}</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="px-4 py-3 bg-slate-50 text-slate-400 border border-slate-100 rounded-2xl text-center italic text-xs font-semibold">
-                      No slot requested
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-3">
-                  <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground">Booking Status</h3>
-                  
-                  {/* Status Picker Selector */}
-                  <div className="space-y-2">
-                    {(['PENDING', 'CONTACTED', 'SCHEDULED', 'COMPLETED', 'CANCELLED'] as const).map((status) => {
-                      const isCurrent = selectedDemo.status === status;
-                      return (
-                        <button
-                          key={status}
-                          onClick={() => handleUpdateDemoStatus(selectedDemo.id, status)}
-                          className={`w-full text-left px-4 py-2.5 rounded-xl border text-xs font-black transition-all flex items-center justify-between ${
-                            status === 'PENDING' ? 'hover:bg-amber-50 border-amber-500/20 ' + (isCurrent ? 'bg-amber-500/10 text-amber-600 border-amber-500/30 font-black ring-1 ring-amber-500/20' : 'text-slate-600') :
-                            status === 'CONTACTED' ? 'hover:bg-teal-50 border-teal-500/20 ' + (isCurrent ? 'bg-teal-500/10 text-teal-600 border-teal-500/30 font-black ring-1 ring-teal-500/20' : 'text-slate-600') :
-                            status === 'SCHEDULED' ? 'hover:bg-purple-50 border-purple-500/20 ' + (isCurrent ? 'bg-purple-500/10 text-purple-600 border-purple-500/30 font-black ring-1 ring-purple-500/20' : 'text-slate-600') :
-                            status === 'COMPLETED' ? 'hover:bg-emerald-50 border-emerald-500/20 ' + (isCurrent ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30 font-black ring-1 ring-emerald-500/20' : 'text-slate-600') :
-                            'hover:bg-rose-50 border-rose-500/20 ' + (isCurrent ? 'bg-rose-500/10 text-rose-600 border-rose-500/30 font-black ring-1 ring-rose-500/20' : 'text-slate-600')
-                          }`}
-                        >
-                          <span>{status}</span>
-                          {isCurrent && <Check size={14} className="stroke-[3px]" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column: Empathetic Assessment Profile */}
-              <div className="md:col-span-2 space-y-6">
-                <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1">
-                  <Sliders size={14} />
-                  Empathetic Child Assessment Profile
-                </h3>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Social Confidence */}
-                  <div className="bg-secondary/40 border border-border/40 rounded-2xl p-4 space-y-1">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Social Confidence</p>
-                    <p className="text-sm font-extrabold text-slate-800">{getConfidenceLabel(selectedDemo.confidence)}</p>
-                  </div>
-
-                  {/* Primary Interests */}
-                  <div className="bg-secondary/40 border border-border/40 rounded-2xl p-4 space-y-1">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Primary Development Focus</p>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {selectedDemo.interests.map((interest, i) => (
-                        <span key={i} className="text-xs font-extrabold text-slate-800">
-                          {getInterestsLabel(interest)}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Mentorship Support */}
-                  <div className="bg-secondary/40 border border-border/40 rounded-2xl p-4 space-y-1">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Mentorship Status</p>
-                    <p className="text-xs font-extrabold text-slate-800">{getHasMentorLabel(selectedDemo.hasMentor)}</p>
-                  </div>
-
-                  {/* Learning Preference */}
-                  <div className="bg-secondary/40 border border-border/40 rounded-2xl p-4 space-y-1">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Learning Preference</p>
-                    <p className="text-xs font-extrabold text-slate-800">{getLearningPrefLabel(selectedDemo.learningPref)}</p>
-                  </div>
-
-                  {/* Parental Involvement */}
-                  <div className="bg-secondary/40 border border-border/40 rounded-2xl p-4 space-y-1 sm:col-span-2">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Parent Involvement Level</p>
-                    <p className="text-xs font-extrabold text-slate-800">{getParentInvolvementLabel(selectedDemo.parentInvolvement)}</p>
-                  </div>
-                </div>
-
-                {/* Challenges Faced Checklist */}
-                <div className="space-y-2">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Growth Challenges in Past Year</p>
-                  {selectedDemo.challenges && selectedDemo.challenges.length > 0 ? (
-                    <div className="flex flex-wrap gap-1.5">
-                      {selectedDemo.challenges.map((challenge: string, idx: number) => (
-                        <span 
-                          key={idx}
-                          className="text-xs font-extrabold bg-rose-500/5 text-rose-500 border border-rose-500/10 px-3 py-1.5 rounded-xl flex items-center gap-1.5"
-                        >
-                          <span className="w-1.5 h-1.5 bg-rose-500 rounded-full shrink-0" />
-                          {getChallengesLabel(challenge)}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground/60 italic font-semibold">No challenges specified</p>
-                  )}
-                </div>
-
-                {/* Recommended Programs & Tiers */}
-                <div className="border-t border-border/30 pt-6 space-y-3">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Recommended Program Formats</p>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedDemo.suggestedPrograms.map((prog: string, idx: number) => (
-                      <span 
-                        key={idx} 
-                        className="text-xs font-black bg-primary/10 text-primary border border-primary/20 px-3.5 py-2 rounded-2xl shadow-sm inline-flex items-center gap-2"
-                      >
-                        <span className="w-2 h-2 bg-primary rounded-full shrink-0 animate-pulse" />
-                        {prog}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Actions Footer */}
-            <div className="border-t border-border/30 pt-6 flex justify-end gap-3 mt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowDemoModal(false);
-                  setSelectedDemo(null);
-                }}
-                className="px-6 py-3.5 bg-secondary text-muted-foreground font-black rounded-2xl transition-all border border-border/50 shadow-sm"
-              >
-                Close View
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* --- ADD STUDENT MODAL --- */}
-      {showAddStudentModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[250] flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2.5rem] border border-border/30 shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-primary to-accent p-6 text-white flex flex-col gap-1 relative shadow-md shrink-0">
-              <button 
-                onClick={() => setShowAddStudentModal(false)} 
-                className="absolute top-5 right-5 p-2 bg-white/20 hover:bg-white/30 text-white rounded-full transition-all"
-              >
-                <X size={16} />
-              </button>
-              <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
-                <Plus size={22} className="stroke-[3px]" />
-                Add Student Enrollment
-              </h2>
-              <p className="text-white/80 text-xs font-semibold">Manually enroll a student to a program cohort.</p>
-            </div>
-
             {/* Modal Form */}
-            <form onSubmit={handleSubmitWrapper} className="p-6 space-y-4 overflow-y-auto flex-1">
+            <form onSubmit={handleSubmitWrapper} className="space-y-4">
 
 
               {enrollStep === 1 ? (

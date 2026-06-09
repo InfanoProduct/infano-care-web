@@ -3,6 +3,7 @@
 import React, { useRef, useState } from 'react';
 import HTMLFlipBook from 'react-pageflip';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { Book } from '@/services/shop.service';
 
 const BOOK_PAGES: string[] = [
   '/book/Page-1.png',
@@ -18,7 +19,11 @@ const BOOK_PAGES: string[] = [
 const pagesWithFiller =
   BOOK_PAGES.length % 2 === 0 ? BOOK_PAGES : [...BOOK_PAGES, 'blank'];
 
-export function BookPreview() {
+interface BookPreviewProps {
+  book?: Book | null;
+}
+
+export function BookPreview({ book }: BookPreviewProps = {}) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const bookRef = useRef<any>(null);
   const [page, setPage] = useState(1);
@@ -90,11 +95,10 @@ export function BookPreview() {
                       {idx === pagesWithFiller.length - 1 && (
                         <div className="absolute md:bottom-[55px] bottom-[20px] md:left-[30px] left-[25px]">
                           <a
-                            href="#order"
-                            rel="noopener noreferrer"
+                            href={book ? `/checkout?bookId=${book.id}` : '/checkout'}
                             className="bg-[#ba3c78] text-white font-semibold px-6 py-3 rounded-xl shadow transition hover:bg-[#a03065]"
                           >
-                            Order Book
+                            Book Now
                           </a>
                           <p className="mt-4 md:text-base text-sm font-medium text-slate-800">
                             Loved by 2000+ girls | Safe | Expert Led

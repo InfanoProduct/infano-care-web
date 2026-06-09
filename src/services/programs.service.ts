@@ -32,6 +32,8 @@ export interface ProgramEnrollment {
   type: string;
   status: string;
   pricePaid: number;
+  guestName?: string | null;
+  guestEmail?: string | null;
   createdAt: string;
   updatedAt: string;
   program: Program;
@@ -43,6 +45,7 @@ export interface ProgramEnrollment {
     parentEmail: string | null;
     profile?: {
       displayName: string;
+      avatarUrl?: string | null;
     };
     scheduledSessions?: any[];
   };
@@ -64,6 +67,8 @@ export interface DemoSession {
   slotDate: string | null;
   slotTime: string | null;
   status: string;
+  isReadyToEnroll: boolean;
+  comment: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -159,8 +164,8 @@ export const ProgramsService = {
   /**
    * Updates the status of a demo session request (e.g. PENDING, CONTACTED, SCHEDULED, COMPLETED, CANCELLED)
    */
-  async updateDemoStatus(id: string, status: string): Promise<DemoSession> {
-    return apiClient.patch<DemoSession>(`/admin/programs/demos/${id}`, { status });
+  async updateDemoStatus(id: string, payload: { status?: string; isReadyToEnroll?: boolean; comment?: string }): Promise<DemoSession> {
+    return apiClient.patch<DemoSession>(`/admin/programs/demos/${id}`, payload);
   },
 
   /**

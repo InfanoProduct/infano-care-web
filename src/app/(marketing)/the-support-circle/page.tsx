@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     url: 'https://infano.care/the-support-circle',
     images: [
       {
-        url: '/og-images/landing-og-image.png',
+        url: '/og-images/circle-og.png',
         width: 1200,
         height: 630,
         alt: 'Infano Support Circle',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'The Support Circle | Safe Community for Adolescent Girls | Infano Care',
     description: "Join the Infano Support Circle — a secure, moderated peer community and expert-led wellness space designed specifically to empower teenage girls through safe dialogue.",
-    images: ['/og-images/landing-og-image.png'],
+    images: ['/og-images/circle-og.png'],
   },
 };
 

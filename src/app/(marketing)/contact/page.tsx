@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     url: 'https://infano.care/contact',
     images: [
       {
-        url: '/api/og?title=Contact+Us&category=Contact&author=Infano+Care',
+        url: '/og-images/landing-og.png',
         width: 1200,
         height: 630,
         alt: 'Contact Infano Care',
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Contact Us | School & Parent Enquiries | Infano Care',
     description: 'Reach out to the Infano Care team. Whether you represent a school looking to run health workshops or are a parent seeking adolescent advice, we respond within 24 hours.',
-    images: ['/api/og?title=Contact+Us&category=Contact&author=Infano+Care'],
+    images: ['/og-images/landing-og.png'],
   },
 };
 

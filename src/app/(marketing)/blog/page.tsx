@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     url: 'https://infano.care/blog',
     images: [
       {
-        url: '/og-images/landing-og-image.png',
+        url: '/og-images/blog-og.png',
         width: 1200,
         height: 630,
         alt: 'Infano Care Blog',
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Infano Care Blog | Adolescent Health & Parenting Stories | Infano Care',
     description: 'Discover expert stories, health tips, and educational puberty guides written by professionals to empower adolescent girls and support parents.',
-    images: ['/og-images/landing-og-image.png'],
+    images: ['/og-images/blog-og.png'],
   },
 };
 

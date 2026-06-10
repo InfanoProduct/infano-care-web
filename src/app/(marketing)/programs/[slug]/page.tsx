@@ -374,7 +374,7 @@ export default function ProgramDetailsPage() {
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 py-12 relative z-10">
 
         {/* Navigation / Breadcrumb */}
-        <div className="mb-10 flex items-center justify-between">
+        <div className="mb-10 flex items-center">
           <Link
             href="/parents"
             className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-slate-700 transition-colors uppercase tracking-widest group"
@@ -382,10 +382,6 @@ export default function ProgramDetailsPage() {
             <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1 duration-300" />
             <span>Back to Programs</span>
           </Link>
-
-          <span className={`px-4 py-1.5 rounded-full text-[10px] font-bold border uppercase tracking-widest ${theme.badge}`}>
-            {program.classRange}
-          </span>
         </div>
 
         {/* Dynamic Split Screen Grid */}
@@ -396,10 +392,15 @@ export default function ProgramDetailsPage() {
 
             {/* Title & Tagline Header */}
             <div className="mb-10">
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${theme.badge} mb-4`}>
-                <Sparkles size={10} />
-                <span>Infano Master Cohort</span>
-              </span>
+              <div className="flex items-center gap-3 mb-4">
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${theme.badge}`}>
+                  <Sparkles size={10} />
+                  <span>Infano Master Cohort</span>
+                </span>
+                <span className={`px-3 py-1 rounded-full text-[10px] font-bold border uppercase tracking-widest ${theme.badge}`}>
+                  {program.classRange}
+                </span>
+              </div>
               <h1 className={`text-5xl md:text-6xl font-black font-heading tracking-tight leading-[1.1] ${theme.accent} mb-5`}>
                 {program.title}
               </h1>
@@ -670,14 +671,14 @@ export default function ProgramDetailsPage() {
                                 min={getTomorrowString()}
                                 value={slotDate}
                                 onChange={(e) => setSlotDate(e.target.value)}
-                                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none text-slate-800 text-xs font-semibold bg-white"
+                                className={`w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none text-xs font-semibold bg-white ${slotDate ? 'text-slate-800' : 'text-slate-400'}`}
                               />
                             </div>
                             <div>
                               <select
                                 value={slotTime}
                                 onChange={(e) => setSlotTime(e.target.value)}
-                                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none text-slate-800 text-xs font-semibold bg-white"
+                                className={`w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none text-xs font-semibold bg-white ${slotTime ? 'text-slate-800' : 'text-slate-400'}`}
                               >
                                 <option value="">Select Time</option>
                                 <option value="10:00 AM - 11:00 AM">10:00 AM - 11:00 AM</option>

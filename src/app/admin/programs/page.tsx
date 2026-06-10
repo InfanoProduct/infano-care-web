@@ -589,51 +589,23 @@ export default function ProgramsManagement() {
                 />
               </div>
 
-              {/* Class Target Range */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Class Start (Min) *</label>
-                  <input
-                    type="number"
-                    required
-                    min={1}
-                    max={12}
-                    value={formMinClass}
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      setFormMinClass(val);
-                      if (formMaxClass < val) setFormMaxClass(val);
-                    }}
-                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground outline-none focus:border-primary/50 transition-all font-semibold"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Class End (Max) *</label>
-                  <input
-                    type="number"
-                    required
-                    min={1}
-                    max={12}
-                    value={formMaxClass}
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      setFormMaxClass(val);
-                      if (formMinClass > val) setFormMinClass(val);
-                    }}
-                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground outline-none focus:border-primary/50 transition-all font-semibold"
-                  />
-                </div>
-                <div className="col-span-2 space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Class Range Label *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Class 8 and 9"
-                    value={formClassRange}
-                    onChange={(e) => setFormClassRange(e.target.value)}
-                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground outline-none focus:border-primary/50 transition-all font-semibold"
-                  />
-                </div>
+              {/* Class Target */}
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Target Class *</label>
+                <input
+                  type="number"
+                  required
+                  min={1}
+                  max={12}
+                  value={formMinClass}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setFormMinClass(val);
+                    setFormMaxClass(val);
+                    setFormClassRange(`Class ${val}`);
+                  }}
+                  className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground outline-none focus:border-primary/50 transition-all font-semibold"
+                />
               </div>
 
               {/* Sessions, Duration, Status */}
@@ -1051,13 +1023,18 @@ export default function ProgramsManagement() {
                       <div className={`absolute top-0 left-0 bottom-0 w-1.5 bg-gradient-to-b ${getGradientClass(program.title)}`} />
 
                       <div className="flex justify-between items-start pl-2">
-                        <div>
-                          <span className="text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-md border border-slate-200">
-                            {program.classRange}
-                          </span>
-                          <h3 className="text-xl font-black text-slate-800 tracking-tight mt-1.5 transition-colors">
-                            {program.title}
-                          </h3>
+                        <div className="flex gap-4">
+                          {program.thumbnailUrl && (
+                            <img src={program.thumbnailUrl} alt={program.title} className="w-16 h-16 rounded-2xl object-cover shrink-0 border border-slate-200" />
+                          )}
+                          <div>
+                            <span className="text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-md border border-slate-200">
+                              {program.classRange}
+                            </span>
+                            <h3 className="text-xl font-black text-slate-800 tracking-tight mt-1.5 transition-colors">
+                              {program.title}
+                            </h3>
+                          </div>
                         </div>
 
                         <div className="flex flex-col items-end gap-1.5">
@@ -1086,8 +1063,14 @@ export default function ProgramsManagement() {
                 {activeProgram ? (
                   <div className="flex flex-col h-full overflow-y-auto">
                     {/* Header banner matching program color theme */}
-                    <div className={`bg-gradient-to-r p-6 text-white flex flex-col gap-2 relative shadow-md shrink-0 ${getGradientClass(activeProgram.title)}`}>
-                      <div className="flex justify-between items-start">
+                    <div className={`bg-gradient-to-r p-6 text-white flex flex-col gap-2 relative shadow-md shrink-0 overflow-hidden ${getGradientClass(activeProgram.title)}`}>
+                      {activeProgram.thumbnailUrl && (
+                        <div className="absolute inset-0 z-0">
+                          <img src={activeProgram.thumbnailUrl} alt={activeProgram.title} className="w-full h-full object-cover opacity-20" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                        </div>
+                      )}
+                      <div className="relative z-10 flex justify-between items-start">
                         <span className="text-xs font-black uppercase tracking-widest bg-white/25 backdrop-blur-sm px-3.5 py-1 rounded-full border border-white/10 shadow-sm">
                           {activeProgram.classRange}
                         </span>
@@ -1098,8 +1081,15 @@ export default function ProgramsManagement() {
                         </div>
                       </div>
 
-                      <h2 className="text-3.5xl font-black tracking-tight mt-2 leading-none">{activeProgram.title}</h2>
-                      <p className="text-white/95 text-base font-semibold italic mt-1 leading-snug">"{activeProgram.tagline}"</p>
+                      <div className="relative z-10 flex gap-5 mt-2 items-end">
+                        {activeProgram.thumbnailUrl && (
+                          <img src={activeProgram.thumbnailUrl} alt={activeProgram.title} className="w-24 h-24 rounded-2xl object-cover border-2 border-white/30 shadow-lg shrink-0 bg-white/10 backdrop-blur-sm" />
+                        )}
+                        <div className="pb-1">
+                          <h2 className="text-3.5xl font-black tracking-tight leading-none">{activeProgram.title}</h2>
+                          <p className="text-white/95 text-base font-semibold italic mt-2 leading-snug">"{activeProgram.tagline}"</p>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Detailed info panel */}

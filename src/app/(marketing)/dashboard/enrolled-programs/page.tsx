@@ -88,22 +88,30 @@ export default function EnrolledProgramsPage() {
               className="block w-full text-left p-5 rounded-xl border transition-all duration-200 bg-white border-slate-100 hover:border-slate-200 hover:shadow-md"
             >
               <div className={`h-1 w-full rounded-md bg-gradient-to-r ${theme.gradient} mb-4`} />
-              <div className="flex items-center justify-between mb-1">
-                <h3 className={`font-bold text-lg ${theme.accent}`}>{enr.program.title}</h3>
-                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${theme.badge}`}>
-                  {enr.type === 'PRIVATE' ? '1:1 Private' : 'Group'}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 mb-4">
-                <p className="text-xs font-medium text-slate-400">{enr.program.classRange} • {enr.program.sessions} Sessions</p>
-                {enr.user?.id && user?.id && enr.user.id !== user.id && (
-                  <>
-                    <span className="text-[10px] text-slate-300 font-bold">•</span>
-                    <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded border uppercase tracking-wider ${enr.user?.role === 'TEEN' ? 'bg-purple-50 text-purple-600 border-purple-200' : 'bg-blue-50 text-blue-600 border-blue-200'}`}>
-                      By {enr.user?.role === 'TEEN' ? 'Daughter' : 'Parent'}
-                    </span>
-                  </>
+              
+              <div className="flex gap-4 mb-4">
+                {enr.program.thumbnailUrl && (
+                  <img src={enr.program.thumbnailUrl} alt={enr.program.title} className="w-16 h-16 rounded-xl object-cover shrink-0 border border-slate-200" />
                 )}
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className={`font-bold text-lg ${theme.accent} leading-tight`}>{enr.program.title}</h3>
+                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${theme.badge} shrink-0 ml-2`}>
+                      {enr.type === 'PRIVATE' ? '1:1 Private' : 'Group'}
+                    </span>
+                  </div>
+                  <div className="flex items-center flex-wrap gap-1.5">
+                    <p className="text-xs font-medium text-slate-400">{enr.program.classRange} • {enr.program.sessions} Sessions</p>
+                    {enr.user?.id && user?.id && enr.user.id !== user.id && (
+                      <>
+                        <span className="text-[10px] text-slate-300 font-bold">•</span>
+                        <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded border uppercase tracking-wider ${enr.user?.role === 'TEEN' ? 'bg-purple-50 text-purple-600 border-purple-200' : 'bg-blue-50 text-blue-600 border-blue-200'}`}>
+                          By {enr.user?.role === 'TEEN' ? 'Daughter' : 'Parent'}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
               
               <div className="space-y-1.5 mb-4">

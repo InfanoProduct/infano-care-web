@@ -392,7 +392,7 @@ export default function ProgramDetailsPage() {
 
             {/* Title & Tagline Header */}
             <div className="mb-10">
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-3 mb-6">
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${theme.badge}`}>
                   <Sparkles size={10} />
                   <span>Infano Master Cohort</span>
@@ -401,6 +401,13 @@ export default function ProgramDetailsPage() {
                   {program.classRange}
                 </span>
               </div>
+
+              {program.thumbnailUrl && (
+                <div className="w-full h-64 md:h-80 rounded-[2rem] overflow-hidden mb-8 shadow-xl border border-slate-200/50">
+                  <img src={program.thumbnailUrl} alt={program.title} className="w-full h-full object-cover" />
+                </div>
+              )}
+
               <h1 className={`text-5xl md:text-6xl font-black font-heading tracking-tight leading-[1.1] ${theme.accent} mb-5`}>
                 {program.title}
               </h1>
@@ -462,34 +469,31 @@ export default function ProgramDetailsPage() {
               </div>
 
               {sessionsList.length > 0 ? (
-                <div className="relative pl-6 border-l border-slate-200/80 space-y-6">
+                <div className="relative space-y-6">
                   {sessionsList.map((session, idx) => (
                     <motion.div
                       key={idx}
-                      initial={{ opacity: 0, x: -10 }}
-                      whileInView={{ opacity: 1, x: 0 }}
+                      initial={{ opacity: 0, y: 15 }}
+                      whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
                       transition={{ duration: 0.4, delay: Math.min(idx * 0.05, 0.4) }}
-                      className="p-6 md:p-7 bg-white hover:bg-white/80 border border-slate-100/90 rounded-[1.5rem] shadow-sm hover:shadow-md transition-all duration-300 relative group overflow-hidden"
-                      style={{
-                        backgroundImage: session.thumbnailUrl
-                          ? `linear-gradient(to right, rgba(255, 255, 255, 0.96) 60%, rgba(255, 255, 255, 0.85)), url(${session.thumbnailUrl})`
-                          : undefined,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'right center',
-                      }}
+                      className={`p-6 md:p-7 bg-white hover:bg-slate-50 border border-slate-100/90 rounded-[1.5rem] shadow-sm hover:shadow-md transition-all duration-300 relative group flex items-center justify-between gap-5 overflow-hidden`}
                     >
-                      {/* Floating glowing timeline bullet */}
-                      <span className={`absolute -left-[39px] top-7 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border-2 border-white text-white bg-gradient-to-r ${theme.gradient} shadow-lg transition-transform group-hover:scale-110 duration-300`}>
-                        {idx + 1}
-                      </span>
 
-                      <h4 className="text-base font-bold text-slate-800 mb-2 leading-snug group-hover:text-slate-900 transition-colors relative z-10">
-                        {session.title}
-                      </h4>
-                      <p className="text-slate-500 text-xs font-medium leading-relaxed relative z-10">
-                        {session.description}
-                      </p>
+                      {session.thumbnailUrl && (
+                        <div className="w-28 h-28 shrink-0 rounded-2xl overflow-hidden border border-slate-200 shadow-sm hidden sm:block">
+                          <img src={session.thumbnailUrl} alt={session.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        </div>
+                      )}
+                      
+                      <div className="flex-1">
+                        <h4 className="text-base font-bold text-slate-800 mb-2 leading-snug group-hover:text-slate-900 transition-colors relative z-10">
+                          {session.title}
+                        </h4>
+                        <p className="text-slate-500 text-xs font-medium leading-relaxed relative z-10">
+                          {session.description}
+                        </p>
+                      </div>
                     </motion.div>
                   ))}
                 </div>

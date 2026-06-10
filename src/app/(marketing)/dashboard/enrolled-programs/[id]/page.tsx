@@ -69,14 +69,17 @@ export default function EnrolledProgramDetailsPage() {
     let formattedDate = 'TBD';
     let formattedTime = 'TBD';
     let meetLink = '';
+    let isExpired = false;
     if (dbSession) {
       status = dbSession.status?.toLowerCase() as any;
       const t = new Date(dbSession.scheduledAt).getTime();
       formattedDate = new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
       formattedTime = new Date(t).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
       meetLink = dbSession.meetLink || '';
+      // Consider session expired if 2 hours have passed since the scheduled time
+      isExpired = Date.now() > t + 2 * 60 * 60 * 1000;
     }
-    return { ...session, status, formattedDate, formattedTime, meetLink };
+    return { ...session, status, formattedDate, formattedTime, meetLink, isExpired };
   });
 
   const completed = sessionsWithStatus.filter(s => s.status === 'completed').length;
@@ -175,15 +178,26 @@ export default function EnrolledProgramDetailsPage() {
                       <p className="text-xs text-slate-605 font-medium leading-relaxed max-w-2xl">{session.description}</p>
                     </div>
                   </div>
-                  <div className="border-t border-purple-200/50 pt-3 flex items-center justify-between gap-4 mt-1 relative z-10">
+                  <div className="border-t border-purple-200/50 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-1 relative z-10">
                     <div className="flex items-center gap-2 text-xs font-semibold text-purple-800 bg-purple-100/40 px-3 py-1.5 rounded-lg"><Info size={14} /> Prepare your workbook before class</div>
-                    {session.meetLink ? (
-                      <a href={session.meetLink} target="_blank" rel="noopener noreferrer" className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-1.5 text-xs transition-all active:scale-95 shadow-sm">
-                        Join Live Class <ChevronRight size={14} />
-                      </a>
-                    ) : (
-                      <span className="text-xs text-purple-750 font-bold bg-purple-100 px-3 py-1.5 rounded-lg border border-purple-200">Link coming soon</span>
-                    )}
+                    <div className="flex flex-col sm:items-end gap-1">
+                      {session.meetLink ? (
+                        session.isExpired ? (
+                          <>
+                            <button disabled className="bg-slate-300 text-slate-500 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-1.5 text-xs cursor-not-allowed opacity-70">
+                              Join Live Class <ChevronRight size={14} />
+                            </button>
+                            <span className="text-[10px] text-red-500 font-medium">Expert will reschedule it</span>
+                          </>
+                        ) : (
+                          <a href={session.meetLink} target="_blank" rel="noopener noreferrer" className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-1.5 text-xs transition-all active:scale-95 shadow-sm">
+                            Join Live Class <ChevronRight size={14} />
+                          </a>
+                        )
+                      ) : (
+                        <span className="text-xs text-purple-750 font-bold bg-purple-100 px-3 py-1.5 rounded-lg border border-purple-200 text-center">Link coming soon</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

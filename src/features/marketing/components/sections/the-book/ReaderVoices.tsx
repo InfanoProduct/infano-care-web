@@ -45,7 +45,12 @@ export function VideoPlayer({ videoUrl, name, age, location }: VideoPlayerProps)
     } else {
       videoRef.current.play()
         .then(() => setIsPlaying(true))
-        .catch(err => console.error(err));
+        .catch(err => {
+          if (err.name !== 'AbortError') {
+            console.error(err);
+          }
+          setIsPlaying(false);
+        });
     }
   };
 

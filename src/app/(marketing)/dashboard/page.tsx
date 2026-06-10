@@ -467,9 +467,14 @@ export default function CustomerDashboardOverview() {
                     <div key={enr.id} className={`p-4 bg-white border ${theme.border} rounded-lg flex flex-col sm:flex-row sm:items-center gap-4 hover:shadow-sm transition-all`}>
                       <div className="flex-1 space-y-2.5">
                         <div className="flex items-center justify-between flex-wrap gap-2">
-                          <div>
-                            <h4 className={`font-bold text-base ${theme.accent}`}>{enr.program.title}</h4>
-                            <p className="text-xs font-medium text-slate-400">{enr.program.classRange} • {enr.type === 'PRIVATE' ? '1:1 Private' : 'Group Cohort'}</p>
+                          <div className="flex items-center gap-3">
+                            {enr.program.thumbnailUrl && (
+                              <img src={enr.program.thumbnailUrl} alt={enr.program.title} className="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-200" />
+                            )}
+                            <div>
+                              <h4 className={`font-bold text-base ${theme.accent}`}>{enr.program.title}</h4>
+                              <p className="text-xs font-medium text-slate-400">{enr.program.classRange} • {enr.type === 'PRIVATE' ? '1:1 Private' : 'Group Cohort'}</p>
+                            </div>
                           </div>
                           <div className="flex items-center gap-2">
                             {enr.user?.id && user?.id && enr.user.id !== user.id && (
@@ -598,29 +603,31 @@ export default function CustomerDashboardOverview() {
                   return (
                     <div
                       key={program.id}
-                      className={`p-5 rounded-xl border ${styles.bg} ${styles.border} shadow-sm hover:shadow-md transition-all duration-300 flex flex-col group relative overflow-hidden`}
-                      style={{
-                        backgroundImage: program.thumbnailUrl
-                          ? `linear-gradient(to bottom, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.94)), url(${program.thumbnailUrl})`
-                          : undefined,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                      }}
+                      className={`rounded-xl border ${styles.bg} ${styles.border} shadow-sm hover:shadow-md transition-all duration-300 flex flex-col group relative overflow-hidden`}
                     >
-                      {/* Header: Title and Class Range */}
-                      <div className="flex items-center justify-between mb-4 relative z-10">
-                        <h3 className={`text-lg font-bold tracking-tight ${styles.text}`}>
-                          {program.title}
-                        </h3>
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${styles.badge}`}>
-                          {program.classRange}
-                        </span>
-                      </div>
+                      {/* Thumbnail Image */}
+                      {program.thumbnailUrl && (
+                        <div className="w-full h-32 relative overflow-hidden shrink-0 border-b border-white/40">
+                          <img src={program.thumbnailUrl} alt={program.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-80" />
+                        </div>
+                      )}
+                      
+                      <div className="p-5 flex flex-col flex-1 relative z-10">
+                        {/* Header: Title and Class Range */}
+                        <div className="flex items-center justify-between mb-4 relative z-10">
+                          <h3 className={`text-lg font-bold tracking-tight ${styles.text}`}>
+                            {program.title}
+                          </h3>
+                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${styles.badge}`}>
+                            {program.classRange}
+                          </span>
+                        </div>
 
-                      {/* Tagline */}
-                      <p className="text-slate-700 font-semibold text-xs leading-relaxed mb-4 min-h-[36px] relative z-10">
-                        "{program.tagline || program.description}"
-                      </p>
+                        {/* Tagline */}
+                        <p className="text-slate-700 font-semibold text-xs leading-relaxed mb-4 min-h-[36px] relative z-10">
+                          "{program.tagline || program.description}"
+                        </p>
 
                       {/* Session / Duration details bar */}
                       <div className={`flex items-center gap-3 py-2 px-3 ${styles.metaBg} rounded-lg border shadow-sm mb-4 text-slate-600 text-[10px] font-bold relative z-10`}>
@@ -658,6 +665,7 @@ export default function CustomerDashboardOverview() {
                         <span>Book Free Demo</span>
                         <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5 duration-300" />
                       </button>
+                      </div>
                     </div>
                   );
                 })}

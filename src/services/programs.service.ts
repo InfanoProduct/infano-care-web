@@ -3,6 +3,7 @@ import { apiClient } from "@/lib/api-client";
 export interface ProgramSession {
   title: string;
   description: string;
+  thumbnailUrl?: string;
 }
 
 export interface Program {
@@ -10,6 +11,7 @@ export interface Program {
   title: string;
   tagline: string;
   description?: string;
+  thumbnailUrl?: string | null;
   classRange: string;
   minClass: number;
   maxClass: number;

@@ -11,7 +11,6 @@ import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
 import { AuthService } from '@/services/auth.service';
 import { NotificationBell } from '@/features/parent/components/NotificationBell';
-import { GigiChatWidget } from '@/features/parent/components/GigiChatWidget';
 
 export default function CustomerDashboardLayout({
   children,
@@ -26,6 +25,7 @@ export default function CustomerDashboardLayout({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const refreshedRef = useRef(false);
   const [avatarPhoto, setAvatarPhoto] = useState<string | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Sync profile photo in layout header
   useEffect(() => {
@@ -109,6 +109,10 @@ export default function CustomerDashboardLayout({
   }, [mounted, isAuthenticated, user, router]);
 
   const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
     clearAuth();
     document.cookie = 'customer-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     router.push('/login');
@@ -163,15 +167,22 @@ export default function CustomerDashboardLayout({
     <div className="flex flex-col h-full justify-between py-5 px-3">
       <div className="space-y-6">
         {/* Brand Logo */}
-        <div className={`flex items-center gap-3 px-2.5 ${isCollapsed ? 'justify-center' : ''}`}>
-          <Link href="/" className="flex items-center gap-3 shrink-0">
-            <div className="w-9 h-9 bg-gradient-to-br from-primary to-primary-light rounded-xl flex items-center justify-center text-white shadow-md shadow-primary/10 shrink-0">
-              <ShieldCheck size={20} />
-            </div>
-            {!isCollapsed && (
-              <span className="font-bold text-lg tracking-tighter text-slate-800 animate-in fade-in duration-300">
-                Infano<span className="text-primary">Care</span>
-              </span>
+        <div className={`flex items-center px-2.5 h-12 ${isCollapsed ? 'justify-center' : ''}`}>
+          <Link href="/" className="flex items-center shrink-0 w-full h-full relative">
+            {isCollapsed ? (
+              <div className="w-9 h-9 relative flex items-center justify-center overflow-hidden">
+                <img
+                  src="/logo/infano-logo-for-light-bg.png"
+                  alt="Infano Logo"
+                  className="w-24 max-w-none h-9 object-contain object-left"
+                />
+              </div>
+            ) : (
+              <img
+                src="/logo/infano-logo-for-light-bg.png"
+                alt="Infano Logo"
+                className="h-9 object-contain object-left animate-in fade-in duration-300"
+              />
             )}
           </Link>
         </div>
@@ -331,13 +342,14 @@ export default function CustomerDashboardLayout({
             </button>
             
             {/* Mobile-only branding display */}
-            <div className="md:hidden flex items-center gap-2">
-              <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center text-white shadow-sm shrink-0">
-                <ShieldCheck size={16} />
-              </div>
-              <span className="font-bold text-sm tracking-tighter text-slate-800">
-                Infano<span className="text-primary">Care</span>
-              </span>
+            <div className="md:hidden flex items-center h-10 w-28 relative">
+              <Link href="/" className="w-full h-full relative flex items-center">
+                <img
+                  src="/logo/infano-logo-for-light-bg.png"
+                  alt="Infano Logo"
+                  className="h-7 object-contain object-left"
+                />
+              </Link>
             </div>
 
             {/* Desktop breadcrumb or workspace status */}
@@ -391,8 +403,47 @@ export default function CustomerDashboardLayout({
         </main>
       </div>
 
-      {/* Gigi Floating Chat Widget — visible on all dashboard pages for both parent and teen */}
-      <GigiChatWidget />
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 select-none">
+          {/* Backdrop */}
+          <div 
+            onClick={() => setShowLogoutConfirm(false)}
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity duration-300 animate-in fade-in"
+          />
+          {/* Modal content */}
+          <div 
+            className="relative bg-white rounded-[2rem] p-6 max-w-sm w-full shadow-2xl border border-slate-100/80 text-center space-y-5 z-10 animate-in zoom-in-95 duration-200"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center mx-auto shadow-sm">
+              <LogOut size={22} />
+            </div>
+            
+            <div className="space-y-1.5">
+              <h3 className="font-extrabold text-slate-800 text-lg">Confirm Sign Out</h3>
+              <p className="text-slate-500 text-xs font-semibold leading-relaxed">
+                Are you sure you want to log out of your session?
+              </p>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 py-3 px-4 rounded-2xl border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-800 text-xs font-bold transition-all active:scale-98"
+              >
+                No, Cancel
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs font-black shadow-md shadow-rose-200/50 hover:shadow-rose-300/60 transition-all active:scale-98"
+              >
+                Yes, Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Send, Loader2, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ChatService, ChatMessage } from '@/services/chat.service';
 import { useAuthStore } from '@/store/auth-store';
 
@@ -73,6 +74,7 @@ function MessageBubble({ msg }: { msg: ChatMessage }) {
 // ── Main Widget ───────────────────────────────────────────────────────────────
 export function GigiChatWidget() {
   const { isAuthenticated } = useAuthStore();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -106,7 +108,7 @@ export function GigiChatWidget() {
   // Load history when first opening with existing session
   const handleOpen = async () => {
     setIsOpen(true);
-    if (sessionId && messages.length === 0) {
+    if (isAuthenticated && sessionId && messages.length === 0) {
       setLoadingHistory(true);
       try {
         const history = await ChatService.getHistory(sessionId);
@@ -119,9 +121,31 @@ export function GigiChatWidget() {
     }
   };
 
+  // Debounce: prevent rapid-fire sends within 500ms
+  const sendDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSendTimeRef = useRef<number>(0);
+
   const handleSend = async () => {
     const text = input.trim();
     if (!text || isLoading) return;
+
+    const now = Date.now();
+    const timeSinceLastSend = now - lastSendTimeRef.current;
+
+    if (sendDebounceRef.current) {
+      clearTimeout(sendDebounceRef.current);
+    }
+
+    if (timeSinceLastSend < 500) {
+      // Queue for later
+      sendDebounceRef.current = setTimeout(() => {
+        lastSendTimeRef.current = Date.now();
+        handleSend();
+      }, 500 - timeSinceLastSend);
+      return;
+    }
+
+    lastSendTimeRef.current = now;
 
     // Optimistic user message
     const tempId = `temp-${Date.now()}`;
@@ -138,7 +162,20 @@ export function GigiChatWidget() {
     setIsLoading(true);
 
     try {
-      const res = await ChatService.sendMessage(text, sessionId || undefined);
+      // Build clean history payload for stateful guest chats
+      const historyPayload = messages
+        .filter(m => !m.id.startsWith('temp-') && !m.id.startsWith('err-'))
+        .map(m => ({
+          sender: m.sender,
+          content: m.content
+        }));
+
+      const res = await ChatService.sendMessage(
+        text,
+        sessionId || undefined,
+        undefined,
+        historyPayload
+      );
       const gigiMsg = res?.message;
       const sid = res?.sessionId ?? sessionId ?? '';
 
@@ -174,7 +211,13 @@ export function GigiChatWidget() {
     }
   };
 
-  if (!mounted || !isAuthenticated) return null;
+  const isExcludedPage = 
+    pathname?.startsWith('/admin') || 
+    pathname?.startsWith('/schools') || 
+    pathname?.startsWith('/peerline') || 
+    pathname?.startsWith('/peerline-onboarding');
+
+  if (!mounted || isExcludedPage) return null;
 
   const chatPanel = isOpen ? (
     <>
@@ -204,7 +247,6 @@ export function GigiChatWidget() {
             </div>
             <div>
               <p className="text-purple-950 font-black text-sm leading-none">Gigi</p>
-              <p className="text-purple-900/60 text-[10px] font-semibold leading-none mt-0.5">Your AI big sister ✨</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
@@ -299,30 +341,60 @@ export function GigiChatWidget() {
 
   return (
     <>
-      {/* Floating Trigger Button — sits above the WhatsApp button (bottom-6) */}
-      <button
-        onClick={handleOpen}
-        className="fixed z-[997] bottom-24 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-purple-200 to-pink-200 text-purple-950 shadow-xl shadow-purple-200/50 hover:shadow-purple-300/60 hover:scale-110 border border-purple-300/30 transition-all duration-200 active:scale-95 flex items-center justify-center group overflow-hidden"
-        title="Chat with Gigi"
-        aria-label="Open Gigi AI Assistant"
+      {/* Floating Trigger Button Wrapper — sits above the WhatsApp button (bottom-6) */}
+      <div 
+        className="fixed z-[997] bottom-24 right-6 gigi-float-container"
       >
-        {/* Pulse ring when closed */}
-        {!isOpen && (
-          <span className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-200 to-pink-200 animate-ping opacity-30" />
-        )}
-        <div className="relative z-10 w-11 h-11 rounded-full overflow-hidden border border-purple-300/40 shadow-sm bg-white flex items-center justify-center group-hover:rotate-6 transition-transform duration-300">
-          <img src="/gigi-avatar.png" alt="Gigi Avatar" className="w-full h-full object-cover" />
-        </div>
-      </button>
+        <button
+          onClick={handleOpen}
+          className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-200 to-pink-200 text-purple-950 shadow-xl shadow-purple-200/50 hover:shadow-purple-300/60 hover:scale-110 border border-purple-300/30 transition-all duration-200 active:scale-95 flex items-center justify-center group overflow-hidden"
+          title="Chat with Gigi"
+          aria-label="Open Gigi AI Assistant"
+        >
+          {/* Pulse ring when closed */}
+          {!isOpen && (
+            <span className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-200 to-pink-200 animate-ping opacity-30" />
+          )}
+          <div className="relative z-10 w-11 h-11 rounded-full overflow-hidden border border-purple-300/40 shadow-sm bg-white flex items-center justify-center">
+            <img 
+              src="/gigi-avatar.png" 
+              alt="Gigi Avatar" 
+              className="w-full h-full object-cover gigi-avatar-wiggle" 
+            />
+          </div>
+        </button>
+      </div>
 
       {/* Chat Panel via Portal */}
       {mounted && createPortal(chatPanel, document.body)}
 
-      {/* Slide-up animation keyframe */}
+      {/* Animations style block */}
       <style>{`
         @keyframes gigiSlideUp {
           from { opacity: 0; transform: translateY(20px) scale(0.95); }
           to   { opacity: 1; transform: translateY(0)   scale(1);    }
+        }
+        @keyframes gigiFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+        @keyframes gigiWiggle {
+          0%, 100% { transform: rotate(0deg); }
+          25% { transform: rotate(-6deg); }
+          75% { transform: rotate(6deg); }
+        }
+        .gigi-float-container {
+          animation: gigiFloat 3s ease-in-out infinite;
+        }
+        .gigi-float-container:hover {
+          animation-play-state: paused;
+        }
+        .gigi-avatar-wiggle {
+          transform-origin: bottom center;
+          transition: transform 0.3s ease;
+        }
+        .gigi-float-container:hover .gigi-avatar-wiggle {
+          animation: gigiWiggle 0.6s ease-in-out infinite;
         }
       `}</style>
     </>

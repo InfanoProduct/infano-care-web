@@ -469,17 +469,24 @@ export default function ProgramDetailsPage() {
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true }}
                       transition={{ duration: 0.4, delay: Math.min(idx * 0.05, 0.4) }}
-                      className="p-6 md:p-7 bg-white hover:bg-white/80 border border-slate-100/90 rounded-[1.5rem] shadow-sm hover:shadow-md transition-all duration-300 relative group"
+                      className="p-6 md:p-7 bg-white hover:bg-white/80 border border-slate-100/90 rounded-[1.5rem] shadow-sm hover:shadow-md transition-all duration-300 relative group overflow-hidden"
+                      style={{
+                        backgroundImage: session.thumbnailUrl
+                          ? `linear-gradient(to right, rgba(255, 255, 255, 0.96) 60%, rgba(255, 255, 255, 0.85)), url(${session.thumbnailUrl})`
+                          : undefined,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'right center',
+                      }}
                     >
                       {/* Floating glowing timeline bullet */}
                       <span className={`absolute -left-[39px] top-7 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border-2 border-white text-white bg-gradient-to-r ${theme.gradient} shadow-lg transition-transform group-hover:scale-110 duration-300`}>
                         {idx + 1}
                       </span>
 
-                      <h4 className="text-base font-bold text-slate-800 mb-2 leading-snug group-hover:text-slate-900 transition-colors">
+                      <h4 className="text-base font-bold text-slate-800 mb-2 leading-snug group-hover:text-slate-900 transition-colors relative z-10">
                         {session.title}
                       </h4>
-                      <p className="text-slate-500 text-xs font-medium leading-relaxed">
+                      <p className="text-slate-500 text-xs font-medium leading-relaxed relative z-10">
                         {session.description}
                       </p>
                     </motion.div>

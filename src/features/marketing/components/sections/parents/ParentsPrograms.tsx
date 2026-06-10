@@ -194,9 +194,14 @@ export function ParentsPrograms() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: i * 0.1 }}
-                  className={`p-8 md:p-9 rounded-3xl border ${styles.bg} ${styles.border} shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col group relative`}
+                  className={`p-8 md:p-9 rounded-3xl border ${styles.bg} ${styles.border} shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col group relative overflow-hidden`}
                   style={{
-                    boxShadow: `0 20px 40px -15px ${styles.glow}`
+                    boxShadow: `0 20px 40px -15px ${styles.glow}`,
+                    backgroundImage: program.thumbnailUrl
+                      ? `linear-gradient(to bottom, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.94)), url(${program.thumbnailUrl})`
+                      : undefined,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
                   }}
                 >
                   {/* Decorative glow circle */}

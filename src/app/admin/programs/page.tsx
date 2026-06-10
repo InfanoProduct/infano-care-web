@@ -10,6 +10,8 @@ import {
 import { useRouter } from 'next/navigation';
 import { ProgramsService, Program, ProgramEnrollment, DemoSession, ProgramSession } from '@/services/programs.service';
 import { toast } from 'react-hot-toast';
+import ImageUploader from '@/components/upload/ImageUploader';
+import { blogService } from '@/services/blog.service';
 
 // Helper functions for human-friendly questionnaire labels
 const getConfidenceLabel = (val: string) => {
@@ -162,6 +164,7 @@ export default function ProgramsManagement() {
   const [formTopics, setFormTopics] = useState<string[]>([]);
   const [newTopicInput, setNewTopicInput] = useState('');
   const [formCurriculum, setFormCurriculum] = useState<ProgramSession[]>([]);
+  const [formThumbnailUrl, setFormThumbnailUrl] = useState('');
 
   useEffect(() => {
     loadPrograms();
@@ -329,6 +332,7 @@ export default function ProgramsManagement() {
     setFormTopics([]);
     setNewTopicInput('');
     setFormCurriculum([]);
+    setFormThumbnailUrl('');
 
     setShowModal(true);
   };
@@ -356,6 +360,7 @@ export default function ProgramsManagement() {
         ? program.curriculum
         : (program.sessionsList || [])
     );
+    setFormThumbnailUrl(program.thumbnailUrl || '');
 
     setShowModal(true);
   };
@@ -398,6 +403,7 @@ export default function ProgramsManagement() {
       title: formTitle,
       tagline: formTagline,
       description: formDescription,
+      thumbnailUrl: formThumbnailUrl || null,
       classRange: formClassRange,
       minClass: Number(formMinClass),
       maxClass: Number(formMaxClass),
@@ -571,6 +577,15 @@ export default function ProgramsManagement() {
                   onChange={(e) => setFormDescription(e.target.value)}
                   rows={3}
                   className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold leading-relaxed"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <ImageUploader
+                  value={formThumbnailUrl}
+                  onUpload={(url) => setFormThumbnailUrl(url)}
+                  label="Program Thumbnail Image"
+                  folder="programs"
                 />
               </div>
 
@@ -830,18 +845,64 @@ export default function ProgramsManagement() {
                         </div>
                       </div>
 
-                      <textarea
-                        required
-                        placeholder={`Session ${idx + 1} Description`}
-                        value={session.description}
-                        onChange={(e) => {
-                          const updated = [...formCurriculum];
-                          updated[idx] = { ...updated[idx], description: e.target.value };
-                          setFormCurriculum(updated);
-                        }}
-                        rows={2}
-                        className="w-full bg-white border border-border/50 rounded-xl px-4 py-2 text-xs text-foreground outline-none focus:border-primary/50 transition-all font-semibold leading-relaxed"
-                      />
+                      <div className="flex flex-col sm:flex-row gap-4 items-start">
+                        {/* Image Preview & Upload Button */}
+                        <div className="w-full sm:w-32 shrink-0">
+                          {session.thumbnailUrl ? (
+                            <div className="relative aspect-video w-full rounded-xl overflow-hidden border border-border/50 group">
+                              <img src={session.thumbnailUrl} alt="Session Thumbnail" className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated = [...formCurriculum];
+                                  updated[idx] = { ...updated[idx], thumbnailUrl: '' };
+                                  setFormCurriculum(updated);
+                                }}
+                                className="absolute top-1 right-1 p-1 bg-rose-500 hover:bg-rose-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                title="Remove Thumbnail"
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="flex flex-col items-center justify-center w-full aspect-video border border-dashed border-primary/20 hover:border-primary/40 rounded-xl cursor-pointer hover:bg-primary/5 transition-all text-center p-2">
+                              <span className="text-[10px] font-bold text-primary">Upload BG</span>
+                              <input
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  try {
+                                    const result = await blogService.uploadImage(file, 'programs/sessions') as any;
+                                    const updated = [...formCurriculum];
+                                    updated[idx] = { ...updated[idx], thumbnailUrl: result.url };
+                                    setFormCurriculum(updated);
+                                    toast.success('Session thumbnail uploaded!');
+                                  } catch (error) {
+                                    toast.error('Upload failed');
+                                  }
+                                }}
+                              />
+                            </label>
+                          )}
+                        </div>
+
+                        {/* Description field */}
+                        <textarea
+                          required
+                          placeholder={`Session ${idx + 1} Description`}
+                          value={session.description}
+                          onChange={(e) => {
+                            const updated = [...formCurriculum];
+                            updated[idx] = { ...updated[idx], description: e.target.value };
+                            setFormCurriculum(updated);
+                          }}
+                          rows={2}
+                          className="flex-1 bg-white border border-border/50 rounded-xl px-4 py-2 text-xs text-foreground outline-none focus:border-primary/50 transition-all font-semibold leading-relaxed self-stretch resize-none"
+                        />
+                      </div>
                     </div>
                   ))}
 
@@ -1091,12 +1152,20 @@ export default function ProgramsManagement() {
                         {activeProgram.sessionsList && activeProgram.sessionsList.length > 0 ? (
                           <div className="relative pl-6 border-l border-slate-200 space-y-4">
                             {activeProgram.sessionsList.map((session, idx) => (
-                              <div key={idx} className="bg-slate-50/50 border border-border/30 p-4 rounded-2xl relative group hover:bg-slate-50 transition-colors">
-                                <span className={`absolute -left-[33px] top-4 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black border-2 border-white text-white bg-primary shadow-sm`}>
+                              <div
+                                key={idx}
+                                className="bg-slate-50/50 border border-border/30 p-4 rounded-2xl relative group hover:bg-slate-50 transition-colors overflow-hidden min-h-[72px] flex flex-col justify-center"
+                                style={{
+                                  backgroundImage: session.thumbnailUrl ? `linear-gradient(to right, rgba(255, 255, 255, 0.95) 50%, rgba(255, 255, 255, 0.8)), url(${session.thumbnailUrl})` : undefined,
+                                  backgroundSize: 'cover',
+                                  backgroundPosition: 'right center',
+                                }}
+                              >
+                                <span className={`absolute -left-[33px] top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black border-2 border-white text-white bg-primary shadow-sm`}>
                                   {idx + 1}
                                 </span>
-                                <h5 className="text-xs font-black text-slate-800 leading-tight">{session.title}</h5>
-                                <p className="text-[11px] text-slate-500 font-medium mt-1 leading-relaxed">{session.description}</p>
+                                <h5 className="text-xs font-black text-slate-800 leading-tight relative z-10">{session.title}</h5>
+                                <p className="text-[11px] text-slate-500 font-medium mt-1 leading-relaxed relative z-10">{session.description}</p>
                               </div>
                             ))}
                           </div>

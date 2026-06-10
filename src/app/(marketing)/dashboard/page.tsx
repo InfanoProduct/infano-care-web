@@ -598,7 +598,14 @@ export default function CustomerDashboardOverview() {
                   return (
                     <div
                       key={program.id}
-                      className={`p-5 rounded-xl border ${styles.bg} ${styles.border} shadow-sm hover:shadow-md transition-all duration-300 flex flex-col group relative`}
+                      className={`p-5 rounded-xl border ${styles.bg} ${styles.border} shadow-sm hover:shadow-md transition-all duration-300 flex flex-col group relative overflow-hidden`}
+                      style={{
+                        backgroundImage: program.thumbnailUrl
+                          ? `linear-gradient(to bottom, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.94)), url(${program.thumbnailUrl})`
+                          : undefined,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }}
                     >
                       {/* Header: Title and Class Range */}
                       <div className="flex items-center justify-between mb-4 relative z-10">

@@ -497,6 +497,23 @@ export default function CustomerDashboardOverview() {
                             <div className={`h-full bg-gradient-to-r ${theme.gradient} transition-all duration-700 rounded-full`} style={{ width: `${pct}%` }} />
                           </div>
                         </div>
+
+                        {scheduled && (
+                          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Upcoming Session</span>
+                              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                                <Calendar size={13} className={theme.accent} />
+                                {new Date(scheduled.scheduledAt).toLocaleString('en-IN', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                              </div>
+                            </div>
+                            {scheduled.meetingLink && (
+                              <a href={scheduled.meetingLink} target="_blank" className={`px-4 py-2 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-sm transition-all active:scale-95 hover:shadow-md bg-gradient-to-r ${theme.gradient}`}>
+                                <Play size={12} className="fill-current" /> Join Live
+                              </a>
+                            )}
+                          </div>
+                        )}
                       </div>
                       <Link href={`/dashboard/enrolled-programs/${enr.id}`} className={`shrink-0 text-xs font-bold ${theme.accent} hover:underline flex items-center gap-0.5 whitespace-nowrap bg-slate-50 px-3.5 py-1.5 rounded-lg border border-slate-100`}>
                         Timeline <ChevronRight size={14} />

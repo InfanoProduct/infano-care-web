@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { ShoppingBag, Search, Filter, Eye, Clock, CheckCircle, Truck, XCircle } from 'lucide-react';
+import { ShoppingBag, Search, Filter, Eye, Clock, CheckCircle, Truck, XCircle, Package } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminOrdersPage() {
@@ -33,6 +33,7 @@ export default function AdminOrdersPage() {
       case 'SHIPPED': return 'bg-indigo-100 text-indigo-600';
       case 'DELIVERED': return 'bg-green-100 text-green-600';
       case 'CANCELLED': return 'bg-rose-100 text-rose-600';
+      case 'FAILED': return 'bg-red-100 text-red-600';
       default: return 'bg-slate-100 text-slate-600';
     }
   };
@@ -40,11 +41,24 @@ export default function AdminOrdersPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'PLACED': return <Clock size={14} />;
-      case 'PROCESSING': return <Clock size={14} />;
+      case 'PROCESSING': return <Package size={14} />;
       case 'SHIPPED': return <Truck size={14} />;
       case 'DELIVERED': return <CheckCircle size={14} />;
       case 'CANCELLED': return <XCircle size={14} />;
+      case 'FAILED': return <XCircle size={14} />;
       default: return null;
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'PLACED': return 'Order Confirmed';
+      case 'PROCESSING': return 'Packed';
+      case 'SHIPPED': return 'Shipped';
+      case 'DELIVERED': return 'Delivered';
+      case 'CANCELLED': return 'Cancelled';
+      case 'FAILED': return 'Failed';
+      default: return status;
     }
   };
 
@@ -129,10 +143,15 @@ export default function AdminOrdersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-5">
-                      <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold ${getStatusColor(order.orderStatus)}`}>
-                        {getStatusIcon(order.orderStatus)}
-                        {order.orderStatus}
-                      </div>
+                      {(() => {
+                        const displayStatus = (order.paymentMethod === 'ONLINE' && !order.razorpayPaymentId) ? 'FAILED' : order.orderStatus;
+                        return (
+                          <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold ${getStatusColor(displayStatus)} uppercase tracking-wider`}>
+                            {getStatusIcon(displayStatus)}
+                            {getStatusLabel(displayStatus)}
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="px-6 py-5 text-sm text-muted-foreground font-medium">
                       {new Date(order.createdAt).toLocaleDateString()}

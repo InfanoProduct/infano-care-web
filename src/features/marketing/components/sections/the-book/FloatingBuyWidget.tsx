@@ -44,11 +44,11 @@ export function FloatingBuyWidget({ book }: FloatingBuyWidgetProps) {
           {/* Glass card */}
           <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/20 bg-white/95 backdrop-blur-md">
             {/* Top accent gradient strip */}
-            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#ba3c78] via-[#e06ba8] to-[#f0a0c8]" />
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#ff1f56] via-pink-500 to-rose-300" />
 
             <div className="flex items-center gap-4 px-5 py-4">
               {/* Book thumbnail indicator */}
-              <div className="shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-[#ba3c78] to-[#e06ba8] flex items-center justify-center shadow-lg shadow-pink-200">
+              <div className="shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-[#ff1f56] to-pink-500 flex items-center justify-center shadow-lg shadow-rose-100">
                 <ShoppingBag className="w-5 h-5 text-white" />
               </div>
 
@@ -84,7 +84,7 @@ export function FloatingBuyWidget({ book }: FloatingBuyWidgetProps) {
               {/* CTA Button */}
               <a
                 href={checkoutHref}
-                className="shrink-0 inline-flex items-center gap-2 bg-[#ba3c78] hover:bg-[#a03065] active:scale-95 text-white font-bold text-sm px-5 py-3 rounded-xl transition-all duration-200 shadow-lg shadow-pink-200/50 whitespace-nowrap"
+                className="shrink-0 inline-flex items-center gap-2 bg-[#ff1f56] hover:bg-[#e0164c] active:scale-95 text-white font-bold text-sm px-5 py-3 rounded-xl transition-all duration-200 shadow-lg shadow-rose-200/50 whitespace-nowrap"
               >
                 <ShoppingBag className="w-4 h-4" />
                 Buy Now

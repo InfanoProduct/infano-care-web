@@ -143,6 +143,16 @@ class ApiClient {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      // Surface Retry-After information for 429s
+      if (response.status === 429) {
+        const retryHeader = response.headers.get('retry-after');
+        const err = new Error(errorData.error || errorData.message || `Rate limited by server (429)`);
+        (err as any).status = 429;
+        (err as any).details = errorData.details || {};
+        (err as any).details.retryAfterHeader = retryHeader;
+        throw err;
+      }
+
       const error = new Error(errorData.message || errorData.error || `Request failed with status ${response.status}`);
       (error as any).details = errorData.details;
       throw error;

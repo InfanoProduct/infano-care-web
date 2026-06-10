@@ -94,6 +94,7 @@ export const metadata: Metadata = {
 
 
 import { Toaster } from "react-hot-toast";
+import { GigiChatWidget } from "@/features/parent/components/GigiChatWidget";
 
 export default function RootLayout({
   children,
@@ -148,6 +149,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         <QueryProvider>
           <Toaster position="top-right" />
           {children}
+          <GigiChatWidget />
         </QueryProvider>
       </body>
     </html>

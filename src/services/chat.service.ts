@@ -75,14 +75,22 @@ export const ChatService = {
         const capped = details.cappedRetryAfterSec ?? (fromHeader ? parseInt(String(fromHeader), 10) : undefined);
         const parsed = capped ?? 10;
 
+        const isNetworkError = String(err.message).toLowerCase().includes('network error');
+        let errorContent = 'Something went wrong while contacting Gigi. Please try again.';
+        if (is429) {
+          errorContent = `Gigi is temporarily busy due to high load. Please try again in about ${parsed} seconds.`;
+        } else if (isNetworkError) {
+          errorContent = 'Network error. Please try again.';
+        } else {
+          errorContent = 'Server error. Please try again.';
+        }
+
         const fallback: SendMessageResponse = {
           message: {
             id: `gigi-error-${Date.now()}`,
             sessionId: sessionId || 'guest',
             sender: 'GIGI',
-            content: is429
-              ? `Gigi is temporarily busy due to high load. Please try again in about ${parsed} seconds.`
-              : (err.message || 'Something went wrong while contacting Gigi. Please try again.'),
+            content: errorContent,
             createdAt: new Date().toISOString(),
           },
           sessionId: sessionId || 'guest'

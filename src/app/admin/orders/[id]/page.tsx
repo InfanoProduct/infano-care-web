@@ -11,8 +11,8 @@ import {
 import { formatIndianDate, formatOrderId } from '@/lib/utils';
 
 const STATUS_STEPS = [
-  { id: 'PLACED', label: 'Order Confirmed', icon: Clock },
-  { id: 'PROCESSING', label: 'Packed', icon: Package },
+  { id: 'PLACED', label: 'Order Placed', icon: Clock },
+  { id: 'PROCESSING', label: 'Processing', icon: Package },
   { id: 'SHIPPED', label: 'Shipped', icon: Truck },
   { id: 'DELIVERED', label: 'Delivered', icon: CheckCircle },
 ];
@@ -34,6 +34,7 @@ export default function OrderDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [manualTxnId, setManualTxnId] = useState('');
   const [verifyingPayment, setVerifyingPayment] = useState(false);
+  const [convertingToCod, setConvertingToCod] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -87,6 +88,20 @@ export default function OrderDetailPage() {
     }
   };
 
+  const convertToCod = async () => {
+    if (!window.confirm('Are you sure you want to convert this failed order to Cash on Delivery?')) return;
+    try {
+      setConvertingToCod(true);
+      setError(null);
+      await apiClient.post(`/admin/orders/${id}/convert-to-cod`);
+      await fetchOrder();
+    } catch (err: any) {
+      setError(err.message || 'Failed to convert to COD');
+    } finally {
+      setConvertingToCod(false);
+    }
+  };
+
   if (loading) return (
     <div className="flex items-center justify-center min-h-[400px]">
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -101,10 +116,10 @@ export default function OrderDetailPage() {
     </div>
   );
 
-  const displayOrderStatus = order ? ((order.paymentMethod === 'ONLINE' && !order.razorpayPaymentId) ? 'FAILED' : order.orderStatus) : '';
+  const isFailed = order ? (order.paymentMethod === 'ONLINE' && !order.razorpayPaymentId && order.orderStatus !== 'CANCELLED') : false;
+  const displayOrderStatus = order ? (isFailed ? 'FAILED' : order.orderStatus) : '';
   const currentStepIndex = STATUS_STEPS.findIndex(s => s.id === displayOrderStatus);
   const isCancelled = displayOrderStatus === 'CANCELLED';
-  const isFailed = displayOrderStatus === 'FAILED';
   const isPendingCod = order ? (order.paymentMethod === 'COD' && order.paymentStatus === 'PENDING' && !isCancelled && displayOrderStatus !== 'DELIVERED') : false;
   const showManualPaymentInput = isFailed || isPendingCod;
 
@@ -191,6 +206,15 @@ export default function OrderDetailPage() {
                    ? 'The payment for this order was not completed successfully.' 
                    : 'Enter a valid Razorpay transaction ID to securely convert this COD order to an Online paid order.'}
                </p>
+               {isFailed && (
+                 <button
+                   onClick={convertToCod}
+                   disabled={convertingToCod}
+                   className="mt-3 px-4 py-2 bg-slate-900 text-white text-xs font-semibold rounded-md hover:bg-slate-800 disabled:opacity-50 transition-colors"
+                 >
+                   {convertingToCod ? 'Converting...' : 'Change to COD & Place Order'}
+                 </button>
+               )}
              </div>
            </div>
            
@@ -405,12 +429,12 @@ export default function OrderDetailPage() {
                   className="flex-1 w-full p-2.5 rounded-md border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-50"
                   value={displayOrderStatus}
                   onChange={(e) => updateStatus(e.target.value)}
-                  disabled={updating || isFailed || isCancelled}
+                  disabled={updating || isCancelled}
                 >
                   {STATUS_STEPS.map((step) => {
                     const isCurrent = displayOrderStatus === step.id;
                     const canTransition = STATUS_TRANSITIONS[order.orderStatus]?.includes(step.id);
-                    const isDisabled = !isCurrent && !canTransition;
+                    const isDisabled = isFailed || (!isCurrent && !canTransition);
                     
                     return (
                       <option key={step.id} value={step.id} disabled={isDisabled}>
@@ -418,13 +442,13 @@ export default function OrderDetailPage() {
                       </option>
                     );
                   })}
-                  {(STATUS_TRANSITIONS[order.orderStatus]?.includes('CANCELLED') || displayOrderStatus === 'CANCELLED') && (
+                  {(STATUS_TRANSITIONS[order.orderStatus]?.includes('CANCELLED') || displayOrderStatus === 'CANCELLED' || isFailed) && (
                     <option value="CANCELLED" disabled={displayOrderStatus === 'CANCELLED'}>
                       Cancel Order {displayOrderStatus === 'CANCELLED' ? '(Current)' : ''}
                     </option>
                   )}
                   {isFailed && (
-                    <option value="FAILED" disabled>
+                    <option value="FAILED" disabled hidden>
                       Order Failed (Current)
                     </option>
                   )}

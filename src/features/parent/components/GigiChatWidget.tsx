@@ -9,13 +9,33 @@ import { ChatService, ChatMessage } from '@/services/chat.service';
 import { useAuthStore } from '@/store/auth-store';
 
 // ── Gigi link parser ────────────────────────────────────────────────────────
-// Converts Gigi's [link:/path] tokens into clickable <Link> elements
-function parseGigiMessage(text: string) {
-  const parts = text.split(/(\[link:[^\]]+\])/g);
-  return parts.map((part, i) => {
-    const match = part.match(/^\[link:([^\]]+)\]$/);
-    if (match) {
-      const href = match[1];
+// Converts Gigi's [link:/path] and [option:Label|Value] tokens
+interface ParsedMessage {
+  renderedText: React.ReactNode;
+  options: { label: string; value: string }[];
+}
+
+function parseGigiMessage(text: string): ParsedMessage {
+  // Extract all options (allow flexible spacing around brackets, option keyword, and colon)
+  const optionRegex = /\[\s*option\s*:\s*([^\]]+?)\s*\]/g;
+  const options: { label: string; value: string }[] = [];
+  let match;
+  
+  while ((match = optionRegex.exec(text)) !== null) {
+    const raw = match[1].trim();
+    const [label, val] = raw.split('|');
+    options.push({ label: label.trim(), value: (val || label).trim() });
+  }
+
+  // Remove option patterns from the main message text
+  const cleanedText = text.replace(/\[\s*option\s*:\s*[^\]]+?\s*\]/g, '').trim();
+
+  // Split and render links
+  const parts = cleanedText.split(/(\[link:[^\]]+\])/g);
+  const renderedText = parts.map((part, i) => {
+    const linkMatch = part.match(/^\[link:([^\]]+)\]$/);
+    if (linkMatch) {
+      const href = linkMatch[1];
       return (
         <Link
           key={i}
@@ -28,6 +48,8 @@ function parseGigiMessage(text: string) {
     }
     return <span key={i}>{part}</span>;
   });
+
+  return { renderedText, options };
 }
 
 // ── Typing Indicator ─────────────────────────────────────────────────────────
@@ -49,24 +71,51 @@ function TypingIndicator() {
 }
 
 // ── Message Bubble ────────────────────────────────────────────────────────────
-function MessageBubble({ msg }: { msg: ChatMessage }) {
+function MessageBubble({ msg, onOptionClick }: { msg: ChatMessage; onOptionClick?: (val: string) => void }) {
   const isUser = msg.sender === 'USER';
+
+  if (isUser) {
+    return (
+      <div className="flex items-end gap-2 justify-end">
+        <div className="max-w-[78%] px-4 py-2.5 rounded-2xl text-xs leading-relaxed shadow-xs bg-purple-100 border border-purple-200/60 text-purple-950 rounded-br-sm font-medium">
+          {msg.content}
+        </div>
+      </div>
+    );
+  }
+
+  // Parse GIGI message text and options
+  const { renderedText, options } = parseGigiMessage(msg.content);
+
   return (
-    <div className={`flex items-end gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
-      {!isUser && (
+    <div className="flex flex-col gap-2">
+      {/* Text Bubble Row */}
+      <div className="flex items-end gap-2 justify-start">
         <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-sm border border-purple-150 overflow-hidden bg-purple-50">
           <img src="/gigi-avatar.png" alt="Gigi" className="w-full h-full object-cover" />
         </div>
-      )}
-      <div
-        className={`max-w-[78%] px-4 py-2.5 rounded-2xl text-xs leading-relaxed shadow-xs ${
-          isUser
-            ? 'bg-purple-100 border border-purple-200/60 text-purple-950 rounded-br-sm font-medium'
-            : 'bg-white border border-slate-100 text-slate-700 rounded-bl-sm'
-        }`}
-      >
-        {isUser ? msg.content : parseGigiMessage(msg.content)}
+        <div className="max-w-[78%] px-4 py-2.5 rounded-2xl text-xs leading-relaxed shadow-xs bg-white border border-slate-100 text-slate-700 rounded-bl-sm">
+          <div className="whitespace-pre-wrap">{renderedText}</div>
+        </div>
       </div>
+
+      {/* Options Row - Positioned directly below the text bubble, indented to align nicely */}
+      {options.length > 0 && (
+        <div className="pl-9 pr-4 flex flex-col gap-1.5 w-full items-start">
+          {options.map((opt, i) => (
+            <button
+              key={i}
+              onClick={() => onOptionClick?.(opt.value)}
+              className="w-full max-w-[260px] text-left text-xs font-semibold px-4 py-3 rounded-2xl bg-white border border-purple-100/80 hover:border-purple-300 text-purple-950 hover:bg-gradient-to-r hover:from-purple-50/80 hover:to-pink-50/80 hover:text-purple-800 hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.98] shadow-xs flex items-center justify-between group cursor-pointer"
+            >
+              <span>{opt.label}</span>
+              <svg className="w-3.5 h-3.5 text-purple-400 group-hover:text-purple-600 transition-colors shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -125,9 +174,9 @@ export function GigiChatWidget() {
   const sendDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const lastSendTimeRef = useRef<number>(0);
 
-  const handleSend = async () => {
-    const text = input.trim();
-    if (!text || isLoading) return;
+  const sendText = async (text: string) => {
+    const cleanText = text.trim();
+    if (!cleanText || isLoading) return;
 
     const now = Date.now();
     const timeSinceLastSend = now - lastSendTimeRef.current;
@@ -140,7 +189,7 @@ export function GigiChatWidget() {
       // Queue for later
       sendDebounceRef.current = setTimeout(() => {
         lastSendTimeRef.current = Date.now();
-        handleSend();
+        sendText(cleanText);
       }, 500 - timeSinceLastSend);
       return;
     }
@@ -153,7 +202,7 @@ export function GigiChatWidget() {
       id: tempId,
       sessionId: sessionId || '',
       sender: 'USER',
-      content: text,
+      content: cleanText,
       createdAt: new Date().toISOString(),
     };
 
@@ -162,16 +211,17 @@ export function GigiChatWidget() {
     setIsLoading(true);
 
     try {
-      // Build clean history payload for stateful guest chats
+      // Build clean history payload for stateful guest chats, capped to the last 10 messages
       const historyPayload = messages
         .filter(m => !m.id.startsWith('temp-') && !m.id.startsWith('err-'))
+        .slice(-10)
         .map(m => ({
           sender: m.sender,
           content: m.content
         }));
 
       const res = await ChatService.sendMessage(
-        text,
+        cleanText,
         sessionId || undefined,
         undefined,
         historyPayload
@@ -202,6 +252,10 @@ export function GigiChatWidget() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSend = () => {
+    sendText(input);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -303,7 +357,7 @@ export function GigiChatWidget() {
           ) : (
             <>
               {messages.filter(Boolean).map(msg => (
-                <MessageBubble key={msg.id ?? Math.random()} msg={msg} />
+                <MessageBubble key={msg.id ?? Math.random()} msg={msg} onOptionClick={sendText} />
               ))}
               {isLoading && <TypingIndicator />}
               <div ref={messagesEndRef} />

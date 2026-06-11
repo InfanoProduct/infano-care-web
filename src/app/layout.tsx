@@ -71,7 +71,7 @@ export const metadata: Metadata = {
     description: "India's first dedicated platform empowering adolescent girls through puberty education, healthcare solutions, and supportive community networks.",
     images: [
       {
-        url: "/og-images/landing-og-image.png",
+        url: "/og-images/landing-og.png",
         width: 1200,
         height: 630,
         alt: "Infano Care - Puberty Education & Adolescent Health Platform",
@@ -82,7 +82,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Infano Care | Puberty Education & Adolescent Health Solutions",
     description: "Empowering girls and supporting parents through their adolescent journey.",
-    images: ["/og-images/landing-og-image.png"],
+    images: ["/og-images/landing-og.png"],
     creator: "@Infanocare",
   },
   icons: {

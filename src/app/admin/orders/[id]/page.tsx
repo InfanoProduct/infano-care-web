@@ -6,8 +6,9 @@ import { apiClient } from '@/lib/api-client';
 import { 
   ArrowLeft, ShoppingBag, User, MapPin, CreditCard, 
   Clock, Truck, CheckCircle, XCircle, Package, Phone, Mail,
-  AlertCircle, ChevronRight, Receipt, Tag, Info, ShieldCheck
+  AlertCircle, ChevronRight, Receipt, Tag, Info, ShieldCheck, MessageSquare
 } from 'lucide-react';
+import { formatIndianDate, formatOrderId } from '@/lib/utils';
 
 const STATUS_STEPS = [
   { id: 'PLACED', label: 'Order Confirmed', icon: Clock },
@@ -34,6 +35,8 @@ export default function OrderDetailPage() {
   const [manualTxnId, setManualTxnId] = useState('');
   const [verifyingPayment, setVerifyingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [comments, setComments] = useState<any[]>([]);
+  const [newComment, setNewComment] = useState('');
 
   useEffect(() => {
     fetchOrder();
@@ -44,6 +47,9 @@ export default function OrderDetailPage() {
       setLoading(true);
       const response = await apiClient.get<any>(`/admin/orders/${id}`);
       setOrder(response);
+      if (response.comments) {
+        setComments(response.comments);
+      }
     } catch (error) {
       console.error('Failed to fetch order', error);
     } finally {
@@ -115,9 +121,9 @@ export default function OrderDetailPage() {
           </button>
           <div>
             <div className="flex items-center gap-3 flex-wrap">
-               <h1 className="text-2xl font-bold text-slate-900">Order #{order.id.slice(0, 8)}</h1>
+               <h1 className="text-2xl font-bold text-slate-900">Order {formatOrderId(order.id)}</h1>
             </div>
-            <p className="text-sm text-slate-500 mt-1">Placed on {new Date(order.createdAt).toLocaleString()}</p>
+            <p className="text-sm text-slate-500 mt-1">Placed on {formatIndianDate(order.createdAt)}</p>
           </div>
         </div>
 
@@ -243,7 +249,7 @@ export default function OrderDetailPage() {
                         <span>Qty: {item.quantity}</span>
                         <span>•</span>
                         {!isProgram ? (
-                          <span className="font-mono">ISBN: INF-{isbnId}</span>
+                          <span className="font-mono">{book.isbn ? `ISBN: ${book.isbn}` : `Product ID: INF-${isbnId}`}</span>
                         ) : (
                           <span>Enrollment Item</span>
                         )}
@@ -335,6 +341,48 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
+          {/* Comments Section */}
+          <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 flex items-center gap-2">
+              <MessageSquare className="text-slate-500" size={18} />
+              <h2 className="font-semibold text-slate-900">Admin Comments</h2>
+            </div>
+            <div className="p-5 space-y-4">
+              {comments.length > 0 ? (
+                <div className="space-y-4 mb-4">
+                  {comments.map((comment, index) => (
+                    <div key={index} className="bg-slate-50 p-3 rounded-md border border-slate-100">
+                      <p className="text-xs text-slate-500 mb-1 font-medium">{formatIndianDate(comment.createdAt)}</p>
+                      <p className="text-sm text-slate-800">{comment.text}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-slate-500 italic mb-4">No comments yet. Add one below.</p>
+              )}
+              
+              <div className="flex flex-col gap-2">
+                <textarea 
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Add a comment or note about this order..."
+                  className="w-full p-3 rounded-md border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/20 resize-none"
+                  rows={3}
+                />
+                <button 
+                  onClick={() => {
+                    if (!newComment.trim()) return;
+                    setComments([...comments, { text: newComment, createdAt: new Date().toISOString() }]);
+                    setNewComment('');
+                  }}
+                  disabled={!newComment.trim()}
+                  className="self-end px-4 py-2 bg-slate-900 text-white rounded-md text-sm font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors"
+                >
+                  Add Comment
+                </button>
+              </div>
+            </div>
+          </div>
 
         </div>
 

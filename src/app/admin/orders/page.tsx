@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { ShoppingBag, Search, Filter, Eye, Clock, CheckCircle, Truck, XCircle, Package } from 'lucide-react';
+import { ShoppingBag, Search, Filter, Eye, Clock, CheckCircle, Truck, XCircle, Package, CreditCard } from 'lucide-react';
 import Link from 'next/link';
+import { formatIndianDate, formatOrderId } from '@/lib/utils';
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -68,6 +69,13 @@ export default function AdminOrdersPage() {
     (order.guestEmail || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const completedOrders = orders.filter(o => o.orderStatus === 'DELIVERED');
+  const failedOrders = orders.filter(o => (o.paymentMethod === 'ONLINE' && !o.razorpayPaymentId) || o.orderStatus === 'FAILED' || o.orderStatus === 'CANCELLED');
+  const onlineOrders = orders.filter(o => o.paymentMethod === 'ONLINE');
+  const codOrders = orders.filter(o => o.paymentMethod === 'COD');
+
+  const calculateTotal = (orderList: any[]) => orderList.reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0);
+
   return (
     <div className="space-y-10">
       <div className="admin-header flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -77,6 +85,38 @@ export default function AdminOrdersPage() {
             Book Orders
           </h1>
           <p className="text-muted-foreground font-medium mt-2">Manage customer orders and shipping status.</p>
+        </div>
+      </div>
+
+      {/* Overview Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-2xl p-5 border border-border shadow-sm flex flex-col gap-3">
+          <span className="text-sm font-medium text-muted-foreground flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> Completed</span>
+          <div className="flex flex-col">
+            <span className="text-2xl font-bold">{completedOrders.length} <span className="text-sm font-medium text-muted-foreground ml-1">Orders</span></span>
+            <span className="text-lg font-bold text-green-600">₹{calculateTotal(completedOrders).toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-5 border border-border shadow-sm flex flex-col gap-3">
+          <span className="text-sm font-medium text-muted-foreground flex items-center gap-2"><XCircle size={16} className="text-red-500" /> Failed/Cancelled</span>
+          <div className="flex flex-col">
+            <span className="text-2xl font-bold">{failedOrders.length} <span className="text-sm font-medium text-muted-foreground ml-1">Orders</span></span>
+            <span className="text-lg font-bold text-red-600">₹{calculateTotal(failedOrders).toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-5 border border-border shadow-sm flex flex-col gap-3">
+          <span className="text-sm font-medium text-muted-foreground flex items-center gap-2"><CreditCard size={16} className="text-blue-500" /> Online Paid</span>
+          <div className="flex flex-col">
+            <span className="text-2xl font-bold">{onlineOrders.length} <span className="text-sm font-medium text-muted-foreground ml-1">Orders</span></span>
+            <span className="text-lg font-bold text-blue-600">₹{calculateTotal(onlineOrders).toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-5 border border-border shadow-sm flex flex-col gap-3">
+          <span className="text-sm font-medium text-muted-foreground flex items-center gap-2"><Truck size={16} className="text-amber-500" /> COD Orders</span>
+          <div className="flex flex-col">
+            <span className="text-2xl font-bold">{codOrders.length} <span className="text-sm font-medium text-muted-foreground ml-1">Orders</span></span>
+            <span className="text-lg font-bold text-amber-600">₹{calculateTotal(codOrders).toLocaleString('en-IN')}</span>
+          </div>
         </div>
       </div>
 
@@ -122,7 +162,7 @@ export default function AdminOrdersPage() {
                 filteredOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-slate-50/80 transition-colors group">
                     <td className="px-6 py-5">
-                      <div className="font-bold text-sm text-foreground">#{order.id.slice(0, 8)}</div>
+                      <div className="font-bold text-sm text-foreground">{formatOrderId(order.id)}</div>
                       <div className="text-[11px] text-muted-foreground mt-1">{order.items.length} Item(s)</div>
                     </td>
                     <td className="px-6 py-5">
@@ -154,7 +194,7 @@ export default function AdminOrdersPage() {
                       })()}
                     </td>
                     <td className="px-6 py-5 text-sm text-muted-foreground font-medium">
-                      {new Date(order.createdAt).toLocaleDateString()}
+                      {formatIndianDate(order.createdAt)}
                     </td>
                     <td className="px-6 py-5 text-right">
                       <Link 

@@ -34,7 +34,7 @@ const PROBLEMS = [
 
 export function ProblemSection() {
   return (
-    <section className="pt-24 pb-16 bg-white relative overflow-hidden">
+    <section className="pt-8 pb-8 lg:pt-10 lg:pb-20 bg-white relative overflow-hidden">
       {/* Background Decorations */}
       <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-primary/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
       <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-accent/5 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2" />

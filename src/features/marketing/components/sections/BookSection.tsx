@@ -43,13 +43,13 @@ export function BookSection() {
   }, []);
 
   return (
-    <section className="py-32 bg-[#FFFBF7] relative overflow-hidden">
+    <section className="pt-8 pb-8 lg:pt-10 lg:pb-20 bg-[#FFFBF7] relative overflow-hidden">
       {/* Decorative Elements */}
       <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-orange-50 blur-[120px] rounded-full translate-x-1/3 -translate-y-1/3" />
       <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-primary/5 blur-[100px] rounded-full -translate-x-1/3 translate-y-1/3" />
 
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
-        
+
         {/* Mobile Title & Subtitle */}
         <div className="flex lg:hidden flex-col mb-10">
           <motion.div

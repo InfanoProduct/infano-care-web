@@ -30,7 +30,7 @@ export function HeroSection() {
   }, [isPaused, moveToEnd]);
 
   return (
-    <section className="relative pt-6 pb-12 lg:pt-10 lg:pb-24 overflow-hidden bg-white">
+    <section className="relative pt-6 pb-6 lg:pt-10 lg:pb-20 overflow-hidden bg-white">
       {/* Background Graphics — GPU-promoted, no JS animations */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none" style={{ contain: 'strict' }}>
         {/* Subtle Grid Pattern Overlay */}
@@ -67,7 +67,7 @@ export function HeroSection() {
             </p>
 
             {/* Desktop CTA: Visible only on LG+ */}
-            <div 
+            <div
               className="hidden lg:flex flex-col sm:flex-row items-center justify-start gap-4 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
               style={{ animationDelay: '300ms' }}
             >
@@ -119,7 +119,7 @@ export function HeroSection() {
             </div>
 
             {/* Mobile CTA: Visible only below LG */}
-            <div 
+            <div
               className="flex lg:hidden flex-col items-center gap-4 w-full max-w-[320px] mt-8 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
               style={{ animationDelay: '300ms' }}
             >
@@ -138,7 +138,7 @@ export function HeroSection() {
       <div className="hidden lg:block absolute bottom-0 left-1/2 -translate-x-1/2 z-10 w-full max-w-[700px] h-[95%] pointer-events-none">
         <div className="relative w-full h-full flex items-end justify-center">
           <div className="absolute bottom-[10%] w-[70%] h-[20%] bg-primary/10 rounded-full blur-2xl z-0" />
-          <div 
+          <div
             className="relative z-10 h-full w-full animate-in fade-in slide-in-from-bottom-4 duration-700 fill-mode-both"
             style={{ animationDelay: '150ms' }}
           >

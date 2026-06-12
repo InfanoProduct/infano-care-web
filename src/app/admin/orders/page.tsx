@@ -9,22 +9,39 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalOrders, setTotalOrders] = useState(0);
   const itemsPerPage = 15;
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [currentPage, searchTerm]);
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
+    const delayDebounceFn = setTimeout(() => {
+      setSearchTerm(searchInput);
+      setCurrentPage(1);
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchInput]);
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get<any>('/admin/orders');
-      setOrders(response.orders);
+      const queryParams = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: itemsPerPage.toString(),
+        ...(searchTerm ? { search: searchTerm } : {})
+      });
+      const response = await apiClient.get<any>(`/admin/orders?${queryParams}`);
+      setOrders(response.orders || []);
+      if (response.pagination) {
+        setTotalPages(response.pagination.pages);
+        setTotalOrders(response.pagination.total);
+      }
     } catch (error) {
       console.error('Failed to fetch orders', error);
     } finally {
@@ -54,15 +71,7 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const filteredOrders = orders.filter(order => 
-    order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (order.guestName || order.user?.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (order.guestEmail || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="space-y-10">
@@ -84,8 +93,8 @@ export default function AdminOrdersPage() {
               type="text" 
               placeholder="Search by Order ID, Name or Email..."
               className="w-full pl-12 pr-4 py-3 rounded-2xl border border-border bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
             />
           </div>
           <button className="flex items-center gap-2 px-5 py-3 rounded-2xl border border-border bg-white hover:bg-slate-50 transition-colors font-bold text-sm">
@@ -114,8 +123,8 @@ export default function AdminOrdersPage() {
                     <td colSpan={7} className="px-6 py-8"><div className="h-4 bg-slate-100 rounded w-full"></div></td>
                   </tr>
                 ))
-              ) : paginatedOrders.length > 0 ? (
-                paginatedOrders.map((order) => (
+              ) : orders.length > 0 ? (
+                orders.map((order) => (
                   <tr key={order.id} className="hover:bg-slate-50/80 transition-colors group">
                     <td className="px-6 py-5">
                       <div className="font-bold text-sm text-foreground">#{order.id.slice(0, 8)}</div>
@@ -172,11 +181,11 @@ export default function AdminOrdersPage() {
         {!loading && totalPages > 1 && (
           <div className="px-6 py-4 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 bg-white rounded-b-3xl">
             <span className="text-sm text-muted-foreground font-medium">
-              Showing <span className="font-bold text-foreground">{startIndex + 1}</span> to{' '}
+              Showing <span className="font-bold text-foreground">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
               <span className="font-bold text-foreground">
-                {Math.min(startIndex + itemsPerPage, filteredOrders.length)}
+                {Math.min(currentPage * itemsPerPage, totalOrders)}
               </span>{' '}
-              of <span className="font-bold text-foreground">{filteredOrders.length}</span> orders
+              of <span className="font-bold text-foreground">{totalOrders}</span> orders
             </span>
             <div className="flex items-center gap-2">
               <button

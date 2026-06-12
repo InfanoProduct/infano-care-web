@@ -45,7 +45,7 @@ const circleServiceSchema = {
     "name": "Infano Care",
     "legalName": "BerryBird Technologies Private Limited",
     "url": "https://infano.care",
-    "email": "support@infano.care"
+    "email": "connect@infano.care"
   },
   "areaServed": { "@type": "Country", "name": "India" },
   "audience": {
@@ -134,7 +134,7 @@ const circleProgramSchema = {
     "@type": "ContactPoint",
     "contactType": "admissions",
     "url": "https://infano.care/peerline-onboarding",
-    "email": "support@infano.care"
+    "email": "connect@infano.care"
   },
   "occupationalCategory": "Peer Support, Adolescent Wellness Mentoring",
   "programPrerequisites": {

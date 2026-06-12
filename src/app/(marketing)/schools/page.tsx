@@ -142,7 +142,7 @@ const schoolProgramSchema = {
   "applicationContact": {
     "@type": "ContactPoint",
     "contactType": "admissions",
-    "email": "support@infano.care",
+    "email": "connect@infano.care",
     "telephone": "+91-9243019243",
     "url": "https://infano.care/contact"
   },

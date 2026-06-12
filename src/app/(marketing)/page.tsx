@@ -8,6 +8,7 @@ import { BookSection } from '@/features/marketing/components/sections/BookSectio
 import { PartnershipBanner } from '@/features/marketing/components/sections/PartnershipBanner';
 import { NewsScrollerSection } from '@/features/marketing/components/sections/NewsScrollerSection';
 
+
 export const metadata: Metadata = {
   title: {
     absolute: 'Empowering Adolescent Girls & Families | Infano Care',
@@ -57,7 +58,7 @@ const homeSchema = {
     {
       "@type": "ContactPoint",
       "contactType": "customer support",
-      "email": "connect@infano.care",
+      "email": "support@infano.care",
       "areaServed": "IN",
       "availableLanguage": "English"
     },

@@ -1031,7 +1031,7 @@ export default function LegalPage() {
                           </h3>
                           <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed">
                             <p>
-                              Once your order has been shipped, you will receive a tracking ID and courier partner details via email or SMS. You can track the shipment status using the courier’s official website or by contacting our support team at <span className="font-bold text-primary underline">support@infano.care</span>.
+                              Once your order has been shipped, you will receive a tracking ID and courier partner details via email or SMS. You can track the shipment status using the courier’s official website or by contacting our support team at <span className="font-bold text-primary underline">connect@infano.care</span>.
                             </p>
                           </div>
                         </div>
@@ -1074,7 +1074,7 @@ export default function LegalPage() {
                           <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed prose-li:text-slate-600">
                             <p>If you receive a damaged package or if your shipment is lost in transit:</p>
                             <ul className="space-y-2 mt-4">
-                              <li>Report it to <span className="font-bold text-primary">support@infano.care</span> within 48 hours of delivery (or expected delivery date).</li>
+                              <li>Report it to <span className="font-bold text-primary">connect@infano.care</span> within 48 hours of delivery (or expected delivery date).</li>
                               <li>Provide photos (in case of damage) and order details for quick resolution.</li>
                               <li>We will coordinate with our courier partners and provide a replacement or refund as per our Refund & Cancellation Policy.</li>
                             </ul>
@@ -1109,7 +1109,7 @@ export default function LegalPage() {
                               <div className="space-y-4 mb-6">
                                 <p className="flex items-center gap-3">
                                   <span className="text-xl">📧</span>
-                                  <span className="font-bold text-primary">support@infano.care</span>
+                                  <span className="font-bold text-primary">connect@infano.care</span>
                                 </p>
                                 <p className="flex items-center gap-3 text-slate-500">
                                   <span className="text-xl">🕐</span>

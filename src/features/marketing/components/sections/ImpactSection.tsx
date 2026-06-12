@@ -42,16 +42,16 @@ const testimonials = [
   }
 ];
 
-function TestimonialCard({ quote, author, location, bgColor, span, isLarge }: { 
-  quote: string, 
-  author: string, 
-  location: string, 
-  bgColor: string, 
-  span: string, 
-  isLarge?: boolean 
+function TestimonialCard({ quote, author, location, bgColor, span, isLarge }: {
+  quote: string,
+  author: string,
+  location: string,
+  bgColor: string,
+  span: string,
+  isLarge?: boolean
 }) {
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -60,16 +60,16 @@ function TestimonialCard({ quote, author, location, bgColor, span, isLarge }: {
     >
       <div className={`absolute top-8 left-8 ${isLarge ? 'text-[12rem]' : 'text-[8rem]'} font-serif text-white/40 select-none leading-none opacity-50`}>“</div>
       <p className={`${isLarge ? 'text-2xl md:text-3xl' : 'text-xl'} font-medium text-slate-900 leading-[1.4] relative z-10 tracking-tight max-w-[90%] mt-8`}>
-         "{quote}"
+        "{quote}"
       </p>
       <div className="flex items-center gap-4 relative z-10 mt-8">
-         <div className="w-16 h-16 rounded-full bg-slate-900/5 flex items-center justify-center">
-            <Users size={28} className="text-slate-400" />
-         </div>
-         <div>
-            <p className="font-bold text-slate-900 text-lg">{author}</p>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">{location}</p>
-         </div>
+        <div className="w-16 h-16 rounded-full bg-slate-900/5 flex items-center justify-center">
+          <Users size={28} className="text-slate-400" />
+        </div>
+        <div>
+          <p className="font-bold text-slate-900 text-lg">{author}</p>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">{location}</p>
+        </div>
       </div>
     </motion.div>
   );
@@ -77,11 +77,11 @@ function TestimonialCard({ quote, author, location, bgColor, span, isLarge }: {
 
 export function ImpactSection() {
   return (
-    <section className="py-32 bg-white relative overflow-hidden">
+    <section className="pt-8 pb-8 lg:pt-10 lg:pb-20 bg-white relative overflow-hidden">
       {/* Graphic Background Elements */}
       <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-sky-50 blur-[140px] rounded-full -translate-y-1/2 translate-x-1/2 opacity-40" />
       <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-rose-50 blur-[120px] rounded-full translate-y-1/2 -translate-x-1/2 opacity-40" />
-      
+
       {/* Subtle Decorative Circles */}
       <div className="absolute top-20 left-10 w-64 h-64 border border-[#111827]/5 rounded-full" />
       <div className="absolute bottom-40 -right-20 w-96 h-96 border border-[#111827]/5 rounded-full" />
@@ -90,15 +90,15 @@ export function ImpactSection() {
 
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
         <div className="text-center mb-16 md:mb-20">
-           <h2 className="text-4xl md:text-5xl font-bold font-heading tracking-tight text-slate-900">
-              Real girls. <span className="text-primary">Real change.</span>
-           </h2>
+          <h2 className="text-4xl md:text-5xl font-bold font-heading tracking-tight text-slate-900">
+            Real girls. <span className="text-primary">Real change.</span>
+          </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-           {testimonials.map((t, i) => (
-             <TestimonialCard key={i} {...t} />
-           ))}
+          {testimonials.map((t, i) => (
+            <TestimonialCard key={i} {...t} />
+          ))}
         </div>
       </div>
     </section>

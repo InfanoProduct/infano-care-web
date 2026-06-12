@@ -123,6 +123,9 @@ function CheckoutContent() {
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [paymentFailed, setPaymentFailed] = useState(false);
+  const [paymentFailedReason, setPaymentFailedReason] = useState('');
+  const rzpRef = React.useRef<any>(null);
   const [pincodeLoading, setPincodeLoading] = useState(false);
 
   const [quantity, setQuantity] = useState(1);
@@ -250,7 +253,10 @@ function CheckoutContent() {
         setPincodeLoading(true);
         try {
           const res = await fetch(`/api/pincode?code=${formData.pincode}`);
-          if (!res.ok) throw new Error('Failed to fetch pincode data');
+          if (!res.ok) {
+            console.warn('Pincode auto-fill unavailable at the moment');
+            return;
+          }
           const data = await res.json();
           if (data && data[0] && data[0].Status === 'Success' && data[0].PostOffice && data[0].PostOffice[0]) {
             const postOffice = data[0].PostOffice[0];
@@ -261,7 +267,7 @@ function CheckoutContent() {
             }));
           }
         } catch (err) {
-          console.error('Pincode lookup failed:', err);
+          console.warn('Pincode lookup failed (network issue or timeout)');
         } finally {
           setPincodeLoading(false);
         }
@@ -365,9 +371,21 @@ function CheckoutContent() {
             email: formData.guestEmail,
             contact: formData.guestPhone,
           },
-          modal: { ondismiss: () => setProcessing(false) }
+          modal: { 
+            ondismiss: () => {
+              setPaymentFailedReason('Payment window was closed before completion.');
+              setPaymentFailed(true);
+              setProcessing(false);
+            } 
+          }
         };
         const rzp = new (window as any).Razorpay(options);
+        rzp.on('payment.failed', function (response: any) {
+          setPaymentFailedReason(response.error.description || 'Payment failed due to a network or banking issue.');
+          setPaymentFailed(true);
+          setProcessing(false);
+        });
+        rzpRef.current = rzp;
         rzp.open();
       } else {
         setOrderSuccess(true);
@@ -505,9 +523,41 @@ function CheckoutContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFCFB] font-sans text-slate-900 pt-24 md:pt-32 pb-16 md:pb-24 overflow-x-hidden">
+    <div className="min-h-screen bg-[#FDFCFB] selection:bg-primary/20 pt-20 md:pt-28 pb-16 font-sans">
+      
+      {/* Payment Failed Modal Popup */}
+      {paymentFailed && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-rose-100 text-center relative overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-rose-500" />
+            <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-5 border border-rose-100 shadow-sm">
+              <AlertCircle size={32} />
+            </div>
+            <h3 className="text-xl font-black text-slate-800 mb-2">Payment Failed</h3>
+            <p className="text-sm font-medium text-slate-500 mb-6">{paymentFailedReason}</p>
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  setPaymentFailed(false);
+                  if (rzpRef.current) rzpRef.current.open();
+                }}
+                className="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-sm shadow-md transition-all active:scale-[0.98]"
+              >
+                Retry Payment
+              </button>
+              <button
+                onClick={() => setPaymentFailed(false)}
+                className="w-full py-3.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl font-bold text-sm border border-slate-200 transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
-      <div className="max-w-6xl mx-auto px-6">
+      <div className="max-w-6xl mx-auto px-6 relative z-10">
         <Link 
           href={book && (book.id.endsWith('-private') || book.id.endsWith('-group')) ? `/parents` : "/gigi-the-awkward-age-book"} 
           className="inline-flex items-center text-slate-500 hover:text-primary mb-8 md:mb-12 transition-colors text-sm font-medium group"

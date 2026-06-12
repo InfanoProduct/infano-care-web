@@ -194,36 +194,40 @@ export function ParentsPrograms() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: i * 0.1 }}
-                  className={`p-8 md:p-9 rounded-3xl border ${styles.bg} ${styles.border} shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col group relative overflow-hidden`}
+                  className={`rounded-3xl border ${styles.bg} ${styles.border} shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col group relative overflow-hidden`}
                   style={{
                     boxShadow: `0 20px 40px -15px ${styles.glow}`,
-                    backgroundImage: program.thumbnailUrl
-                      ? `linear-gradient(to bottom, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.94)), url(${program.thumbnailUrl})`
-                      : undefined,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
                   }}
                 >
                   {/* Decorative glow circle */}
                   <div
-                    className="absolute -top-12 -right-12 w-28 h-28 rounded-full blur-[40px] pointer-events-none opacity-40 transition-all group-hover:scale-125 duration-500"
+                    className="absolute -top-12 -right-12 w-28 h-28 rounded-full blur-[40px] pointer-events-none opacity-40 transition-all group-hover:scale-125 duration-500 z-0"
                     style={{ backgroundColor: styles.glow.replace('0.06', '0.2').replace('0.05', '0.15').replace('0.15', '0.3') }}
                   />
 
-                  {/* Header: Title and Class Range */}
-                  <div className="flex items-center justify-between mb-5 relative z-10">
-                    <h3 className={`text-3xl font-bold tracking-tight ${styles.text}`}>
-                      {program.title}
-                    </h3>
-                    <span className={`px-4 py-1.5 rounded-full text-xs font-bold border uppercase tracking-wider ${styles.badge}`}>
-                      {program.classRange}
-                    </span>
-                  </div>
+                  {/* Thumbnail Image Section */}
+                  {program.thumbnailUrl && (
+                    <div className="w-full h-52 relative overflow-hidden shrink-0 border-b border-white/40">
+                      <img src={program.thumbnailUrl} alt={program.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-80" />
+                    </div>
+                  )}
 
-                  {/* Tagline */}
-                  <p className="text-slate-800 font-semibold italic text-base leading-relaxed mb-6 min-h-[48px] relative z-10">
-                    "{program.tagline}"
-                  </p>
+                  <div className="p-8 md:p-9 flex flex-col flex-1 relative z-10">
+                    {/* Header: Title and Class Range */}
+                    <div className="flex items-center justify-between mb-5 relative z-10">
+                      <h3 className={`text-3xl font-bold tracking-tight ${styles.text}`}>
+                        {program.title}
+                      </h3>
+                      <span className={`px-4 py-1.5 rounded-full text-xs font-bold border uppercase tracking-wider ${styles.badge}`}>
+                        {program.classRange}
+                      </span>
+                    </div>
+
+                    {/* Tagline */}
+                    <p className="text-slate-800 font-semibold italic text-base leading-relaxed mb-6 min-h-[48px] relative z-10">
+                      "{program.tagline}"
+                    </p>
 
                   {/* Session / Duration details bar */}
                   <div className={`flex items-center gap-4 py-3 px-4 ${styles.metaBg} rounded-2xl border shadow-sm mb-6 text-slate-600 text-xs font-bold relative z-10`}>
@@ -291,6 +295,7 @@ export function ParentsPrograms() {
                     <span>Enroll Now</span>
                     <ArrowRight size={14} className="transition-transform group-hover:translate-x-1 duration-300" />
                   </Link>
+                  </div>
                 </motion.div>
               );
             })}

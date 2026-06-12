@@ -2,17 +2,23 @@
 
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { ShoppingBag, Search, Filter, Eye, Clock, CheckCircle, Truck, XCircle } from 'lucide-react';
+import { ShoppingBag, Search, Filter, Eye, Clock, CheckCircle, Truck, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
 
   useEffect(() => {
     fetchOrders();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const fetchOrders = async () => {
     try {
@@ -53,6 +59,10 @@ export default function AdminOrdersPage() {
     (order.guestName || order.user?.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (order.guestEmail || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="space-y-10">
@@ -104,8 +114,8 @@ export default function AdminOrdersPage() {
                     <td colSpan={7} className="px-6 py-8"><div className="h-4 bg-slate-100 rounded w-full"></div></td>
                   </tr>
                 ))
-              ) : filteredOrders.length > 0 ? (
-                filteredOrders.map((order) => (
+              ) : paginatedOrders.length > 0 ? (
+                paginatedOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-slate-50/80 transition-colors group">
                     <td className="px-6 py-5">
                       <div className="font-bold text-sm text-foreground">#{order.id.slice(0, 8)}</div>
@@ -157,6 +167,66 @@ export default function AdminOrdersPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {!loading && totalPages > 1 && (
+          <div className="px-6 py-4 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 bg-white rounded-b-3xl">
+            <span className="text-sm text-muted-foreground font-medium">
+              Showing <span className="font-bold text-foreground">{startIndex + 1}</span> to{' '}
+              <span className="font-bold text-foreground">
+                {Math.min(startIndex + itemsPerPage, filteredOrders.length)}
+              </span>{' '}
+              of <span className="font-bold text-foreground">{filteredOrders.length}</span> orders
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="p-2 rounded-xl border border-border text-foreground hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }).map((_, i) => {
+                  // Show first, last, current, and pages immediately around current
+                  if (
+                    i === 0 || 
+                    i === totalPages - 1 || 
+                    (i >= currentPage - 2 && i <= currentPage)
+                  ) {
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i + 1)}
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold transition-colors ${
+                          currentPage === i + 1
+                            ? 'bg-primary text-white shadow-sm'
+                            : 'border border-border text-foreground hover:bg-slate-50'
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    );
+                  } else if (
+                    i === currentPage - 3 || i === currentPage + 1
+                  ) {
+                    return <span key={i} className="px-1 text-muted-foreground">...</span>;
+                  }
+                  return null;
+                })}
+              </div>
+
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-xl border border-border text-foreground hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -17,7 +17,7 @@ export default function AdminOrdersPage() {
   const [paymentMethodFilter, setPaymentMethodFilter] = useState('ALL');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
-  const recordsPerPage = 25;
+  const recordsPerPage = 15;
   const [stats, setStats] = useState({
     totalOrders: 0, totalRevenue: 0, onlineRevenue: 0, codRevenue: 0,
     onlineCount: 0, codCount: 0, placedCount: 0, processingCount: 0,
@@ -40,25 +40,35 @@ export default function AdminOrdersPage() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const queryParams = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: recordsPerPage.toString(),
-        ...(searchTerm && { search: searchTerm }),
-        ...(dateFrom && { dateFrom }),
-        ...(dateTo && { dateTo }),
-        ...(statusFilter !== 'ALL' && { status: statusFilter }),
-        ...(paymentMethodFilter !== 'ALL' && { paymentMethod: paymentMethodFilter }),
-        ...(paymentStatusFilter !== 'ALL' && { paymentStatus: paymentStatusFilter }),
-      });
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', currentPage.toString());
+      queryParams.append('limit', recordsPerPage.toString());
+      if (searchTerm) queryParams.append('search', searchTerm);
+      if (dateFrom) queryParams.append('dateFrom', dateFrom);
+      if (dateTo) queryParams.append('dateTo', dateTo);
+      if (statusFilter !== 'ALL') queryParams.append('status', statusFilter);
+      if (paymentMethodFilter !== 'ALL') queryParams.append('paymentMethod', paymentMethodFilter);
+      if (paymentStatusFilter !== 'ALL') queryParams.append('paymentStatus', paymentStatusFilter);
+
       const response = await apiClient.get<any>(`/admin/orders?${queryParams.toString()}`);
-      setOrders(response.orders);
-      if (response.stats) setStats(response.stats);
-      if (response.pagination) {
+      
+      if (response && response.orders) {
+        setOrders(response.orders);
+      } else {
+        setOrders([]);
+      }
+      
+      if (response && response.stats) {
+        setStats(response.stats);
+      }
+      
+      if (response && response.pagination) {
         setTotalPages(response.pagination.pages);
         setTotalRecords(response.pagination.total);
       }
     } catch (error) {
       console.error('Failed to fetch orders', error);
+      setOrders([]);
     } finally {
       setLoading(false);
     }

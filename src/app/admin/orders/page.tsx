@@ -12,6 +12,16 @@ export default function AdminOrdersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState('ALL');
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 25;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, dateFrom, dateTo, statusFilter, paymentMethodFilter, paymentStatusFilter]);
 
   useEffect(() => {
     fetchOrders();
@@ -65,11 +75,35 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const filteredOrders = orders.filter(order => 
-    order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (order.guestName || order.user?.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (order.guestEmail || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredOrders = orders.filter(order => {
+    const matchesSearch = 
+      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.guestName || order.user?.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.guestEmail || '').toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (!matchesSearch) return false;
+
+    if (dateFrom || dateTo) {
+      const orderDate = new Date(order.createdAt);
+      if (dateFrom && new Date(dateFrom) > orderDate) return false;
+      if (dateTo) {
+        const toDate = new Date(dateTo);
+        toDate.setHours(23, 59, 59, 999);
+        if (toDate < orderDate) return false;
+      }
+    }
+
+    const displayStatus = (order.paymentMethod === 'ONLINE' && !order.razorpayPaymentId && order.orderStatus !== 'CANCELLED') ? 'FAILED' : order.orderStatus;
+    
+    if (statusFilter !== 'ALL' && displayStatus !== statusFilter) return false;
+    if (paymentMethodFilter !== 'ALL' && order.paymentMethod !== paymentMethodFilter) return false;
+    if (paymentStatusFilter !== 'ALL' && order.paymentStatus !== paymentStatusFilter) return false;
+
+    return true;
+  });
+
+  const totalPages = Math.ceil(filteredOrders.length / recordsPerPage);
+  const paginatedOrders = filteredOrders.slice((currentPage - 1) * recordsPerPage, currentPage * recordsPerPage);
 
   const filteredInsightOrders = orders.filter(o => {
     if (!dateFrom && !dateTo) return true;
@@ -243,10 +277,73 @@ export default function AdminOrdersPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className="flex items-center gap-2 px-5 py-3 rounded-2xl border border-border bg-white hover:bg-slate-50 transition-colors font-bold text-sm">
-            <Filter size={18} />
-            Filter
-          </button>
+          <div className="relative">
+            <button 
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-2 px-5 py-3 rounded-2xl border transition-colors font-bold text-sm ${showFilters ? 'bg-primary text-white border-primary' : 'border-border bg-white hover:bg-slate-50'}`}
+            >
+              <Filter size={18} />
+              Filter
+            </button>
+            
+            {showFilters && (
+              <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl border border-border shadow-xl z-10 p-5 flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-sm">Filter Orders</h3>
+                  <button 
+                    onClick={() => { setStatusFilter('ALL'); setPaymentMethodFilter('ALL'); setPaymentStatusFilter('ALL'); }}
+                    className="text-xs text-primary font-bold hover:underline"
+                  >
+                    Clear All
+                  </button>
+                </div>
+                
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Order Status</label>
+                  <select 
+                    value={statusFilter} 
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="w-full border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary bg-white"
+                  >
+                    <option value="ALL">All Statuses</option>
+                    <option value="PLACED">Placed</option>
+                    <option value="PROCESSING">Processing</option>
+                    <option value="SHIPPED">Shipped</option>
+                    <option value="DELIVERED">Delivered</option>
+                    <option value="CANCELLED">Cancelled</option>
+                    <option value="FAILED">Failed</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Payment Method</label>
+                  <select 
+                    value={paymentMethodFilter} 
+                    onChange={(e) => setPaymentMethodFilter(e.target.value)}
+                    className="w-full border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary bg-white"
+                  >
+                    <option value="ALL">All Methods</option>
+                    <option value="ONLINE">Online</option>
+                    <option value="COD">Cash on Delivery</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Payment Status</label>
+                  <select 
+                    value={paymentStatusFilter} 
+                    onChange={(e) => setPaymentStatusFilter(e.target.value)}
+                    className="w-full border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary bg-white"
+                  >
+                    <option value="ALL">All Statuses</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="COMPLETED">Completed</option>
+                    <option value="FAILED">Failed</option>
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -269,8 +366,8 @@ export default function AdminOrdersPage() {
                     <td colSpan={7} className="px-6 py-8"><div className="h-4 bg-slate-100 rounded w-full"></div></td>
                   </tr>
                 ))
-              ) : filteredOrders.length > 0 ? (
-                filteredOrders.map((order) => (
+              ) : paginatedOrders.length > 0 ? (
+                paginatedOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-slate-50/80 transition-colors group">
                     <td className="px-6 py-5">
                       <div className="font-bold text-sm text-foreground">{formatOrderId(order.id)}</div>
@@ -327,6 +424,45 @@ export default function AdminOrdersPage() {
             </tbody>
           </table>
         </div>
+
+        {totalPages > 1 && (
+          <div className="p-4 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 bg-white">
+            <span className="text-sm text-muted-foreground font-medium">
+              Showing <span className="font-bold text-foreground">{(currentPage - 1) * recordsPerPage + 1}</span> to <span className="font-bold text-foreground">{Math.min(currentPage * recordsPerPage, filteredOrders.length)}</span> of <span className="font-bold text-foreground">{filteredOrders.length}</span> orders
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                className="px-4 py-2 border border-border rounded-xl text-sm font-bold disabled:opacity-50 hover:bg-slate-50 transition-colors"
+              >
+                Previous
+              </button>
+              <div className="flex items-center gap-1 hidden sm:flex">
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(p => p === 1 || p === totalPages || Math.abs(currentPage - p) <= 1)
+                  .map((p, i, arr) => (
+                    <React.Fragment key={p}>
+                      {i > 0 && arr[i - 1] !== p - 1 && <span className="px-1 text-slate-400">...</span>}
+                      <button
+                        onClick={() => setCurrentPage(p)}
+                        className={`w-8 h-8 rounded-xl text-sm font-bold flex items-center justify-center transition-colors ${currentPage === p ? 'bg-primary text-white' : 'hover:bg-slate-100 text-slate-600'}`}
+                      >
+                        {p}
+                      </button>
+                    </React.Fragment>
+                  ))}
+              </div>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                className="px-4 py-2 border border-border rounded-xl text-sm font-bold disabled:opacity-50 hover:bg-slate-50 transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

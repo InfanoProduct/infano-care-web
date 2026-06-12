@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { X, Save } from 'lucide-react';
+import ImageUploader from '@/components/upload/ImageUploader';
 
 interface EpisodeFormProps {
   initialData?: any;
@@ -18,6 +19,7 @@ export function EpisodeForm({ initialData, onSubmit, onClose, title }: EpisodeFo
     isActive: initialData?.isActive ?? true,
     isPremium: initialData?.isPremium ?? false,
     order: initialData?.order || 0,
+    thumbnailUrl: initialData?.thumbnailUrl || '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -56,6 +58,15 @@ export function EpisodeForm({ initialData, onSubmit, onClose, title }: EpisodeFo
               onChange={e => setFormData({...formData, description: e.target.value})}
               className="w-full px-5 py-3.5 bg-slate-50 border border-border rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary/30 outline-none font-medium text-sm"
               placeholder="What will users learn in this episode?"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <ImageUploader
+              value={formData.thumbnailUrl}
+              onUpload={(url) => setFormData({ ...formData, thumbnailUrl: url })}
+              label="Episode Thumbnail"
+              folder="episodes"
             />
           </div>
 

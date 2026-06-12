@@ -100,9 +100,15 @@ export function EpisodeList({ journeyId, journeyTitle, onBack }: EpisodeListProp
                 <GripVertical size={20} />
               </div>
               
-              <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-black text-slate-400">
+              <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-black text-slate-400 shrink-0">
                 {index + 1}
               </div>
+
+              {episode.thumbnailUrl && (
+                <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-border shadow-sm">
+                  <img src={episode.thumbnailUrl} alt={episode.title} className="w-full h-full object-cover" />
+                </div>
+              )}
 
               <div className="flex-1">
                 <div className="flex items-center gap-2">

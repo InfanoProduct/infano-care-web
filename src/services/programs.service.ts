@@ -25,6 +25,8 @@ export interface Program {
   updatedAt: string;
   sessionsList?: ProgramSession[];
   curriculum?: ProgramSession[];
+  features?: string[];
+  enrolledCount?: number;
 }
 
 export interface ProgramEnrollment {

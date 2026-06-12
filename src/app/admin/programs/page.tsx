@@ -163,6 +163,9 @@ export default function ProgramsManagement() {
   const [formIsActive, setFormIsActive] = useState(true);
   const [formTopics, setFormTopics] = useState<string[]>([]);
   const [newTopicInput, setNewTopicInput] = useState('');
+  const [formFeatures, setFormFeatures] = useState<string[]>([]);
+  const [newFeatureInput, setNewFeatureInput] = useState('');
+  const [formEnrolledCount, setFormEnrolledCount] = useState(1200);
   const [formCurriculum, setFormCurriculum] = useState<ProgramSession[]>([]);
   const [formThumbnailUrl, setFormThumbnailUrl] = useState('');
 
@@ -331,6 +334,9 @@ export default function ProgramsManagement() {
     setFormIsActive(true);
     setFormTopics([]);
     setNewTopicInput('');
+    setFormFeatures([]);
+    setNewFeatureInput('');
+    setFormEnrolledCount(1200);
     setFormCurriculum([]);
     setFormThumbnailUrl('');
 
@@ -355,6 +361,9 @@ export default function ProgramsManagement() {
     setFormIsActive(program.isActive);
     setFormTopics(program.topics || []);
     setNewTopicInput('');
+    setFormFeatures(program.features || []);
+    setNewFeatureInput('');
+    setFormEnrolledCount(program.enrolledCount || 1200);
     setFormCurriculum(
       program.curriculum && program.curriculum.length > 0
         ? program.curriculum
@@ -378,6 +387,21 @@ export default function ProgramsManagement() {
 
   const handleRemoveTopic = (indexToRemove: number) => {
     setFormTopics(formTopics.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  const handleAddFeature = () => {
+    const trimmed = newFeatureInput.trim();
+    if (!trimmed) return;
+    if (formFeatures.includes(trimmed)) {
+      toast.error('Feature already exists in list');
+      return;
+    }
+    setFormFeatures([...formFeatures, trimmed]);
+    setNewFeatureInput('');
+  };
+
+  const handleRemoveFeature = (indexToRemove: number) => {
+    setFormFeatures(formFeatures.filter((_, idx) => idx !== indexToRemove));
   };
 
   const handleMoveSession = (index: number, direction: 'up' | 'down') => {
@@ -413,6 +437,8 @@ export default function ProgramsManagement() {
       priceGroup: Number(formPriceGroup),
       isActive: formIsActive,
       topics: formTopics,
+      features: formFeatures,
+      enrolledCount: Number(formEnrolledCount),
       curriculum: formCurriculum
     };
 
@@ -633,6 +659,18 @@ export default function ProgramsManagement() {
                     className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold"
                   />
                 </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Enrolled Count *</label>
+                  <input
+                    type="number"
+                    required
+                    min={0}
+                    value={formEnrolledCount}
+                    onChange={(e) => setFormEnrolledCount(Number(e.target.value))}
+                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold"
+                  />
+                </div>
               </div>
 
               {/* Pricing Tiers */}
@@ -725,6 +763,55 @@ export default function ProgramsManagement() {
                         <button
                           type="button"
                           onClick={() => handleRemoveTopic(idx)}
+                          className="hover:bg-primary/25 rounded-full p-0.5 transition-all text-primary"
+                        >
+                          <X size={12} className="stroke-[2.5px]" />
+                        </button>
+                      </span>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Program Features Tags Manager */}
+              <div className="space-y-3 pt-4 border-t border-border/30">
+                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Program Includes Features ({formFeatures.length})</label>
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    placeholder="Enter a new feature (e.g. 8 sessions by trained experts)"
+                    value={newFeatureInput}
+                    onChange={(e) => setNewFeatureInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddFeature();
+                      }
+                    }}
+                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddFeature}
+                    className="px-5 py-3 bg-secondary hover:bg-primary/10 hover:text-primary border border-border/50 text-muted-foreground text-sm font-black rounded-2xl transition-all whitespace-nowrap shadow-sm"
+                  >
+                    Add Feature
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap gap-2 border border-border/30 rounded-2xl p-4 bg-secondary/10 min-h-16">
+                  {formFeatures.length === 0 ? (
+                    <span className="text-xs text-muted-foreground/60 font-semibold italic">No features defined yet.</span>
+                  ) : (
+                    formFeatures.map((feature, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center gap-1.5 text-xs font-extrabold bg-primary/10 text-primary px-3 py-1.5 border border-primary/20 rounded-xl"
+                      >
+                        {feature}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFeature(idx)}
                           className="hover:bg-primary/25 rounded-full p-0.5 transition-all text-primary"
                         >
                           <X size={12} className="stroke-[2.5px]" />

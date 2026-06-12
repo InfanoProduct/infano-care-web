@@ -91,7 +91,7 @@ export function FoundingSchoolsSection() {
                 Contact Us Today
               </Link>
               <p className="text-xs text-slate-500">
-                infano.care &nbsp;|&nbsp; support@infano.care
+                infano.care &nbsp;|&nbsp; connect@infano.care
               </p>
             </div>
           </motion.div>

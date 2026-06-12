@@ -6,6 +6,7 @@ import { AudienceSection } from '@/features/marketing/components/sections/Audien
 import { ImpactSection } from '@/features/marketing/components/sections/ImpactSection';
 import { BookSection } from '@/features/marketing/components/sections/BookSection';
 import { PartnershipBanner } from '@/features/marketing/components/sections/PartnershipBanner';
+import { NewsScrollerSection } from '@/features/marketing/components/sections/NewsScrollerSection';
 
 export const metadata: Metadata = {
   title: {
@@ -56,7 +57,7 @@ const homeSchema = {
     {
       "@type": "ContactPoint",
       "contactType": "customer support",
-      "email": "support@infano.care",
+      "email": "connect@infano.care",
       "areaServed": "IN",
       "availableLanguage": "English"
     },
@@ -177,6 +178,7 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homeSchema) }}
       />
       <HeroSection />
+      <NewsScrollerSection />
       <ProblemSection />
       <EcosystemSection />
       <AudienceSection />

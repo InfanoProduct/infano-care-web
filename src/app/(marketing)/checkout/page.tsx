@@ -506,7 +506,7 @@ function CheckoutContent() {
             <h3 className="font-bold text-slate-900 mb-4 text-center">Need help? We're here for you:</h3>
             <div className="space-y-3 font-medium text-slate-700">
               <p className="flex items-center justify-center gap-2">
-                <span>📧</span> Email: <a href="mailto:support@infano.care" className="text-primary hover:underline font-bold">support@infano.care</a>
+                <span>📧</span> Email: <a href="mailto:connect@infano.care" className="text-primary hover:underline font-bold">connect@infano.care</a>
               </p>
               <p className="flex items-center justify-center gap-2">
                 <span>💬</span> WhatsApp: <a href="https://wa.me/916362994347" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-bold">+91 6362994347</a>

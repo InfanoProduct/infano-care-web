@@ -49,7 +49,7 @@ const parentServiceSchema = {
     "name": "Infano Care",
     "legalName": "BerryBird Technologies Private Limited",
     "url": "https://infano.care",
-    "email": "support@infano.care",
+    "email": "connect@infano.care",
     "telephone": "+91-9243019243"
   },
   "areaServed": { "@type": "Country", "name": "India" },

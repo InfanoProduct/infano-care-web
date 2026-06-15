@@ -254,8 +254,8 @@ export default function AdminOrdersPage() {
               type="text"
               placeholder="Search by Order ID, Name or Email..."
               className="w-full pl-12 pr-4 py-3 rounded-2xl border border-border bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <div className="relative">

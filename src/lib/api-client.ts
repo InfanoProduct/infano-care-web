@@ -41,6 +41,12 @@ class ApiClient {
         if (!response.ok) {
           // If the server explicitly says no (401), it's a known expiry, not a crash
           if (response.status === 401) {
+            useAuthStore.getState().clearAuth();
+            if (typeof window !== 'undefined') {
+              document.cookie = 'customer-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+              document.cookie = 'peer-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+              document.cookie = 'admin-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+            }
             return null;
           }
           throw new Error(`Refresh failed with status ${response.status}`);
@@ -62,6 +68,11 @@ class ApiClient {
         }
 
         useAuthStore.getState().clearAuth();
+        if (typeof window !== 'undefined') {
+          document.cookie = 'customer-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+          document.cookie = 'peer-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+          document.cookie = 'admin-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        }
         return null;
       } finally {
         this.refreshPromise = null;
@@ -128,11 +139,18 @@ class ApiClient {
       } else {
         // Refresh failed, redirect to login if we are in admin or peerline area
         if (typeof window !== 'undefined') {
+          useAuthStore.getState().clearAuth();
+          document.cookie = 'customer-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+          document.cookie = 'peer-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+          document.cookie = 'admin-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+
           const path = window.location.pathname;
           if (path.startsWith('/admin') && path !== '/admin/login') {
             window.location.href = '/admin/login';
           } else if (path.startsWith('/peerline') && !path.includes('/login') && !path.includes('onboarding')) {
             window.location.href = '/peerline/login';
+          } else if (path.startsWith('/schools') && !path.includes('/login')) {
+            window.location.href = '/schools/login';
           } else if (path.startsWith('/dashboard')) {
             window.location.href = '/login';
           }

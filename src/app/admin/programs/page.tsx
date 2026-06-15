@@ -12,6 +12,8 @@ import { ProgramsService, Program, ProgramEnrollment, DemoSession, ProgramSessio
 import { toast } from 'react-hot-toast';
 import ImageUploader from '@/components/upload/ImageUploader';
 import { blogService } from '@/services/blog.service';
+import { useAuthStore } from '@/store/auth-store';
+import { ParentService } from '@/services/parent.service';
 
 // Helper functions for human-friendly questionnaire labels
 const getConfidenceLabel = (val: string) => {
@@ -98,6 +100,9 @@ const GoogleMeetIcon = ({ size = 14 }: { size?: number }) => {
 
 export default function ProgramsManagement() {
   const router = useRouter();
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'OPS_MANAGER';
+
   // Tabs
   const [activeTab, setActiveTab] = useState<'programs' | 'enrollments' | 'demos'>('programs');
 
@@ -105,6 +110,7 @@ export default function ProgramsManagement() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [enrollments, setEnrollments] = useState<ProgramEnrollment[]>([]);
   const [demos, setDemos] = useState<DemoSession[]>([]);
+  const [experts, setExperts] = useState<any[]>([]);
 
   // UI Loading States
   const [loadingPrograms, setLoadingPrograms] = useState(true);
@@ -165,11 +171,22 @@ export default function ProgramsManagement() {
   const [newTopicInput, setNewTopicInput] = useState('');
   const [formCurriculum, setFormCurriculum] = useState<ProgramSession[]>([]);
   const [formThumbnailUrl, setFormThumbnailUrl] = useState('');
+  const [formConsultations, setFormConsultations] = useState<{ title: string; expertId: string }[]>([]);
+
+  const loadExperts = async () => {
+    try {
+      const data = await ParentService.getExperts();
+      setExperts(data);
+    } catch (error) {
+      console.error('Failed to load experts:', error);
+    }
+  };
 
   useEffect(() => {
     loadPrograms();
     loadEnrollments();
     loadDemos();
+    loadExperts();
   }, []);
 
   useEffect(() => {
@@ -333,6 +350,7 @@ export default function ProgramsManagement() {
     setNewTopicInput('');
     setFormCurriculum([]);
     setFormThumbnailUrl('');
+    setFormConsultations([]);
 
     setShowModal(true);
   };
@@ -361,6 +379,7 @@ export default function ProgramsManagement() {
         : (program.sessionsList || [])
     );
     setFormThumbnailUrl(program.thumbnailUrl || '');
+    setFormConsultations(program.consultations || []);
 
     setShowModal(true);
   };
@@ -413,7 +432,8 @@ export default function ProgramsManagement() {
       priceGroup: Number(formPriceGroup),
       isActive: formIsActive,
       topics: formTopics,
-      curriculum: formCurriculum
+      curriculum: formCurriculum,
+      consultations: formConsultations
     };
 
     try {
@@ -632,6 +652,81 @@ export default function ProgramsManagement() {
                     onChange={(e) => setFormDuration(e.target.value)}
                     className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold"
                   />
+                </div>
+              </div>
+
+              {/* Free Consultation Section */}
+              <div className="space-y-3 pt-2">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Free Consultation</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormConsultations([
+                        ...formConsultations,
+                        { title: `Consultation ${formConsultations.length + 1}`, expertId: '' }
+                      ]);
+                    }}
+                    className="flex items-center gap-1 text-[10px] font-bold text-primary hover:underline"
+                  >
+                    <Plus size={10} /> Add More
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {formConsultations.map((consultation, idx) => (
+                    <div key={idx} className="flex gap-2 items-center bg-slate-50 p-3 rounded-xl border border-slate-200/60 animate-in fade-in duration-300">
+                      <div className="flex-1 space-y-2">
+                        <input
+                          type="text"
+                          required
+                          placeholder={`Consultation ${idx + 1} Title`}
+                          value={consultation.title}
+                          onChange={(e) => {
+                            const updated = [...formConsultations];
+                            updated[idx] = { ...updated[idx], title: e.target.value };
+                            setFormConsultations(updated);
+                          }}
+                          className="w-full bg-white border border-border/50 rounded-xl px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold"
+                        />
+
+                        <select
+                          required
+                          value={consultation.expertId}
+                          onChange={(e) => {
+                            const updated = [...formConsultations];
+                            updated[idx] = { ...updated[idx], expertId: e.target.value };
+                            setFormConsultations(updated);
+                          }}
+                          className="w-full bg-white border border-border/50 rounded-xl px-3 py-1.5 text-xs text-foreground outline-none focus:border-primary/50 transition-all font-semibold cursor-pointer"
+                        >
+                          <option value="">Select Seeded Expert</option>
+                          {experts.map((exp: any) => (
+                            <option key={exp.id} value={exp.id}>
+                              {exp.displayName} ({exp.specialisation})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormConsultations(formConsultations.filter((_, i) => i !== idx));
+                        }}
+                        className="p-2 bg-white hover:bg-rose-500/10 hover:text-rose-500 rounded-xl border border-border/50 text-muted-foreground shadow-sm transition-all"
+                        title="Remove Consultation"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  ))}
+
+                  {formConsultations.length === 0 && (
+                    <p className="text-[10px] text-muted-foreground italic font-semibold pl-1">
+                      No free consultations configured.
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -986,13 +1081,15 @@ export default function ProgramsManagement() {
               />
             </div>
 
-            <button
-              onClick={handleOpenCreateModal}
-              className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl shadow-md text-white bg-primary text-xs font-bold transition-all hover:scale-105 active:scale-95"
-            >
-              <Plus size={16} />
-              <span>Add New Program</span>
-            </button>
+            {isAdmin && (
+              <button
+                onClick={handleOpenCreateModal}
+                className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl shadow-md text-white bg-primary text-xs font-bold transition-all hover:scale-105 active:scale-95"
+              >
+                <Plus size={16} />
+                <span>Add New Program</span>
+              </button>
+            )}
           </div>
 
           {loadingPrograms ? (
@@ -1136,6 +1233,25 @@ export default function ProgramsManagement() {
                         </div>
                       )}
 
+                      {/* Free Consultations Info in Preview */}
+                      {activeProgram.consultations && activeProgram.consultations.length > 0 && (
+                        <div>
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Free Consultations</h4>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {activeProgram.consultations.map((consultation, i) => {
+                              const expertObj = experts.find(e => e.id === consultation.expertId);
+                              const expertName = expertObj ? `${expertObj.displayName} (${expertObj.specialisation})` : 'Unassigned Expert';
+                              return (
+                                <div key={i} className="bg-slate-50 border border-border/40 p-3 rounded-2xl">
+                                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">{consultation.title}</span>
+                                  <span className="text-xs font-bold text-slate-800 block mt-0.5">{expertName}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Visual Timeline Curriculum Roadmap */}
                       <div>
                         <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Curriculum Sessions Roadmap</h4>
@@ -1166,37 +1282,39 @@ export default function ProgramsManagement() {
                     </div>
 
                     {/* Preview Actions Footer */}
-                    <div className="p-5 bg-secondary/10 border-t border-border/30 flex justify-between items-center gap-3 shrink-0">
-                      <button
-                        onClick={() => toggleProgramStatus(activeProgram)}
-                        className={`px-4 py-2 rounded-xl text-xs font-black shadow-sm border transition-all ${activeProgram.isActive
-                          ? 'bg-amber-500/5 hover:bg-amber-500/10 text-amber-500 border-amber-500/10'
-                          : 'bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-500 border-emerald-500/10'
-                          }`}
-                      >
-                        {activeProgram.isActive ? 'Set Draft' : 'Publish'}
-                      </button>
+                    {isAdmin && (
+                      <div className="p-5 bg-secondary/10 border-t border-border/30 flex justify-between items-center gap-3 shrink-0">
+                        <button
+                          onClick={() => toggleProgramStatus(activeProgram)}
+                          className={`px-4 py-2 rounded-xl text-xs font-black shadow-sm border transition-all ${activeProgram.isActive
+                            ? 'bg-amber-500/5 hover:bg-amber-500/10 text-amber-500 border-amber-500/10'
+                            : 'bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-500 border-emerald-500/10'
+                            }`}
+                        >
+                          {activeProgram.isActive ? 'Set Draft' : 'Publish'}
+                        </button>
 
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleOpenEditModal(activeProgram)}
-                          className="flex items-center gap-1.5 px-4 py-2 bg-secondary hover:bg-primary/10 hover:text-primary transition-all rounded-xl border border-border/50 text-xs font-black text-muted-foreground shadow-sm"
-                        >
-                          <Edit size={14} />
-                          <span>Edit Program</span>
-                        </button>
-                        <button
-                          onClick={() => {
-                            handleDeleteProgram(activeProgram.id);
-                            setActiveProgram(null);
-                          }}
-                          className="p-2 bg-secondary hover:bg-rose-500/10 hover:text-rose-500 transition-all rounded-xl border border-border/50 text-muted-foreground shadow-sm"
-                          title="Delete Program"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleOpenEditModal(activeProgram)}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-secondary hover:bg-primary/10 hover:text-primary transition-all rounded-xl border border-border/50 text-xs font-black text-muted-foreground shadow-sm"
+                          >
+                            <Edit size={14} />
+                            <span>Edit Program</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              handleDeleteProgram(activeProgram.id);
+                              setActiveProgram(null);
+                            }}
+                            className="p-2 bg-secondary hover:bg-rose-500/10 hover:text-rose-500 transition-all rounded-xl border border-border/50 text-muted-foreground shadow-sm"
+                            title="Delete Program"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 ) : (
                   <div className="min-h-[50vh] flex flex-col items-center justify-center text-center p-8 gap-3">
@@ -1246,25 +1364,26 @@ export default function ProgramsManagement() {
                 </div>
               </div>
 
-              <button
-                onClick={() => {
-                  setAddStudentName('');
-                  setAddStudentPhone('');
-                  setAddStudentEmail('');
-                  setAddStudentRole('PARENT');
-                  setAddStudentProgramId(programs[0]?.id || '');
-                  setAddStudentType('PRIVATE');
-                  setAddStudentPricePaid('');
-                  setEnrollStep(1);
-                  setExistingUserData(null);
-                  setShowAddStudentModal(true);
-                }}
-                className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl shadow-md text-white bg-primary text-xs font-bold transition-all hover:scale-105 active:scale-95"
-              >
-
-                <Plus size={16} />
-                <span>Add Student</span>
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setAddStudentName('');
+                    setAddStudentPhone('');
+                    setAddStudentEmail('');
+                    setAddStudentRole('PARENT');
+                    setAddStudentProgramId(programs[0]?.id || '');
+                    setAddStudentType('PRIVATE');
+                    setAddStudentPricePaid('');
+                    setEnrollStep(1);
+                    setExistingUserData(null);
+                    setShowAddStudentModal(true);
+                  }}
+                  className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl shadow-md text-white bg-primary text-xs font-bold transition-all hover:scale-105 active:scale-95"
+                >
+                  <Plus size={16} />
+                  <span>Add Student</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -1286,7 +1405,7 @@ export default function ProgramsManagement() {
                     <tr className="bg-primary/5 border-b border-border/30 text-xs font-black uppercase tracking-widest text-muted-foreground/80">
                       <th className="p-6">Student Information</th>
                       <th className="p-6">Enrolled Package</th>
-                      <th className="p-6">Tier & Fee Paid</th>
+                      {isAdmin && <th className="p-6">Tier & Fee Paid</th>}
                       <th className="p-6">Date Enrolled</th>
                       <th className="p-6">Status</th>
                       <th className="p-6 text-right">Actions</th>
@@ -1348,21 +1467,23 @@ export default function ProgramsManagement() {
                         </td>
 
                         {/* Tier & Price */}
-                        <td className="p-6">
-                          <div className="space-y-1">
-                            <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${enrollment.type === 'PRIVATE'
-                              ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20'
-                              : 'bg-sky-500/10 text-sky-600 border-sky-500/20'
-                              }`}>
-                              <CreditCard size={10} />
-                              {enrollment.type === 'PRIVATE' ? '1:1 Private' : 'Group Cohort'}
-                            </span>
+                        {isAdmin && (
+                          <td className="p-6">
+                            <div className="space-y-1">
+                              <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${enrollment.type === 'PRIVATE'
+                                ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20'
+                                : 'bg-sky-500/10 text-sky-600 border-sky-500/20'
+                                }`}>
+                                <CreditCard size={10} />
+                                {enrollment.type === 'PRIVATE' ? '1:1 Private' : 'Group Cohort'}
+                              </span>
 
-                            <p className="font-black text-sm text-foreground flex items-center">
-                              ₹{enrollment.pricePaid.toLocaleString()}
-                            </p>
-                          </div>
-                        </td>
+                              <p className="font-black text-sm text-foreground flex items-center">
+                                ₹{enrollment.pricePaid.toLocaleString()}
+                              </p>
+                            </div>
+                          </td>
+                        )}
 
                         {/* Date Enrolled */}
                         <td className="p-6">

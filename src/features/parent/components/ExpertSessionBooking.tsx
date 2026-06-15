@@ -275,21 +275,19 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
       <div className="flex gap-2 bg-slate-100 p-1.5 rounded-lg w-fit">
         <button
           onClick={() => setTab('browse')}
-          className={`px-5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${
-            tab === 'browse'
-              ? 'bg-white text-primary shadow-sm'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
+          className={`px-5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${tab === 'browse'
+            ? 'bg-white text-primary shadow-sm'
+            : 'text-slate-500 hover:text-slate-700'
+            }`}
         >
           Browse Experts
         </button>
         <button
           onClick={() => setTab('sessions')}
-          className={`px-5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
-            tab === 'sessions'
-              ? 'bg-white text-primary shadow-sm'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
+          className={`px-5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${tab === 'sessions'
+            ? 'bg-white text-primary shadow-sm'
+            : 'text-slate-500 hover:text-slate-700'
+            }`}
         >
           My Sessions
           {upcomingSessions.length > 0 && (
@@ -300,11 +298,10 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
         </button>
         <button
           onClick={() => setTab('demos')}
-          className={`px-5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
-            tab === 'demos'
-              ? 'bg-white text-primary shadow-sm'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
+          className={`px-5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${tab === 'demos'
+            ? 'bg-white text-primary shadow-sm'
+            : 'text-slate-500 hover:text-slate-700'
+            }`}
         >
           Demo Sessions
           {demoSessions.length > 0 && (
@@ -336,11 +333,10 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                 <button
                   key={f.value}
                   onClick={() => setActiveFilter(f.value)}
-                  className={`px-4 py-2.5 rounded-lg text-xs font-bold border transition-all whitespace-nowrap ${
-                    activeFilter === f.value
-                      ? 'bg-primary text-white border-primary shadow-sm'
-                      : 'bg-white text-slate-600 border-slate-200 hover:border-primary/40 hover:text-primary'
-                  }`}
+                  className={`px-4 py-2.5 rounded-lg text-xs font-bold border transition-all whitespace-nowrap ${activeFilter === f.value
+                    ? 'bg-primary text-white border-primary shadow-sm'
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-primary/40 hover:text-primary'
+                    }`}
                 >
                   {f.label}
                 </button>
@@ -419,7 +415,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
             <div className="flex justify-center py-16">
               <Loader2 className="animate-spin text-primary" size={32} />
             </div>
-          ) : sessions.length === 0 ? (
+          ) : sessions.length === 0 && demoSessions.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-xl border border-slate-100">
               <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Calendar size={24} className="text-slate-400" />
@@ -492,6 +488,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                 </div>
               )}
 
+
               {/* Past Sessions */}
               {pastSessions.length > 0 && (
                 <div>
@@ -506,10 +503,9 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                           <p className="font-bold text-slate-600 text-sm">{session.expert?.profile?.displayName || 'Expert'}</p>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className="text-xs text-slate-400">{formatDate(session.scheduledAt)}</span>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                              session.status === 'COMPLETED' ? 'bg-green-100 text-green-600' :
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${session.status === 'COMPLETED' ? 'bg-green-100 text-green-600' :
                               session.status === 'CANCELLED' ? 'bg-rose-100 text-rose-600' : 'bg-slate-200 text-slate-500'
-                            }`}>
+                              }`}>
                               {session.status}
                             </span>
                           </div>
@@ -540,78 +536,39 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
               <p className="text-slate-400 text-xs mt-1">Explore our programs and book a free demo consultation!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
               {demoSessions.map((demo: any) => {
-                const progName = demo.suggestedPrograms?.[0] || 'Learning Program';
-                const theme = ENROLLED_THEMES[progName.toUpperCase()] || DEFAULT_ENROLLED_THEME;
-                
+                const progName = demo.suggestedPrograms?.[0] || 'Program Demo';
+
                 return (
                   <div
                     key={demo.id}
-                    className="bg-white rounded-xl border border-slate-150 p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between relative overflow-hidden group"
+                    className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                   >
-                    {/* Top gradient border matching the program */}
-                    <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${theme.gradient}`} />
-                    
-                    <div className="space-y-4">
-                      <div className="flex items-start justify-between flex-wrap gap-2">
-                        <div>
-                          <span className={`text-[9px] font-semibold uppercase tracking-widest px-2.5 py-1 rounded-full ${theme.badge} inline-block mb-2`}>
-                            Free Demo Session
-                          </span>
-                          <h4 className={`text-xl font-bold tracking-tight ${theme.accent}`}>{progName}</h4>
-                          <p className="text-xs font-semibold text-slate-400 mt-0.5">Cohort Target: {demo.classRange}</p>
-                        </div>
-                        
-                        <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 border shadow-sm ${
-                          demo.status === 'PENDING' ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' :
-                          demo.status === 'CONTACTED' ? 'bg-teal-500/10 text-teal-600 border-teal-500/20' :
-                          demo.status === 'SCHEDULED' ? 'bg-purple-500/10 text-purple-600 border-purple-500/20' :
-                          demo.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
-                          'bg-rose-500/10 text-rose-600 border-rose-500/20'
-                        }`}>
-                          <div className={`w-1.5 h-1.5 rounded-full ${
-                            demo.status === 'PENDING' ? 'bg-amber-500 animate-pulse' :
-                            demo.status === 'CONTACTED' ? 'bg-teal-500' :
-                            demo.status === 'SCHEDULED' ? 'bg-purple-500' :
-                            demo.status === 'COMPLETED' ? 'bg-emerald-500' :
-                            'bg-rose-500'
-                          }`} />
-                          {demo.status}
-                        </span>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-lg bg-violet-100 flex items-center justify-center text-violet-600 shrink-0">
+                        <Calendar size={20} />
                       </div>
-
-                      <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                            <Calendar size={16} />
-                          </div>
-                          <div>
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Scheduled Date</p>
-                            <p className="text-sm font-bold text-slate-800 mt-0.5">{demo.slotDate || 'Not set'}</p>
-                          </div>
-                        </div>
-
-                        <div className="h-8 w-[1px] bg-slate-200" />
-
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
-                            <Clock size={16} />
-                          </div>
-                          <div>
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Time Slot</p>
-                            <p className="text-sm font-bold text-slate-800 mt-0.5">{demo.slotTime || 'Not set'}</p>
-                          </div>
+                      <div>
+                        <p className="font-bold text-slate-800 text-sm">{progName}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs font-semibold text-slate-500">{demo.slotDate || 'Date TBD'}</span>
+                          <span className="text-slate-300">·</span>
+                          <span className="text-xs font-semibold text-violet-600">{demo.slotTime || 'Time TBD'}</span>
                         </div>
                       </div>
+                    </div>
 
-                      <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                        {demo.status === 'PENDING' && "We have received your demo request. An expert advisor will reach out to you shortly via phone/WhatsApp to confirm the session."}
-                        {demo.status === 'CONTACTED' && "Our expert advisor has contacted you. We are finalising the onboarding details."}
-                        {demo.status === 'SCHEDULED' && "Your demo session is officially scheduled! A calendar invitation and video link have been sent to your email/phone."}
-                        {demo.status === 'COMPLETED' && "This demo session has been successfully completed. If you want to enroll in the full course, please contact the support team."}
-                        {demo.status === 'CANCELLED' && "This request was cancelled."}
-                      </p>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold px-3 py-1.5 rounded-full border shadow-sm ${
+                        demo.status === 'PENDING' ? 'bg-amber-100 text-amber-600 border-amber-200' :
+                        demo.status === 'CONTACTED' ? 'bg-teal-100 text-teal-600 border-teal-200' :
+                        demo.status === 'SCHEDULED' ? 'bg-purple-100 text-purple-600 border-purple-200' :
+                        demo.status === 'COMPLETED' ? 'bg-green-100 text-green-600 border-green-200' :
+                        'bg-rose-100 text-rose-600 border-rose-200'
+                      }`}>
+                        {demo.status}
+                      </span>
                     </div>
                   </div>
                 );
@@ -660,11 +617,10 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                         <button
                           key={slot}
                           onClick={() => setSelectedSlot(slot)}
-                          className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all text-left ${
-                            isSelected
-                              ? 'border-primary bg-primary/5 shadow-sm'
-                              : 'border-slate-100 hover:border-primary/30 hover:bg-slate-50'
-                          }`}
+                          className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all text-left ${isSelected
+                            ? 'border-primary bg-primary/5 shadow-sm'
+                            : 'border-slate-100 hover:border-primary/30 hover:bg-slate-50'
+                            }`}
                         >
                           <div className="flex items-center gap-3">
                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isSelected ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500'}`}>
@@ -795,9 +751,8 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                   <button
                     key={slot}
                     onClick={() => setRescheduleSlot(slot)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left text-sm transition-all ${
-                      rescheduleSlot === slot ? 'border-primary bg-primary/5' : 'border-slate-100 hover:border-primary/30'
-                    }`}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left text-sm transition-all ${rescheduleSlot === slot ? 'border-primary bg-primary/5' : 'border-slate-100 hover:border-primary/30'
+                      }`}
                   >
                     <Calendar size={14} className={rescheduleSlot === slot ? 'text-primary' : 'text-slate-400'} />
                     <span className="font-bold text-slate-800">{formatDate(slot)}</span>

@@ -25,6 +25,7 @@ export interface Program {
   updatedAt: string;
   sessionsList?: ProgramSession[];
   curriculum?: ProgramSession[];
+  consultations?: { title: string; expertId: string }[];
 }
 
 export interface ProgramEnrollment {

@@ -82,7 +82,7 @@ const SUPERPOWERS = [
 
 export function EcosystemSection() {
   return (
-    <section className="pt-16 pb-24 bg-white relative overflow-hidden">
+    <section className="pt-8 pb-8 lg:pt-10 lg:pb-20 bg-white relative overflow-hidden">
       {/* Background Graphic Elements */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
@@ -122,7 +122,7 @@ export function EcosystemSection() {
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8 mb-8 md:mb-16">
           {SUPERPOWERS.map((superpower, index) => (
             <SuperpowerCard
               key={index}

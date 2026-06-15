@@ -137,6 +137,11 @@ export function JourneyList() {
             </div>
 
             <div className="relative">
+              {journey.thumbnailUrl && (
+                <div className="relative w-full h-32 rounded-2xl overflow-hidden mb-4 border border-border shadow-sm">
+                  <img src={journey.thumbnailUrl} alt={journey.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                </div>
+              )}
               <h3 className="text-2xl font-black text-slate-800 group-hover:text-primary transition-colors leading-tight">{journey.title}</h3>
               <p className="text-sm text-muted-foreground font-medium line-clamp-2 mt-2 leading-relaxed">
                 {journey.description}

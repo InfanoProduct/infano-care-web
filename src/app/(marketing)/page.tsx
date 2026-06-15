@@ -6,6 +6,7 @@ import { AudienceSection } from '@/features/marketing/components/sections/Audien
 import { ImpactSection } from '@/features/marketing/components/sections/ImpactSection';
 import { BookSection } from '@/features/marketing/components/sections/BookSection';
 import { PartnershipBanner } from '@/features/marketing/components/sections/PartnershipBanner';
+import { NewsScrollerSection } from '@/features/marketing/components/sections/NewsScrollerSection';
 
 export const metadata: Metadata = {
   title: {
@@ -16,11 +17,20 @@ export const metadata: Metadata = {
     title: 'Empowering Adolescent Girls & Families | Infano Care',
     description: "India's first holistic platform supporting adolescent girls and their parents through puberty education, mental wellness programs, and digital healthcare resources.",
     url: 'https://infano.care',
+    images: [
+      {
+        url: '/og-images/landing-og.png',
+        width: 1200,
+        height: 630,
+        alt: 'Infano Care',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Empowering Adolescent Girls & Families | Infano Care',
     description: "India's first holistic platform supporting adolescent girls and their parents through puberty education, mental wellness programs, and digital healthcare resources.",
+    images: ['/og-images/landing-og.png'],
   },
 };
 
@@ -47,7 +57,7 @@ const homeSchema = {
     {
       "@type": "ContactPoint",
       "contactType": "customer support",
-      "email": "support@infano.care",
+      "email": "connect@infano.care",
       "areaServed": "IN",
       "availableLanguage": "English"
     },
@@ -92,7 +102,7 @@ const homeSchema = {
         },
         "price": "799",
         "priceCurrency": "INR",
-        "url": "https://infano.care/parents-enquiry"
+        "url": "https://infano.care/program-enrollment"
       },
       {
         "@type": "Offer",
@@ -104,7 +114,7 @@ const homeSchema = {
         },
         "price": "799",
         "priceCurrency": "INR",
-        "url": "https://infano.care/parents-enquiry"
+        "url": "https://infano.care/program-enrollment"
       },
       {
         "@type": "Offer",
@@ -116,7 +126,7 @@ const homeSchema = {
         },
         "price": "999",
         "priceCurrency": "INR",
-        "url": "https://infano.care/parents-enquiry"
+        "url": "https://infano.care/program-enrollment"
       },
       {
         "@type": "Offer",
@@ -168,6 +178,7 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homeSchema) }}
       />
       <HeroSection />
+      <NewsScrollerSection />
       <ProblemSection />
       <EcosystemSection />
       <AudienceSection />

@@ -29,7 +29,7 @@ const footerLinks = {
   ],
   contact: [
     { name: 'Contact Us', href: '/contact' },
-    { name: 'support@infano.care', href: 'mailto:support@infano.care' },
+    { name: 'connect@infano.care', href: 'mailto:connect@infano.care' },
   ],
   social: [
     { name: 'Instagram', href: 'https://www.instagram.com/infano.care/' },

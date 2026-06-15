@@ -11,8 +11,8 @@ import { BookCTA } from '@/features/marketing/components/sections/the-book/BookC
 import { BookDetailedSection } from '@/features/marketing/components/sections/the-book/BookDetailedSection';
 import { BookAchieve } from '@/features/marketing/components/sections/the-book/BookAchieve';
 import { BookChapters } from '@/features/marketing/components/sections/the-book/BookChapters';
-import { BookReaders } from '@/features/marketing/components/sections/the-book/BookReaders';
 import { BookTrust } from '@/features/marketing/components/sections/the-book/BookTrust';
+import { FloatingBuyWidget } from '@/features/marketing/components/sections/the-book/FloatingBuyWidget';
 
 const DEFAULT_BOOK: Book = {
   id: '7e248707-c9e8-462c-a716-99f3852ef8c0',
@@ -31,7 +31,8 @@ export function TheBookClient() {
       try {
         const books = await ShopService.getBooks();
         if (books && books.length > 0) {
-          setBook(books[0]);
+          const targetBook = books.find(b => b.id === DEFAULT_BOOK.id) || books[0];
+          setBook(targetBook);
         }
       } catch (error) {
         console.error('Failed to load book data:', error);
@@ -42,14 +43,14 @@ export function TheBookClient() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <FloatingBuyWidget book={book} />
       <BookHero book={book} />
       <BookAbout />
       <BookDetailedSection book={book} />
       <BookAchieve />
       <BookChapters />
-      <BookPreview />
+      <BookPreview book={book} />
       <BookTrust />
-      <BookReaders />
       <ReaderVoices />
       <PurchaseOptions book={book} />
       <BookCTA book={book} />

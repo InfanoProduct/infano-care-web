@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { 
   LayoutDashboard, Users, Calendar, Settings, ShieldCheck, LogOut, 
   BookOpen, FileText, ShoppingBag, ChevronDown, Zap, Globe, 
-  UserCheck, Ticket, MapPin, FileQuestion, Image, Award
+  UserCheck, Ticket, MapPin, FileQuestion, Image, Award, CreditCard
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 
@@ -25,11 +25,20 @@ export default function AdminLayout({
   
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, href: '/admin/dashboard' },
+    { 
+      name: 'School Partnerships', 
+      icon: ShieldCheck, 
+      subItems: [
+        { name: 'Partners List', icon: ShieldCheck, href: '/admin/schools' },
+        { name: 'Sessions Calendar', icon: Calendar, href: '/admin/schools/sessions-calendar' },
+      ]
+    },
     { name: 'User Management', icon: Users, href: '/admin/users' },
     { name: 'Learning Journeys', icon: BookOpen, href: '/admin/learning' },
     { name: 'Learning Programs', icon: Award, href: '/admin/programs' },
     { name: 'Blogs', icon: FileText, href: '/admin/blogs' },
     { name: 'Assets', icon: Image, href: '/admin/assets' },
+    { name: 'Transactions', icon: CreditCard, href: '/admin/transactions' },
     { 
       name: 'Connect', 
       icon: Zap, 
@@ -48,24 +57,38 @@ export default function AdminLayout({
         { name: 'Manage Books', icon: BookOpen, href: '/admin/books' },
       ]
     },
+    { name: 'Expert Sessions', icon: Calendar, href: '/admin/expert-sessions' },
     { name: 'Enquiries', icon: FileQuestion, href: '/admin/enquiries' },
     { name: 'System Settings', icon: Settings, href: '/admin/settings' },
   ];
+
+  const filteredMenuItems = user?.role === 'EXPERT'
+    ? menuItems.filter(item => item.name === 'Learning Programs' || item.name === 'Connect' || item.name === 'Expert Sessions')
+    : menuItems;
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
+    if (!mounted || !user) return;
+    
+    // Redirect experts away from dashboard or root to Learning Programs
+    if (user.role === 'EXPERT' && (pathname === '/admin' || pathname === '/admin/dashboard')) {
+      router.push('/admin/programs');
+    }
+  }, [mounted, user, pathname, router]);
+
+  useEffect(() => {
     if (!mounted) return;
     
     // Auto-expand items that have active children on mount
-    const activeItems = menuItems
+    const activeItems = filteredMenuItems
       .filter(item => item.subItems?.some(sub => pathname.startsWith(sub.href)))
       .map(item => item.name);
     
     setExpandedItems(prev => Array.from(new Set([...prev, ...activeItems])));
-  }, [mounted, pathname]);
+  }, [mounted, pathname, filteredMenuItems]);
 
   if (!mounted) return null;
   if (isLoginPage) return <>{children}</>;
@@ -97,7 +120,7 @@ export default function AdminLayout({
         </div>
 
         <nav className="flex-1 space-y-2">
-          {menuItems.map((item) => {
+          {filteredMenuItems.map((item) => {
             if (item.subItems) {
               const isSubActive = item.subItems.some(sub => pathname.startsWith(sub.href));
               const isExpanded = expandedItems.includes(item.name);

@@ -1,0 +1,450 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import { 
+  ShieldCheck, LogOut, LayoutDashboard, Calendar, Compass, User, 
+  Sparkles, CreditCard, BookOpen, Layers, GraduationCap, Menu, X, 
+  ChevronLeft, ChevronRight 
+} from 'lucide-react';
+import Link from 'next/link';
+import { useAuthStore } from '@/store/auth-store';
+import { AuthService } from '@/services/auth.service';
+import { NotificationBell } from '@/features/parent/components/NotificationBell';
+
+export default function CustomerDashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { isAuthenticated, clearAuth, user, refreshToken, accessToken, setAuth } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const refreshedRef = useRef(false);
+  const [avatarPhoto, setAvatarPhoto] = useState<string | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  // Sync profile photo in layout header
+  useEffect(() => {
+    if (user?.id) {
+      if (user.profile?.avatarUrl) {
+        setAvatarPhoto(user.profile.avatarUrl);
+      } else {
+        const storedPhoto = localStorage.getItem(`profileAvatar_${user.id}`);
+        if (storedPhoto) {
+          setAvatarPhoto(storedPhoto);
+        } else {
+          setAvatarPhoto(null);
+        }
+      }
+    }
+  }, [user]);
+
+  useEffect(() => {
+    setMounted(true);
+    // Sync collapse state from local storage
+    const val = localStorage.getItem('sidebar-collapsed');
+    if (val === 'true') {
+      setIsCollapsed(true);
+    }
+  }, []);
+
+  // Sync token refresh on mount
+  useEffect(() => {
+    if (!isAuthenticated || !refreshToken || refreshedRef.current) return;
+    refreshedRef.current = true;
+
+    const doRefresh = async () => {
+      try {
+        const data: any = await AuthService.refreshToken(refreshToken);
+        setAuth(data.accessToken, data.refreshToken, user);
+      } catch {
+        console.warn('[Dashboard] Token refresh session notice.');
+      }
+    };
+
+    const refreshTimeout = setTimeout(doRefresh, 14 * 60 * 1000);
+    return () => clearTimeout(refreshTimeout);
+  }, [isAuthenticated, refreshToken, user, setAuth]);
+
+  // Fetch full user profile
+  const profileFetchedRef = useRef(false);
+  useEffect(() => {
+    if (!isAuthenticated || !user || !accessToken || profileFetchedRef.current) return;
+    if (user.profile) {
+      profileFetchedRef.current = true;
+      return;
+    }
+
+    profileFetchedRef.current = true;
+    const fetchUserProfile = async () => {
+      try {
+        const fullUser = await AuthService.getMe();
+        if (fullUser) {
+          setAuth(accessToken, refreshToken || '', {
+            ...user,
+            email: fullUser.email,
+            profile: fullUser.profile,
+          });
+        }
+      } catch (err) {
+        console.warn('[Dashboard] Failed to fetch user profile:', err);
+      }
+    };
+
+    fetchUserProfile();
+  }, [isAuthenticated, accessToken]);
+
+  // Auth Guard
+  useEffect(() => {
+    if (!mounted) return;
+
+    if (!isAuthenticated || !user) {
+      router.push('/login');
+      return;
+    }
+  }, [mounted, isAuthenticated, user, router]);
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    clearAuth();
+    document.cookie = 'customer-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    router.push('/login');
+  };
+
+  const toggleCollapse = () => {
+    setIsCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem('sidebar-collapsed', String(next));
+      return next;
+    });
+  };
+
+  if (!mounted) return null;
+
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FFFAF7] font-extrabold text-primary animate-pulse">
+        Verifying Session...
+      </div>
+    );
+  }
+
+  // Episode Isolation check: bypass dashboard shell for cleaner full-screen player experience
+  if (pathname.includes('/episodes/')) {
+    return <div className="min-h-screen bg-[#FFFCFA] overflow-hidden">{children}</div>;
+  }
+
+  const isTeen = user.role === 'TEEN';
+
+  // Navigation Items
+  const menuItems = [
+    { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
+    { href: '/dashboard/enrolled-programs', label: 'Enrolled Programs', icon: Layers },
+    { href: '/dashboard/learning-journeys', label: 'Learning Journeys', icon: GraduationCap, matchPrefix: true },
+    { href: '/dashboard/payments', label: 'Payment Details', icon: CreditCard },
+    ...(!isTeen ? [{ href: '/dashboard/expert-sessions', label: 'Expert Sessions', icon: Calendar }] : []),
+    ...(!isTeen ? [{ href: '/dashboard/resources', label: 'Library', icon: BookOpen }] : []),
+    ...(isTeen ? [{ href: '/dashboard/expert-sessions', label: 'My Sessions', icon: Calendar }] : []),
+    { href: '/dashboard/parent', label: isTeen ? 'Link Parent' : 'Link Daughter', icon: User },
+    { href: '/dashboard/profile', label: 'Profile', icon: User },
+  ];
+
+  const isLinkActive = (item: typeof menuItems[0]) => {
+    if (item.matchPrefix) {
+      return pathname === item.href || pathname.startsWith(item.href + '/');
+    }
+    return pathname === item.href;
+  };
+
+  const sidebarContent = (
+    <div className="flex flex-col h-full justify-between py-5 px-3">
+      <div className="space-y-6">
+        {/* Brand Logo */}
+        <div className={`flex items-center px-2.5 h-12 ${isCollapsed ? 'justify-center' : ''}`}>
+          <Link href="/" className="flex items-center shrink-0 w-full h-full relative">
+            {isCollapsed ? (
+              <div className="w-9 h-9 relative flex items-center justify-center overflow-hidden">
+                <img
+                  src="/logo/infano-logo-for-light-bg.png"
+                  alt="Infano Logo"
+                  className="w-24 max-w-none h-9 object-contain object-left"
+                />
+              </div>
+            ) : (
+              <img
+                src="/logo/infano-logo-for-light-bg.png"
+                alt="Infano Logo"
+                className="h-9 object-contain object-left animate-in fade-in duration-300"
+              />
+            )}
+          </Link>
+        </div>
+
+        {/* Workspace Mode Badge */}
+        {!isCollapsed ? (
+          <div className="px-2.5">
+            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10px] font-bold shadow-sm ${
+              isTeen ? 'bg-purple-100 text-purple-700' : 'bg-rose-100 text-rose-600'
+            }`}>
+              <Sparkles size={11} />
+              {isTeen ? 'Teen Workspace' : 'Parent Portal'}
+            </div>
+          </div>
+        ) : null}
+
+        {/* Navigation Links */}
+        <div className="space-y-1">
+          {!isCollapsed && (
+            <span className="text-[10px] font-bold text-slate-400 block px-2.5 uppercase tracking-wider mb-2">
+              Workspace Menu
+            </span>
+          )}
+          <nav className="space-y-0.5">
+            {menuItems.map((item, idx) => {
+              const Icon = item.icon;
+              const active = isLinkActive(item);
+
+              return (
+                <Link
+                  key={idx}
+                  href={item.href}
+                  className={`group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+                    active
+                      ? 'bg-primary/10 text-primary shadow-sm font-black'
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                  } ${isCollapsed ? 'justify-center' : ''}`}
+                >
+                  <Icon size={16} className="shrink-0" />
+                  
+                  {!isCollapsed ? (
+                    <span className="animate-in fade-in duration-200">{item.label}</span>
+                  ) : (
+                    /* Tooltip for collapsed mode */
+                    <span className="absolute left-full ml-3 px-2.5 py-1 bg-slate-900 text-white text-[10px] font-black tracking-wider rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 shadow-md">
+                      {item.label}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
+
+      {/* Support & Collapse Slat */}
+      <div className="space-y-4 pt-4 border-t border-slate-100/60">
+        {/* Support Widget */}
+        {!isCollapsed ? (
+          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-2.5 animate-in fade-in duration-300">
+            <h5 className="text-[9px] font-black uppercase tracking-widest text-slate-400">Parent Support</h5>
+            <p className="text-[11px] text-slate-505 font-semibold leading-relaxed">
+              Need to reschedule sessions or have billing questions?
+            </p>
+            <a
+              href="https://wa.me/916362994347"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-center py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-primary transition-all rounded-xl text-[10px] font-bold shadow-sm active:scale-95"
+            >
+              Chat on WhatsApp
+            </a>
+          </div>
+        ) : (
+          /* Collapsed WhatsApp Button */
+          <a
+            href="https://wa.me/916362994347"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all shadow-sm mx-auto active:scale-95"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+            </svg>
+            <span className="absolute left-full ml-3 px-2 py-1 bg-slate-900 text-white text-[10px] font-black tracking-wider rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 shadow-md">
+              WhatsApp Support
+            </span>
+          </a>
+        )}
+
+        {/* Collapse Toggle Button */}
+        <button
+          onClick={toggleCollapse}
+          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all text-xs font-bold ${
+            isCollapsed ? 'justify-center' : ''
+          }`}
+          title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+        >
+          {isCollapsed ? (
+            <ChevronRight size={16} />
+          ) : (
+            <>
+              <ChevronLeft size={16} />
+              <span>Collapse Menu</span>
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="h-screen w-screen overflow-hidden flex bg-[#FFFBF9] customer-dashboard font-sans">
+      
+      {/* Desktop Sticky Sidebar */}
+      <aside 
+        className={`hidden md:flex flex-col h-full bg-white border-r border-slate-100/80 shrink-0 select-none transition-all duration-300 ease-in-out ${
+          isCollapsed ? 'w-20' : 'w-64'
+        }`}
+      >
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile Sidebar Slide-out Drawer */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 flex md:hidden animate-in fade-in duration-200">
+          {/* Backdrop */}
+          <div 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs" 
+          />
+          {/* Drawer Body */}
+          <aside className="relative flex flex-col w-64 h-full bg-white border-r border-slate-100 z-10 animate-in slide-in-from-left-4 duration-300">
+            <button 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="absolute top-4 right-4 p-2 rounded-lg bg-slate-55 border border-slate-100 text-slate-500 hover:text-slate-800"
+            >
+              <X size={16} />
+            </button>
+            {sidebarContent}
+          </aside>
+        </div>
+      )}
+
+      {/* Right Core Workspace Pane */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        
+        {/* Universal Top Header */}
+        <header className="h-16 bg-white/85 backdrop-blur-xl border-b border-slate-100 px-6 flex items-center justify-between shadow-xs shrink-0 z-30">
+          <div className="flex items-center gap-3">
+            {/* Hamburger mobile menu button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="p-2.5 rounded-xl border border-slate-100 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-800 transition-all md:hidden active:scale-95 shadow-xs"
+            >
+              <Menu size={18} />
+            </button>
+            
+            {/* Mobile-only branding display */}
+            <div className="md:hidden flex items-center h-10 w-28 relative">
+              <Link href="/" className="w-full h-full relative flex items-center">
+                <img
+                  src="/logo/infano-logo-for-light-bg.png"
+                  alt="Infano Logo"
+                  className="h-7 object-contain object-left"
+                />
+              </Link>
+            </div>
+
+            {/* Desktop breadcrumb or workspace status */}
+            <span className="hidden md:inline-block text-xs font-bold text-slate-400 capitalize">
+              Dashboard / {pathname.split('/').filter(Boolean)[1] || 'Overview'}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 md:gap-4">
+            <NotificationBell />
+
+            <div className="flex items-center gap-2.5 bg-slate-50/50 border border-slate-100/80 py-1 pl-2.5 pr-3.5 rounded-xl">
+              <div className={`w-7 h-7 rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-xs shadow-xs shrink-0 ${
+                isTeen ? 'bg-purple-500' : 'bg-rose-500'
+              }`}>
+                {avatarPhoto ? (
+                  <img src={avatarPhoto} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  user?.profile?.displayName
+                    ? user.profile.displayName.charAt(0).toUpperCase()
+                    : user?.username
+                    ? user.username.charAt(0).toUpperCase()
+                    : 'U'
+                )}
+              </div>
+              <div className="text-left leading-none">
+                <p className="text-xs font-semibold text-slate-800 truncate max-w-[120px]" title={user?.profile?.displayName || user?.username || 'User'}>
+                  {user?.profile?.displayName || user?.username || 'User'}
+                </p>
+                <p className="text-[9px] font-bold text-slate-400 mt-0.5 uppercase tracking-wide">
+                  {user.role === 'TEEN' ? 'Teen' : user.role === 'PARENT' ? 'Parent' : (user.role.charAt(0) + user.role.slice(1).toLowerCase())}
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={handleLogout}
+              className="p-2.5 text-slate-400 hover:text-rose-500 bg-slate-50/50 border border-slate-105 hover:bg-rose-50 rounded-xl transition-all shadow-xs active:scale-95 shrink-0"
+              title="Sign Out"
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
+        </header>
+
+        {/* Scrollable Content Container */}
+        <main className="flex-1 overflow-y-auto p-5 md:p-8 bg-[#FFFBF9] custom-scrollbar">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
+        </main>
+      </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 select-none">
+          {/* Backdrop */}
+          <div 
+            onClick={() => setShowLogoutConfirm(false)}
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity duration-300 animate-in fade-in"
+          />
+          {/* Modal content */}
+          <div 
+            className="relative bg-white rounded-[2rem] p-6 max-w-sm w-full shadow-2xl border border-slate-100/80 text-center space-y-5 z-10 animate-in zoom-in-95 duration-200"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center mx-auto shadow-sm">
+              <LogOut size={22} />
+            </div>
+            
+            <div className="space-y-1.5">
+              <h3 className="font-extrabold text-slate-800 text-lg">Confirm Sign Out</h3>
+              <p className="text-slate-500 text-xs font-semibold leading-relaxed">
+                Are you sure you want to log out of your session?
+              </p>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 py-3 px-4 rounded-2xl border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-800 text-xs font-bold transition-all active:scale-98"
+              >
+                No, Cancel
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs font-black shadow-md shadow-rose-200/50 hover:shadow-rose-300/60 transition-all active:scale-98"
+              >
+                Yes, Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}

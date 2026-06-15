@@ -79,6 +79,10 @@ export const ShopService = {
     return apiClient.post('/shop/orders/verify', data);
   },
 
+  async getUserOrders(): Promise<any[]> {
+    return apiClient.get<any[]>('/shop/orders/me');
+  },
+
   // Admin Methods
   async adminGetBooks(): Promise<Book[]> {
     return apiClient.get<Book[]>('/admin/books'); 

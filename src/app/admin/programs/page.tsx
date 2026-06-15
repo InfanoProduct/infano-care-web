@@ -1,23 +1,28 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
+import {
   Award, Plus, Loader2, Calendar, Clock, BookOpen, Users, DollarSign,
   Edit, Trash2, CheckCircle2, XCircle, RefreshCw, Layers, ShieldCheck,
-  Search, Filter, Check, X, CreditCard, Mail, Phone, Sliders, Sparkles
+  Search, Filter, Check, X, CreditCard, Mail, Phone, Sliders, Sparkles, Eye,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
-import { ProgramsService, Program, ProgramEnrollment, DemoSession } from '@/services/programs.service';
+import { useRouter } from 'next/navigation';
+import { ProgramsService, Program, ProgramEnrollment, DemoSession, ProgramSession } from '@/services/programs.service';
 import { toast } from 'react-hot-toast';
+import ImageUploader from '@/components/upload/ImageUploader';
+import { blogService } from '@/services/blog.service';
 
 // Helper functions for human-friendly questionnaire labels
 const getConfidenceLabel = (val: string) => {
+  if (!val) return '';
   const map: Record<string, string> = {
     shy: 'Quiet & Observant',
     selective: 'Thoughtful & Selective',
     balanced: 'Balanced & Easygoing',
     outgoing: 'Vibrant & Expressive'
   };
-  return map[val] || val;
+  return val.split(',').map(v => map[v.trim()] || v.trim()).join(', ');
 };
 
 const getInterestsLabel = (val: string) => {
@@ -71,7 +76,28 @@ const getParentInvolvementLabel = (val: string) => {
   return map[val] || val;
 };
 
+const GoogleMeetIcon = ({ size = 14 }: { size?: number }) => {
+  const width = Math.round(size * 1.215);
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 87.5 72"
+      width={width}
+      height={size}
+    >
+      <path fill="#00832d" d="M49.5 36l8.53 9.75 11.47 7.33 2-17.02-2-16.64-11.69 6.44z" />
+      <path fill="#0066da" d="M0 51.5V66c0 3.315 2.685 6 6 6h14.5l3-10.96-3-9.54-9.95-3z" />
+      <path fill="#e94235" d="M20.5 0L0 20.5l10.55 3 9.95-3 2.95-9.41z" />
+      <path fill="#2684fc" d="M20.5 20.5H0v31h20.5z" />
+      <path fill="#00ac47" d="M82.6 8.68L69.5 19.42v33.66l13.16 10.79c1.97 1.54 4.85.135 4.85-2.37V11c0-2.535-2.945-3.925-4.91-2.32zM49.5 36v15.5h-29V72h43c3.315 0 6-2.685 6-6V53.08z" />
+      <path fill="#ffba00" d="M63.5 0h-43v20.5h29V36l20-16.57V6c0-3.315-2.685-6-6-6z" />
+    </svg>
+  );
+};
+
 export default function ProgramsManagement() {
+  const router = useRouter();
   // Tabs
   const [activeTab, setActiveTab] = useState<'programs' | 'enrollments' | 'demos'>('programs');
 
@@ -79,7 +105,7 @@ export default function ProgramsManagement() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [enrollments, setEnrollments] = useState<ProgramEnrollment[]>([]);
   const [demos, setDemos] = useState<DemoSession[]>([]);
-  
+
   // UI Loading States
   const [loadingPrograms, setLoadingPrograms] = useState(true);
   const [loadingEnrollments, setLoadingEnrollments] = useState(false);
@@ -93,14 +119,35 @@ export default function ProgramsManagement() {
   const [demoSearch, setDemoSearch] = useState('');
   const [demoStatusFilter, setDemoStatusFilter] = useState('ALL');
 
-  // Selected Demo Modal State
-  const [selectedDemo, setSelectedDemo] = useState<DemoSession | null>(null);
-  const [showDemoModal, setShowDemoModal] = useState(false);
+
+  // Selected Enrollment Modal State
+  const [selectedEnrollment, setSelectedEnrollment] = useState<ProgramEnrollment | null>(null);
+  const [showEnrollmentModal, setShowEnrollmentModal] = useState(false);
+
+  // Add Student manual enrollment state
+  const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+  const [addStudentName, setAddStudentName] = useState('');
+  const [addStudentPhone, setAddStudentPhone] = useState('');
+  const [addStudentEmail, setAddStudentEmail] = useState('');
+  const [addStudentRole, setAddStudentRole] = useState<'PARENT' | 'TEEN'>('PARENT');
+  const [addStudentProgramId, setAddStudentProgramId] = useState('');
+  const [addStudentType, setAddStudentType] = useState<'PRIVATE' | 'GROUP'>('PRIVATE');
+  const [addStudentPricePaid, setAddStudentPricePaid] = useState('');
+  const [addStudentSubmitting, setAddStudentSubmitting] = useState(false);
+  const [enrollStep, setEnrollStep] = useState<1 | 2>(1);
+  const [checkingPhone, setCheckingPhone] = useState(false);
+  const [existingUserData, setExistingUserData] = useState<{
+    exists: boolean;
+    user: { id: string; phone: string; email: string; role: 'PARENT' | 'TEEN'; name: string } | null;
+    enrolledProgramIds: string[];
+  } | null>(null);
+
 
   // Modal State
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
+  const [activeProgram, setActiveProgram] = useState<Program | null>(null);
 
   // Form State
   const [formTitle, setFormTitle] = useState('');
@@ -116,6 +163,11 @@ export default function ProgramsManagement() {
   const [formIsActive, setFormIsActive] = useState(true);
   const [formTopics, setFormTopics] = useState<string[]>([]);
   const [newTopicInput, setNewTopicInput] = useState('');
+  const [formFeatures, setFormFeatures] = useState<string[]>([]);
+  const [newFeatureInput, setNewFeatureInput] = useState('');
+  const [formEnrolledCount, setFormEnrolledCount] = useState(1200);
+  const [formCurriculum, setFormCurriculum] = useState<ProgramSession[]>([]);
+  const [formThumbnailUrl, setFormThumbnailUrl] = useState('');
 
   useEffect(() => {
     loadPrograms();
@@ -134,6 +186,17 @@ export default function ProgramsManagement() {
     try {
       const data = await ProgramsService.getAdminPrograms();
       setPrograms(data);
+      if (data.length > 0) {
+        setActiveProgram(prev => {
+          if (prev) {
+            const found = data.find(p => p.id === prev.id);
+            return found || data[0];
+          }
+          return data[0];
+        });
+      } else {
+        setActiveProgram(null);
+      }
     } catch (error) {
       console.error('Failed to load programs:', error);
       toast.error('Failed to load programs');
@@ -155,6 +218,90 @@ export default function ProgramsManagement() {
     }
   };
 
+  const handleCheckPhone = async () => {
+    const rawPhone = addStudentPhone.trim();
+    if (!rawPhone) {
+      toast.error('Please enter a phone number.');
+      return;
+    }
+    setCheckingPhone(true);
+    try {
+      const res = await ProgramsService.checkUserByPhone(rawPhone);
+      setExistingUserData(res);
+      if (res.exists && res.user) {
+        setAddStudentName(res.user.name || '');
+        setAddStudentEmail(res.user.email || '');
+        setAddStudentRole(res.user.role || 'PARENT');
+        toast.success('Existing user found! Details auto-filled.');
+      } else {
+        setAddStudentName('');
+        setAddStudentEmail('');
+        setAddStudentRole('PARENT');
+        toast('New user. Please enter details.');
+      }
+
+      setEnrollStep(2);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to check phone number.');
+    } finally {
+      setCheckingPhone(false);
+    }
+  };
+
+  const handleAddStudentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addStudentName.trim() || !addStudentPhone.trim() || !addStudentProgramId || !addStudentType) {
+      toast.error('Please fill in all required fields.');
+      return;
+    }
+
+    setAddStudentSubmitting(true);
+    try {
+      const payload = {
+        studentName: addStudentName,
+        phone: addStudentPhone,
+        email: addStudentEmail || undefined,
+        role: addStudentRole,
+        programId: addStudentProgramId,
+        type: addStudentType,
+        pricePaid: addStudentPricePaid !== '' ? parseFloat(addStudentPricePaid) : undefined
+      };
+
+      const res = await ProgramsService.adminCreateEnrollment(payload);
+      if (res.success) {
+        toast.success('Student enrolled successfully!');
+        setShowAddStudentModal(false);
+        // Reset state
+        setAddStudentName('');
+        setAddStudentPhone('');
+        setAddStudentEmail('');
+        setAddStudentRole('PARENT');
+        setAddStudentProgramId('');
+        setAddStudentType('PRIVATE');
+        setAddStudentPricePaid('');
+        setEnrollStep(1);
+        setExistingUserData(null);
+
+        // Reload enrollments
+        loadEnrollments();
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to enroll student.');
+    } finally {
+      setAddStudentSubmitting(false);
+    }
+  };
+
+  const handleSubmitWrapper = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (enrollStep === 1) {
+      handleCheckPhone();
+    } else {
+      handleAddStudentSubmit(e);
+    }
+  };
+
+
   const loadDemos = async () => {
     setLoadingDemos(true);
     try {
@@ -168,21 +315,11 @@ export default function ProgramsManagement() {
     }
   };
 
-  const handleUpdateDemoStatus = async (id: string, status: string) => {
-    try {
-      await ProgramsService.updateDemoStatus(id, status);
-      toast.success(`Demo booking status updated to ${status}`);
-      loadDemos();
-      setSelectedDemo(prev => prev && prev.id === id ? { ...prev, status } : prev);
-    } catch (error) {
-      toast.error('Failed to update status');
-    }
-  };
 
   const handleOpenCreateModal = () => {
     setModalMode('create');
     setSelectedProgram(null);
-    
+
     // Reset Form
     setFormTitle('');
     setFormTagline('');
@@ -197,14 +334,19 @@ export default function ProgramsManagement() {
     setFormIsActive(true);
     setFormTopics([]);
     setNewTopicInput('');
-    
+    setFormFeatures([]);
+    setNewFeatureInput('');
+    setFormEnrolledCount(1200);
+    setFormCurriculum([]);
+    setFormThumbnailUrl('');
+
     setShowModal(true);
   };
 
   const handleOpenEditModal = (program: Program) => {
     setModalMode('edit');
     setSelectedProgram(program);
-    
+
     // Load Form
     setFormTitle(program.title);
     setFormTagline(program.tagline);
@@ -219,7 +361,16 @@ export default function ProgramsManagement() {
     setFormIsActive(program.isActive);
     setFormTopics(program.topics || []);
     setNewTopicInput('');
-    
+    setFormFeatures(program.features || []);
+    setNewFeatureInput('');
+    setFormEnrolledCount(program.enrolledCount || 1200);
+    setFormCurriculum(
+      program.curriculum && program.curriculum.length > 0
+        ? program.curriculum
+        : (program.sessionsList || [])
+    );
+    setFormThumbnailUrl(program.thumbnailUrl || '');
+
     setShowModal(true);
   };
 
@@ -238,6 +389,32 @@ export default function ProgramsManagement() {
     setFormTopics(formTopics.filter((_, idx) => idx !== indexToRemove));
   };
 
+  const handleAddFeature = () => {
+    const trimmed = newFeatureInput.trim();
+    if (!trimmed) return;
+    if (formFeatures.includes(trimmed)) {
+      toast.error('Feature already exists in list');
+      return;
+    }
+    setFormFeatures([...formFeatures, trimmed]);
+    setNewFeatureInput('');
+  };
+
+  const handleRemoveFeature = (indexToRemove: number) => {
+    setFormFeatures(formFeatures.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  const handleMoveSession = (index: number, direction: 'up' | 'down') => {
+    if (direction === 'up' && index === 0) return;
+    if (direction === 'down' && index === formCurriculum.length - 1) return;
+    const updated = [...formCurriculum];
+    const temp = updated[index];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    updated[index] = updated[targetIndex];
+    updated[targetIndex] = temp;
+    setFormCurriculum(updated);
+  };
+
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formTitle || !formClassRange || !formDuration) {
@@ -250,6 +427,7 @@ export default function ProgramsManagement() {
       title: formTitle,
       tagline: formTagline,
       description: formDescription,
+      thumbnailUrl: formThumbnailUrl || null,
       classRange: formClassRange,
       minClass: Number(formMinClass),
       maxClass: Number(formMaxClass),
@@ -258,7 +436,10 @@ export default function ProgramsManagement() {
       pricePrivate: Number(formPricePrivate),
       priceGroup: Number(formPriceGroup),
       isActive: formIsActive,
-      topics: formTopics
+      topics: formTopics,
+      features: formFeatures,
+      enrolledCount: Number(formEnrolledCount),
+      curriculum: formCurriculum
     };
 
     try {
@@ -306,13 +487,16 @@ export default function ProgramsManagement() {
       await ProgramsService.updateEnrollmentStatus(id, status);
       toast.success(`Enrollment status updated to ${status}`);
       loadEnrollments();
+      if (selectedEnrollment && selectedEnrollment.id === id) {
+        setSelectedEnrollment(prev => prev ? { ...prev, status } : null);
+      }
     } catch (error) {
       toast.error('Failed to update status');
     }
   };
 
   // Filter & Search Logic
-  const filteredPrograms = programs.filter(p => 
+  const filteredPrograms = programs.filter(p =>
     p.title.toLowerCase().includes(programSearch.toLowerCase()) ||
     p.tagline.toLowerCase().includes(programSearch.toLowerCase()) ||
     p.classRange.toLowerCase().includes(programSearch.toLowerCase())
@@ -320,7 +504,7 @@ export default function ProgramsManagement() {
 
   const filteredEnrollments = enrollments.filter(e => {
     const searchString = enrollmentSearch.toLowerCase();
-    const matchesSearch = 
+    const matchesSearch =
       (e.user.profile?.displayName || '').toLowerCase().includes(searchString) ||
       (e.user.username || '').toLowerCase().includes(searchString) ||
       (e.user.phone || '').toLowerCase().includes(searchString) ||
@@ -334,7 +518,7 @@ export default function ProgramsManagement() {
 
   const filteredDemos = demos.filter(d => {
     const searchString = demoSearch.toLowerCase();
-    const matchesSearch = 
+    const matchesSearch =
       d.parentName.toLowerCase().includes(searchString) ||
       d.phone.toLowerCase().includes(searchString) ||
       (d.email || '').toLowerCase().includes(searchString) ||
@@ -357,6 +541,465 @@ export default function ProgramsManagement() {
     return 'from-primary to-primary-light shadow-primary/20';
   };
 
+  if (showModal) {
+    return (
+      <div className="space-y-8 animate-in fade-in duration-500">
+        {/* Full screen edit form header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-border/10 pb-6">
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowModal(false)}
+              className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-700 transition-colors uppercase tracking-widest mb-2"
+            >
+              <ChevronLeft size={14} /> Back to Programs
+            </button>
+            <h2 className="text-4xl font-black tracking-tight text-foreground">
+              {modalMode === 'create' ? 'Add New' : 'Edit'} <span className="text-primary">Program</span>
+            </h2>
+            <p className="text-muted-foreground mt-1 font-medium">Configure cohort packages, prices, age targets, and roadmap sessions.</p>
+          </div>
+        </div>
+
+        {/* Form container */}
+        <div className="bg-white rounded-[2.5rem] border border-border/30 shadow-xl p-8">
+          <form onSubmit={handleFormSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+            {/* Left Column: General Info (5 cols) */}
+            <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-6">
+              <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground/80 border-b border-border/30 pb-2">Program Details & Settings</h3>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Program Title *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. SPARK, RISE"
+                    value={formTitle}
+                    onChange={(e) => setFormTitle(e.target.value)}
+                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Tagline *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. She wakes up to herself."
+                    value={formTagline}
+                    onChange={(e) => setFormTagline(e.target.value)}
+                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Long Description (Optional)</label>
+                <textarea
+                  placeholder="Explain what the learning program is about, who it is for, and the impact it will have on the student..."
+                  value={formDescription}
+                  onChange={(e) => setFormDescription(e.target.value)}
+                  rows={3}
+                  className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold leading-relaxed"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <ImageUploader
+                  value={formThumbnailUrl}
+                  onUpload={(url) => setFormThumbnailUrl(url)}
+                  label="Program Thumbnail Image"
+                  folder="programs"
+                />
+              </div>
+
+              {/* Class Target */}
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Target Class *</label>
+                <input
+                  type="number"
+                  required
+                  min={1}
+                  max={12}
+                  value={formMinClass}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setFormMinClass(val);
+                    setFormMaxClass(val);
+                    setFormClassRange(`Class ${val}`);
+                  }}
+                  className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground outline-none focus:border-primary/50 transition-all font-semibold"
+                />
+              </div>
+
+              {/* Sessions, Duration, Status */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Total Sessions *</label>
+                  <input
+                    type="number"
+                    required
+                    min={1}
+                    value={formSessions}
+                    onChange={(e) => setFormSessions(Number(e.target.value))}
+                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground outline-none focus:border-primary/50 transition-all font-semibold"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Duration Label *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 2 Months"
+                    value={formDuration}
+                    onChange={(e) => setFormDuration(e.target.value)}
+                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Enrolled Count *</label>
+                  <input
+                    type="number"
+                    required
+                    min={0}
+                    value={formEnrolledCount}
+                    onChange={(e) => setFormEnrolledCount(Number(e.target.value))}
+                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold"
+                  />
+                </div>
+              </div>
+
+              {/* Pricing Tiers */}
+              <div className="bg-secondary/15 border border-border/40 rounded-2xl p-4 space-y-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">1:1 Private Price (₹ / mo) *</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-black">₹</span>
+                    <input
+                      type="number"
+                      required
+                      min={0}
+                      value={formPricePrivate}
+                      onChange={(e) => setFormPricePrivate(Number(e.target.value))}
+                      className="w-full bg-white border border-border/50 rounded-xl pl-10 pr-4 py-2.5 text-foreground outline-none focus:border-primary/50 transition-all font-semibold"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Group Price (₹ / mo) *</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-black">₹</span>
+                    <input
+                      type="number"
+                      required
+                      min={0}
+                      value={formPriceGroup}
+                      onChange={(e) => setFormPriceGroup(Number(e.target.value))}
+                      className="w-full bg-white border border-border/50 rounded-xl pl-10 pr-4 py-2.5 text-foreground outline-none focus:border-primary/50 transition-all font-semibold"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 px-1">
+                <input
+                  type="checkbox"
+                  id="formIsActive"
+                  checked={formIsActive}
+                  onChange={(e) => setFormIsActive(e.target.checked)}
+                  className="w-5 h-5 accent-primary rounded cursor-pointer"
+                />
+                <label htmlFor="formIsActive" className="text-xs font-black uppercase tracking-wider text-foreground cursor-pointer select-none">
+                  Active / Published
+                </label>
+              </div>
+            </div>
+
+            {/* Right Column: Curriculum Content (7 cols) */}
+            <div className="lg:col-span-7 space-y-6">
+              <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground/80 border-b border-border/30 pb-2">Curriculum Content</h3>
+
+              {/* Curriculum Topics Tags Manager */}
+              <div className="space-y-3">
+                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Topics Focus Tags ({formTopics.length})</label>
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    placeholder="Enter a new topic tag (e.g. Body Unfiltered)"
+                    value={newTopicInput}
+                    onChange={(e) => setNewTopicInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddTopic();
+                      }
+                    }}
+                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddTopic}
+                    className="px-5 py-3 bg-secondary hover:bg-primary/10 hover:text-primary border border-border/50 text-muted-foreground text-sm font-black rounded-2xl transition-all whitespace-nowrap shadow-sm"
+                  >
+                    Add Tag
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap gap-2 border border-border/30 rounded-2xl p-4 bg-secondary/10 min-h-16">
+                  {formTopics.length === 0 ? (
+                    <span className="text-xs text-muted-foreground/60 font-semibold italic">No topics defined yet.</span>
+                  ) : (
+                    formTopics.map((topic, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center gap-1.5 text-xs font-extrabold bg-primary/10 text-primary px-3 py-1.5 border border-primary/20 rounded-xl"
+                      >
+                        {topic}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTopic(idx)}
+                          className="hover:bg-primary/25 rounded-full p-0.5 transition-all text-primary"
+                        >
+                          <X size={12} className="stroke-[2.5px]" />
+                        </button>
+                      </span>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Program Features Tags Manager */}
+              <div className="space-y-3 pt-4 border-t border-border/30">
+                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Program Includes Features ({formFeatures.length})</label>
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    placeholder="Enter a new feature (e.g. 8 sessions by trained experts)"
+                    value={newFeatureInput}
+                    onChange={(e) => setNewFeatureInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddFeature();
+                      }
+                    }}
+                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddFeature}
+                    className="px-5 py-3 bg-secondary hover:bg-primary/10 hover:text-primary border border-border/50 text-muted-foreground text-sm font-black rounded-2xl transition-all whitespace-nowrap shadow-sm"
+                  >
+                    Add Feature
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap gap-2 border border-border/30 rounded-2xl p-4 bg-secondary/10 min-h-16">
+                  {formFeatures.length === 0 ? (
+                    <span className="text-xs text-muted-foreground/60 font-semibold italic">No features defined yet.</span>
+                  ) : (
+                    formFeatures.map((feature, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center gap-1.5 text-xs font-extrabold bg-primary/10 text-primary px-3 py-1.5 border border-primary/20 rounded-xl"
+                      >
+                        {feature}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFeature(idx)}
+                          className="hover:bg-primary/25 rounded-full p-0.5 transition-all text-primary"
+                        >
+                          <X size={12} className="stroke-[2.5px]" />
+                        </button>
+                      </span>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Curriculum Roadmap Builder */}
+              <div className="space-y-4 pt-4 border-t border-border/30">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Roadmap Session Builder ({formCurriculum.length})</h3>
+                    <p className="text-[10px] text-muted-foreground font-semibold mt-1">Configure each learning session sequence in the timeline.</p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormCurriculum([
+                        ...formCurriculum,
+                        { title: `Session ${formCurriculum.length + 1}: `, description: '' }
+                      ]);
+                    }}
+                    className="btn-secondary py-2 px-3 rounded-xl border border-border/50 text-muted-foreground font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm bg-white hover:bg-slate-50 transition-all"
+                  >
+                    <Plus size={14} />
+                    <span>Add Session</span>
+                  </button>
+                </div>
+
+                {/* Session list timeline */}
+                <div className="relative pl-6 border-l border-slate-200/80 space-y-4 mt-4">
+                  {formCurriculum.map((session, idx) => (
+                    <div
+                      key={idx}
+                      className="p-5 bg-secondary/15 border border-border/40 rounded-2xl relative flex flex-col gap-3 group animate-in fade-in duration-300"
+                    >
+                      {/* Timeline bullet */}
+                      <span className="absolute -left-[35px] top-5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black border-2 border-white text-white bg-primary shadow-sm">
+                        {idx + 1}
+                      </span>
+
+                      <div className="flex justify-between items-start gap-4">
+                        <input
+                          type="text"
+                          required
+                          placeholder={`Session ${idx + 1} Title`}
+                          value={session.title}
+                          onChange={(e) => {
+                            const updated = [...formCurriculum];
+                            updated[idx] = { ...updated[idx], title: e.target.value };
+                            setFormCurriculum(updated);
+                          }}
+                          className="flex-1 bg-white border border-border/50 rounded-xl px-4 py-2 text-sm text-foreground outline-none focus:border-primary/50 transition-all font-bold"
+                        />
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          {/* Reordering Chevrons */}
+                          <button
+                            type="button"
+                            disabled={idx === 0}
+                            onClick={() => handleMoveSession(idx, 'up')}
+                            className="p-2 bg-white hover:bg-slate-50 disabled:opacity-30 rounded-xl border border-border/50 text-muted-foreground shadow-sm transition-all"
+                            title="Move Up"
+                          >
+                            <ChevronLeft className="rotate-90" size={12} />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={idx === formCurriculum.length - 1}
+                            onClick={() => handleMoveSession(idx, 'down')}
+                            className="p-2 bg-white hover:bg-slate-50 disabled:opacity-30 rounded-xl border border-border/50 text-muted-foreground shadow-sm transition-all"
+                            title="Move Down"
+                          >
+                            <ChevronRight className="rotate-90" size={12} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormCurriculum(formCurriculum.filter((_, i) => i !== idx));
+                            }}
+                            className="p-2 bg-white hover:bg-rose-500/10 hover:text-rose-500 rounded-xl border border-border/50 text-muted-foreground shadow-sm transition-all"
+                            title="Remove Session"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row gap-4 items-start">
+                        {/* Image Preview & Upload Button */}
+                        <div className="w-full sm:w-32 shrink-0">
+                          {session.thumbnailUrl ? (
+                            <div className="relative aspect-video w-full rounded-xl overflow-hidden border border-border/50 group">
+                              <img src={session.thumbnailUrl} alt="Session Thumbnail" className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated = [...formCurriculum];
+                                  updated[idx] = { ...updated[idx], thumbnailUrl: '' };
+                                  setFormCurriculum(updated);
+                                }}
+                                className="absolute top-1 right-1 p-1 bg-rose-500 hover:bg-rose-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                title="Remove Thumbnail"
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="flex flex-col items-center justify-center w-full aspect-video border border-dashed border-primary/20 hover:border-primary/40 rounded-xl cursor-pointer hover:bg-primary/5 transition-all text-center p-2">
+                              <span className="text-[10px] font-bold text-primary">Upload BG</span>
+                              <input
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  try {
+                                    const result = await blogService.uploadImage(file, 'programs/sessions') as any;
+                                    const updated = [...formCurriculum];
+                                    updated[idx] = { ...updated[idx], thumbnailUrl: result.url };
+                                    setFormCurriculum(updated);
+                                    toast.success('Session thumbnail uploaded!');
+                                  } catch (error) {
+                                    toast.error('Upload failed');
+                                  }
+                                }}
+                              />
+                            </label>
+                          )}
+                        </div>
+
+                        {/* Description field */}
+                        <textarea
+                          required
+                          placeholder={`Session ${idx + 1} Description`}
+                          value={session.description}
+                          onChange={(e) => {
+                            const updated = [...formCurriculum];
+                            updated[idx] = { ...updated[idx], description: e.target.value };
+                            setFormCurriculum(updated);
+                          }}
+                          rows={2}
+                          className="flex-1 bg-white border border-border/50 rounded-xl px-4 py-2 text-xs text-foreground outline-none focus:border-primary/50 transition-all font-semibold leading-relaxed self-stretch resize-none"
+                        />
+                      </div>
+                    </div>
+                  ))}
+
+                  {formCurriculum.length === 0 && (
+                    <div className="p-8 text-center bg-secondary/10 border border-dashed border-border/40 rounded-2xl">
+                      <p className="text-muted-foreground font-semibold text-xs italic">No sessions defined yet. Click "Add Session" to build the roadmap.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Form Actions Footer */}
+              <div className="border-t border-border/30 pt-6 flex justify-end gap-3 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  disabled={submitting}
+                  className="px-6 py-3.5 bg-secondary text-muted-foreground font-black rounded-2xl transition-all border border-border/50 shadow-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-6 py-3.5 bg-primary text-white font-bold rounded-2xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+                >
+                  {submitting && <Loader2 className="animate-spin" size={18} />}
+                  <span>{submitting ? 'Saving...' : 'Save Curriculum'}</span>
+                </button>
+              </div>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Admin Header */}
@@ -368,41 +1011,31 @@ export default function ProgramsManagement() {
           </h1>
           <p className="text-muted-foreground mt-1 font-medium">Configure cohort packages, prices, age targets, and track user enrollments.</p>
         </div>
-        
-        {activeTab === 'programs' && (
-          <button 
-            onClick={handleOpenCreateModal}
-            className="btn-primary flex items-center gap-2 px-6 py-3.5 rounded-2xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 text-white bg-primary font-bold self-start md:self-auto"
-          >
-            <Plus size={20} />
-            <span>Add New Program</span>
-          </button>
-        )}
+
+
       </div>
 
       {/* Tabs Menu */}
       <div className="flex border-b border-border/30 gap-6">
         <button
           onClick={() => setActiveTab('programs')}
-          className={`pb-4 text-lg font-black tracking-tight relative transition-all ${
-            activeTab === 'programs' 
-              ? 'text-primary' 
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
+          className={`pb-4 text-lg font-black tracking-tight relative transition-all ${activeTab === 'programs'
+            ? 'text-primary'
+            : 'text-muted-foreground hover:text-foreground'
+            }`}
         >
           {activeTab === 'programs' && (
             <span className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />
           )}
           Learning Packages ({programs.length})
         </button>
-        
+
         <button
           onClick={() => setActiveTab('enrollments')}
-          className={`pb-4 text-lg font-black tracking-tight relative transition-all ${
-            activeTab === 'enrollments' 
-              ? 'text-primary' 
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
+          className={`pb-4 text-lg font-black tracking-tight relative transition-all ${activeTab === 'enrollments'
+            ? 'text-primary'
+            : 'text-muted-foreground hover:text-foreground'
+            }`}
         >
           {activeTab === 'enrollments' && (
             <span className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />
@@ -412,11 +1045,10 @@ export default function ProgramsManagement() {
 
         <button
           onClick={() => setActiveTab('demos')}
-          className={`pb-4 text-lg font-black tracking-tight relative transition-all ${
-            activeTab === 'demos' 
-              ? 'text-primary' 
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
+          className={`pb-4 text-lg font-black tracking-tight relative transition-all ${activeTab === 'demos'
+            ? 'text-primary'
+            : 'text-muted-foreground hover:text-foreground'
+            }`}
         >
           {activeTab === 'demos' && (
             <span className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />
@@ -428,16 +1060,26 @@ export default function ProgramsManagement() {
       {/* Tab 1: Learning Packages */}
       {activeTab === 'programs' && (
         <div className="space-y-6">
-          {/* Search bar */}
-          <div className="flex items-center gap-4 bg-white/50 backdrop-blur-md border border-border/50 rounded-2xl p-3 shadow-sm max-w-md">
-            <Search className="text-muted-foreground" size={20} />
-            <input 
-              type="text" 
-              placeholder="Search programs..." 
-              value={programSearch}
-              onChange={(e) => setProgramSearch(e.target.value)}
-              className="bg-transparent border-none outline-none w-full text-foreground placeholder:text-muted-foreground/60 font-semibold"
-            />
+          {/* Search & Actions bar */}
+          <div className="flex items-center justify-between gap-4 bg-white/50 backdrop-blur-md border border-border/50 rounded-2xl p-3 shadow-sm">
+            <div className="flex items-center gap-4 bg-secondary/35 rounded-xl px-4 py-2 border border-border/50 w-full max-w-md">
+              <Search className="text-muted-foreground shrink-0" size={18} />
+              <input
+                type="text"
+                placeholder="Search programs..."
+                value={programSearch}
+                onChange={(e) => setProgramSearch(e.target.value)}
+                className="bg-transparent border-none outline-none w-full text-sm font-semibold placeholder:text-muted-foreground/60 text-slate-800"
+              />
+            </div>
+
+            <button
+              onClick={handleOpenCreateModal}
+              className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl shadow-md text-white bg-primary text-xs font-bold transition-all hover:scale-105 active:scale-95"
+            >
+              <Plus size={16} />
+              <span>Add New Program</span>
+            </button>
           </div>
 
           {loadingPrograms ? (
@@ -450,133 +1092,207 @@ export default function ProgramsManagement() {
               No programs found matching your search. Try adding one!
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredPrograms.map((program) => (
-                <div 
-                  key={program.id} 
-                  className={`glass-card rounded-[2.5rem] border border-border/30 shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col bg-white/80 group ${
-                    !program.isActive ? 'opacity-70' : ''
-                  }`}
-                >
-                  {/* Card Header Gradient */}
-                  <div className={`bg-gradient-to-r p-6 text-white flex flex-col gap-2 relative shadow-lg ${getGradientClass(program.title)}`}>
-                    <div className="flex justify-between items-start">
-                      <span className="text-xs font-black uppercase tracking-widest bg-white/25 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 shadow-sm">
-                        {program.classRange}
-                      </span>
-                      
-                      <div className="flex items-center gap-1.5 bg-white/25 backdrop-blur-sm px-2.5 py-1 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-wider">
-                        <div className={`w-1.5 h-1.5 rounded-full ${program.isActive ? 'bg-emerald-300 animate-pulse' : 'bg-amber-300'}`} />
-                        {program.isActive ? 'Active' : 'Draft'}
-                      </div>
-                    </div>
-                    
-                    <h3 className="text-3xl font-black tracking-tight mt-2 leading-none">{program.title}</h3>
-                    <p className="text-white/90 text-sm font-semibold italic mt-1 line-clamp-1">"{program.tagline}"</p>
-                  </div>
-
-                  {/* Card Body */}
-                  <div className="p-6 flex-1 flex flex-col gap-6">
-                    {/* Program Stats */}
-                    <div className="grid grid-cols-2 gap-4 bg-secondary/30 rounded-2xl p-4 border border-border/40">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center shrink-0">
-                          <Layers size={18} />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground/80 leading-none">Sessions</p>
-                          <p className="text-sm font-extrabold mt-1">{program.sessions} Sessions</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center shrink-0">
-                          <Clock size={18} />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground/80 leading-none">Duration</p>
-                          <p className="text-sm font-extrabold mt-1">{program.duration}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Description */}
-                    {program.description && (
-                      <p className="text-xs text-muted-foreground leading-relaxed font-medium line-clamp-3">
-                        {program.description}
-                      </p>
-                    )}
-
-                    {/* Topics Pill List */}
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-2">Curriculum Topics</p>
-                      <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
-                        {program.topics && program.topics.map((topic, index) => (
-                          <span 
-                            key={index}
-                            className="text-[10px] font-bold bg-primary/5 text-primary border border-primary/10 px-2.5 py-1 rounded-lg"
-                          >
-                            {topic}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Spacer */}
-                    <div className="flex-grow" />
-
-                    {/* Pricing Tiers */}
-                    <div className="border-t border-border/30 pt-6 grid grid-cols-2 gap-4">
-                      <div className="bg-secondary/40 p-3.5 rounded-2xl border border-border/40 flex flex-col justify-between">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/80">1:1 Private</span>
-                        <div className="mt-1">
-                          <span className="text-lg font-black text-foreground">₹{program.pricePrivate.toLocaleString()}</span>
-                          <span className="text-[10px] text-muted-foreground font-semibold">/mo</span>
-                        </div>
-                      </div>
-                      
-                      <div className="bg-secondary/40 p-3.5 rounded-2xl border border-border/40 flex flex-col justify-between">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/80">Group (4 Girls)</span>
-                        <div className="mt-1">
-                          <span className="text-lg font-black text-foreground">₹{program.priceGroup.toLocaleString()}</span>
-                          <span className="text-[10px] text-muted-foreground font-semibold">/mo</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Card Actions Footer */}
-                  <div className="p-6 bg-secondary/10 border-t border-border/30 flex justify-between items-center gap-3">
-                    <button
-                      onClick={() => toggleProgramStatus(program)}
-                      className={`px-4 py-2 rounded-xl text-xs font-black shadow-sm border transition-all ${
-                        program.isActive 
-                          ? 'bg-amber-500/5 hover:bg-amber-500/10 text-amber-500 border-amber-500/10' 
-                          : 'bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-500 border-emerald-500/10'
-                      }`}
+            <div className="flex flex-col lg:flex-row gap-8 items-start">
+              {/* Left Column: Selector List (42%) */}
+              <div className="w-full lg:w-[42%] space-y-4 max-h-[75vh] overflow-y-auto pr-2 animate-in slide-in-from-left duration-300">
+                {filteredPrograms.map((program) => {
+                  const isSelected = activeProgram?.id === program.id;
+                  return (
+                    <div
+                      key={program.id}
+                      onClick={() => setActiveProgram(program)}
+                      className={`cursor-pointer p-5 rounded-3xl border transition-all duration-300 flex flex-col gap-3 relative overflow-hidden bg-white hover:shadow-lg ${isSelected
+                        ? 'border-primary ring-2 ring-primary/20 shadow-md shadow-primary/5 bg-primary/[0.005]'
+                        : 'border-border/40 hover:border-border'
+                        }`}
                     >
-                      {program.isActive ? 'Set Draft' : 'Publish'}
-                    </button>
+                      {/* Left vertical theme accent border */}
+                      <div className={`absolute top-0 left-0 bottom-0 w-1.5 bg-gradient-to-b ${getGradientClass(program.title)}`} />
 
-                    <div className="flex gap-2">
+                      <div className="flex justify-between items-start pl-2">
+                        <div className="flex gap-4">
+                          {program.thumbnailUrl && (
+                            <img src={program.thumbnailUrl} alt={program.title} className="w-16 h-16 rounded-2xl object-cover shrink-0 border border-slate-200" />
+                          )}
+                          <div>
+                            <span className="text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-md border border-slate-200">
+                              {program.classRange}
+                            </span>
+                            <h3 className="text-xl font-black text-slate-800 tracking-tight mt-1.5 transition-colors">
+                              {program.title}
+                            </h3>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-end gap-1.5">
+                          <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${program.isActive
+                            ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/10'
+                            : 'bg-amber-500/10 text-amber-600 border-amber-500/10'
+                            }`}>
+                            {program.isActive ? 'Active' : 'Draft'}
+                          </span>
+                          <span className="text-[10px] font-bold text-slate-500">
+                            {program.sessions} Sessions • {program.duration}
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-muted-foreground line-clamp-1 italic pl-2">
+                        "{program.tagline}"
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Right Column: Preview Pane (58%) */}
+              <div className="w-full lg:w-[58%] lg:sticky lg:top-6 bg-white border border-border/30 rounded-[2.5rem] shadow-xl overflow-hidden flex flex-col max-h-[75vh] animate-in slide-in-from-right duration-300">
+                {activeProgram ? (
+                  <div className="flex flex-col h-full overflow-y-auto">
+                    {/* Header banner matching program color theme */}
+                    <div className={`bg-gradient-to-r p-6 text-white flex flex-col gap-2 relative shadow-md shrink-0 overflow-hidden ${getGradientClass(activeProgram.title)}`}>
+                      {activeProgram.thumbnailUrl && (
+                        <div className="absolute inset-0 z-0">
+                          <img src={activeProgram.thumbnailUrl} alt={activeProgram.title} className="w-full h-full object-cover opacity-20" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                        </div>
+                      )}
+                      <div className="relative z-10 flex justify-between items-start">
+                        <span className="text-xs font-black uppercase tracking-widest bg-white/25 backdrop-blur-sm px-3.5 py-1 rounded-full border border-white/10 shadow-sm">
+                          {activeProgram.classRange}
+                        </span>
+
+                        <div className="flex items-center gap-1.5 bg-white/25 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-wider">
+                          <div className={`w-1.5 h-1.5 rounded-full ${activeProgram.isActive ? 'bg-emerald-300 animate-pulse' : 'bg-amber-300'}`} />
+                          {activeProgram.isActive ? 'Active' : 'Draft'}
+                        </div>
+                      </div>
+
+                      <div className="relative z-10 flex gap-5 mt-2 items-end">
+                        {activeProgram.thumbnailUrl && (
+                          <img src={activeProgram.thumbnailUrl} alt={activeProgram.title} className="w-24 h-24 rounded-2xl object-cover border-2 border-white/30 shadow-lg shrink-0 bg-white/10 backdrop-blur-sm" />
+                        )}
+                        <div className="pb-1">
+                          <h2 className="text-3.5xl font-black tracking-tight leading-none">{activeProgram.title}</h2>
+                          <p className="text-white/95 text-base font-semibold italic mt-2 leading-snug">"{activeProgram.tagline}"</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Detailed info panel */}
+                    <div className="p-6 space-y-6 flex-1">
+                      {/* Overview */}
+                      <div>
+                        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Program Overview</h4>
+                        <p className="text-xs text-slate-600 leading-relaxed font-semibold">
+                          {activeProgram.description || 'A structured cohort curriculum designed to guide and uplift young girls during critical development years.'}
+                        </p>
+                      </div>
+
+                      {/* Pricing Tiers & Config stats */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="bg-slate-50 border border-border/40 p-3 rounded-2xl text-center">
+                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Duration</span>
+                          <span className="text-sm font-black text-slate-800 block mt-1">{activeProgram.duration}</span>
+                        </div>
+                        <div className="bg-slate-50 border border-border/40 p-3 rounded-2xl text-center">
+                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Total Sessions</span>
+                          <span className="text-sm font-black text-slate-800 block mt-1">{activeProgram.sessions} Sessions</span>
+                        </div>
+                        <div className="bg-slate-50 border border-border/40 p-3 rounded-2xl text-center">
+                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">1:1 Private Price</span>
+                          <span className="text-sm font-black text-slate-800 block mt-1">₹{activeProgram.pricePrivate.toLocaleString()} <span className="text-[9px] text-slate-400 font-normal">/mo</span></span>
+                        </div>
+                        <div className="bg-slate-50 border border-border/40 p-3 rounded-2xl text-center">
+                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Group Price</span>
+                          <span className="text-sm font-black text-slate-800 block mt-1">₹{activeProgram.priceGroup.toLocaleString()} <span className="text-[9px] text-slate-400 font-normal">/mo</span></span>
+                        </div>
+                      </div>
+
+                      {/* Curriculum Topics */}
+                      {activeProgram.topics && activeProgram.topics.length > 0 && (
+                        <div>
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Curriculum Focus Topics</h4>
+                          <div className="flex flex-wrap gap-1.5">
+                            {activeProgram.topics.map((topic, i) => (
+                              <span key={i} className="text-[10px] font-extrabold bg-primary/5 text-primary border border-primary/10 px-3 py-1 rounded-lg">
+                                {topic}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Visual Timeline Curriculum Roadmap */}
+                      <div>
+                        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Curriculum Sessions Roadmap</h4>
+                        {activeProgram.sessionsList && activeProgram.sessionsList.length > 0 ? (
+                          <div className="relative pl-6 border-l border-slate-200 space-y-4">
+                            {activeProgram.sessionsList.map((session, idx) => (
+                              <div
+                                key={idx}
+                                className="bg-slate-50/50 border border-border/30 p-4 rounded-2xl relative group hover:bg-slate-50 transition-colors overflow-hidden min-h-[72px] flex flex-col justify-center"
+                                style={{
+                                  backgroundImage: session.thumbnailUrl ? `linear-gradient(to right, rgba(255, 255, 255, 0.95) 50%, rgba(255, 255, 255, 0.8)), url(${session.thumbnailUrl})` : undefined,
+                                  backgroundSize: 'cover',
+                                  backgroundPosition: 'right center',
+                                }}
+                              >
+                                <span className={`absolute -left-[33px] top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black border-2 border-white text-white bg-primary shadow-sm`}>
+                                  {idx + 1}
+                                </span>
+                                <h5 className="text-xs font-black text-slate-800 leading-tight relative z-10">{session.title}</h5>
+                                <p className="text-[11px] text-slate-500 font-medium mt-1 leading-relaxed relative z-10">{session.description}</p>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-slate-450 italic font-semibold pl-2">No sessions defined in curriculum. Add them by editing the program.</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Preview Actions Footer */}
+                    <div className="p-5 bg-secondary/10 border-t border-border/30 flex justify-between items-center gap-3 shrink-0">
                       <button
-                        onClick={() => handleOpenEditModal(program)}
-                        className="p-2.5 bg-secondary hover:bg-primary/10 hover:text-primary transition-all rounded-xl border border-border/50 text-muted-foreground shadow-sm"
-                        title="Edit Curriculum"
+                        onClick={() => toggleProgramStatus(activeProgram)}
+                        className={`px-4 py-2 rounded-xl text-xs font-black shadow-sm border transition-all ${activeProgram.isActive
+                          ? 'bg-amber-500/5 hover:bg-amber-500/10 text-amber-500 border-amber-500/10'
+                          : 'bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-500 border-emerald-500/10'
+                          }`}
                       >
-                        <Edit size={16} />
+                        {activeProgram.isActive ? 'Set Draft' : 'Publish'}
                       </button>
-                      <button
-                        onClick={() => handleDeleteProgram(program.id)}
-                        className="p-2.5 bg-secondary hover:bg-rose-500/10 hover:text-rose-500 transition-all rounded-xl border border-border/50 text-muted-foreground shadow-sm"
-                        title="Delete Program"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleOpenEditModal(activeProgram)}
+                          className="flex items-center gap-1.5 px-4 py-2 bg-secondary hover:bg-primary/10 hover:text-primary transition-all rounded-xl border border-border/50 text-xs font-black text-muted-foreground shadow-sm"
+                        >
+                          <Edit size={14} />
+                          <span>Edit Program</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            handleDeleteProgram(activeProgram.id);
+                            setActiveProgram(null);
+                          }}
+                          className="p-2 bg-secondary hover:bg-rose-500/10 hover:text-rose-500 transition-all rounded-xl border border-border/50 text-muted-foreground shadow-sm"
+                          title="Delete Program"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ) : (
+                  <div className="min-h-[50vh] flex flex-col items-center justify-center text-center p-8 gap-3">
+                    <Layers className="text-muted-foreground/30" size={48} />
+                    <p className="font-extrabold text-muted-foreground text-sm">No learning package selected</p>
+                    <p className="text-xs text-muted-foreground/60 max-w-xs font-semibold">Select any program package on the left to inspect and audit its curriculum roadmap.</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -589,33 +1305,53 @@ export default function ProgramsManagement() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/50 backdrop-blur-md border border-border/50 rounded-2xl p-4 shadow-sm">
             <div className="flex items-center gap-4 bg-secondary/50 rounded-xl px-4 py-2 border border-border/50 w-full md:max-w-md">
               <Search className="text-muted-foreground shrink-0" size={18} />
-              <input 
-                type="text" 
-                placeholder="Search by student, username, phone, or parent email..." 
+              <input
+                type="text"
+                placeholder="Search by student, username, phone, or parent email..."
                 value={enrollmentSearch}
                 onChange={(e) => setEnrollmentSearch(e.target.value)}
                 className="bg-transparent border-none outline-none w-full text-sm font-semibold placeholder:text-muted-foreground/60 text-foreground"
               />
             </div>
-            
-            <div className="flex items-center gap-3 shrink-0 self-start md:self-auto">
-              <Filter className="text-muted-foreground" size={16} />
-              <span className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Status:</span>
-              <div className="flex bg-secondary/50 rounded-xl p-1 border border-border/50 font-bold text-xs">
-                {['ALL', 'ACTIVE', 'COMPLETED', 'CANCELLED'].map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => setStatusFilter(status)}
-                    className={`px-3 py-1.5 rounded-lg transition-all capitalize ${
-                      statusFilter === status 
-                        ? 'bg-primary text-white shadow-md' 
+            <div className="flex flex-wrap items-center gap-4 self-start md:self-auto">
+              <div className="flex items-center gap-3 shrink-0">
+                <Filter className="text-muted-foreground" size={16} />
+                <span className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Status:</span>
+                <div className="flex bg-secondary/50 rounded-xl p-1 border border-border/50 font-bold text-xs">
+                  {['ALL', 'ACTIVE', 'SUSPENDED', 'COMPLETED', 'CANCELLED'].map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => setStatusFilter(status)}
+                      className={`px-3 py-1.5 rounded-lg transition-all capitalize ${statusFilter === status
+                        ? 'bg-primary text-white shadow-md'
                         : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    {status.toLowerCase()}
-                  </button>
-                ))}
+                        }`}
+                    >
+                      {status.toLowerCase()}
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              <button
+                onClick={() => {
+                  setAddStudentName('');
+                  setAddStudentPhone('');
+                  setAddStudentEmail('');
+                  setAddStudentRole('PARENT');
+                  setAddStudentProgramId(programs[0]?.id || '');
+                  setAddStudentType('PRIVATE');
+                  setAddStudentPricePaid('');
+                  setEnrollStep(1);
+                  setExistingUserData(null);
+                  setShowAddStudentModal(true);
+                }}
+                className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl shadow-md text-white bg-primary text-xs font-bold transition-all hover:scale-105 active:scale-95"
+              >
+
+                <Plus size={16} />
+                <span>Add Student</span>
+              </button>
             </div>
           </div>
 
@@ -643,19 +1379,32 @@ export default function ProgramsManagement() {
                       <th className="p-6 text-right">Actions</th>
                     </tr>
                   </thead>
-                  
+
                   <tbody className="divide-y divide-border/30">
                     {filteredEnrollments.map((enrollment) => (
                       <tr key={enrollment.id} className="hover:bg-primary/[0.01] transition-all group">
                         {/* Student Info */}
                         <td className="p-6">
                           <div className="flex items-center gap-4">
-                            <div className="w-11 h-11 bg-primary/10 text-primary rounded-full font-black text-lg flex items-center justify-center">
-                              {(enrollment.user.profile?.displayName?.[0] || enrollment.user.username?.[0] || 'U').toUpperCase()}
+                            <div className="w-11 h-11 rounded-full overflow-hidden flex items-center justify-center bg-primary/10 text-primary font-black text-lg shrink-0">
+                              {enrollment.user.profile?.avatarUrl ? (
+                                <img
+                                  src={enrollment.user.profile.avatarUrl}
+                                  alt={enrollment.user.profile.displayName || 'Avatar'}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                (enrollment.user.profile?.displayName?.[0] || enrollment.user.username?.[0] || 'U').toUpperCase()
+                              )}
                             </div>
                             <div>
-                              <p className="font-extrabold text-base tracking-tight text-foreground group-hover:text-primary transition-colors">
-                                {enrollment.user.profile?.displayName || enrollment.user.username || 'Anonymous User'}
+                              <p className="font-extrabold text-base tracking-tight text-foreground group-hover:text-primary transition-colors flex items-center gap-2 flex-wrap">
+                                <span>{enrollment.user.profile?.displayName || enrollment.user.username || 'Anonymous User'}</span>
+                                {enrollment.user.role && (
+                                  <span className="text-[9px] font-bold px-1.5 py-0.5 bg-slate-100 text-slate-500 border border-slate-200 rounded shrink-0">
+                                    {enrollment.user.role.charAt(0) + enrollment.user.role.slice(1).toLowerCase()}
+                                  </span>
+                                )}
                               </p>
                               <div className="flex flex-col gap-1 mt-1 text-xs text-muted-foreground font-semibold">
                                 <span className="flex items-center gap-1.5">
@@ -688,15 +1437,14 @@ export default function ProgramsManagement() {
                         {/* Tier & Price */}
                         <td className="p-6">
                           <div className="space-y-1">
-                            <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${
-                              enrollment.type === 'PRIVATE' 
-                                ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20' 
-                                : 'bg-sky-500/10 text-sky-600 border-sky-500/20'
-                            }`}>
+                            <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${enrollment.type === 'PRIVATE'
+                              ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20'
+                              : 'bg-sky-500/10 text-sky-600 border-sky-500/20'
+                              }`}>
                               <CreditCard size={10} />
                               {enrollment.type === 'PRIVATE' ? '1:1 Private' : 'Group Cohort'}
                             </span>
-                            
+
                             <p className="font-black text-sm text-foreground flex items-center">
                               ₹{enrollment.pricePaid.toLocaleString()}
                             </p>
@@ -717,17 +1465,18 @@ export default function ProgramsManagement() {
 
                         {/* Status */}
                         <td className="p-6">
-                          <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 border shadow-sm ${
-                            enrollment.status === 'ACTIVE'
-                              ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                          <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 border shadow-sm ${enrollment.status === 'ACTIVE'
+                            ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                            : enrollment.status === 'SUSPENDED'
+                              ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
                               : enrollment.status === 'COMPLETED'
-                              ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20'
-                              : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
-                          }`}>
-                            <div className={`w-1.5 h-1.5 rounded-full ${
-                              enrollment.status === 'ACTIVE' ? 'bg-emerald-500 animate-pulse' :
-                              enrollment.status === 'COMPLETED' ? 'bg-indigo-500' : 'bg-rose-500'
-                            }`} />
+                                ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20'
+                                : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                            }`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${enrollment.status === 'ACTIVE' ? 'bg-emerald-500 animate-pulse' :
+                              enrollment.status === 'SUSPENDED' ? 'bg-amber-500' :
+                                enrollment.status === 'COMPLETED' ? 'bg-indigo-500' : 'bg-rose-500'
+                              }`} />
                             {enrollment.status}
                           </span>
                         </td>
@@ -735,34 +1484,20 @@ export default function ProgramsManagement() {
                         {/* Actions */}
                         <td className="p-6 text-right">
                           <div className="flex justify-end gap-1.5">
-                            {enrollment.status === 'ACTIVE' && (
-                              <>
-                                <button
-                                  onClick={() => handleUpdateEnrollmentStatus(enrollment.id, 'COMPLETED')}
-                                  title="Mark as Completed"
-                                  className="p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-500/15 rounded-xl transition-all shadow-sm"
-                                >
-                                  <Check size={14} className="stroke-[3px]" />
-                                </button>
-                                <button
-                                  onClick={() => handleUpdateEnrollmentStatus(enrollment.id, 'CANCELLED')}
-                                  title="Cancel Enrollment"
-                                  className="p-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-500/15 rounded-xl transition-all shadow-sm"
-                                >
-                                  <X size={14} className="stroke-[3px]" />
-                                </button>
-                              </>
-                            )}
-                            
-                            {(enrollment.status === 'COMPLETED' || enrollment.status === 'CANCELLED') && (
-                              <button
-                                onClick={() => handleUpdateEnrollmentStatus(enrollment.id, 'ACTIVE')}
-                                title="Re-activate Enrollment"
-                                className="p-2.5 bg-secondary hover:bg-primary/10 text-muted-foreground hover:text-primary border border-border/50 rounded-xl transition-all shadow-sm"
-                              >
-                                <RefreshCw size={14} className="stroke-[2.5px]" />
-                              </button>
-                            )}
+                            <button
+                              onClick={() => router.push(`/admin/programs/enrollments/${enrollment.id}`)}
+                              title="View Student Details & Manage Status"
+                              className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-500/15 rounded-xl transition-all shadow-sm flex items-center justify-center"
+                            >
+                              <Eye size={14} className="stroke-[3px]" />
+                            </button>
+                            <button
+                              onClick={() => router.push(`/admin/expert/enrollments/${enrollment.id}`)}
+                              title="View Schedule Details"
+                              className="p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all shadow-sm flex items-center justify-center"
+                            >
+                              <GoogleMeetIcon size={14} />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -782,15 +1517,15 @@ export default function ProgramsManagement() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/50 backdrop-blur-md border border-border/50 rounded-2xl p-4 shadow-sm">
             <div className="flex items-center gap-4 bg-secondary/50 rounded-xl px-4 py-2 border border-border/50 w-full md:max-w-md">
               <Search className="text-muted-foreground shrink-0" size={18} />
-              <input 
-                type="text" 
-                placeholder="Search by parent, phone, email, or program..." 
+              <input
+                type="text"
+                placeholder="Search by parent, phone, email, or program..."
                 value={demoSearch}
                 onChange={(e) => setDemoSearch(e.target.value)}
                 className="bg-transparent border-none outline-none w-full text-sm font-semibold placeholder:text-muted-foreground/60 text-foreground"
               />
             </div>
-            
+
             <div className="flex items-center gap-3 shrink-0 self-start md:self-auto">
               <Filter className="text-muted-foreground" size={16} />
               <span className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Status:</span>
@@ -799,11 +1534,10 @@ export default function ProgramsManagement() {
                   <button
                     key={status}
                     onClick={() => setDemoStatusFilter(status)}
-                    className={`px-3 py-1.5 rounded-lg transition-all capitalize ${
-                      demoStatusFilter === status 
-                        ? 'bg-primary text-white shadow-md' 
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
+                    className={`px-3 py-1.5 rounded-lg transition-all capitalize ${demoStatusFilter === status
+                      ? 'bg-primary text-white shadow-md'
+                      : 'text-muted-foreground hover:text-foreground'
+                      }`}
                   >
                     {status.toLowerCase()}
                   </button>
@@ -836,7 +1570,7 @@ export default function ProgramsManagement() {
                       <th className="p-6 text-right">Actions</th>
                     </tr>
                   </thead>
-                  
+
                   <tbody className="divide-y divide-border/30">
                     {filteredDemos.map((demo: DemoSession) => (
                       <tr key={demo.id} className="hover:bg-primary/[0.01] transition-all group">
@@ -922,20 +1656,18 @@ export default function ProgramsManagement() {
 
                         {/* Status badge */}
                         <td className="p-6">
-                          <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 border shadow-sm ${
-                            demo.status === 'PENDING' ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' :
+                          <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 border shadow-sm ${demo.status === 'PENDING' ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' :
                             demo.status === 'CONTACTED' ? 'bg-teal-500/10 text-teal-600 border-teal-500/20' :
-                            demo.status === 'SCHEDULED' ? 'bg-purple-500/10 text-purple-600 border-purple-500/20' :
-                            demo.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
-                            'bg-rose-500/10 text-rose-600 border-rose-500/20'
-                          }`}>
-                            <div className={`w-1.5 h-1.5 rounded-full ${
-                              demo.status === 'PENDING' ? 'bg-amber-500 animate-pulse' :
+                              demo.status === 'SCHEDULED' ? 'bg-purple-500/10 text-purple-600 border-purple-500/20' :
+                                demo.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
+                                  'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                            }`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${demo.status === 'PENDING' ? 'bg-amber-500 animate-pulse' :
                               demo.status === 'CONTACTED' ? 'bg-teal-500' :
-                              demo.status === 'SCHEDULED' ? 'bg-purple-500' :
-                              demo.status === 'COMPLETED' ? 'bg-emerald-500' :
-                              'bg-rose-500'
-                            }`} />
+                                demo.status === 'SCHEDULED' ? 'bg-purple-500' :
+                                  demo.status === 'COMPLETED' ? 'bg-emerald-500' :
+                                    'bg-rose-500'
+                              }`} />
                             {demo.status}
                           </span>
                         </td>
@@ -945,12 +1677,12 @@ export default function ProgramsManagement() {
                           <div className="flex justify-end gap-1.5">
                             <button
                               onClick={() => {
-                                setSelectedDemo(demo);
-                                setShowDemoModal(true);
+                                router.push(`/admin/programs/demos/${demo.id}`);
                               }}
-                              className="px-4 py-2 bg-secondary hover:bg-primary/10 hover:text-primary border border-border/50 text-xs font-black rounded-xl transition-all shadow-sm"
+                              title="view details"
+                              className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-500/15 rounded-xl transition-all shadow-sm"
                             >
-                              View Profile Details
+                              <Eye size={14} className="stroke-[3px]" />
                             </button>
                           </div>
                         </td>
@@ -964,249 +1696,26 @@ export default function ProgramsManagement() {
         </div>
       )}
 
-      {/* --- DEMO DETAILS MODAL --- */}
-      {showDemoModal && selectedDemo && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2.5rem] border border-border/30 shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto flex flex-col p-8 gap-6 animate-in zoom-in-95 duration-300">
+      {/* --- ADD STUDENT MODAL --- */}
+      {showAddStudentModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[250] flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] border border-border/30 shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto flex flex-col p-8 gap-6 animate-in zoom-in-95 duration-300">
             {/* Modal Header */}
             <div className="flex justify-between items-start border-b border-border/30 pb-5">
               <div>
                 <span className="inline-flex items-center gap-1 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest mb-2">
-                  <Award size={12} />
-                  Demo Session Request
+                  <Plus size={12} className="stroke-[3px]" />
+                  Manual Enrollment
                 </span>
-                <h2 className="text-3xl font-black tracking-tight text-foreground flex items-center gap-2">
-                  {selectedDemo.parentName}
+                <h2 className="text-2.5xl font-black tracking-tight text-slate-800">
+                  Add Student
                 </h2>
-                <p className="text-sm font-semibold text-muted-foreground mt-1">
-                  Requested on {new Date(selectedDemo.createdAt).toLocaleDateString('en-IN', {
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
+                <p className="text-xs font-semibold text-muted-foreground mt-1">
+                  Manually enroll a student to a program cohort.
                 </p>
               </div>
-              <button 
-                onClick={() => {
-                  setShowDemoModal(false);
-                  setSelectedDemo(null);
-                }}
-                className="p-2 hover:bg-secondary rounded-full transition-all border border-border/50 shadow-sm"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Modal Content Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Left Column: Quick Contact & Status Update */}
-              <div className="md:col-span-1 space-y-6 border-b md:border-b-0 md:border-r border-border/30 pb-6 md:pb-0 md:pr-6">
-                <div>
-                  <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-3">Parent Contact</h3>
-                  <div className="space-y-3 font-semibold text-sm">
-                    <a 
-                      href={`tel:${selectedDemo.phone}`}
-                      className="flex items-center gap-2.5 p-3 rounded-xl bg-secondary/50 border border-border/50 hover:border-primary/30 hover:text-primary transition-all text-foreground"
-                    >
-                      <Phone size={16} className="text-primary shrink-0" />
-                      <span className="break-all">{selectedDemo.phone}</span>
-                    </a>
-                    
-                    {selectedDemo.email ? (
-                      <a 
-                        href={`mailto:${selectedDemo.email}`}
-                        className="flex items-center gap-2.5 p-3 rounded-xl bg-secondary/50 border border-border/50 hover:border-primary/30 hover:text-primary transition-all text-foreground animate-in fade-in"
-                      >
-                        <Mail size={16} className="text-primary shrink-0" />
-                        <span className="break-all text-xs">{selectedDemo.email}</span>
-                      </a>
-                    ) : (
-                      <div className="flex items-center gap-2.5 p-3 rounded-xl bg-secondary/30 border border-border/30 text-muted-foreground italic text-xs">
-                        <Mail size={16} className="shrink-0 text-muted-foreground/60" />
-                        <span>No Email Provided</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground">Class Cohort</h3>
-                  <div className="px-4 py-3 bg-primary/5 text-primary border border-primary/10 rounded-2xl text-center">
-                    <span className="text-lg font-black">{selectedDemo.classRange}</span>
-                  </div>
-                </div>
-
-                {/* Requested Slot details card */}
-                <div className="space-y-3">
-                  <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1">
-                    <Clock size={12} className="text-primary shrink-0" /> Requested Slot
-                  </h3>
-                  {selectedDemo.slotDate && selectedDemo.slotTime ? (
-                    <div className="p-4 bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20 rounded-2xl flex flex-col gap-2 shadow-sm text-left">
-                      <div className="flex items-center gap-2 text-primary">
-                        <Calendar size={14} className="shrink-0" />
-                        <span className="text-xs font-black">
-                          {new Date(selectedDemo.slotDate).toLocaleDateString('en-IN', {
-                            weekday: 'short',
-                            day: '2-digit',
-                            month: 'long',
-                            year: 'numeric'
-                          })}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-primary">
-                        <Clock size={14} className="shrink-0" />
-                        <span className="text-xs font-black uppercase tracking-wider">{selectedDemo.slotTime}</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="px-4 py-3 bg-slate-50 text-slate-400 border border-slate-100 rounded-2xl text-center italic text-xs font-semibold">
-                      No slot requested
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-3">
-                  <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground">Booking Status</h3>
-                  
-                  {/* Status Picker Selector */}
-                  <div className="space-y-2">
-                    {(['PENDING', 'CONTACTED', 'SCHEDULED', 'COMPLETED', 'CANCELLED'] as const).map((status) => {
-                      const isCurrent = selectedDemo.status === status;
-                      return (
-                        <button
-                          key={status}
-                          onClick={() => handleUpdateDemoStatus(selectedDemo.id, status)}
-                          className={`w-full text-left px-4 py-2.5 rounded-xl border text-xs font-black transition-all flex items-center justify-between ${
-                            status === 'PENDING' ? 'hover:bg-amber-50 border-amber-500/20 ' + (isCurrent ? 'bg-amber-500/10 text-amber-600 border-amber-500/30 font-black ring-1 ring-amber-500/20' : 'text-slate-600') :
-                            status === 'CONTACTED' ? 'hover:bg-teal-50 border-teal-500/20 ' + (isCurrent ? 'bg-teal-500/10 text-teal-600 border-teal-500/30 font-black ring-1 ring-teal-500/20' : 'text-slate-600') :
-                            status === 'SCHEDULED' ? 'hover:bg-purple-50 border-purple-500/20 ' + (isCurrent ? 'bg-purple-500/10 text-purple-600 border-purple-500/30 font-black ring-1 ring-purple-500/20' : 'text-slate-600') :
-                            status === 'COMPLETED' ? 'hover:bg-emerald-50 border-emerald-500/20 ' + (isCurrent ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30 font-black ring-1 ring-emerald-500/20' : 'text-slate-600') :
-                            'hover:bg-rose-50 border-rose-500/20 ' + (isCurrent ? 'bg-rose-500/10 text-rose-600 border-rose-500/30 font-black ring-1 ring-rose-500/20' : 'text-slate-600')
-                          }`}
-                        >
-                          <span>{status}</span>
-                          {isCurrent && <Check size={14} className="stroke-[3px]" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column: Empathetic Assessment Profile */}
-              <div className="md:col-span-2 space-y-6">
-                <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1">
-                  <Sliders size={14} />
-                  Empathetic Child Assessment Profile
-                </h3>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Social Confidence */}
-                  <div className="bg-secondary/40 border border-border/40 rounded-2xl p-4 space-y-1">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Social Confidence</p>
-                    <p className="text-sm font-extrabold text-slate-800">{getConfidenceLabel(selectedDemo.confidence)}</p>
-                  </div>
-
-                  {/* Primary Interests */}
-                  <div className="bg-secondary/40 border border-border/40 rounded-2xl p-4 space-y-1">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Primary Development Focus</p>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {selectedDemo.interests.map((interest, i) => (
-                        <span key={i} className="text-xs font-extrabold text-slate-800">
-                          {getInterestsLabel(interest)}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Mentorship Support */}
-                  <div className="bg-secondary/40 border border-border/40 rounded-2xl p-4 space-y-1">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Mentorship Status</p>
-                    <p className="text-xs font-extrabold text-slate-800">{getHasMentorLabel(selectedDemo.hasMentor)}</p>
-                  </div>
-
-                  {/* Learning Preference */}
-                  <div className="bg-secondary/40 border border-border/40 rounded-2xl p-4 space-y-1">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Learning Preference</p>
-                    <p className="text-xs font-extrabold text-slate-800">{getLearningPrefLabel(selectedDemo.learningPref)}</p>
-                  </div>
-
-                  {/* Parental Involvement */}
-                  <div className="bg-secondary/40 border border-border/40 rounded-2xl p-4 space-y-1 sm:col-span-2">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Parent Involvement Level</p>
-                    <p className="text-xs font-extrabold text-slate-800">{getParentInvolvementLabel(selectedDemo.parentInvolvement)}</p>
-                  </div>
-                </div>
-
-                {/* Challenges Faced Checklist */}
-                <div className="space-y-2">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Growth Challenges in Past Year</p>
-                  {selectedDemo.challenges && selectedDemo.challenges.length > 0 ? (
-                    <div className="flex flex-wrap gap-1.5">
-                      {selectedDemo.challenges.map((challenge: string, idx: number) => (
-                        <span 
-                          key={idx}
-                          className="text-xs font-extrabold bg-rose-500/5 text-rose-500 border border-rose-500/10 px-3 py-1.5 rounded-xl flex items-center gap-1.5"
-                        >
-                          <span className="w-1.5 h-1.5 bg-rose-500 rounded-full shrink-0" />
-                          {getChallengesLabel(challenge)}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground/60 italic font-semibold">No challenges specified</p>
-                  )}
-                </div>
-
-                {/* Recommended Programs & Tiers */}
-                <div className="border-t border-border/30 pt-6 space-y-3">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Recommended Program Formats</p>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedDemo.suggestedPrograms.map((prog: string, idx: number) => (
-                      <span 
-                        key={idx} 
-                        className="text-xs font-black bg-primary/10 text-primary border border-primary/20 px-3.5 py-2 rounded-2xl shadow-sm inline-flex items-center gap-2"
-                      >
-                        <span className="w-2 h-2 bg-primary rounded-full shrink-0 animate-pulse" />
-                        {prog}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Actions Footer */}
-            <div className="border-t border-border/30 pt-6 flex justify-end gap-3 mt-2">
               <button
-                type="button"
-                onClick={() => {
-                  setShowDemoModal(false);
-                  setSelectedDemo(null);
-                }}
-                className="px-6 py-3.5 bg-secondary text-muted-foreground font-black rounded-2xl transition-all border border-border/50 shadow-sm"
-              >
-                Close View
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* --- ADD / EDIT PROGRAM DIALOG MODAL --- */}
-      {showModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2.5rem] border border-border/30 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto flex flex-col p-8 gap-6 animate-in zoom-in-95 duration-300">
-            {/* Modal Header */}
-            <div className="flex justify-between items-center border-b border-border/30 pb-4">
-              <h2 className="text-3xl font-black tracking-tight text-foreground">
-                {modalMode === 'create' ? 'Add New' : 'Edit'} <span className="text-primary">Program</span>
-              </h2>
-              <button 
-                onClick={() => setShowModal(false)}
+                onClick={() => setShowAddStudentModal(false)}
                 className="p-2 hover:bg-secondary rounded-full transition-all border border-border/50 shadow-sm"
               >
                 <X size={20} />
@@ -1214,234 +1723,176 @@ export default function ProgramsManagement() {
             </div>
 
             {/* Modal Form */}
-            <form onSubmit={handleFormSubmit} className="space-y-6">
-              {/* Title & Tagline */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Program Title *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. SPARK, RISE"
-                    value={formTitle}
-                    onChange={(e) => setFormTitle(e.target.value)}
-                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Tagline *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. She wakes up to herself."
-                    value={formTagline}
-                    onChange={(e) => setFormTagline(e.target.value)}
-                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold"
-                  />
-                </div>
-              </div>
+            <form onSubmit={handleSubmitWrapper} className="space-y-4">
 
-              {/* Description */}
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Long Description (Optional)</label>
-                <textarea
-                  placeholder="Explain what the learning program is about, who it is for, and the impact it will have on the student..."
-                  value={formDescription}
-                  onChange={(e) => setFormDescription(e.target.value)}
-                  rows={3}
-                  className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold leading-relaxed"
-                />
-              </div>
 
-              {/* Class Target & Limits */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Class Range Label *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Class 5-6"
-                    value={formClassRange}
-                    onChange={(e) => setFormClassRange(e.target.value)}
-                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Min Class (Eligibility) *</label>
-                  <input
-                    type="number"
-                    required
-                    min={1}
-                    max={12}
-                    value={formMinClass}
-                    onChange={(e) => setFormMinClass(Number(e.target.value))}
-                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground outline-none focus:border-primary/50 transition-all font-semibold"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Max Class (Eligibility) *</label>
-                  <input
-                    type="number"
-                    required
-                    min={1}
-                    max={12}
-                    value={formMaxClass}
-                    onChange={(e) => setFormMaxClass(Number(e.target.value))}
-                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground outline-none focus:border-primary/50 transition-all font-semibold"
-                  />
-                </div>
-              </div>
-
-              {/* Sessions, Duration, Status */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Total Sessions *</label>
-                  <input
-                    type="number"
-                    required
-                    min={1}
-                    value={formSessions}
-                    onChange={(e) => setFormSessions(Number(e.target.value))}
-                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground outline-none focus:border-primary/50 transition-all font-semibold"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Duration Label *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. 2 Months, 2.5 Months"
-                    value={formDuration}
-                    onChange={(e) => setFormDuration(e.target.value)}
-                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold"
-                  />
-                </div>
-
-                <div className="flex items-center gap-3 pt-6 px-1">
-                  <input
-                    type="checkbox"
-                    id="formIsActive"
-                    checked={formIsActive}
-                    onChange={(e) => setFormIsActive(e.target.checked)}
-                    className="w-5 h-5 accent-primary rounded cursor-pointer"
-                  />
-                  <label htmlFor="formIsActive" className="text-sm font-black uppercase tracking-wider text-foreground cursor-pointer select-none">
-                    Active / Published
-                  </label>
-                </div>
-              </div>
-
-              {/* Pricing Tiers */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-secondary/10 border border-border/40 rounded-2xl p-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">1:1 Private Price (₹ / mo) *</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-black">₹</span>
+              {enrollStep === 1 ? (
+                // Step 1: Only Ask Phone Number
+                <>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Phone Number *</label>
                     <input
-                      type="number"
+                      type="tel"
                       required
-                      min={0}
-                      value={formPricePrivate}
-                      onChange={(e) => setFormPricePrivate(Number(e.target.value))}
-                      className="w-full bg-white border border-border/50 rounded-2xl pl-10 pr-5 py-3.5 text-foreground outline-none focus:border-primary/50 transition-all font-semibold"
+                      placeholder="e.g. +919876543210"
+                      value={addStudentPhone}
+                      onChange={(e) => setAddStudentPhone(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
                     />
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Group Price (₹ / mo) *</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-black">₹</span>
-                    <input
-                      type="number"
-                      required
-                      min={0}
-                      value={formPriceGroup}
-                      onChange={(e) => setFormPriceGroup(Number(e.target.value))}
-                      className="w-full bg-white border border-border/50 rounded-2xl pl-10 pr-5 py-3.5 text-foreground outline-none focus:border-primary/50 transition-all font-semibold"
-                    />
+                  {/* Form Footer for Step 1 */}
+                  <div className="border-t border-border/30 pt-4 flex justify-end gap-3 mt-4 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddStudentModal(false)}
+                      className="px-5 py-2.5 bg-secondary text-muted-foreground font-bold rounded-xl transition-all border border-border/50 text-xs shadow-sm"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={checkingPhone}
+                      className="px-5 py-2.5 bg-primary text-white font-bold rounded-xl shadow-md flex items-center gap-1.5 text-xs transition-all hover:scale-105 active:scale-95"
+                    >
+                      {checkingPhone && <Loader2 className="animate-spin" size={14} />}
+                      <span>{checkingPhone ? 'Checking...' : 'Next'}</span>
+                    </button>
                   </div>
-                </div>
-              </div>
-
-              {/* Curriculum Topics Tags Manager */}
-              <div className="space-y-3">
-                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Curriculum Topics ({formTopics.length})</label>
-                
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    placeholder="Enter a new topic title (e.g. Body Unfiltered)"
-                    value={newTopicInput}
-                    onChange={(e) => setNewTopicInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleAddTopic();
-                      }
-                    }}
-                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddTopic}
-                    className="px-5 py-3 bg-secondary hover:bg-primary/10 hover:text-primary border border-border/50 text-muted-foreground text-sm font-black rounded-2xl transition-all whitespace-nowrap shadow-sm"
-                  >
-                    Add Topic
-                  </button>
-                </div>
-
-                {/* Topic tags output */}
-                <div className="flex flex-wrap gap-2 pt-2 border border-border/30 rounded-2xl p-4 bg-secondary/10 min-h-16">
-                  {formTopics.length === 0 ? (
-                    <span className="text-xs text-muted-foreground/60 font-semibold italic p-1">No topics added yet. Add some key sessions!</span>
-                  ) : (
-                    formTopics.map((topic, idx) => (
-                      <span 
-                        key={idx}
-                        className="inline-flex items-center gap-1.5 text-xs font-extrabold bg-primary/10 text-primary px-3 py-1.5 border border-primary/20 rounded-xl"
-                      >
-                        {topic}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveTopic(idx)}
-                          className="hover:bg-primary/25 rounded-full p-0.5 transition-all text-primary"
-                        >
-                          <X size={12} className="stroke-[2.5px]" />
-                        </button>
+                </>
+              ) : (
+                // Step 2: Show phone (read-only) and ask remaining details
+                <>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1 font-heading">Phone Number</label>
+                    <div className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold text-slate-500 shadow-sm flex items-center justify-between">
+                      <span>{addStudentPhone}</span>
+                      <span className="text-[10px] bg-slate-200 text-slate-650 px-2 py-0.5 rounded-full font-black">
+                        Verified
                       </span>
-                    ))
-                  )}
-                </div>
-              </div>
+                    </div>
+                  </div>
 
-              {/* Modal Actions Footer */}
-              <div className="border-t border-border/30 pt-6 flex justify-end gap-3 mt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  disabled={submitting}
-                  className="px-6 py-3.5 bg-secondary text-muted-foreground font-black rounded-2xl transition-all border border-border/50 shadow-sm"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-6 py-3.5 bg-primary text-white font-bold rounded-2xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
-                >
-                  {submitting && <Loader2 className="animate-spin" size={18} />}
-                  <span>{submitting ? 'Saving...' : 'Save Curriculum'}</span>
-                </button>
-              </div>
+                  {existingUserData?.exists && (
+                    <div className="bg-emerald-50 border border-emerald-250 text-emerald-800 rounded-xl p-3 text-xs font-semibold flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                      Existing user profile found. Details auto-filled!
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Student / Parent Name *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Anjali Sharma"
+                      value={addStudentName}
+                      onChange={(e) => setAddStudentName(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Email Address (Optional)</label>
+                    <input
+                      type="email"
+                      placeholder="e.g. email@domain.com"
+                      value={addStudentEmail}
+                      onChange={(e) => setAddStudentEmail(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-[#FAFBFE] border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">User Role *</label>
+                      <select
+                        required
+                        value={addStudentRole}
+                        onChange={(e) => setAddStudentRole(e.target.value as any)}
+                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-750 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm cursor-pointer"
+                      >
+                        <option value="PARENT">Parent</option>
+                        <option value="TEEN">Teen</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Format *</label>
+                      <select
+                        required
+                        value={addStudentType}
+                        onChange={(e) => setAddStudentType(e.target.value as any)}
+                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-750 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm cursor-pointer"
+                      >
+                        <option value="PRIVATE">1:1 Private</option>
+                        <option value="GROUP">Group Cohort</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Program *</label>
+                    <select
+                      required
+                      value={addStudentProgramId}
+                      onChange={(e) => setAddStudentProgramId(e.target.value)}
+                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-750 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm cursor-pointer"
+                    >
+                      <option value="">Select a Program</option>
+                      {programs.map((prog) => (
+                        <option key={prog.id} value={prog.id}>
+                          {prog.title} ({prog.classRange})
+                        </option>
+                      ))}
+                    </select>
+                    {existingUserData?.exists && addStudentProgramId && existingUserData.enrolledProgramIds.includes(addStudentProgramId) && (
+                      <p className="text-red-500 text-xs font-semibold mt-1">
+                        This user is already enrolled in the selected program.
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Custom Price Paid (Optional)</label>
+                    <input
+                      type="number"
+                      placeholder="Defaults to Program standard price"
+                      value={addStudentPricePaid}
+                      onChange={(e) => setAddStudentPricePaid(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-[#FAFBFE] border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+                    />
+                  </div>
+
+                  {/* Form Footer for Step 2 */}
+                  <div className="border-t border-border/30 pt-4 flex justify-end gap-3 mt-4 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEnrollStep(1);
+                        setExistingUserData(null);
+                      }}
+                      className="px-5 py-2.5 bg-secondary text-muted-foreground font-bold rounded-xl transition-all border border-border/50 text-xs shadow-sm"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={addStudentSubmitting || (!!existingUserData?.exists && !!addStudentProgramId && existingUserData.enrolledProgramIds.includes(addStudentProgramId))}
+                      className="px-5 py-2.5 bg-primary text-white font-bold rounded-xl shadow-md flex items-center gap-1.5 text-xs transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:pointer-events-none"
+                    >
+                      {addStudentSubmitting && <Loader2 className="animate-spin" size={14} />}
+                      <span>{addStudentSubmitting ? 'Enrolling...' : 'Confirm Enrollment'}</span>
+                    </button>
+                  </div>
+                </>
+              )}
             </form>
+
           </div>
         </div>
       )}
+
     </div>
   );
 }

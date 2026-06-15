@@ -20,7 +20,7 @@ const OPTIONS = [
     desc: "Enrol directly through the website or app. Includes full app access for your daughter and the parent dashboard.",
     icon: <Home size={32} />,
     linkText: 'Enrol Now',
-    href: '/parents-enquiry',
+    href: '/program-enrollment',
     color: 'bg-primary/10',
     borderColor: 'border-primary/20',
     iconColor: 'text-primary',

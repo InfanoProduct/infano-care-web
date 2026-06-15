@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { LearningJourney } from '../services/learning-api';
 import { X, Save, Image as ImageIcon, Target, Hash, MessageSquare, Shield } from 'lucide-react';
+import ImageUploader from '@/components/upload/ImageUploader';
 
 interface JourneyFormProps {
   initialData?: Partial<LearningJourney>;
@@ -110,23 +111,13 @@ export function JourneyForm({ initialData, onSubmit, onClose, title }: JourneyFo
                <h4 className="font-black text-lg text-slate-800">Visuals & Branding</h4>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Banner Image URL</label>
-                <input 
-                  value={formData.bannerImage}
-                  onChange={e => setFormData({...formData, bannerImage: e.target.value})}
-                  className="w-full px-6 py-4 bg-slate-50 border border-border rounded-[1.25rem] focus:ring-4 focus:ring-primary/10 focus:border-primary/30 outline-none font-bold text-slate-700 transition-all"
-                  placeholder="https://..."
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Thumbnail URL</label>
-                <input 
+                <ImageUploader
                   value={formData.thumbnailUrl}
-                  onChange={e => setFormData({...formData, thumbnailUrl: e.target.value})}
-                  className="w-full px-6 py-4 bg-slate-50 border border-border rounded-[1.25rem] focus:ring-4 focus:ring-primary/10 focus:border-primary/30 outline-none font-bold text-slate-700 transition-all"
-                  placeholder="https://..."
+                  onUpload={(url) => setFormData({ ...formData, thumbnailUrl: url })}
+                  label="Thumbnail Image"
+                  folder="journeys"
                 />
               </div>
             </div>

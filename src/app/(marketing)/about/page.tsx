@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: 'https://infano.care/about',
     images: [
       {
-        url: '/og-images/landing-og-image.png',
+        url: '/og-images/about-og.png',
         width: 1200,
         height: 630,
         alt: 'About Infano Care',
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'About Us | Our Mission & Experts | Infano Care',
     description: "Learn about Infano Care's journey, our mission to transform adolescent female healthcare and education in India, and the expert medical council guiding our puberty programs.",
-    images: ['/og-images/landing-og-image.png'],
+    images: ['/og-images/about-og.png'],
   },
 };
 

@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     url: 'https://infano.care/parents',
     images: [
       {
-        url: '/og-images/landing-og-image.png',
+        url: '/og-images/parent-og.png',
         width: 1200,
         height: 630,
         alt: 'Infano Parents Programme',
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Parents Programme | Support Your Daughter Through Puberty | Infano Care',
     description: 'Empower your daughter during female puberty with clinical guidance, parent tracking, and empathetic resources built for modern families.',
-    images: ['/og-images/landing-og-image.png'],
+    images: ['/og-images/parent-og.png'],
   },
 };
 
@@ -49,7 +49,7 @@ const parentServiceSchema = {
     "name": "Infano Care",
     "legalName": "BerryBird Technologies Private Limited",
     "url": "https://infano.care",
-    "email": "support@infano.care",
+    "email": "connect@infano.care",
     "telephone": "+91-9243019243"
   },
   "areaServed": { "@type": "Country", "name": "India" },
@@ -60,7 +60,7 @@ const parentServiceSchema = {
   "availableChannel": {
     "@type": "ServiceChannel",
     "name": "Enrol your daughter directly",
-    "serviceUrl": "https://infano.care/parents-enquiry",
+    "serviceUrl": "https://infano.care/program-enrollment",
     "availableLanguage": "English"
   },
   "serviceOutput": "Infano app access for daughter (ages 10–21), non-intrusive parent dashboard, weekly learning summary of modules and topics completed, wellness flags with parental notification on consent, monthly progress milestones and skill development tracking, curated weekly conversation starter prompts for use at home",
@@ -86,7 +86,7 @@ const parentServiceSchema = {
         "@type": "Offer",
         "name": "Direct Family Access",
         "description": "Enrol directly through the Infano website or app. Includes full app access for your daughter and the parent dashboard with weekly insights and conversation prompts.",
-        "url": "https://infano.care/parents-enquiry",
+        "url": "https://infano.care/program-enrollment",
         "itemOffered": { "@type": "Service", "name": "Infano app + parent dashboard — direct family enrolment" },
         "availability": "https://schema.org/InStock"
       },

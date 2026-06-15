@@ -93,79 +93,7 @@ const DEFAULT_STYLE = {
   metaBg: 'bg-white border-slate-100',
 };
 
-// Beautiful Static Data Fallback in case Backend is unreachable or empty during loading
-const STATIC_FALLBACK_PROGRAMS: Omit<Program, 'id' | 'createdAt' | 'updatedAt'>[] = [
-  {
-    title: 'SPARK',
-    tagline: 'She wakes up to herself.',
-    description: 'A foundational, sensitive entry point for girls beginning puberty.',
-    classRange: 'Class 5-6',
-    minClass: 5,
-    maxClass: 6,
-    sessions: 8,
-    duration: '2 Months',
-    topics: ['Body Unfiltered', 'Period. Full Stop.', 'Myth Busters: Family Edition', 'My Body My Boundary', 'The Filter Lie', 'Feel It to Deal It'],
-    pricePrivate: 6499,
-    priceGroup: 3999,
-    isActive: true,
-  },
-  {
-    title: 'RISE',
-    tagline: 'She learns who she is - and who gets access.',
-    description: 'Empowers girls with digital safety, consent frameworks, and emotional regulation.',
-    classRange: 'Class 6-7',
-    minClass: 6,
-    maxClass: 7,
-    sessions: 10,
-    duration: '2.5 Months',
-    topics: ['Consent Is Not Just About Sex', 'Grooming Has a Script', 'Your Digital Footprint Is Permanent', 'Red Flags & Green Flags', 'The Hormone Weather Report', 'Who Am I When No One Is Watching'],
-    pricePrivate: 7999,
-    priceGroup: 4999,
-    isActive: true,
-  },
-  {
-    title: 'BLOOM',
-    tagline: 'She faces the hard stuff before it faces her.',
-    description: 'Equips older girls with tools to tackle adolescent mental health and social dynamics.',
-    classRange: 'Class 7-8',
-    minClass: 7,
-    maxClass: 8,
-    sessions: 10,
-    duration: '2.5 Months',
-    topics: ['Anxiety Is Real - Not Drama', 'Depression Doesn\'t Look Like the Movies', 'Friendship Expiry Dates', 'The Comparison Trap', 'PCOS & Pain: Unfiltered', 'Safe Havens: Finding Help'],
-    pricePrivate: 9499,
-    priceGroup: 5999,
-    isActive: true,
-  },
-  {
-    title: 'IGNITE',
-    tagline: 'She learns how the world works - and how to work it.',
-    description: 'A powerful transition kit for leadership, confidence, and media literacy.',
-    classRange: 'Class 8-9',
-    minClass: 8,
-    maxClass: 9,
-    sessions: 12,
-    duration: '3 Months',
-    topics: ['Feminism: Not A Bad Word', 'Financial Literacy for Teen Girls', 'Negotiating Your Worth', 'Unmasking Media Influence', 'Leadership Under Pressure', 'Designing My Future'],
-    pricePrivate: 8999,
-    priceGroup: 5499,
-    isActive: true,
-  },
-  {
-    title: 'UNSTOPPABLE',
-    tagline: 'She walks into adult life prepared, not blindsided.',
-    description: 'The ultimate preparatory package to step into independent adulthood with confidence and complete clarity.',
-    classRange: 'Class 9-10',
-    minClass: 9,
-    maxClass: 10,
-    sessions: 12,
-    duration: '3 Months',
-    topics: ['Life on My Own Terms', 'Adulting 101: Survival Pack', 'Healthy Intimacy & Relationships', 'Career Blueprinting', 'Resilience: Bouncing Back Higher', 'Becoming My Own Anchor'],
-    pricePrivate: 10999,
-    priceGroup: 6999,
-    isActive: true,
-  }
-];
+// STATIC_FALLBACK_PROGRAMS removed to ensure all program curriculum data is backend driven.
 
 export function ParentsPrograms() {
   const [programs, setPrograms] = useState<Program[]>([]);
@@ -180,13 +108,13 @@ export function ParentsPrograms() {
         if (data && data.length > 0) {
           setPrograms(data);
         } else {
-          // If the backend returns success but an empty list, fallback safely
-          setPrograms(STATIC_FALLBACK_PROGRAMS as Program[]);
+          setError(true);
+          setPrograms([]);
         }
       } catch (err) {
-        console.warn('Programs dynamic fetch failed, using beautiful fallback data:', err);
+        console.error('Programs dynamic fetch failed:', err);
         setError(true);
-        setPrograms(STATIC_FALLBACK_PROGRAMS as Program[]);
+        setPrograms([]);
       } finally {
         setLoading(false);
       }
@@ -234,8 +162,8 @@ export function ParentsPrograms() {
 
         {/* Loading Skeletons */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1, 2, 3].map((idx) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {[1, 2].map((idx) => (
               <div key={idx} className="p-8 bg-white/70 border border-slate-100 rounded-3xl animate-pulse flex flex-col gap-6">
                 <div className="h-6 bg-slate-200 rounded w-1/3" />
                 <div className="h-4 bg-slate-200 rounded w-3/4" />
@@ -253,7 +181,7 @@ export function ParentsPrograms() {
           </div>
         ) : (
           /* Programs Card Deck Grid */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
             {programs.map((program, i) => {
               const styles = STYLES_MAP[program.title] || DEFAULT_STYLE;
               const formattedPricePrivate = program.pricePrivate.toLocaleString('en-IN');
@@ -266,62 +194,104 @@ export function ParentsPrograms() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: i * 0.1 }}
-                  className={`p-8 md:p-9 rounded-3xl border ${styles.bg} ${styles.border} shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col group relative`}
+                  className={`rounded-3xl border ${styles.bg} ${styles.border} shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col group relative overflow-hidden`}
                   style={{
-                    boxShadow: `0 20px 40px -15px ${styles.glow}`
+                    boxShadow: `0 20px 40px -15px ${styles.glow}`,
                   }}
                 >
                   {/* Decorative glow circle */}
                   <div
-                    className="absolute -top-12 -right-12 w-28 h-28 rounded-full blur-[40px] pointer-events-none opacity-40 transition-all group-hover:scale-125 duration-500"
+                    className="absolute -top-12 -right-12 w-28 h-28 rounded-full blur-[40px] pointer-events-none opacity-40 transition-all group-hover:scale-125 duration-500 z-0"
                     style={{ backgroundColor: styles.glow.replace('0.06', '0.2').replace('0.05', '0.15').replace('0.15', '0.3') }}
                   />
 
-                  {/* Header: Title and Class Range */}
-                  <div className="flex items-center justify-between mb-5 relative z-10">
-                    <h3 className={`text-3xl font-bold tracking-tight ${styles.text}`}>
-                      {program.title}
-                    </h3>
-                    <span className={`px-4 py-1.5 rounded-full text-xs font-bold border uppercase tracking-wider ${styles.badge}`}>
-                      {program.classRange}
-                    </span>
-                  </div>
-
-                  {/* Tagline */}
-                  <p className="text-slate-800 font-semibold italic text-base leading-relaxed mb-6 min-h-[48px] relative z-10">
-                    "{program.tagline}"
-                  </p>
-
-                  {/* Session / Duration details bar */}
-                  <div className={`flex items-center gap-4 py-3 px-4 ${styles.metaBg} rounded-2xl border shadow-sm mb-6 text-slate-600 text-xs font-bold relative z-10`}>
-                    <div className="flex items-center gap-1.5">
-                      <BookOpen size={14} className={styles.text} />
-                      <span>{program.sessions} Sessions</span>
+                  {/* Thumbnail Image Section */}
+                  {program.thumbnailUrl && (
+                    <div className="w-full h-52 relative overflow-hidden shrink-0 border-b border-white/40">
+                      <img src={program.thumbnailUrl} alt={program.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-80" />
                     </div>
-                    <div className="h-3 w-[1px] bg-slate-200" />
-                    <div className="flex items-center gap-1.5">
-                      <Clock size={14} className={styles.text} />
-                      <span>{program.duration}</span>
-                    </div>
-                  </div>
+                  )}
 
-                  {/* Topics covered block */}
-                  <div className="mb-8 flex-1 relative z-10">
-                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">What she will cover:</h4>
-                    <ul className="space-y-2.5">
-                      {program.topics.map((topic, topicIdx) => (
-                        <li key={topicIdx} className="flex items-start gap-2.5 text-slate-600 text-sm font-medium leading-tight">
-                          <span className={`w-5 h-5 shrink-0 rounded-full flex items-center justify-center text-[10px] font-bold ${styles.bulletBg} mt-0.5`}>
-                            <Check size={10} strokeWidth={3} />
+                  <div className="p-8 md:p-9 flex flex-col flex-1 relative z-10">
+                    {/* Header & Tagline Area */}
+                    <div className="flex items-start justify-between mb-8 relative z-10 gap-4">
+                      {/* Left side: Title, Class badge, and Tagline */}
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-3">
+                          <h3 className={`text-3xl font-bold tracking-tight ${styles.text}`}>
+                            {program.title}
+                          </h3>
+                          <span className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-white shadow-sm border border-slate-100 ${styles.text}`}>
+                            {program.classRange}
                           </span>
-                          <span>{topic}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                        </div>
+                        <p className="text-slate-800 font-semibold text-[15px] leading-snug whitespace-nowrap overflow-hidden text-ellipsis">
+                          "{program.tagline}"
+                        </p>
+                      </div>
 
-                  {/* Pricing details Block */}
-                  {/* <div className="border-t border-slate-100 pt-6 mb-8 relative z-10">
+                      {/* Right side: Enrolled Highlight */}
+                      <div className="shrink-0 pt-1">
+                        <div className={`flex flex-col items-center justify-center px-3 py-2 rounded-xl bg-white/80 border ${styles.border} shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] backdrop-blur-md`}>
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <Users size={14} className={styles.text} />
+                            <span className={`text-sm font-black ${styles.text}`}>{(program.enrolledCount || 1200).toLocaleString()}+</span>
+                          </div>
+                          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Enrolled</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Session / Duration details bar removed */}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 flex-1 relative z-10">
+                      {/* Topics covered block */}
+                      <div className={`h-full p-5 rounded-2xl bg-white/60 border border-white shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]`}>
+                        <h4 className={`text-[11px] font-bold uppercase tracking-widest mb-4 ${styles.text} flex items-center gap-2`}>
+                          <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
+                          What She Will Cover
+                        </h4>
+                        <ul className="space-y-3.5">
+                          {program.topics.map((topic, topicIdx) => (
+                            <li key={topicIdx} className="flex items-start gap-3 text-slate-700">
+                              <span className={`w-5 h-5 shrink-0 rounded-full flex items-center justify-center text-[10px] font-bold ${styles.bulletBg} shadow-sm mt-0.5`}>
+                                <Check size={12} strokeWidth={3} />
+                              </span>
+                              <span className="text-sm font-semibold leading-snug">{topic}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Features block */}
+                      <div className={`h-full p-5 rounded-2xl bg-white/60 border border-white shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]`}>
+                        <h4 className={`text-[11px] font-bold uppercase tracking-widest mb-4 ${styles.text} flex items-center gap-2`}>
+                          <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
+                          Program Includes
+                        </h4>
+                        <ul className="space-y-3.5">
+                          {(program.features && program.features.length > 0 ? program.features : [
+                            "8 sessions by trained experts",
+                            "3 doctors consultations",
+                            "1 physical book",
+                            "Digital learning access",
+                            "Safe community led by experts",
+                            "Menstrual Tracker"
+                          ]).map((feature, featureIdx) => (
+                            <li key={featureIdx} className="flex items-start gap-3 text-slate-700">
+                              <span className={`w-5 h-5 shrink-0 rounded-full flex items-center justify-center text-[10px] font-bold ${styles.bulletBg} shadow-sm mt-0.5`}>
+                                <Check size={12} strokeWidth={3} />
+                              </span>
+                              <span className="text-sm font-semibold leading-snug">{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Pricing details Block */}
+                    {/* <div className="border-t border-slate-100 pt-6 mb-8 relative z-10">
                     <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Pricing Options:</h4>
                     <div className="grid grid-cols-2 gap-4">
                      
@@ -350,14 +320,15 @@ export function ParentsPrograms() {
                     </div>
                   </div> */}
 
-                  {/* Direct Link CTA */}
-                  <Link
-                    href={`/programs/${program.id || program.title.toLowerCase()}`}
-                    className={`w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-2xl text-white font-bold text-xs uppercase tracking-widest transition-all ${styles.btnBg} relative z-10`}
-                  >
-                    <span>Explore Program</span>
-                    <ArrowRight size={14} className="transition-transform group-hover:translate-x-1 duration-300" />
-                  </Link>
+                    {/* Direct Link CTA */}
+                    <Link
+                      href={`/programs/${program.title.toLowerCase()}`}
+                      className={`w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-2xl text-white font-semibold  transition-all ${styles.btnBg} relative z-10`}
+                    >
+                      <span>Enroll Now</span>
+                      <ArrowRight size={14} className="transition-transform group-hover:translate-x-1 duration-300" />
+                    </Link>
+                  </div>
                 </motion.div>
               );
             })}

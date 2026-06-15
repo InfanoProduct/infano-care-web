@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Stethoscope, Brain, HeartHandshake, Check } from 'lucide-react';
+import Image from 'next/image';
 
 interface Pillar {
   id: string;
@@ -10,6 +11,7 @@ interface Pillar {
   quote: string;
   bullets: string[];
   icon: React.ReactNode;
+  image: string;
   theme: {
     bg: string;
     border: string;
@@ -30,6 +32,7 @@ const PILLARS: Pillar[] = [
     badge: 'Gynaecologist',
     subheading: 'Medical clarity. Zero stigma.',
     quote: 'Knowing your body is not optional. It is the first act of self-care.',
+    image: '/expert-1.png',
     bullets: [
       '1:1 private consultations included in every program',
       'Anonymous Q&A - she asks anything she has been afraid to ask',
@@ -57,6 +60,7 @@ const PILLARS: Pillar[] = [
     badge: 'Psychologist',
     subheading: 'Proactive, not crisis-driven.',
     quote: 'A girl who meets her psychologist before a crisis has a resource when one arrives.',
+    image: '/expert-3.png',
     bullets: [
       'Structured 1:1 sessions with a licensed child psychologist',
       'Final session: personalised mental health toolkit she keeps for life',
@@ -82,12 +86,13 @@ const PILLARS: Pillar[] = [
   {
     id: 'peer-mentor',
     badge: 'Peer Mentor',
-    subheading: 'The conversation adults cannot have.',
+    subheading: 'Conversation adults cannot have.',
     quote: 'Sometimes the most powerful thing is someone who says: I felt exactly that too.',
+    image: '/expert-4.png',
     bullets: [
-      '1:1 with a trained older girl (Class 9-12) who has completed the program',
+      '1:1 with a trained peer who has first hand experience on different situations',
       'Peer mentors are trained, supervised, and matched for age-group fit',
-      'Monthly 30-45 min sessions - safe space for what she cannot tell parents',
+      '30-45 min sessions - safe space for what she cannot tell parents',
       'No agenda, no curriculum - pure empathic listening and shared experience',
       'Covers: friendship drama, family pressure, school stress, relationships',
       'One session per program is deliberately unstructured - just space to breathe'
@@ -118,7 +123,7 @@ export function SupportSystem() {
       </div>
 
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
-        
+
         {/* Header Block */}
         <div className="w-full mb-20 text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/5 border border-primary/10 rounded-full mb-8">
@@ -147,8 +152,8 @@ export function SupportSystem() {
           </motion.p>
         </div>
 
-        {/* Pillars Vertical Stack */}
-        <div className="space-y-10">
+        {/* Pillars Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {PILLARS.map((pillar, index) => {
             const t = pillar.theme;
             return (
@@ -158,7 +163,7 @@ export function SupportSystem() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.15 }}
-                className={`group rounded-[2.2rem] border ${t.bg} ${t.border} p-8 md:p-12 relative overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1 flex flex-col lg:grid lg:grid-cols-12 lg:gap-12 items-center`}
+                className={`group rounded-[2.2rem] border ${t.bg} ${t.border} p-6 md:p-8 relative overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between h-full`}
                 style={{
                   boxShadow: `0 20px 40px -15px ${t.glow}`
                 }}
@@ -169,34 +174,57 @@ export function SupportSystem() {
                   style={{ backgroundColor: t.glow.replace('0.04', '0.2') }}
                 />
 
-                {/* Left Side: Badge, Subheading, Quote (lg:col-span-5) */}
-                <div className="w-full lg:col-span-5 flex flex-col justify-center mb-8 lg:mb-0">
+                {/* Card Top Content */}
+                <div className="w-full flex flex-col">
+                  {/* Highlighted Image */}
+                  <div className="relative w-full aspect-[4/3] rounded-[1.8rem] overflow-hidden mb-6 shadow-md border border-white/40 bg-white/30">
+                    <Image
+                      src={pillar.image}
+                      alt={pillar.badge}
+                      fill
+                      className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
+                      priority
+                    />
+
+                    {/* Free Consultation Badges inside Image Container at Top Right */}
+                    <div className="absolute top-3.5 right-3.5 flex flex-row items-center gap-1.5 z-10">
+                      <span className="text-[10px] font-bold lowercase px-2.5 py-1 rounded-full backdrop-blur-md bg-white/95 text-slate-800 border border-white/40 shadow-sm">
+                        {index === 0 ? "1st consultation" : index === 1 ? "2nd consultation" : "3rd consultation"}
+                      </span>
+                      <span className="text-[10px] font-extrabold lowercase px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-500 text-white shadow-sm animate-pulse">
+                        free
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Highlighted Badge & Icon Row */}
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${t.iconBg}`}>
+                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-md ${t.iconBg}`}>
                       {pillar.icon}
                     </div>
-                    <span className={`px-4 py-1 rounded-full text-xs font-black uppercase tracking-wider border border-white/60 ${t.badgeBg} ${t.badgeText}`}>
+                    <span className={`px-5 py-1.5 rounded-full text-sm font-black uppercase tracking-widest border border-white/80 shadow-md ${t.badgeBg} ${t.badgeText}`}>
                       {pillar.badge}
                     </span>
                   </div>
 
-                  <h3 className={`text-2xl md:text-3xl font-bold font-heading mt-5 leading-tight ${t.text}`}>
+                  <h3 className={`text-xl font-bold font-heading mt-5 leading-tight ${t.text}`}>
                     {pillar.subheading}
                   </h3>
 
-                  <div className={`mt-6 pl-4 border-l-2 ${t.quoteBorder} italic text-slate-700 font-bold text-sm md:text-base leading-relaxed`}>
+                  <div className={`mt-4 pl-4 border-l-2 ${t.quoteBorder} italic text-slate-700 font-medium text-sm leading-relaxed`}>
                     "{pillar.quote}"
                   </div>
                 </div>
 
-                {/* Divider Line for Responsive View */}
-                <div className="w-full h-[1px] bg-slate-200 lg:hidden mb-8" />
+                {/* Divider Line */}
+                <div className="w-full h-[1px] bg-slate-200/60 my-6" />
 
-                {/* Right Side: Bullets Grid (lg:col-span-7) */}
-                <div className="w-full lg:col-span-7">
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-                    {pillar.bullets.map((bullet, bulletIdx) => (
-                      <li key={bulletIdx} className="flex items-start gap-3.5 text-slate-900 text-sm font-semibold leading-relaxed">
+                {/* Card Bottom Content (Bullets) */}
+                <div className="w-full">
+                  <ul className="space-y-4">
+                    {pillar.bullets.slice(0, 3).map((bullet, bulletIdx) => (
+                      <li key={bulletIdx} className="flex items-start gap-3 text-slate-900 text-sm font-normal leading-relaxed">
                         <span className={`w-5 h-5 shrink-0 rounded-full flex items-center justify-center text-[10px] font-bold ${t.bulletBg} ${t.bulletText} mt-0.5 shadow-sm`}>
                           <Check size={10} strokeWidth={3} />
                         </span>

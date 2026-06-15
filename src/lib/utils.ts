@@ -54,3 +54,57 @@ export function getCategoryColor(categoryName: string | undefined): string {
   const index = Math.abs(hash) % palette.length;
   return palette[index];
 }
+
+export async function copyToClipboard(text: string): Promise<boolean> {
+  if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (err) {
+      console.warn('navigator.clipboard.writeText failed, falling back to document.execCommand', err);
+    }
+  }
+
+  // Fallback for non-secure contexts (HTTP)
+  try {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.top = '0';
+    textArea.style.left = '0';
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    const successful = document.execCommand('copy');
+    document.body.removeChild(textArea);
+    return successful;
+  } catch (err) {
+    console.error('Fallback copyToClipboard failed', err);
+    return false;
+  }
+}
+
+export function formatIndianDate(dateString: string | Date | null | undefined): string {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '';
+  
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  let hours = date.getHours();
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  const strHours = hours.toString().padStart(2, '0');
+  
+  return `${day}-${month}-${year} ${strHours}:${minutes} ${ampm}`;
+}
+
+export function formatOrderId(id: string | undefined | null): string {
+  if (!id) return '';
+  return `ORD-${id.slice(0, 8).toUpperCase()}`;
+}

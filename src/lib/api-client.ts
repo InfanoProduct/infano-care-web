@@ -41,7 +41,7 @@ class ApiClient {
         if (!response.ok) {
           // If the server explicitly says no (401), it's a known expiry, not a crash
           if (response.status === 401) {
-            return null; 
+            return null;
           }
           throw new Error(`Refresh failed with status ${response.status}`);
         }
@@ -60,7 +60,7 @@ class ApiClient {
         if (error.message !== 'Unauthorized' && !error.message?.includes('401')) {
           console.warn('Token refresh system notice:', error.message || error);
         }
-        
+
         useAuthStore.getState().clearAuth();
         return null;
       } finally {
@@ -109,7 +109,14 @@ class ApiClient {
       });
     };
 
-    let response = await fetchWithToken(token);
+    let response: Response;
+    try {
+      response = await fetchWithToken(token);
+    } catch (err: any) {
+      // Catch network errors (like CORS, DNS, or server down) and throw a clearer error
+      console.error(`[ApiClient] Network Error when fetching ${url}:`, err);
+      throw new Error(`Network Error: Unable to reach the server at ${url}. Please check if the backend is running.`);
+    }
 
     // Handle 401 Unauthorized - Attempt refresh (skip for auth endpoints)
     const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/admin/login') || url.includes('/auth/refresh');
@@ -126,6 +133,8 @@ class ApiClient {
             window.location.href = '/admin/login';
           } else if (path.startsWith('/peerline') && !path.includes('/login') && !path.includes('onboarding')) {
             window.location.href = '/peerline/login';
+          } else if (path.startsWith('/dashboard')) {
+            window.location.href = '/login';
           }
         }
         throw new Error('Unauthorized');
@@ -134,6 +143,16 @@ class ApiClient {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      // Surface Retry-After information for 429s
+      if (response.status === 429) {
+        const retryHeader = response.headers.get('retry-after');
+        const err = new Error(errorData.error || errorData.message || `Rate limited by server (429)`);
+        (err as any).status = 429;
+        (err as any).details = errorData.details || {};
+        (err as any).details.retryAfterHeader = retryHeader;
+        throw err;
+      }
+
       const error = new Error(errorData.message || errorData.error || `Request failed with status ${response.status}`);
       (error as any).details = errorData.details;
       throw error;

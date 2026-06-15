@@ -30,11 +30,9 @@ export function HeroSection() {
   }, [isPaused, moveToEnd]);
 
   return (
-    <section className="relative pt-6 pb-12 lg:pt-10 lg:pb-24 overflow-hidden bg-white">
+    <section className="relative pt-6 pb-6 lg:pt-10 lg:pb-20 overflow-hidden bg-white">
       {/* Background Graphics — GPU-promoted, no JS animations */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none" style={{ contain: 'strict' }}>
-        <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[80px]" style={{ willChange: 'transform' }} />
-        <div className="absolute bottom-[5%] right-[-5%] w-[35%] h-[35%] bg-accent/10 rounded-full blur-[80px]" style={{ willChange: 'transform' }} />
         {/* Subtle Grid Pattern Overlay */}
         <div className="absolute inset-0 opacity-[0.03]"
           style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #4a1e7f 1px, transparent 0)', backgroundSize: '40px 40px' }} />
@@ -69,11 +67,11 @@ export function HeroSection() {
             </p>
 
             {/* Desktop CTA: Visible only on LG+ */}
-            <div 
+            <div
               className="hidden lg:flex flex-col sm:flex-row items-center justify-start gap-4 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
               style={{ animationDelay: '300ms' }}
             >
-              <Link href="/parents-enquiry" className="btn-primary w-full sm:w-auto text-sm px-8 py-3.5 group shadow-lg shadow-primary/20">
+              <Link href="/program-enrollment" className="btn-primary w-full sm:w-auto text-sm px-8 py-3.5 group shadow-lg shadow-primary/20">
                 Explore Journeys <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1" size={16} />
               </Link>
               <Link href="/parents" className="btn-outline w-full sm:w-auto text-sm px-8 py-3.5 bg-white/50 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300">
@@ -121,11 +119,11 @@ export function HeroSection() {
             </div>
 
             {/* Mobile CTA: Visible only below LG */}
-            <div 
+            <div
               className="flex lg:hidden flex-col items-center gap-4 w-full max-w-[320px] mt-8 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
               style={{ animationDelay: '300ms' }}
             >
-              <Link href="/parents-enquiry" className="btn-primary w-full text-sm px-8 py-3.5 group shadow-lg shadow-primary/20 text-center">
+              <Link href="/program-enrollment" className="btn-primary w-full text-sm px-8 py-3.5 group shadow-lg shadow-primary/20 text-center">
                 Explore Journeys <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1" size={16} />
               </Link>
               <Link href="/parents" className="btn-outline w-full text-sm px-8 py-3.5 bg-white/50 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 text-center">
@@ -140,7 +138,7 @@ export function HeroSection() {
       <div className="hidden lg:block absolute bottom-0 left-1/2 -translate-x-1/2 z-10 w-full max-w-[700px] h-[95%] pointer-events-none">
         <div className="relative w-full h-full flex items-end justify-center">
           <div className="absolute bottom-[10%] w-[70%] h-[20%] bg-primary/10 rounded-full blur-2xl z-0" />
-          <div 
+          <div
             className="relative z-10 h-full w-full animate-in fade-in slide-in-from-bottom-4 duration-700 fill-mode-both"
             style={{ animationDelay: '150ms' }}
           >

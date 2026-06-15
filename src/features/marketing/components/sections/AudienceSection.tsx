@@ -36,7 +36,7 @@ const AUDIENCES = [
 
 export function AudienceSection() {
   return (
-    <section className="py-32 bg-[#FAF9FF] relative overflow-hidden">
+    <section className="pt-8 pb-8 lg:pt-10 lg:pb-20 bg-[#FAF9FF] relative overflow-hidden">
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-[100px]" />
         <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-accent/5 rounded-full blur-[100px]" />

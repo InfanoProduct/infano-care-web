@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { 
   LayoutDashboard, Users, Calendar, Settings, ShieldCheck, LogOut, 
   BookOpen, FileText, ShoppingBag, ChevronDown, Zap, Globe, 
-  UserCheck, Ticket, MapPin, FileQuestion, Image, Award
+  UserCheck, Ticket, MapPin, FileQuestion, Image, Award, CreditCard
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 
@@ -38,6 +38,7 @@ export default function AdminLayout({
     { name: 'Learning Programs', icon: Award, href: '/admin/programs' },
     { name: 'Blogs', icon: FileText, href: '/admin/blogs' },
     { name: 'Assets', icon: Image, href: '/admin/assets' },
+    { name: 'Transactions', icon: CreditCard, href: '/admin/transactions' },
     { 
       name: 'Connect', 
       icon: Zap, 

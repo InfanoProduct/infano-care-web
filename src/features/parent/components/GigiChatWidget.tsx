@@ -269,7 +269,9 @@ export function GigiChatWidget() {
     pathname?.startsWith('/admin') || 
     pathname?.startsWith('/schools') || 
     pathname?.startsWith('/peerline') || 
-    pathname?.startsWith('/peerline-onboarding');
+    pathname?.startsWith('/peerline-onboarding') ||
+    pathname?.startsWith('/checkout') ||
+    pathname?.startsWith('/gigi-the-awkward-age-book');
 
   if (!mounted || isExcludedPage) return null;
 

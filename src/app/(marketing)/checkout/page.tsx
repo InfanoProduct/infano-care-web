@@ -864,6 +864,32 @@ function CheckoutContent() {
                     <h2 className="text-base font-bold text-slate-800 tracking-tight">Shipping address</h2>
                   </div>
 
+                  <div className="grid md:grid-cols-2 gap-5">
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-600 ml-0.5">Pincode <span className="text-rose-500">*</span></label>
+                      <div className="relative">
+                        <input
+                          required={!isProgram}
+                          name="pincode"
+                          value={formData.pincode}
+                          onChange={handleInputChange}
+                          maxLength={6}
+                          className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-primary/60 focus:ring-4 focus:ring-primary/5 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
+                          placeholder="6-digit pincode"
+                        />
+                        {pincodeLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-primary" size={16} />}
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-600 ml-0.5">Country</label>
+                      <input
+                        readOnly
+                        className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 font-medium text-slate-500 cursor-not-allowed text-sm"
+                        value="India"
+                      />
+                    </div>
+                  </div>
+
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-bold text-slate-600 ml-0.5">Street address</label>
                     <input
@@ -897,32 +923,6 @@ function CheckoutContent() {
                         onChange={handleInputChange}
                         className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-primary/60 focus:ring-4 focus:ring-primary/5 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
                         placeholder="State"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-5">
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-slate-600 ml-0.5">Pincode</label>
-                      <div className="relative">
-                        <input
-                          required={!isProgram}
-                          name="pincode"
-                          value={formData.pincode}
-                          onChange={handleInputChange}
-                          maxLength={6}
-                          className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-primary/60 focus:ring-4 focus:ring-primary/5 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
-                          placeholder="6-digit pincode"
-                        />
-                        {pincodeLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-primary" size={16} />}
-                      </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-slate-600 ml-0.5">Country</label>
-                      <input
-                        readOnly
-                        className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 font-medium text-slate-500 cursor-not-allowed text-sm"
-                        value="India"
                       />
                     </div>
                   </div>

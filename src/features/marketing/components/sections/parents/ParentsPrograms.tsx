@@ -162,8 +162,8 @@ export function ParentsPrograms() {
 
         {/* Loading Skeletons */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1, 2, 3].map((idx) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {[1, 2].map((idx) => (
               <div key={idx} className="p-8 bg-white/70 border border-slate-100 rounded-3xl animate-pulse flex flex-col gap-6">
                 <div className="h-6 bg-slate-200 rounded w-1/3" />
                 <div className="h-4 bg-slate-200 rounded w-3/4" />
@@ -181,7 +181,7 @@ export function ParentsPrograms() {
           </div>
         ) : (
           /* Programs Card Deck Grid */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
             {programs.map((program, i) => {
               const styles = STYLES_MAP[program.title] || DEFAULT_STYLE;
               const formattedPricePrivate = program.pricePrivate.toLocaleString('en-IN');
@@ -214,51 +214,84 @@ export function ParentsPrograms() {
                   )}
 
                   <div className="p-8 md:p-9 flex flex-col flex-1 relative z-10">
-                    {/* Header: Title and Class Range */}
-                    <div className="flex items-center justify-between mb-5 relative z-10">
-                      <h3 className={`text-3xl font-bold tracking-tight ${styles.text}`}>
-                        {program.title}
-                      </h3>
-                      <span className={`px-4 py-1.5 rounded-full text-xs font-bold border uppercase tracking-wider ${styles.badge}`}>
-                        {program.classRange}
-                      </span>
-                    </div>
-
-                    {/* Tagline */}
-                    <p className="text-slate-800 font-semibold italic text-base leading-relaxed mb-6 min-h-[48px] relative z-10">
-                      "{program.tagline}"
-                    </p>
-
-                  {/* Session / Duration details bar */}
-                  <div className={`flex items-center gap-4 py-3 px-4 ${styles.metaBg} rounded-2xl border shadow-sm mb-6 text-slate-600 text-xs font-bold relative z-10`}>
-                    <div className="flex items-center gap-1.5">
-                      <BookOpen size={14} className={styles.text} />
-                      <span>{program.sessions} Sessions</span>
-                    </div>
-                    <div className="h-3 w-[1px] bg-slate-200" />
-                    <div className="flex items-center gap-1.5">
-                      <Clock size={14} className={styles.text} />
-                      <span>{program.duration}</span>
-                    </div>
-                  </div>
-
-                  {/* Topics covered block */}
-                  <div className="mb-8 flex-1 relative z-10">
-                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">What she will cover:</h4>
-                    <ul className="space-y-2.5">
-                      {program.topics.map((topic, topicIdx) => (
-                        <li key={topicIdx} className="flex items-start gap-2.5 text-slate-600 text-sm font-medium leading-tight">
-                          <span className={`w-5 h-5 shrink-0 rounded-full flex items-center justify-center text-[10px] font-bold ${styles.bulletBg} mt-0.5`}>
-                            <Check size={10} strokeWidth={3} />
+                    {/* Header & Tagline Area */}
+                    <div className="flex items-start justify-between mb-8 relative z-10 gap-4">
+                      {/* Left side: Title, Class badge, and Tagline */}
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-3">
+                          <h3 className={`text-3xl font-bold tracking-tight ${styles.text}`}>
+                            {program.title}
+                          </h3>
+                          <span className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-white shadow-sm border border-slate-100 ${styles.text}`}>
+                            {program.classRange}
                           </span>
-                          <span>{topic}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                        </div>
+                        <p className="text-slate-800 font-semibold text-[15px] leading-snug whitespace-nowrap overflow-hidden text-ellipsis">
+                          "{program.tagline}"
+                        </p>
+                      </div>
 
-                  {/* Pricing details Block */}
-                  {/* <div className="border-t border-slate-100 pt-6 mb-8 relative z-10">
+                      {/* Right side: Enrolled Highlight */}
+                      <div className="shrink-0 pt-1">
+                        <div className={`flex flex-col items-center justify-center px-3 py-2 rounded-xl bg-white/80 border ${styles.border} shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] backdrop-blur-md`}>
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <Users size={14} className={styles.text} />
+                            <span className={`text-sm font-black ${styles.text}`}>{(program.enrolledCount || 1200).toLocaleString()}+</span>
+                          </div>
+                          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Enrolled</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Session / Duration details bar removed */}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 flex-1 relative z-10">
+                      {/* Topics covered block */}
+                      <div className={`h-full p-5 rounded-2xl bg-white/60 border border-white shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]`}>
+                        <h4 className={`text-[11px] font-bold uppercase tracking-widest mb-4 ${styles.text} flex items-center gap-2`}>
+                          <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
+                          What She Will Cover
+                        </h4>
+                        <ul className="space-y-3.5">
+                          {program.topics.map((topic, topicIdx) => (
+                            <li key={topicIdx} className="flex items-start gap-3 text-slate-700">
+                              <span className={`w-5 h-5 shrink-0 rounded-full flex items-center justify-center text-[10px] font-bold ${styles.bulletBg} shadow-sm mt-0.5`}>
+                                <Check size={12} strokeWidth={3} />
+                              </span>
+                              <span className="text-sm font-semibold leading-snug">{topic}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Features block */}
+                      <div className={`h-full p-5 rounded-2xl bg-white/60 border border-white shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]`}>
+                        <h4 className={`text-[11px] font-bold uppercase tracking-widest mb-4 ${styles.text} flex items-center gap-2`}>
+                          <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
+                          Program Includes
+                        </h4>
+                        <ul className="space-y-3.5">
+                          {(program.features && program.features.length > 0 ? program.features : [
+                            "8 sessions by trained experts",
+                            "3 doctors consultations",
+                            "1 physical book",
+                            "Digital learning access",
+                            "Safe community led by experts",
+                            "Menstrual Tracker"
+                          ]).map((feature, featureIdx) => (
+                            <li key={featureIdx} className="flex items-start gap-3 text-slate-700">
+                              <span className={`w-5 h-5 shrink-0 rounded-full flex items-center justify-center text-[10px] font-bold ${styles.bulletBg} shadow-sm mt-0.5`}>
+                                <Check size={12} strokeWidth={3} />
+                              </span>
+                              <span className="text-sm font-semibold leading-snug">{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Pricing details Block */}
+                    {/* <div className="border-t border-slate-100 pt-6 mb-8 relative z-10">
                     <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Pricing Options:</h4>
                     <div className="grid grid-cols-2 gap-4">
                      
@@ -287,14 +320,14 @@ export function ParentsPrograms() {
                     </div>
                   </div> */}
 
-                  {/* Direct Link CTA */}
-                  <Link
-                    href={`/programs/${program.title.toLowerCase()}`}
-                    className={`w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-2xl text-white font-semibold  transition-all ${styles.btnBg} relative z-10`}
-                  >
-                    <span>Enroll Now</span>
-                    <ArrowRight size={14} className="transition-transform group-hover:translate-x-1 duration-300" />
-                  </Link>
+                    {/* Direct Link CTA */}
+                    <Link
+                      href={`/programs/${program.title.toLowerCase()}`}
+                      className={`w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-2xl text-white font-semibold  transition-all ${styles.btnBg} relative z-10`}
+                    >
+                      <span>Enroll Now</span>
+                      <ArrowRight size={14} className="transition-transform group-hover:translate-x-1 duration-300" />
+                    </Link>
                   </div>
                 </motion.div>
               );

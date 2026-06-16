@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 
 const newsImages = [
   '/news/1.png',
@@ -52,6 +53,26 @@ export function NewsScrollerSection() {
           opacity: 1;
         }
       `}</style>
+
+      <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
+        <div className="text-center max-w-4xl mx-auto mb-10">
+          <motion.span
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="inline-block px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-4"
+          >
+            Media
+          </motion.span>
+          <h2 className="text-4xl md:text-5xl font-bold font-heading mb-4 leading-tight tracking-tight text-slate-900">
+            In the <span className="text-primary">Spotlight</span>
+          </h2>
+          <p className="text-base md:text-md text-slate-500 leading-relaxed font-medium">
+            Leading national media platforms are talking about the change we are bringing to girls across India.
+          </p>
+          <div className="mt-8 h-1 w-24 bg-primary/20 mx-auto rounded-full" />
+        </div>
+      </div>
 
       <div style={{ overflow: 'hidden', width: '100%' }}>
         <div className="news-scroll-track">

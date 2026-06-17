@@ -571,7 +571,7 @@ export default function ExpertConsultationsPage() {
             const expertName = session.expert?.profile?.displayName || session.expert?.username || 'Expert';
             const statusMeta = STATUS_META[session.status] || { label: session.status, dot: 'bg-slate-400', pill: 'bg-slate-100 text-slate-600 border border-slate-200' };
             const isPast = session.status !== 'SCHEDULED' && session.status !== 'RESCHEDULED';
-            const isExpiredUncompleted = (session.status === 'SCHEDULED' || session.status === 'RESCHEDULED') && new Date(session.scheduledAt).getTime() < Date.now() - 24 * 60 * 60 * 1000;
+            const isExpired = (session.status === 'SCHEDULED' || session.status === 'RESCHEDULED') && new Date(session.scheduledAt).getTime() < Date.now();
             
             // Payment display setup
             const isFree = !session.amount && session.programId;
@@ -649,20 +649,26 @@ export default function ExpertConsultationsPage() {
                   {/* ── Status select dropdown ── */}
                   <div className="lg:col-span-2 shrink-0">
                     <div className="lg:hidden text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Status</div>
-                    <div className="relative inline-flex items-center">
-                      <span className={`absolute left-3 w-1.5 h-1.5 rounded-full pointer-events-none ${statusMeta.dot}`} />
-                      <select
-                        value={session.status}
-                        onChange={e => handleUpdateStatus(session.id, e.target.value)}
-                        className={`appearance-none inline-flex items-center text-[11px] font-black pl-6 pr-8 py-1.5 rounded-full cursor-pointer outline-none transition-all border ${statusMeta.pill}`}
-                      >
-                        <option value="SCHEDULED" className="bg-white text-blue-700 font-bold">Scheduled</option>
-                        <option value="RESCHEDULED" className="bg-white text-amber-700 font-bold">Rescheduled</option>
-                        <option value="COMPLETED" className="bg-white text-emerald-700 font-bold">Completed</option>
-                        <option value="CANCELLED" className="bg-white text-rose-700 font-bold">Cancelled</option>
-                      </select>
-                      <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500" />
-                    </div>
+                    {isExpired ? (
+                      <div className="inline-flex items-center text-[11px] font-black px-4 py-1.5 rounded-full border bg-slate-100 text-slate-500 border-slate-200 uppercase">
+                        Expired
+                      </div>
+                    ) : (
+                      <div className="relative inline-flex items-center">
+                        <span className={`absolute left-3 w-1.5 h-1.5 rounded-full pointer-events-none ${statusMeta.dot}`} />
+                        <select
+                          value={session.status}
+                          onChange={e => handleUpdateStatus(session.id, e.target.value)}
+                          className={`appearance-none inline-flex items-center text-[11px] font-black pl-6 pr-8 py-1.5 rounded-full cursor-pointer outline-none transition-all border ${statusMeta.pill}`}
+                        >
+                          <option value="SCHEDULED" className="bg-white text-blue-700 font-bold">Scheduled</option>
+                          <option value="RESCHEDULED" className="bg-white text-amber-700 font-bold">Rescheduled</option>
+                          <option value="COMPLETED" className="bg-white text-emerald-700 font-bold">Completed</option>
+                          <option value="CANCELLED" className="bg-white text-rose-700 font-bold">Cancelled</option>
+                        </select>
+                        <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500" />
+                      </div>
+                    )}
                   </div>
 
                   {/* ── Meeting Link / Reschedule ── */}
@@ -756,7 +762,7 @@ export default function ExpertConsultationsPage() {
                               </div>
                             )}
                           </div>
-                        ) : session.meetLink ? (
+                        ) : isExpired ? null : session.meetLink ? (
                           <div className="flex items-center gap-2">
                             <a
                               href={session.meetLink}
@@ -785,7 +791,7 @@ export default function ExpertConsultationsPage() {
                           </button>
                         )}
 
-                        {isExpiredUncompleted && (
+                        {isExpired && (
                           <button
                             onClick={() => startReschedule(session)}
                             className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border border-violet-200 text-violet-700 bg-violet-50 hover:bg-violet-100 hover:scale-105 active:scale-95 transition-all font-bold text-xs shadow-sm w-fit"

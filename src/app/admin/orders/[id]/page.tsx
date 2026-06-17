@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
-import { 
-  ArrowLeft, ShoppingBag, User, MapPin, CreditCard, 
+import {
+  ArrowLeft, ShoppingBag, User, MapPin, CreditCard,
   Clock, Truck, CheckCircle, XCircle, Package, Phone, Mail,
   AlertCircle, ChevronRight, Receipt, Tag, Info, ShieldCheck, MessageSquare
 } from 'lucide-react';
@@ -60,7 +60,7 @@ export default function OrderDetailPage() {
 
   const updateStatus = async (newStatus: string) => {
     if (!STATUS_TRANSITIONS[order.orderStatus].includes(newStatus)) return;
-    
+
     try {
       setUpdating(true);
       setError(null);
@@ -123,7 +123,7 @@ export default function OrderDetailPage() {
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
     </div>
   );
-  
+
   if (!order) return (
     <div className="p-8 text-center bg-white rounded-lg border border-slate-200">
       <XCircle size={32} className="mx-auto text-red-500 mb-4" />
@@ -144,7 +144,7 @@ export default function OrderDetailPage() {
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <button 
+          <button
             onClick={() => router.back()}
             className="p-2 rounded-md hover:bg-slate-100 text-slate-600 transition-colors mt-1"
           >
@@ -152,16 +152,16 @@ export default function OrderDetailPage() {
           </button>
           <div>
             <div className="flex items-center gap-3 flex-wrap">
-               <h1 className="text-2xl font-bold text-slate-900">Order {formatOrderId(order.id)}</h1>
+              <h1 className="text-2xl font-bold text-slate-900">Order {formatOrderId(order.id)}</h1>
             </div>
             <p className="text-sm text-slate-500 mt-1">Placed on {formatIndianDate(order.createdAt)}</p>
           </div>
         </div>
 
         <div className="flex gap-2 shrink-0 ml-10 md:ml-0">
-           <button className="px-4 py-2 rounded-md bg-slate-900 text-white font-medium hover:bg-slate-800 transition-colors text-sm flex items-center gap-2">
-             <Receipt size={16} /> Print Invoice
-           </button>
+          <button className="px-4 py-2 rounded-md bg-slate-900 text-white font-medium hover:bg-slate-800 transition-colors text-sm flex items-center gap-2">
+            <Receipt size={16} /> Download Invoice
+          </button>
         </div>
       </div>
 
@@ -170,7 +170,7 @@ export default function OrderDetailPage() {
         <div className="bg-white rounded-lg border border-slate-200 p-6">
           <div className="relative flex justify-between items-center max-w-4xl mx-auto">
             <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-100 -translate-y-1/2 z-0"></div>
-            <div 
+            <div
               className="absolute top-1/2 left-0 h-0.5 bg-primary -translate-y-1/2 z-0 transition-all duration-500"
               style={{ width: `${(currentStepIndex / (STATUS_STEPS.length - 1)) * 100}%` }}
             ></div>
@@ -180,11 +180,10 @@ export default function OrderDetailPage() {
               const isCurrent = index === currentStepIndex;
               return (
                 <div key={step.id} className="relative z-10 flex flex-col items-center gap-2 bg-white px-2">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors border-2 ${
-                    isCompleted 
-                      ? 'bg-primary text-white border-primary' 
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors border-2 ${isCompleted
+                      ? 'bg-primary text-white border-primary'
                       : 'bg-white text-slate-300 border-slate-200'
-                  }`}>
+                    }`}>
                     <step.icon size={14} />
                   </div>
                   <div className="text-center">
@@ -201,69 +200,69 @@ export default function OrderDetailPage() {
 
       {isCancelled && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-5 flex items-center gap-4 text-red-700">
-           <XCircle size={24} className="shrink-0" />
-           <div>
-             <h3 className="font-semibold text-red-900">Order Cancelled</h3>
-             <p className="text-sm">This order was cancelled and items have been returned to stock.</p>
-           </div>
+          <XCircle size={24} className="shrink-0" />
+          <div>
+            <h3 className="font-semibold text-red-900">Order Cancelled</h3>
+            <p className="text-sm">This order was cancelled and items have been returned to stock.</p>
+          </div>
         </div>
       )}
 
       {showManualPaymentInput && (
         <div className={`${isFailed ? 'bg-red-50 border-red-200 text-red-700' : 'bg-indigo-50 border-indigo-200 text-indigo-700'} border rounded-lg p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-6`}>
-           <div className="flex items-center gap-4">
-             {isFailed ? <AlertCircle size={32} className="shrink-0" /> : <CreditCard size={32} className="shrink-0" />}
-             <div>
-               <h3 className={`font-semibold ${isFailed ? 'text-red-900' : 'text-indigo-900'}`}>
-                 {isFailed ? 'Order Failed' : 'Convert to Online Payment'}
-               </h3>
-               <p className="text-sm">
-                 {isFailed 
-                   ? 'The payment for this order was not completed successfully.' 
-                   : 'Enter a valid Razorpay transaction ID to securely convert this COD order to an Online paid order.'}
-               </p>
-               {isFailed && (
-                 <button
-                   onClick={convertToCod}
-                   disabled={convertingToCod}
-                   className="mt-3 px-4 py-2 bg-slate-900 text-white text-xs font-semibold rounded-md hover:bg-slate-800 disabled:opacity-50 transition-colors"
-                 >
-                   {convertingToCod ? 'Converting...' : 'Change to COD & Place Order'}
-                 </button>
-               )}
-             </div>
-           </div>
-           
-           <div className={`w-full md:w-auto bg-white p-4 rounded-lg border ${isFailed ? 'border-red-100' : 'border-indigo-100'} shadow-sm flex flex-col gap-3 min-w-[320px]`}>
-             <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-               {isFailed ? 'Manual Payment Recovery' : 'Manual Payment Entry'}
-             </p>
-             <div className="flex gap-2">
-               <input 
-                 type="text" 
-                 placeholder="Razorpay Txn ID (pay_...)"
-                 value={manualTxnId}
-                 onChange={(e) => setManualTxnId(e.target.value)}
-                 className="flex-1 px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                 disabled={verifyingPayment}
-               />
-               <button 
-                 onClick={verifyManualPayment}
-                 disabled={verifyingPayment || !manualTxnId.trim()}
-                 className="px-4 py-2 bg-slate-900 text-white rounded-md text-sm font-medium hover:bg-slate-800 disabled:opacity-50 whitespace-nowrap transition-colors"
-               >
-                 {verifyingPayment ? 'Verifying...' : 'Verify'}
-               </button>
-             </div>
-             {paymentError && <p className={`text-xs font-medium p-2 rounded ${isFailed ? 'text-red-600 bg-red-50' : 'text-indigo-600 bg-indigo-50'}`}>{paymentError}</p>}
-           </div>
+          <div className="flex items-center gap-4">
+            {isFailed ? <AlertCircle size={32} className="shrink-0" /> : <CreditCard size={32} className="shrink-0" />}
+            <div>
+              <h3 className={`font-semibold ${isFailed ? 'text-red-900' : 'text-indigo-900'}`}>
+                {isFailed ? 'Order Failed' : 'Convert to Online Payment'}
+              </h3>
+              <p className="text-sm">
+                {isFailed
+                  ? 'The payment for this order was not completed successfully.'
+                  : 'Enter a valid Razorpay transaction ID to securely convert this COD order to an Online paid order.'}
+              </p>
+              {isFailed && (
+                <button
+                  onClick={convertToCod}
+                  disabled={convertingToCod}
+                  className="mt-3 px-4 py-2 bg-slate-900 text-white text-xs font-semibold rounded-md hover:bg-slate-800 disabled:opacity-50 transition-colors"
+                >
+                  {convertingToCod ? 'Converting...' : 'Change to COD & Place Order'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className={`w-full md:w-auto bg-white p-4 rounded-lg border ${isFailed ? 'border-red-100' : 'border-indigo-100'} shadow-sm flex flex-col gap-3 min-w-[320px]`}>
+            <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+              {isFailed ? 'Manual Payment Recovery' : 'Manual Payment Entry'}
+            </p>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Razorpay Txn ID (pay_...)"
+                value={manualTxnId}
+                onChange={(e) => setManualTxnId(e.target.value)}
+                className="flex-1 px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                disabled={verifyingPayment}
+              />
+              <button
+                onClick={verifyManualPayment}
+                disabled={verifyingPayment || !manualTxnId.trim()}
+                className="px-4 py-2 bg-slate-900 text-white rounded-md text-sm font-medium hover:bg-slate-800 disabled:opacity-50 whitespace-nowrap transition-colors"
+              >
+                {verifyingPayment ? 'Verifying...' : 'Verify'}
+              </button>
+            </div>
+            {paymentError && <p className={`text-xs font-medium p-2 rounded ${isFailed ? 'text-red-600 bg-red-50' : 'text-indigo-600 bg-indigo-50'}`}>{paymentError}</p>}
+          </div>
         </div>
       )}
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Left Column: Order details & Shipping */}
         <div className="lg:col-span-2 space-y-6">
-          
+
           {/* Order Items */}
           <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 flex items-center gap-2">
@@ -277,7 +276,7 @@ export default function OrderDetailPage() {
                 const isProgram = !!(book.sessions || book.classRange || book.duration || (book.title && book.title.toLowerCase().includes('program')));
                 const isbnId = (book.id || item.bookId || 'unknown').toString().slice(0, 6).toUpperCase();
                 const unitPrice = item.price || book.price || 0;
-                
+
                 return (
                   <div key={item.id} className="p-5 flex gap-4 items-start">
                     <div className="w-16 h-20 bg-slate-100 rounded flex items-center justify-center text-slate-500 text-xs font-medium border border-slate-200 shrink-0">
@@ -304,7 +303,7 @@ export default function OrderDetailPage() {
                 );
               })}
             </div>
-            
+
             {/* Financials Breakdown */}
             <div className="p-5 bg-slate-50 border-t border-slate-200 space-y-3 text-sm">
               <div className="flex justify-between text-slate-600">
@@ -344,13 +343,12 @@ export default function OrderDetailPage() {
               <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
                 <CreditCard size={14} /> Payment Information
               </h3>
-              
+
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
                 <div>
                   <p className="text-slate-500 text-xs mb-2">Payment Status</p>
-                  <span className={`inline-block px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide ${
-                    order.paymentStatus === 'COMPLETED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                  }`}>
+                  <span className={`inline-block px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide ${order.paymentStatus === 'COMPLETED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                    }`}>
                     {order.paymentStatus}
                   </span>
                 </div>
@@ -400,16 +398,16 @@ export default function OrderDetailPage() {
               ) : (
                 <p className="text-sm text-slate-500 italic mb-4">No comments yet. Add one below.</p>
               )}
-              
+
               <div className="flex flex-col gap-2">
-                <textarea 
+                <textarea
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="Add a comment or note about this order..."
                   className="w-full p-3 rounded-md border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/20 resize-none"
                   rows={3}
                 />
-                <button 
+                <button
                   onClick={addComment}
                   disabled={!newComment.trim()}
                   className="self-end px-4 py-2 bg-slate-900 text-white rounded-md text-sm font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors"
@@ -424,7 +422,7 @@ export default function OrderDetailPage() {
 
         {/* Right Column: Sidebar Actions */}
         <div className="space-y-6">
-          
+
           {/* Status Controls */}
           <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-200 bg-slate-50">
@@ -437,7 +435,7 @@ export default function OrderDetailPage() {
                 </div>
               )}
               <div className="flex items-center gap-3">
-                <select 
+                <select
                   className="flex-1 w-full p-2.5 rounded-md border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-50"
                   value={displayOrderStatus}
                   onChange={(e) => updateStatus(e.target.value)}
@@ -447,7 +445,7 @@ export default function OrderDetailPage() {
                     const isCurrent = displayOrderStatus === step.id;
                     const canTransition = STATUS_TRANSITIONS[order.orderStatus]?.includes(step.id);
                     const isDisabled = isFailed || (!isCurrent && !canTransition);
-                    
+
                     return (
                       <option key={step.id} value={step.id} disabled={isDisabled}>
                         {step.label} {isCurrent ? '(Current)' : ''}
@@ -477,47 +475,47 @@ export default function OrderDetailPage() {
 
           {/* Customer Card */}
           <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-             <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 flex items-center gap-2">
-               <User className="text-slate-500" size={18} />
-               <h2 className="font-semibold text-slate-900">Customer</h2>
-             </div>
-             <div className="p-5">
-               <div className="flex items-center gap-3 mb-5">
-                  <div className="w-10 h-10 bg-slate-200 text-slate-600 rounded-full flex items-center justify-center font-semibold text-lg shrink-0">
-                    {(order.guestName || order.user?.username || 'G')[0].toUpperCase()}
+            <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 flex items-center gap-2">
+              <User className="text-slate-500" size={18} />
+              <h2 className="font-semibold text-slate-900">Customer</h2>
+            </div>
+            <div className="p-5">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 bg-slate-200 text-slate-600 rounded-full flex items-center justify-center font-semibold text-lg shrink-0">
+                  {(order.guestName || order.user?.username || 'G')[0].toUpperCase()}
+                </div>
+                <div>
+                  <p className="font-medium text-slate-900">{order.guestName || order.user?.username || 'Guest'}</p>
+                  <p className="text-xs text-slate-500">{order.userId ? 'Registered User' : 'Guest Customer'}</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <Mail size={16} className="text-slate-400 mt-0.5" />
+                  <div className="overflow-hidden">
+                    <p className="text-xs text-slate-500">Email</p>
+                    <p className="text-sm font-medium text-slate-900 truncate">{order.guestEmail || 'N/A'}</p>
                   </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Phone size={16} className="text-slate-400 mt-0.5" />
                   <div>
-                    <p className="font-medium text-slate-900">{order.guestName || order.user?.username || 'Guest'}</p>
-                    <p className="text-xs text-slate-500">{order.userId ? 'Registered User' : 'Guest Customer'}</p>
+                    <p className="text-xs text-slate-500">Phone</p>
+                    <p className="text-sm font-medium text-slate-900">{order.guestPhone || 'N/A'}</p>
                   </div>
-               </div>
-               
-               <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                     <Mail size={16} className="text-slate-400 mt-0.5" />
-                     <div className="overflow-hidden">
-                        <p className="text-xs text-slate-500">Email</p>
-                        <p className="text-sm font-medium text-slate-900 truncate">{order.guestEmail || 'N/A'}</p>
-                     </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                     <Phone size={16} className="text-slate-400 mt-0.5" />
-                     <div>
-                        <p className="text-xs text-slate-500">Phone</p>
-                        <p className="text-sm font-medium text-slate-900">{order.guestPhone || 'N/A'}</p>
-                     </div>
-                  </div>
-                  {order.gstNumber && (
-                    <div className="flex items-start gap-3 pt-3 border-t border-slate-100">
-                      <ShieldCheck size={16} className="text-slate-400 mt-0.5" />
-                      <div>
-                          <p className="text-xs text-slate-500">GSTIN</p>
-                          <p className="text-sm font-medium text-slate-900">{order.gstNumber}</p>
-                      </div>
+                </div>
+                {order.gstNumber && (
+                  <div className="flex items-start gap-3 pt-3 border-t border-slate-100">
+                    <ShieldCheck size={16} className="text-slate-400 mt-0.5" />
+                    <div>
+                      <p className="text-xs text-slate-500">GSTIN</p>
+                      <p className="text-sm font-medium text-slate-900">{order.gstNumber}</p>
                     </div>
-                  )}
-               </div>
-             </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Shipping Info (Moved to Sidebar) */}
@@ -527,35 +525,35 @@ export default function OrderDetailPage() {
               <h2 className="font-semibold text-slate-900">Shipping Details</h2>
             </div>
             <div className="p-5 space-y-6">
-               <div className="space-y-4">
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs text-slate-500 mb-1">Street Address</p>
+                  <p className="font-medium text-slate-900 text-sm">{order.shippingAddress}</p>
+                </div>
+                <div className="flex gap-6">
                   <div>
-                    <p className="text-xs text-slate-500 mb-1">Street Address</p>
-                    <p className="font-medium text-slate-900 text-sm">{order.shippingAddress}</p>
-                  </div>
-                  <div className="flex gap-6">
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">City</p>
-                      <p className="font-medium text-slate-900 text-sm">{order.city}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">State</p>
-                      <p className="font-medium text-slate-900 text-sm">{order.state}</p>
-                    </div>
+                    <p className="text-xs text-slate-500 mb-1">City</p>
+                    <p className="font-medium text-slate-900 text-sm">{order.city}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 mb-1">Pincode</p>
-                    <p className="font-medium text-slate-900 text-sm">{order.pincode}</p>
+                    <p className="text-xs text-slate-500 mb-1">State</p>
+                    <p className="font-medium text-slate-900 text-sm">{order.state}</p>
                   </div>
-               </div>
-               
-               <div className="bg-slate-50 rounded-md p-4 border border-slate-100">
-                  <div className="font-medium text-sm flex items-center gap-2 mb-2 text-slate-700">
-                    <Info size={16} /> Delivery Instructions
-                  </div>
-                  <p className="text-sm text-slate-600">
-                    Standard delivery. Please ensure the package is handled with care.
-                  </p>
-               </div>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 mb-1">Pincode</p>
+                  <p className="font-medium text-slate-900 text-sm">{order.pincode}</p>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 rounded-md p-4 border border-slate-100">
+                <div className="font-medium text-sm flex items-center gap-2 mb-2 text-slate-700">
+                  <Info size={16} /> Delivery Instructions
+                </div>
+                <p className="text-sm text-slate-600">
+                  Standard delivery. Please ensure the package is handled with care.
+                </p>
+              </div>
             </div>
           </div>
         </div>

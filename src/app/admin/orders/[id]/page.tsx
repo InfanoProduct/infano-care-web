@@ -102,6 +102,22 @@ export default function OrderDetailPage() {
     }
   };
 
+  const addComment = async () => {
+    if (!newComment.trim()) return;
+    try {
+      const commentText = newComment.trim();
+      setNewComment('');
+      // Optimistic update
+      setComments([...comments, { text: commentText, createdAt: new Date().toISOString() }]);
+      const response = await apiClient.post<any>(`/admin/orders/${id}/comments`, { text: commentText });
+      if (response && response.comments) {
+        setComments(response.comments);
+      }
+    } catch (err: any) {
+      console.error('Failed to add comment', err);
+    }
+  };
+
   if (loading) return (
     <div className="flex items-center justify-center min-h-[400px]">
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -394,11 +410,7 @@ export default function OrderDetailPage() {
                   rows={3}
                 />
                 <button 
-                  onClick={() => {
-                    if (!newComment.trim()) return;
-                    setComments([...comments, { text: newComment, createdAt: new Date().toISOString() }]);
-                    setNewComment('');
-                  }}
+                  onClick={addComment}
                   disabled={!newComment.trim()}
                   className="self-end px-4 py-2 bg-slate-900 text-white rounded-md text-sm font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors"
                 >

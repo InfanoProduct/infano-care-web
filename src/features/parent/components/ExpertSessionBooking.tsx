@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { ProgramsService } from '@/services/programs.service';
 import {
   Loader2, Search, Filter, Star, Clock, Video, Calendar,
-  X, ChevronRight, AlertCircle, CheckCircle2, XCircle, RefreshCw
+  X, ChevronRight, AlertCircle, CheckCircle2, XCircle, RefreshCw, Sparkles, Info
 } from 'lucide-react';
 
 const ENROLLED_THEMES: Record<string, { accent: string; gradient: string; border: string; badge: string; }> = {
@@ -34,6 +34,8 @@ interface Session {
   scheduledAt: string;
   status: string;
   meetLink?: string;
+  programId?: string | null;
+  sessionNumber?: number | null;
   expert?: {
     profile?: {
       displayName: string;
@@ -72,14 +74,16 @@ function generateSlots(): string[] {
   return slots;
 }
 
-export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | 'sessions' | 'demos' } = {}) {
+export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | 'consultations' | 'demos' } = {}) {
   const { user } = useAuthStore();
   const [experts, setExperts] = useState<Expert[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [demoSessions, setDemoSessions] = useState<any[]>([]);
+  const [enrollments, setEnrollments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const [demosLoading, setDemosLoading] = useState(false);
+  const [enrollmentsLoading, setEnrollmentsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -94,18 +98,31 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
   const [rescheduleSession, setRescheduleSession] = useState<Session | null>(null);
   const [rescheduleSlot, setRescheduleSlot] = useState<string | null>(null);
 
-  const [tab, setTab] = useState<'browse' | 'sessions' | 'demos'>(initialTab || 'browse');
+  const [tab, setTab] = useState<'browse' | 'consultations' | 'demos'>(initialTab || 'consultations');
 
 
   useEffect(() => {
     fetchExperts();
     fetchSessions();
     fetchDemoSessions();
+    fetchEnrollments();
   }, []);
 
   useEffect(() => {
     fetchExperts();
   }, [activeFilter]);
+
+  const fetchEnrollments = async () => {
+    try {
+      setEnrollmentsLoading(true);
+      const res = await ProgramsService.getUserEnrollments();
+      setEnrollments(res.data || []);
+    } catch (err) {
+      console.error('Failed to fetch enrollments:', err);
+    } finally {
+      setEnrollmentsLoading(false);
+    }
+  };
 
   const fetchDemoSessions = async () => {
     try {
@@ -274,6 +291,15 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
       {/* Tab Switcher */}
       <div className="flex gap-2 bg-slate-100 p-1.5 rounded-lg w-fit">
         <button
+          onClick={() => setTab('consultations')}
+          className={`px-5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${tab === 'consultations'
+            ? 'bg-white text-primary shadow-sm'
+            : 'text-slate-500 hover:text-slate-700'
+            }`}
+        >
+          Consultations
+        </button>
+        <button
           onClick={() => setTab('browse')}
           className={`px-5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${tab === 'browse'
             ? 'bg-white text-primary shadow-sm'
@@ -281,20 +307,6 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
             }`}
         >
           Browse Experts
-        </button>
-        <button
-          onClick={() => setTab('sessions')}
-          className={`px-5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${tab === 'sessions'
-            ? 'bg-white text-primary shadow-sm'
-            : 'text-slate-500 hover:text-slate-700'
-            }`}
-        >
-          My Sessions
-          {upcomingSessions.length > 0 && (
-            <span className="w-5 h-5 bg-primary text-white rounded-full text-[10px] font-bold flex items-center justify-center">
-              {upcomingSessions.length}
-            </span>
-          )}
         </button>
         <button
           onClick={() => setTab('demos')}
@@ -373,7 +385,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                     </div>
                     <div className="min-w-0">
                       <h3 className="font-bold text-slate-800 text-base truncate">{expert.displayName}</h3>
-                      <p className="text-xs font-semibold text-slate-500 mt-0.5">{expert.specialisation}</p>
+                      <p className="text-xs font-semibold text-slate-505 mt-0.5">{expert.specialisation}</p>
                     </div>
                   </div>
 
@@ -407,116 +419,287 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
           )}
         </div>
       )}
-
-      {/* ========== MY SESSIONS TAB ========== */}
-      {tab === 'sessions' && (
-        <div className="space-y-6">
-          {sessionsLoading ? (
+      {/* ========== CONSULTATIONS TAB ========== */}
+      {tab === 'consultations' && (
+        <div className="space-y-8 animate-in fade-in duration-300">
+          {enrollmentsLoading || sessionsLoading ? (
             <div className="flex justify-center py-16">
               <Loader2 className="animate-spin text-primary" size={32} />
             </div>
-          ) : sessions.length === 0 && demoSessions.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-xl border border-slate-100">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Calendar size={24} className="text-slate-400" />
-              </div>
-              <p className="text-slate-500 font-semibold text-sm">No sessions booked yet.</p>
-              <p className="text-slate-400 text-xs mt-1">Browse experts and book your first session!</p>
-              <button onClick={() => setTab('browse')} className="mt-4 px-5 py-2 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary/90 transition-all">
-                Browse Experts
-              </button>
-            </div>
-          ) : (
-            <>
-              {/* Upcoming Sessions */}
-              {upcomingSessions.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                    Upcoming Sessions ({upcomingSessions.length})
-                  </h3>
-                  <div className="space-y-3">
-                    {upcomingSessions.map((session) => (
-                      <div key={session.id} className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                            <Video size={20} />
-                          </div>
-                          <div>
-                            <p className="font-bold text-slate-800 text-sm">{session.expert?.profile?.displayName || 'Expert'}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs font-semibold text-slate-500">{formatDate(session.scheduledAt)}</span>
-                              <span className="text-slate-300">·</span>
-                              <span className="text-xs font-semibold text-primary">{formatTime(session.scheduledAt)}</span>
+          ) : (() => {
+            // 1. Gather free consultations
+            const programConsultations = enrollments.flatMap(enr => {
+              const consultations = enr.program.consultations || [];
+              if (!Array.isArray(consultations) || consultations.length === 0) return [];
+              
+              return consultations.map((consultation: any, idx: number) => {
+                const sessionNum = -(idx + 1);
+                const existingSession = sessions.find(s => s.programId === enr.programId && s.sessionNumber === sessionNum);
+                return {
+                  id: existingSession?.id || `free-${enr.id}-${idx}`,
+                  isFree: true,
+                  enr,
+                  consultation,
+                  idx,
+                  existingSession,
+                  scheduledAt: existingSession?.scheduledAt || null,
+                  status: existingSession?.status || 'NOT_SCHEDULED',
+                  meetLink: existingSession?.meetLink || null
+                };
+              });
+            });
+
+            // 2. Gather paid sessions
+            const paidSessions = sessions.filter(s => !s.programId).map(session => ({
+              id: session.id,
+              isFree: false,
+              session,
+              scheduledAt: session.scheduledAt,
+              status: session.status,
+              meetLink: session.meetLink || null
+            }));
+
+            // Combine them
+            const allConsultations = [...programConsultations, ...paidSessions];
+
+            if (allConsultations.length === 0) {
+              return (
+                <div className="text-center py-16 bg-white rounded-xl border border-slate-100 p-8 shadow-sm">
+                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Calendar size={24} className="text-slate-400" />
+                  </div>
+                  <p className="text-slate-500 font-semibold text-sm">No consultations found.</p>
+                </div>
+              );
+            }
+
+            // Separate into Upcoming (including unscheduled) and Past
+            const upcomingConsultations = allConsultations.filter(c => {
+              if (c.status === 'COMPLETED' || c.status === 'CANCELLED') return false;
+              if (c.scheduledAt && new Date(c.scheduledAt) <= new Date()) return false;
+              return true;
+            });
+
+            const pastConsultations = allConsultations.filter(c => {
+              if (c.status === 'COMPLETED' || c.status === 'CANCELLED') return true;
+              if (c.scheduledAt && new Date(c.scheduledAt) <= new Date()) return true;
+              return false;
+            });
+
+            // Sort upcoming: scheduled ones sorted ascending by date (soonest first), unscheduled at the end
+            upcomingConsultations.sort((a, b) => {
+              if (!a.scheduledAt && !b.scheduledAt) return 0;
+              if (!a.scheduledAt) return 1;
+              if (!b.scheduledAt) return -1;
+              return new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime();
+            });
+
+            // Sort past: descending by date (most recent first)
+            pastConsultations.sort((a, b) => {
+              if (!a.scheduledAt && !b.scheduledAt) return 0;
+              if (!a.scheduledAt) return 1;
+              if (!b.scheduledAt) return -1;
+              return new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime();
+            });
+
+            return (
+              <div className="space-y-8">
+                {/* Upcoming & Active Section */}
+                {upcomingConsultations.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                      <Sparkles size={16} className="text-violet-600" />
+                      Upcoming & Active Consultations
+                    </h3>
+                    <div className="grid gap-4">                      {upcomingConsultations.map((c: any) => {
+                        const isScheduled = !!c.scheduledAt;
+
+                        if (isScheduled) {
+                          // Scheduled Consultation Card (using violet shade color for both free and paid)
+                          return (
+                            <div
+                              key={c.id}
+                              className="p-5 border border-purple-200 rounded-lg shadow-md flex flex-col gap-3.5 relative overflow-hidden transition-all duration-300"
+                              style={{ backgroundColor: '#F3E8FF', backgroundImage: 'linear-gradient(to bottom right, #FAF5FF, #EEF2F6)' }}
+                            >
+                              <div className="flex items-start gap-3.5 relative z-10">
+                                <div className="w-10 h-10 bg-purple-600 text-white rounded-lg flex items-center justify-center shrink-0 shadow-md animate-pulse">
+                                  <Video size={18} className="fill-white" />
+                                </div>
+                                <div className="space-y-1">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    {c.isFree && (
+                                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider border bg-violet-100 text-violet-700 border-violet-200">
+                                        Free
+                                      </span>
+                                    )}
+                                    <span className="text-[10px] font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md uppercase tracking-wider animate-pulse border border-purple-200">
+                                      {c.isFree ? 'Upcoming Live' : 'Upcoming 1:1 Live'}
+                                    </span>
+                                    {c.status === 'RESCHEDULED' && (
+                                      <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md uppercase tracking-wider border border-amber-200">
+                                        Rescheduled
+                                      </span>
+                                    )}
+                                    <span className="text-[11px] font-semibold text-slate-655 flex items-center gap-1">
+                                      <Calendar size={11} /> {formatDate(c.scheduledAt!)} at {formatTime(c.scheduledAt!)}
+                                    </span>
+                                  </div>
+                                  <h6 className="font-bold text-base text-slate-900 leading-tight">
+                                    {c.isFree ? c.consultation.title : (c.session?.expert?.profile?.displayName || 'Expert')}
+                                  </h6>
+                                  <p className="text-xs text-slate-505 font-medium leading-relaxed">
+                                    {c.isFree ? `Program: ${c.enr.program.title}` : '1:1 Scheduled Consultation'}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="border-t border-purple-200/50 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-1 relative z-10">
+                                <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 bg-white/40 px-3 py-1.5 rounded-lg border border-slate-200/10">
+                                  <Info size={14} className="text-slate-400" /> Prepare your questions before class
+                                </div>
+                                <div className="flex items-center flex-wrap gap-2.5">
+                                  {c.meetLink ? (
+                                    <a
+                                      href={c.meetLink}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-1.5 text-xs transition-all active:scale-95 shadow-sm"
+                                    >
+                                      Join Live Class <ChevronRight size={14} />
+                                    </a>
+                                  ) : (
+                                    <span className="text-xs font-bold bg-white/80 px-3 py-2 rounded-lg border border-slate-200 text-center text-slate-555">
+                                      Link coming soon
+                                    </span>
+                                  )}
+                                  {!c.isFree && (
+                                    <>
+                                      <button
+                                        onClick={() => {
+                                          setRescheduleSession(c.session);
+                                          setRescheduleSlot(null);
+                                        }}
+                                        className="px-4 py-2 border border-primary/20 text-primary bg-white hover:bg-primary hover:text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs hover:shadow-sm cursor-pointer"
+                                      >
+                                        <RefreshCw size={13} /> Reschedule
+                                      </button>
+                                      <button
+                                        onClick={() => handleCancel(c.session.id)}
+                                        disabled={cancellingId === c.session.id}
+                                        className="px-4 py-2 border border-rose-200 text-rose-600 bg-white hover:bg-rose-600 hover:text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 disabled:opacity-50 shadow-xs hover:shadow-sm cursor-pointer"
+                                      >
+                                        {cancellingId === c.session.id ? (
+                                          <Loader2 size={13} className="animate-spin" />
+                                        ) : (
+                                          <XCircle size={13} />
+                                        )}
+                                        Cancel
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        } else {
+                          // Unscheduled Free Consultation Card (using violet border/accenting styling)
+                          return (
+                            <div
+                              key={c.id}
+                              className="bg-white rounded-lg border border-violet-200/50 p-8 min-h-[120px] shadow-sm hover:shadow-md hover:border-violet-300 transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative overflow-hidden group"
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-r from-indigo-50/5 to-violet-50/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                              
+                              <div className="flex items-start gap-5 relative z-10">
+                                <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-violet-50 to-indigo-50 text-violet-650 border border-violet-100 font-black flex flex-col items-center justify-center shrink-0 leading-none shadow-xs">
+                                  <span className="text-[10px] tracking-wider font-extrabold opacity-85">FREE</span>
+                                  <span className="text-2xl font-black mt-0.5">{c.idx + 1}</span>
+                                </div>
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2.5 flex-wrap">
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider border bg-violet-100 text-violet-700 border-violet-200">
+                                      Free
+                                    </span>
+                                    <h4 className="font-extrabold text-slate-800 text-base">{c.consultation.title}</h4>
+                                    <span className="text-[10px] font-black tracking-wider uppercase px-3 py-1 rounded-full border shadow-xs bg-slate-100 text-slate-500 border-slate-200">
+                                      Not Scheduled
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-slate-505 font-bold">
+                                    Program: <span className="text-violet-600 font-semibold">{c.enr.program.title}</span>
+                                  </p>
+                                  <p className="text-xs text-slate-450 font-medium italic mt-2">
+                                    Status: Not scheduled yet by assigned expert
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Past Consultations Section */}
+                {pastConsultations.length > 0 && (
+                  <div className="space-y-4 pt-4 border-t border-slate-100/60">
+                    <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                      <Star size={16} className="text-slate-400" />
+                      Past Consultations
+                    </h3>
+                    <div className="grid gap-4">
+                      {pastConsultations.map((c: any) => {
+                        let statusColor = 'bg-slate-200 text-slate-655 border-slate-300/55';
+                        if (c.status === 'COMPLETED') {
+                          statusColor = 'bg-green-100 text-green-700 border-green-200/55';
+                        } else if (c.status === 'CANCELLED') {
+                          statusColor = 'bg-rose-100 text-rose-700 border-rose-200/55';
+                        }
+
+                        return (
+                          <div
+                            key={c.id}
+                            className="bg-violet-50/20 border border-violet-100/70 rounded-lg p-8 min-h-[120px] flex flex-col sm:flex-row sm:items-center justify-between gap-6 opacity-75 relative overflow-hidden"
+                          >
+                            <div className="flex items-start gap-5 relative z-10">
+                              <div className="w-14 h-14 rounded-lg bg-slate-150 flex items-center justify-center text-slate-450 shrink-0 shadow-xs">
+                                <Clock size={22} className="stroke-[2.5]" />
+                              </div>
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2.5 flex-wrap">
+                                  {c.isFree && (
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider border bg-violet-100/60 text-violet-700 border-violet-200/50">
+                                      Free
+                                    </span>
+                                  )}
+                                  <h4 className="font-extrabold text-slate-705 text-base">
+                                    {c.isFree ? c.consultation.title : (c.session?.expert?.profile?.displayName || 'Expert')}
+                                  </h4>
+                                  <span className={`text-[10px] font-black tracking-wider uppercase px-3 py-1 rounded-full border shadow-xs ${statusColor}`}>
+                                    {c.status}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-slate-450 font-bold">
+                                  {c.isFree ? `Program: ${c.enr.program.title}` : '1:1 Consultation History'}
+                                </p>
+                                {c.scheduledAt && (
+                                  <div className="flex items-center gap-2 mt-2 bg-white/60 px-3 py-1.5 rounded-xl border border-violet-100/50 w-fit">
+                                    <Calendar size={13} className="text-slate-400" />
+                                    <span className="text-xs font-bold text-slate-500">{formatDate(c.scheduledAt!)}</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 ml-16 sm:ml-0">
-                          {session.meetLink && (
-                            <a
-                              href={session.meetLink}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary/90 transition-all flex items-center gap-1.5"
-                            >
-                              <Video size={14} /> Join
-                            </a>
-                          )}
-                          <button
-                            onClick={() => {
-                              setRescheduleSession(session);
-                              setRescheduleSlot(null);
-                            }}
-                            className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
-                            title="Reschedule"
-                          >
-                            <RefreshCw size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleCancel(session.id)}
-                            disabled={cancellingId === session.id}
-                            className="p-2 text-slate-400 hover:text-rose-50 hover:bg-rose-50 rounded-lg transition-all disabled:opacity-50"
-                            title="Cancel"
-                          >
-                            {cancellingId === session.id ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
-
-
-              {/* Past Sessions */}
-              {pastSessions.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wider mb-3">Past Sessions</h3>
-                  <div className="space-y-3">
-                    {pastSessions.map((session) => (
-                      <div key={session.id} className="bg-slate-50 rounded-xl border border-slate-100 p-5 flex items-center gap-4 opacity-70">
-                        <div className="w-10 h-10 rounded-lg bg-slate-200 flex items-center justify-center text-slate-400 shrink-0">
-                          <Clock size={18} />
-                        </div>
-                        <div>
-                          <p className="font-bold text-slate-600 text-sm">{session.expert?.profile?.displayName || 'Expert'}</p>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-xs text-slate-400">{formatDate(session.scheduledAt)}</span>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${session.status === 'COMPLETED' ? 'bg-green-100 text-green-600' :
-                              session.status === 'CANCELLED' ? 'bg-rose-100 text-rose-600' : 'bg-slate-200 text-slate-500'
-                              }`}>
-                              {session.status}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
+                )}
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -716,7 +899,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                     <p className="text-sm text-slate-500 font-medium">Your session with {selectedExpert.displayName} has been booked.</p>
                   </div>
                   <button
-                    onClick={() => { closeModal(); setTab('sessions'); }}
+                    onClick={() => { closeModal(); setTab('consultations'); }}
                     className="px-6 py-3 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary/90 transition-all"
                   >
                     View My Sessions

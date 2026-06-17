@@ -45,6 +45,15 @@ export default function EnrollmentDetail({ params }: { params: Promise<{ id: str
   const [saving, setSaving] = useState(false);
   const [completing, setCompleting] = useState<string | null>(null);
 
+  const getTomorrowDateString = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const yyyy = tomorrow.getFullYear();
+    const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+    const dd = String(tomorrow.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
   const fetchDetails = async () => {
     try {
       const data = await apiClient.request<any>(`/expert/enrollments/${resolvedParams.id}`);
@@ -71,6 +80,11 @@ export default function EnrollmentDetail({ params }: { params: Promise<{ id: str
   }, [resolvedParams.id]);
 
   const handleSchedule = async (sessionNumber: number) => {
+    const tomorrowStr = getTomorrowDateString();
+    if (scheduleDate < tomorrowStr) {
+      toast.error('Schedule date must be next day onward');
+      return;
+    }
     setSaving(true);
     try {
       const scheduledAt = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
@@ -280,6 +294,12 @@ export default function EnrollmentDetail({ params }: { params: Promise<{ id: str
                       Session Completed ✓
                     </span>
                   )}
+
+                  {existingSession?.expert && (
+                    <p className="text-[11px] text-muted-foreground text-center mt-2 font-medium">
+                      Scheduled by: <span className="text-primary font-semibold">{existingSession.expert.profile?.displayName || existingSession.expert.username}</span>
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -292,6 +312,7 @@ export default function EnrollmentDetail({ params }: { params: Promise<{ id: str
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <input
                       type="date"
+                      min={getTomorrowDateString()}
                       className="w-full px-4 py-3 rounded-xl border border-border bg-white focus:ring-2 focus:ring-primary focus:outline-none font-medium"
                       value={scheduleDate}
                       onChange={e => setScheduleDate(e.target.value)}
@@ -469,6 +490,12 @@ export default function EnrollmentDetail({ params }: { params: Promise<{ id: str
                               Consultation Completed ✓
                             </span>
                           )}
+
+                          {existingSession?.expert && (
+                            <p className="text-[11px] text-muted-foreground text-center mt-2 font-medium">
+                              Scheduled by: <span className="text-primary font-semibold">{existingSession.expert.profile?.displayName || existingSession.expert.username}</span>
+                            </p>
+                          )}
                         </>
                       ) : (
                         <span className="block w-full text-center text-xs text-muted-foreground font-semibold px-4 py-3 bg-slate-50 rounded-xl border border-slate-200">
@@ -487,6 +514,7 @@ export default function EnrollmentDetail({ params }: { params: Promise<{ id: str
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <input
                           type="date"
+                          min={getTomorrowDateString()}
                           className="w-full px-4 py-3 rounded-xl border border-border bg-white focus:ring-2 focus:ring-primary focus:outline-none font-medium"
                           value={scheduleDate}
                           onChange={e => setScheduleDate(e.target.value)}

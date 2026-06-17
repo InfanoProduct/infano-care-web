@@ -57,13 +57,13 @@ export default function AdminLayout({
         { name: 'Manage Books', icon: BookOpen, href: '/admin/books' },
       ]
     },
-    { name: 'Expert Sessions', icon: Calendar, href: '/admin/expert-sessions' },
+    { name: 'Expert Consultations', icon: Calendar, href: '/admin/expert-consultations' },
     { name: 'Enquiries', icon: FileQuestion, href: '/admin/enquiries' },
     { name: 'System Settings', icon: Settings, href: '/admin/settings' },
   ];
 
   const filteredMenuItems = user?.role === 'EXPERT'
-    ? menuItems.filter(item => item.name === 'Learning Programs' || item.name === 'Connect' || item.name === 'Expert Sessions')
+    ? menuItems.filter(item => item.name === 'Learning Programs' || item.name === 'Connect' || item.name === 'Expert Consultations')
     : menuItems;
 
   useEffect(() => {

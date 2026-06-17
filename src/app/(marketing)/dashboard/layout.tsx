@@ -149,9 +149,9 @@ export default function CustomerDashboardLayout({
     { href: '/dashboard/enrolled-programs', label: 'Enrolled Programs', icon: Layers },
     { href: '/dashboard/learning-journeys', label: 'Learning Journeys', icon: GraduationCap, matchPrefix: true },
     { href: '/dashboard/payments', label: 'Payment Details', icon: CreditCard },
-    ...(!isTeen ? [{ href: '/dashboard/expert-sessions', label: 'Expert Sessions', icon: Calendar }] : []),
+    ...(!isTeen ? [{ href: '/dashboard/expert-sessions', label: 'My Consultations', icon: Calendar }] : []),
     ...(!isTeen ? [{ href: '/dashboard/resources', label: 'Library', icon: BookOpen }] : []),
-    ...(isTeen ? [{ href: '/dashboard/expert-sessions', label: 'My Sessions', icon: Calendar }] : []),
+    ...(isTeen ? [{ href: '/dashboard/expert-sessions', label: 'My Consultations', icon: Calendar }] : []),
     { href: '/dashboard/parent', label: isTeen ? 'Link Parent' : 'Link Daughter', icon: User },
     { href: '/dashboard/profile', label: 'Profile', icon: User },
   ];

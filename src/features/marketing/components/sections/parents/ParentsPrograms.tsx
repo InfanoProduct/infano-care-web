@@ -271,21 +271,32 @@ export function ParentsPrograms() {
                           Program Includes
                         </h4>
                         <ul className="space-y-3.5">
-                          {(program.features && program.features.length > 0 ? program.features : [
-                            "8 sessions by trained experts",
-                            "3 doctors consultations",
-                            "1 physical book",
-                            "Digital learning access",
-                            "Safe community led by experts",
-                            "Menstrual Tracker"
-                          ]).map((feature, featureIdx) => (
-                            <li key={featureIdx} className="flex items-start gap-3 text-slate-700">
-                              <span className={`w-5 h-5 shrink-0 rounded-full flex items-center justify-center text-[10px] font-bold ${styles.bulletBg} shadow-sm mt-0.5`}>
-                                <Check size={12} strokeWidth={3} />
-                              </span>
-                              <span className="text-sm font-semibold leading-snug">{feature}</span>
-                            </li>
-                          ))}
+                          {(() => {
+                            const consultationsCount = Array.isArray(program.consultations)
+                              ? program.consultations.length
+                              : 0;
+                            const remainingFeatures = (program.features && program.features.length > 0)
+                              ? program.features
+                              : [
+                                  "1 physical book",
+                                  "Digital learning access",
+                                  "Safe community led by experts",
+                                  "Menstrual Tracker"
+                                ];
+                            const items = [
+                              `${program.sessions} sessions by trained experts`,
+                              `${consultationsCount} doctors consultations`,
+                              ...remainingFeatures
+                            ];
+                            return items.map((feature, featureIdx) => (
+                              <li key={featureIdx} className="flex items-start gap-3 text-slate-700">
+                                <span className={`w-5 h-5 shrink-0 rounded-full flex items-center justify-center text-[10px] font-bold ${styles.bulletBg} shadow-sm mt-0.5`}>
+                                  <Check size={12} strokeWidth={3} />
+                                </span>
+                                <span className="text-sm font-semibold leading-snug">{feature}</span>
+                              </li>
+                            ));
+                          })()}
                         </ul>
                       </div>
                     </div>

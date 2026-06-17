@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/auth-store';
 
 export default function ExpertSessionsPage() {
   const { user } = useAuthStore();
-  const [initialTab, setInitialTab] = useState<'browse' | 'sessions' | 'demos'>('browse');
+  const [initialTab, setInitialTab] = useState<'browse' | 'consultations' | 'demos'>('consultations');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -15,8 +15,10 @@ export default function ExpertSessionsPage() {
       const tabParam = params.get('tab');
       if (tabParam === 'demos') {
         setInitialTab('demos');
+      } else if (tabParam === 'browse') {
+        setInitialTab('browse');
       } else {
-        setInitialTab(user?.role === 'TEEN' ? 'sessions' : 'browse');
+        setInitialTab('consultations');
       }
     }
   }, [user]);
@@ -24,9 +26,9 @@ export default function ExpertSessionsPage() {
   return (
     <div className="space-y-6 w-full max-w-[1280px] mx-auto pb-8 font-sans">
       <div className="admin-header">
-        <h1 className="text-xl font-bold tracking-tight">Expert Sessions</h1>
+        <h1 className="text-xl font-bold tracking-tight">My Consultations</h1>
         <p className="text-xs text-slate-505 mt-1">
-          Browse verified experts and book 1:1 sessions for your daughter.
+          Manage your consultations and book 1:1 sessions with verified experts.
         </p>
       </div>
 

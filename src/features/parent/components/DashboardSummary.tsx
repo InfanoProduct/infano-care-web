@@ -17,6 +17,7 @@ interface DashboardSummaryData {
   activeJourney: { name: string; percentComplete: number; thumbnailUrl?: string } | null;
   moodTrend: MoodTrend[];
   nextExpertSession: string | null;
+  nextExpertSessionStatus?: string | null;
   programs: string[];
 }
 
@@ -237,8 +238,15 @@ export function DashboardSummary() {
             )}
           </div>
           {data.nextExpertSession && (
-            <div className="relative z-10 text-[10px] font-black uppercase tracking-widest text-white bg-blue-500 px-3 py-2 rounded-xl inline-flex w-fit shadow-lg shadow-blue-500/30 mt-4">
-              Link activates on schedule
+            <div className="flex flex-wrap items-center gap-1.5 mt-4 relative z-10">
+              <div className="text-[10px] font-black uppercase tracking-widest text-white bg-blue-500 px-3 py-2 rounded-xl inline-flex w-fit shadow-lg shadow-blue-500/30">
+                Link activates on schedule
+              </div>
+              {data.nextExpertSessionStatus === 'RESCHEDULED' && (
+                <div className="text-[10px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-xl inline-flex w-fit shadow-sm">
+                  Rescheduled
+                </div>
+              )}
             </div>
           )}
         </div>

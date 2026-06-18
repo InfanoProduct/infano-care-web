@@ -206,7 +206,7 @@ function CheckoutContent() {
     if (!formData.shippingAddress.trim()) errors.shippingAddress = 'Street address is required';
     if (!formData.city.trim()) errors.city = 'City is required';
     if (!formData.state.trim()) errors.state = 'State is required';
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -214,17 +214,17 @@ function CheckoutContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!book) return;
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setProcessing(true);
     setError(null);
 
     try {
       let order = cachedOrder;
-      
+
       if (!order) {
         const orderData = {
           ...formData,
@@ -270,12 +270,12 @@ function CheckoutContent() {
             email: formData.guestEmail,
             contact: formData.guestPhone,
           },
-          modal: { 
+          modal: {
             ondismiss: () => {
               setPaymentFailedReason('Payment window was closed before completion.');
               setPaymentFailed(true);
               setProcessing(false);
-            } 
+            }
           }
         };
         const rzp = new (window as any).Razorpay(options);
@@ -315,7 +315,7 @@ function CheckoutContent() {
           <p className="text-slate-600 mb-6 text-lg leading-relaxed">
             Thank you for ordering your book. Your order has been successfully placed, and we will get it delivered to you soon! Our team will connect with you shortly with further updates.
           </p>
-          
+
           <div className="bg-slate-50 border border-slate-100 rounded-xl p-6 text-left mb-8 max-w-sm mx-auto">
             <h3 className="font-bold text-slate-900 mb-4 text-center">Need help? We're here for you:</h3>
             <div className="space-y-3 font-medium text-slate-700">
@@ -338,7 +338,7 @@ function CheckoutContent() {
 
   return (
     <div className="min-h-screen bg-[#FDFCFB] selection:bg-primary/20 pt-20 md:pt-28 pb-16 font-sans">
-      
+
       {/* Payment Failed Modal Popup */}
       {paymentFailed && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
@@ -372,15 +372,15 @@ function CheckoutContent() {
 
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
       <div className="max-w-6xl mx-auto px-6 relative z-10">
-        <Link 
-          href="/gigi-the-awkward-age-book" 
+        <Link
+          href="/gigi-the-awkward-age-book"
           className="inline-flex items-center text-slate-500 hover:text-primary mb-8 md:mb-12 transition-colors text-sm font-medium group"
         >
           <ArrowLeft size={16} className="mr-2 group-hover:-translate-x-1 transition-transform" /> Back to product
         </Link>
 
         <div className="grid lg:grid-cols-12 gap-10 items-start">
-          
+
           {/* Left: Product Gallery & Summary */}
           <div className="lg:col-span-5 space-y-8 lg:sticky lg:top-32 w-full max-w-full">
             {/* Title & Tagline at the very top of left column */}
@@ -404,7 +404,7 @@ function CheckoutContent() {
                   priority
                 />
               </div>
-              
+
               <div className="flex gap-2 flex-wrap max-w-[400px] mx-auto lg:mx-0 justify-center lg:justify-start">
                 {bookImages.map((img, idx) => (
                   <button
@@ -424,26 +424,26 @@ function CheckoutContent() {
                 <ShoppingBag size={16} className="text-primary" />
                 Order summary
               </h3>
-              
+
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500 text-sm font-medium">Unit price</span>
                   <span className="font-bold text-slate-900 text-sm">₹{book?.price || 499}</span>
                 </div>
-                
+
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500 text-sm font-medium">Quantity</span>
                   <div className="flex items-center gap-3 bg-slate-50 rounded-lg px-3 py-1.5 border border-slate-200 text-xs">
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
                       className="text-slate-400 hover:text-slate-900 transition-colors font-bold"
                     >
                       -
                     </button>
                     <span className="text-slate-900 font-extrabold min-w-[12px] text-center">{quantity}</span>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => setQuantity(Math.min(book?.stock || 10, quantity + 1))}
                       className="text-slate-400 hover:text-slate-900 transition-colors font-bold"
                     >
@@ -451,7 +451,7 @@ function CheckoutContent() {
                     </button>
                   </div>
                 </div>
-                
+
                 {discountAmount > 0 && (
                   <div className="flex justify-between items-center pt-2">
                     <span className="text-emerald-600 text-sm font-bold flex items-center gap-1.5">
@@ -559,7 +559,7 @@ function CheckoutContent() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-600 ml-0.5">Street address <span className="text-rose-500">*</span></label>
+                  <label className="text-[11px] font-bold text-slate-600 ml-0.5">Full Address <span className="text-rose-500">*</span></label>
                   <input
                     name="shippingAddress"
                     value={formData.shippingAddress}

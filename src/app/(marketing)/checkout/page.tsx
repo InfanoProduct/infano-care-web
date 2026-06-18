@@ -65,9 +65,10 @@ function CheckoutContent() {
 
   useEffect(() => {
     if (nameParam || phoneParam || emailParam || user) {
+      const fallbackName = user?.profile?.displayName || (user?.username?.includes('@') ? '' : user?.username) || '';
       setFormData(prev => ({
         ...prev,
-        guestName: nameParam || prev.guestName || user?.profile?.displayName || user?.username || '',
+        guestName: nameParam || prev.guestName || fallbackName,
         guestPhone: phoneParam || prev.guestPhone || user?.phone || '',
         guestEmail: emailParam || prev.guestEmail || user?.email || ''
       }));

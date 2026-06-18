@@ -6,9 +6,9 @@ import { Play, Pause, Volume2, VolumeX, Loader2 } from 'lucide-react';
 import { getImageUrl } from '@/lib/utils';
 
 const TESTIMONIALS = [
-  { videoUrl: 'http://109.199.120.104:8084/uploads/assets/testimonial-1-886bf830-768b-4185-b3bd-9d850fd07327.mp4', name: 'Sneha', age: 14, location: 'Pune' },
-  { videoUrl: 'http://109.199.120.104:8084/uploads/assets/testimonial-2-8fa7cc51-09a6-463c-b352-62a05a069859.mp4', name: 'Zoya', age: 12, location: 'Mumbai' },
-  { videoUrl: 'http://109.199.120.104:8084/uploads/assets/testimonial-3-a521e34e-dff3-4e3c-aeb6-8ab6d44841d4.mp4', name: 'Isha', age: 15, location: 'Delhi' }
+  { videoUrl: '/uploads/assets/testimonial-1.mp4', name: 'Sneha', age: 14, location: 'Pune' },
+  { videoUrl: '/uploads/assets/testimonial-2.mp4', name: 'Zoya', age: 12, location: 'Mumbai' },
+  { videoUrl: '/uploads/assets/testimonial-3.mp4', name: 'Isha', age: 15, location: 'Delhi' }
 ];
 
 interface VideoPlayerProps {

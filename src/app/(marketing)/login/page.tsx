@@ -9,7 +9,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'react-hot-toast';
 import Image from 'next/image';
 
-const DECORATIVE_ILLUSTRATION = 'http://109.199.120.104:8084/uploads/assets/file-1780746441981-afa7cd5c-8d92-47b1-bfe6-cae0602d520a-4b79479e-8d37-4608-ab32-67223c47bc9b.png';
+const DECORATIVE_ILLUSTRATION = '/uploads/assets/file-1780746441981-afa7cd5c-8d92-47b1-bfe6-cae0602d520a-4b79479e-8d37-4608-ab32-67223c47bc9b.png';
 
 function getAssetUrl(path: string): string {
   if (path.startsWith('http')) return path;

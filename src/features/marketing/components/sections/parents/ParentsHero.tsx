@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Heart, Shield, Users, X, Download, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'react-hot-toast';
+import { getImageUrl } from '@/lib/utils';
 
 export function ParentsHero() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -41,7 +42,8 @@ export function ParentsHero() {
       });
 
       // Automatically attempt to download/open the guide PDF
-      window.open('http://109.199.120.104:8084/uploads/assets/file-1780515770686-bb4008e0-b17f-4149-8578-b75920a01e11.pdf', '_blank');
+      const pdfUrl = getImageUrl('/uploads/assets/file-1780515770686-bb4008e0-b17f-4149-8578-b75920a01e11.pdf');
+      window.open(pdfUrl, '_blank');
 
       setIsSubmitted(true);
     } catch (err: any) {
@@ -247,7 +249,7 @@ export function ParentsHero() {
                       Your enquiry has been successfully submitted. Click below to download the guide:
                     </p>
                     <a
-                      href="http://109.199.120.104:8084/uploads/assets/file-1780515770686-bb4008e0-b17f-4149-8578-b75920a01e11.pdf"
+                      href={getImageUrl('/uploads/assets/file-1780515770686-bb4008e0-b17f-4149-8578-b75920a01e11.pdf')}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-full btn-primary py-4 rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-2 mb-4 font-bold text-white bg-primary text-sm"

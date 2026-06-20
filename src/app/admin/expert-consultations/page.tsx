@@ -9,6 +9,7 @@ import {
   TrendingUp, Check, DollarSign
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
+import ManageExperts from '@/components/admin/experts/ManageExperts';
 
 interface SessionUser {
   id?: string;
@@ -20,7 +21,7 @@ interface SessionUser {
 interface SessionExpert {
   id?: string;
   username: string;
-  profile?: { displayName?: string; specialisation?: string; sessionPrice?: number | null };
+  profile?: { displayName?: string; specialisation?: string; consultationPrice?: number | null };
 }
 
 interface ExpertSession {
@@ -83,6 +84,7 @@ export default function ExpertConsultationsPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
+  const [activeTab, setActiveTab] = useState<'sessions' | 'experts'>('sessions');
   
   // Date range filter
   const [dateFilter, setDateFilter] = useState<string>('all');
@@ -326,7 +328,7 @@ export default function ExpertConsultationsPage() {
   const totalScheduled = dateFilteredSessions.filter(s => s.status === 'SCHEDULED' || s.status === 'RESCHEDULED').length;
   const missingLinks = dateFilteredSessions.filter(s => (s.status === 'SCHEDULED' || s.status === 'RESCHEDULED') && !s.meetLink).length;
   const linkCount = dateFilteredSessions.filter(s => s.meetLink).length;
-  const totalRevenue = dateFilteredSessions.reduce((sum, s) => sum + (s.amount || s.expert?.profile?.sessionPrice || 500), 0);
+  const totalRevenue = dateFilteredSessions.reduce((sum, s) => sum + (s.amount || s.expert?.profile?.consultationPrice || 500), 0);
 
   const DATE_FILTER_LABELS: Record<string, string> = {
     all: 'All Time',
@@ -355,7 +357,29 @@ export default function ExpertConsultationsPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 self-start sm:self-auto">
+        {isAdmin && (
+          <div className="flex bg-slate-100 p-1 rounded-xl self-start sm:self-auto">
+            <button
+              onClick={() => setActiveTab('sessions')}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                activeTab === 'sessions' ? 'bg-white shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Consultations
+            </button>
+            <button
+              onClick={() => setActiveTab('experts')}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                activeTab === 'experts' ? 'bg-white shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Manage Experts
+            </button>
+          </div>
+        )}
+
+        {activeTab === 'sessions' && (
+          <div className="flex items-center gap-3 self-start sm:self-auto">
           {/* Date Filter Dropdown */}
           <div className="relative" ref={dateDropdownRef}>
             <button
@@ -430,8 +454,13 @@ export default function ExpertConsultationsPage() {
             Refresh
           </button>
         </div>
+        )}
       </div>
 
+      {activeTab === 'experts' && isAdmin ? (
+        <ManageExperts />
+      ) : (
+        <>
       {/* ── Stat Cards Block (with conditional admin revenue card) ── */}
       <div className={`grid gap-4 ${isAdmin ? 'grid-cols-2 sm:grid-cols-5' : 'grid-cols-2 sm:grid-cols-4'}`}>
         {/* Dynamic Admin Revenue Card */}
@@ -641,7 +670,7 @@ export default function ExpertConsultationsPage() {
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all border hover:scale-105 active:scale-95 shadow-sm bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100 hover:shadow-violet-200/20"
                       >
                         <CreditCard size={12} />
-                        ₹{session.amount || session.expert?.profile?.sessionPrice || 500}
+                        ₹{session.amount || session.expert?.profile?.consultationPrice || 500}
                       </button>
                     </div>
                   )}
@@ -857,7 +886,7 @@ export default function ExpertConsultationsPage() {
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Total Price</p>
                   <p className="text-3xl font-black text-violet-800 mt-1">
-                    ₹{selectedPaymentSession.amount || selectedPaymentSession.expert?.profile?.sessionPrice || 500}
+                    ₹{selectedPaymentSession.amount || selectedPaymentSession.expert?.profile?.consultationPrice || 500}
                   </p>
                 </div>
                 <div className="text-right">
@@ -938,6 +967,8 @@ export default function ExpertConsultationsPage() {
         </div>
       )}
 
+      </>
+      )}
     </div>
   );
 }

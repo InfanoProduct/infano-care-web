@@ -24,7 +24,7 @@ interface Expert {
   id: string;
   displayName: string;
   specialisation: string;
-  sessionPrice: number;
+  consultationPrice: number;
   avatarUrl?: string;
   availableSlots: string[];
 }
@@ -403,7 +403,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                   <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                     <div>
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Per Session</span>
-                      <span className="text-xl font-bold text-slate-800">₹{expert.sessionPrice}</span>
+                      <span className="text-xl font-bold text-slate-800">₹{expert.consultationPrice}</span>
                     </div>
                     <button
                       onClick={() => openBookingModal(expert)}
@@ -777,7 +777,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                 </div>
                 <div>
                   <h3 className="font-bold text-slate-800 text-sm">{selectedExpert.displayName}</h3>
-                  <p className="text-[11px] text-slate-500 font-semibold">{selectedExpert.specialisation} · ₹{selectedExpert.sessionPrice}</p>
+                  <p className="text-[11px] text-slate-500 font-semibold">{selectedExpert.specialisation} · ₹{selectedExpert.consultationPrice}</p>
                 </div>
               </div>
               <button onClick={closeModal} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
@@ -852,7 +852,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                     </div>
                     <div className="flex justify-between text-sm pt-2 border-t border-slate-200">
                       <span className="text-slate-500 font-medium">Amount</span>
-                      <span className="font-bold text-lg text-primary">₹{selectedExpert.sessionPrice}</span>
+                      <span className="font-bold text-lg text-primary">₹{selectedExpert.consultationPrice}</span>
                     </div>
                   </div>
 
@@ -874,7 +874,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                       onClick={handleBookSession}
                       className="flex-1 py-3 bg-primary text-white rounded-lg font-bold text-sm shadow-sm transition-all"
                     >
-                      Pay ₹{selectedExpert.sessionPrice}
+                      Pay ₹{selectedExpert.consultationPrice}
                     </button>
                   </div>
                 </div>

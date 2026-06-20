@@ -129,19 +129,15 @@ export default function AdminLayout({
                 <div key={item.name} className="space-y-1">
                   <button
                     onClick={() => toggleExpand(item.name)}
-                    className={`flex items-center justify-between w-full px-5 py-4 rounded-2xl transition-all duration-300 group ${
+                    className={`flex items-center w-full px-5 py-4 rounded-2xl transition-all duration-300 group ${
                       isSubActive 
                         ? 'bg-primary/5 text-primary' 
                         : 'hover:bg-primary/5 text-muted-foreground hover:text-primary'
                     }`}
                   >
-                    <div className="flex items-center gap-4">
-                      <item.icon size={22} className={isSubActive ? 'text-primary' : 'group-hover:scale-110 transition-transform'} />
-                      <span className="font-bold text-[15px]">{item.name}</span>
-                    </div>
-                    <div className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
-                      <ChevronDown size={18} />
-                    </div>
+                    <item.icon size={22} className={`shrink-0 ${isSubActive ? 'text-primary' : 'group-hover:scale-110 transition-transform'}`} />
+                    <span className="font-bold text-[15px] flex-1 text-left truncate">{item.name}</span>
+                    <ChevronDown size={18} className={`shrink-0 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
                   </button>
                   
                   {isExpanded && (
@@ -174,14 +170,14 @@ export default function AdminLayout({
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${
+                className={`flex items-center w-full px-5 py-4 rounded-2xl transition-all duration-300 group ${
                   isActive 
                     ? 'nav-item-active' 
                     : 'hover:bg-primary/5 text-muted-foreground hover:text-primary'
                 }`}
               >
-                <item.icon size={22} className={isActive ? 'text-white' : 'group-hover:scale-110 transition-transform'} />
-                <span className="font-bold text-[15px]">{item.name}</span>
+                <item.icon size={22} className={`shrink-0 ${isActive ? 'text-white' : 'group-hover:scale-110 transition-transform'}`} />
+                <span className="font-bold text-[15px] flex-1 text-left truncate">{item.name}</span>
               </Link>
             );
           })}

@@ -21,7 +21,7 @@ const getDisplayName = (filename: string) => {
   const nameWithoutExt = extIndex !== -1 ? filename.substring(0, extIndex) : filename;
   
   const uuidPattern = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
-  const suffixRegex = new RegExp(`(?:-\\d+)?-${uuidPattern}$`);
+  const suffixRegex = new RegExp(`-${uuidPattern}$`);
   
   const displayName = nameWithoutExt.replace(suffixRegex, '');
   return displayName || nameWithoutExt;
@@ -128,6 +128,8 @@ export default function AssetsManagement() {
     let successCount = 0;
     let failCount = 0;
 
+    const uploadedInBatch = new Set<string>();
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       
@@ -138,6 +140,29 @@ export default function AssetsManagement() {
 
       if (!isImg && !isPdf && !isVid) {
         toast.error(`${file.name} is not a supported file type (Image, PDF, or Video)`);
+        failCount++;
+        continue;
+      }
+
+      // Duplicate check
+      const extIndex = file.name.lastIndexOf('.');
+      const fileExt = extIndex !== -1 ? file.name.substring(extIndex) : '';
+      const rawBaseName = extIndex !== -1 ? file.name.substring(0, extIndex) : file.name;
+      const sanitizedBaseName = rawBaseName
+        .replace(/[^a-zA-Z0-9-_]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-+|-+$/g, '') || 'file';
+        
+      const fullSanitizedName = `${sanitizedBaseName}${fileExt.toLowerCase()}`;
+
+      const existsInAssets = assets.some(asset => {
+        const assetExtIndex = asset.filename.lastIndexOf('.');
+        const assetExt = assetExtIndex !== -1 ? asset.filename.substring(assetExtIndex) : '';
+        return getDisplayName(asset.filename) === sanitizedBaseName && assetExt.toLowerCase() === fileExt.toLowerCase();
+      });
+
+      if (existsInAssets || uploadedInBatch.has(fullSanitizedName)) {
+        toast.error(`A file named "${file.name}" already exists`);
         failCount++;
         continue;
       }
@@ -159,6 +184,7 @@ export default function AssetsManagement() {
           setCurrentFileProgress(percent);
         });
         successCount++;
+        uploadedInBatch.add(fullSanitizedName);
       } catch (error) {
         console.error(`Failed to upload ${file.name}:`, error);
         failCount++;

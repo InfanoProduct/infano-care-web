@@ -252,7 +252,7 @@ export default function AdminOrdersPage() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
             <input
               type="text"
-              placeholder="Search by Order ID, Name or Email..."
+              placeholder="Search by Order ID, Name, Email or Phone..."
               className="w-full pl-12 pr-4 py-3 rounded-2xl border border-border bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -357,6 +357,7 @@ export default function AdminOrdersPage() {
                     <td className="px-6 py-5">
                       <div className="font-bold text-sm text-foreground">{order.guestName || order.user?.username || 'Guest'}</div>
                       <div className="text-xs text-muted-foreground">{order.guestEmail || 'No Email'}</div>
+                      <div className="text-xs text-muted-foreground">{order.guestPhone || order.user?.phone || 'No Phone'}</div>
                     </td>
                     <td className="px-6 py-5">
                       <div className="font-bold text-sm text-foreground">₹{order.totalAmount}</div>

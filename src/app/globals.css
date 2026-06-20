@@ -485,7 +485,7 @@ body:has(.admin-panel) {
 .admin-panel aside nav button {
   padding: 0.5rem 0.75rem !important; /* Tight layout paddings */
   border-radius: 0.375rem !important; /* Classic rounding */
-  font-size: 0.875rem !important;     /* 14px instead of 15px */
+  font-size: 0.8125rem !important;     /* 13px */
   font-weight: 500 !important;         /* Medium instead of bold */
   gap: 0.75rem !important;
 }
@@ -505,8 +505,8 @@ body:has(.admin-panel) {
   font-weight: 500 !important;
 }
 
-.admin-panel aside nav button:hover,
-.admin-panel aside nav a:hover {
+.admin-panel aside nav button:not(.nav-item-active):hover,
+.admin-panel aside nav a:not(.nav-item-active):hover {
   background-color: #f1f5f9 !important;
   color: #4a1e7f !important;
 }

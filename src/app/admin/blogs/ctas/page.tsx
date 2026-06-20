@@ -113,31 +113,6 @@ export default function CTAsPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-1">CTA Heading</label>
-              <input
-                required
-                className="w-full bg-secondary/30 border-none rounded-2xl py-3 px-6 font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                placeholder="e.g. Join our Wellness Community"
-                value={newCTA.title}
-                onChange={(e) => setNewCTA({...newCTA, title: e.target.value})}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-1">CTA Style</label>
-              <select
-                className="w-full bg-secondary/30 border-none rounded-2xl py-3 px-6 font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all appearance-none"
-                value={newCTA.type}
-                onChange={(e) => setNewCTA({...newCTA, type: e.target.value})}
-              >
-                <option value="primary">Primary (Glow)</option>
-                <option value="secondary">Secondary (Clean)</option>
-                <option value="outline">Outline (Subtle)</option>
-                <option value="dark">Dark (Modern)</option>
-              </select>
-            </div>
-
-            <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-1">Button Text</label>
               <input
                 required
@@ -156,15 +131,6 @@ export default function CTAsPage() {
                 placeholder="https://..."
                 value={newCTA.buttonLink}
                 onChange={(e) => setNewCTA({...newCTA, buttonLink: e.target.value})}
-              />
-            </div>
-
-            <div className="md:col-span-2 space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-1">Description / Subtext</label>
-              <textarea
-                className="w-full bg-secondary/30 border-none rounded-2xl py-4 px-6 font-medium min-h-[80px] focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none"
-                value={newCTA.description}
-                onChange={(e) => setNewCTA({...newCTA, description: e.target.value})}
               />
             </div>
 
@@ -196,7 +162,7 @@ export default function CTAsPage() {
                       className="absolute inset-0 w-full h-full object-cover"
                       onError={(e) => (e.currentTarget.style.display = 'none')}
                     />
-                    <div className="absolute inset-0 bg-black/75" />
+                    <div className="absolute inset-0 bg-black/25" />
                   </>
                 )}
 
@@ -236,10 +202,14 @@ export default function CTAsPage() {
                 </div>
                 
                 <div className="relative z-10 space-y-4">
-                  <h3 className="text-4xl font-black tracking-tight leading-tight">{newCTA.title || 'Your Heading Here'}</h3>
-                  <p className={`mt-4 max-w-xl text-lg font-bold ${newCTA.imageUrl || newCTA.type === 'primary' || newCTA.type === 'dark' ? 'text-white/90' : 'text-muted-foreground'}`}>
-                    {newCTA.description || 'Add a compelling description to engage your readers.'}
-                  </p>
+                  {newCTA.title && (
+                    <h3 className="text-4xl font-black tracking-tight leading-tight">{newCTA.title}</h3>
+                  )}
+                  {newCTA.description && (
+                    <p className={`mt-4 max-w-xl text-lg font-bold ${newCTA.imageUrl || newCTA.type === 'primary' || newCTA.type === 'dark' ? 'text-white/90' : 'text-muted-foreground'}`}>
+                      {newCTA.description}
+                    </p>
+                  )}
                   <div className="mt-8">
                     <div className={`px-10 py-4 rounded-2xl font-black text-sm transition-all shadow-xl inline-block ${
                       newCTA.imageUrl || newCTA.type === 'dark' || newCTA.type === 'primary' ? 'bg-white text-primary' : 'bg-primary text-white'
@@ -298,16 +268,18 @@ export default function CTAsPage() {
                 {cta.imageUrl && (
                   <>
                     <img src={cta.imageUrl} className="absolute inset-0 w-full h-full object-cover" alt="" />
-                    <div className="absolute inset-0 bg-black/75" />
+                    <div className="absolute inset-0 bg-black/25" />
                   </>
                 )}
                 
-                <div className="relative z-10">
+                <div className="relative z-10 text-center flex flex-col items-center justify-center">
                   <div className="absolute -top-3 left-4 bg-white px-3 py-1 rounded-full border text-[8px] font-black uppercase tracking-widest text-black">Live Preview</div>
-                  <h3 className="text-xl font-black">{cta.title || 'CTA Title'}</h3>
-                  <p className={`text-sm mt-2 font-medium line-clamp-2 ${cta.imageUrl ? 'text-white/80' : 'text-muted-foreground'}`}>
-                    {cta.description || 'Add a description to guide your users toward the next step.'}
-                  </p>
+                  {cta.title && <h3 className="text-xl font-black">{cta.title}</h3>}
+                  {cta.description && (
+                    <p className={`text-sm mt-2 font-medium line-clamp-2 ${cta.imageUrl ? 'text-white/80' : 'text-muted-foreground'}`}>
+                      {cta.description}
+                    </p>
+                  )}
                   <div className={`mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl font-black text-xs transition-all shadow-lg ${
                     cta.imageUrl || cta.type === 'primary' ? 'bg-white text-primary' : 'bg-primary text-white'
                   }`}>

@@ -340,8 +340,8 @@ export default function BlogForm({ initialData, isEditing }: BlogFormProps) {
                         <CheckCircle2 size={24} className={postData.ctaIds.includes(cta.id) ? 'opacity-100' : 'opacity-20'} />
                       </div>
                       <div>
-                        <p className="font-black text-base">{cta.title}</p>
-                        <p className="text-xs text-muted-foreground font-bold">{cta.buttonText}</p>
+                        <p className="font-black text-base">{cta.buttonText || 'No Button Text'}</p>
+                        <p className="text-xs text-muted-foreground font-bold truncate max-w-[200px]">{cta.buttonLink}</p>
                       </div>
                     </button>
                   ))}

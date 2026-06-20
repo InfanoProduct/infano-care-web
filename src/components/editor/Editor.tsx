@@ -66,12 +66,12 @@ const MenuBar = ({ editor, ctas = [] }: { editor: any, ctas?: any[] }) => {
   const insertCta = (cta: any) => {
     editor.chain().focus().setGlobalCta({
       id: cta.id,
-      title: cta.title,
-      description: cta.description,
-      buttonText: cta.buttonText,
-      buttonLink: cta.buttonLink,
+      title: cta.title || '',
+      description: cta.description || '',
+      buttonText: cta.buttonText || '',
+      buttonLink: cta.buttonLink || '',
       type: cta.type || 'primary',
-      imageUrl: cta.imageUrl
+      imageUrl: cta.imageUrl || ''
     }).run();
   };
 
@@ -170,8 +170,8 @@ const MenuBar = ({ editor, ctas = [] }: { editor: any, ctas?: any[] }) => {
                   onClick={() => insertCta(cta)}
                   className="w-full text-left p-2 hover:bg-primary/5 rounded-lg transition-all"
                 >
-                  <p className="text-sm font-bold truncate">{cta.title}</p>
-                  <p className="text-[10px] text-muted-foreground truncate">{cta.buttonText}</p>
+                  <p className="text-sm font-bold truncate">{cta.buttonText || 'No Button Text'}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{cta.buttonLink || 'No Destination URL'}</p>
                 </button>
               ))}
             </div>

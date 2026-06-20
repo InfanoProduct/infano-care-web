@@ -199,7 +199,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.25); /* Extra overlay to fix visibility on existing posts */
+  background: rgba(0, 0, 0, 0.05); /* Minimal overlay to keep background clear and sharp */
   z-index: 5;
   pointer-events: none;
 }

@@ -31,7 +31,7 @@ const CtaComponent = (props: any) => {
           position: 'relative',
           overflow: 'hidden',
           color: 'white',
-          backgroundImage: imageUrl ? `linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('${imageUrl}')` : 'none',
+          backgroundImage: imageUrl ? `linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url('${imageUrl}')` : 'none',
           backgroundColor: imageUrl ? 'transparent' : bg,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
@@ -39,7 +39,7 @@ const CtaComponent = (props: any) => {
         }}
       >
         <div style={{ position: 'relative', zIndex: 10 }}>
-          <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '2.25rem', fontWeight: 900, lineHeight: 1.1 }}>{title || 'CTA Title'}</h3>
+          {title && <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '2.25rem', fontWeight: 900, lineHeight: 1.1 }}>{title}</h3>}
           {description && <p style={{ margin: '0 0 2rem 0', opacity: 0.9, fontSize: '1.125rem', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto', fontWeight: 500 }}>{description}</p>}
           <div 
             style={{
@@ -134,7 +134,7 @@ export const GlobalCta = Node.create({
     let containerStyle = `padding: 3.5rem 2rem; border-radius: 2.5rem; margin: 2.5rem 0; text-align: center; position: relative; overflow: hidden;`;
     
     if (imageUrl) {
-      containerStyle += `color: white; background-image: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('${imageUrl}'); background-size: cover; background-position: center;`;
+      containerStyle += `color: white; background-image: linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url('${imageUrl}'); background-size: cover; background-position: center;`;
     } else {
       containerStyle += `background-color:${bg}; color:white;`;
     }
@@ -156,7 +156,7 @@ export const GlobalCta = Node.create({
         }
       ),
       ["div", { style: "position: relative; z-index: 10;" },
-        ["h3", { style: "margin: 0 0 0.5rem 0; font-size: 2rem; font-weight: 900; line-height: 1.2;" }, title],
+        ...(title ? [["h3", { style: "margin: 0 0 0.5rem 0; font-size: 2rem; font-weight: 900; line-height: 1.2;" }, title]] : []),
         ...(description ? [["p", { style: "margin: 0 0 1.5rem 0; opacity: 0.9; font-size: 1.1rem; max-width: 600px; margin-left: auto; margin-right: auto;" }, description]] : []),
         [
           "a",

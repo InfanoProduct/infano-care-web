@@ -344,117 +344,123 @@ export default function ExpertConsultationsPage() {
     <div className="space-y-6">
 
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground flex items-center gap-2.5">
-            <span className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
-              <CalendarCheck size={22} className="text-primary" />
-            </span>
-            {isAdmin ? 'All Expert Consultations' : 'My Expert Consultations'}
-          </h1>
-          <p className="text-muted-foreground text-sm font-medium mt-1.5 ml-[52px]">
-            {isAdmin ? 'View all booked consultations, view payments, and assign meeting links.' : 'Manage your booked 1:1 consultations and add meeting links.'}
-          </p>
-        </div>
+      <div className="flex flex-col gap-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+          {isAdmin ? (
+            <div className="flex bg-slate-100 p-1 rounded-xl self-start sm:self-auto">
+              <button
+                onClick={() => setActiveTab('sessions')}
+                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                  activeTab === 'sessions' ? 'bg-white shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                Consultations
+              </button>
+              <button
+                onClick={() => setActiveTab('experts')}
+                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                  activeTab === 'experts' ? 'bg-white shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                Manage Experts
+              </button>
+            </div>
+          ) : (
+            <div />
+          )}
 
-        {isAdmin && (
-          <div className="flex bg-slate-100 p-1 rounded-xl self-start sm:self-auto">
-            <button
-              onClick={() => setActiveTab('sessions')}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                activeTab === 'sessions' ? 'bg-white shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              Consultations
-            </button>
-            <button
-              onClick={() => setActiveTab('experts')}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                activeTab === 'experts' ? 'bg-white shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              Manage Experts
-            </button>
-          </div>
-        )}
+          {activeTab === 'sessions' && (
+            <div className="flex items-center gap-3 self-start sm:self-auto">
+              {/* Date Filter Dropdown */}
+              <div className="relative" ref={dateDropdownRef}>
+                <button
+                  onClick={() => setDateDropdownOpen(!dateDropdownOpen)}
+                  className="flex items-center justify-between gap-2.5 px-4 py-2.5 rounded-xl border border-border bg-white hover:bg-slate-50 text-sm font-bold text-slate-700 transition-all shadow-sm"
+                >
+                  <Calendar size={15} className="text-slate-500" />
+                  <span>{DATE_FILTER_LABELS[dateFilter] || 'Select Date'}</span>
+                  <ChevronDown size={14} className={`transition-transform duration-200 ${dateDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
 
-        {activeTab === 'sessions' && (
-          <div className="flex items-center gap-3 self-start sm:self-auto">
-          {/* Date Filter Dropdown */}
-          <div className="relative" ref={dateDropdownRef}>
-            <button
-              onClick={() => setDateDropdownOpen(!dateDropdownOpen)}
-              className="flex items-center justify-between gap-2.5 px-4 py-2.5 rounded-xl border border-border bg-white hover:bg-slate-50 text-sm font-bold text-slate-700 transition-all shadow-sm"
-            >
-              <Calendar size={15} className="text-slate-500" />
-              <span>{DATE_FILTER_LABELS[dateFilter] || 'Select Date'}</span>
-              <ChevronDown size={14} className={`transition-transform duration-200 ${dateDropdownOpen ? 'rotate-180' : ''}`} />
-            </button>
+                {dateDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white border border-border rounded-2xl shadow-xl z-30 p-2 space-y-1 animate-in fade-in slide-in-from-top-3 duration-200">
+                    {Object.entries(DATE_FILTER_LABELS).map(([key, label]) => (
+                      <button
+                        key={key}
+                        onClick={() => {
+                          setDateFilter(key);
+                          if (key !== 'custom') {
+                            setDateDropdownOpen(false);
+                          }
+                        }}
+                        className={`w-full text-left px-3.5 py-2 rounded-xl text-sm font-semibold flex items-center justify-between transition-colors ${
+                          dateFilter === key 
+                            ? 'text-primary bg-primary/5' 
+                            : 'text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span>{label}</span>
+                        {dateFilter === key && <Check size={14} className="text-primary" />}
+                      </button>
+                    ))}
 
-            {dateDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white border border-border rounded-2xl shadow-xl z-30 p-2 space-y-1 animate-in fade-in slide-in-from-top-3 duration-200">
-                {Object.entries(DATE_FILTER_LABELS).map(([key, label]) => (
-                  <button
-                    key={key}
-                    onClick={() => {
-                      setDateFilter(key);
-                      if (key !== 'custom') {
-                        setDateDropdownOpen(false);
-                      }
-                    }}
-                    className={`w-full text-left px-3.5 py-2 rounded-xl text-sm font-semibold flex items-center justify-between transition-colors ${
-                      dateFilter === key 
-                        ? 'text-primary bg-primary/5' 
-                        : 'text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span>{label}</span>
-                    {dateFilter === key && <Check size={14} className="text-primary" />}
-                  </button>
-                ))}
-
-                {dateFilter === 'custom' && (
-                  <div className="p-3 border-t border-slate-100 space-y-3.5 bg-slate-50/50 rounded-xl mt-1.5">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Start Date</label>
-                      <input
-                        type="date"
-                        value={customStartDate}
-                        onChange={e => setCustomStartDate(e.target.value)}
-                        className="w-full px-3 py-1.5 rounded-lg border border-border text-xs bg-white outline-none focus:border-primary/50"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">End Date</label>
-                      <input
-                        type="date"
-                        value={customEndDate}
-                        onChange={e => setCustomEndDate(e.target.value)}
-                        className="w-full px-3 py-1.5 rounded-lg border border-border text-xs bg-white outline-none focus:border-primary/50"
-                      />
-                    </div>
-                    <button
-                      onClick={() => setDateDropdownOpen(false)}
-                      className="w-full py-1.5 bg-primary text-white rounded-lg text-xs font-black hover:bg-primary/95 transition-all shadow-sm"
-                    >
-                      Apply Filter
-                    </button>
+                    {dateFilter === 'custom' && (
+                      <div className="p-3 border-t border-slate-100 space-y-3.5 bg-slate-50/50 rounded-xl mt-1.5">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Start Date</label>
+                          <input
+                            type="date"
+                            value={customStartDate}
+                            onChange={e => setCustomStartDate(e.target.value)}
+                            className="w-full px-3 py-1.5 rounded-lg border border-border text-xs bg-white outline-none focus:border-primary/50"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">End Date</label>
+                          <input
+                            type="date"
+                            value={customEndDate}
+                            onChange={e => setCustomEndDate(e.target.value)}
+                            className="w-full px-3 py-1.5 rounded-lg border border-border text-xs bg-white outline-none focus:border-primary/50"
+                          />
+                        </div>
+                        <button
+                          onClick={() => setDateDropdownOpen(false)}
+                          className="w-full py-1.5 bg-primary text-white rounded-lg text-xs font-black hover:bg-primary/95 transition-all shadow-sm"
+                        >
+                          Apply Filter
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
-          </div>
 
-          {/* Refresh Button */}
-          <button
-            onClick={fetchSessions}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-white hover:bg-slate-50 text-sm font-semibold text-slate-600 transition-all shadow-sm"
-          >
-            <RefreshCw size={15} />
-            Refresh
-          </button>
+              {/* Refresh Button */}
+              <button
+                onClick={fetchSessions}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-white hover:bg-slate-50 text-sm font-semibold text-slate-600 transition-all shadow-sm"
+              >
+                <RefreshCw size={15} />
+                Refresh
+              </button>
+            </div>
+          )}
         </div>
-        )}
+
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground flex items-center gap-2.5">
+            <span className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+              {activeTab === 'experts' ? <Users size={22} className="text-primary" /> : <CalendarCheck size={22} className="text-primary" />}
+            </span>
+            {activeTab === 'experts' ? 'Manage Experts' : (isAdmin ? 'All Expert Consultations' : 'My Expert Consultations')}
+          </h1>
+          <p className="text-muted-foreground text-sm font-medium mt-1.5 ml-[52px]">
+            {activeTab === 'experts' 
+              ? 'Add, edit, or remove expert profiles and manage their details.'
+              : (isAdmin ? 'View all booked consultations, view payments, and assign meeting links.' : 'Manage your booked 1:1 consultations and add meeting links.')}
+          </p>
+        </div>
       </div>
 
       {activeTab === 'experts' && isAdmin ? (

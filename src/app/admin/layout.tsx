@@ -135,9 +135,9 @@ export default function AdminLayout({
                         : 'hover:bg-primary/5 text-muted-foreground hover:text-primary'
                     }`}
                   >
-                    <item.icon size={22} className={`shrink-0 ${isSubActive ? 'text-primary' : 'group-hover:scale-110 transition-transform'}`} />
-                    <span className="font-bold text-[15px] flex-1 text-left truncate">{item.name}</span>
-                    <ChevronDown size={18} className={`shrink-0 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+                    <item.icon size={20} className={`shrink-0 gap-3 mr-3 ${isSubActive ? 'text-primary' : 'group-hover:scale-110 transition-transform'}`} />
+                    <span className="font-medium text-[14px] flex-1 text-left truncate">{item.name}</span>
+                    <ChevronDown size={16} className={`shrink-0 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
                   </button>
                   
                   {isExpanded && (
@@ -148,14 +148,14 @@ export default function AdminLayout({
                           <Link
                             key={sub.name}
                             href={sub.href}
-                            className={`flex items-center gap-4 px-5 py-3 rounded-xl transition-all duration-300 group ${
+                            className={`flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-300 group ${
                               isSubActive 
                                 ? 'text-primary bg-primary/10' 
                                 : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
                             }`}
                           >
-                            <sub.icon size={18} className={isSubActive ? 'text-primary' : ''} />
-                            <span className="font-bold text-[14px]">{sub.name}</span>
+                            <sub.icon size={16} className={isSubActive ? 'text-primary' : ''} />
+                            <span className="font-medium text-[13px]">{sub.name}</span>
                           </Link>
                         );
                       })}
@@ -170,14 +170,14 @@ export default function AdminLayout({
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center w-full px-5 py-4 rounded-2xl transition-all duration-300 group ${
+                className={`flex items-center gap-3 w-full px-5 py-4 rounded-2xl transition-all duration-300 group ${
                   isActive 
                     ? 'nav-item-active' 
                     : 'hover:bg-primary/5 text-muted-foreground hover:text-primary'
                 }`}
               >
-                <item.icon size={22} className={`shrink-0 ${isActive ? 'text-white' : 'group-hover:scale-110 transition-transform'}`} />
-                <span className="font-bold text-[15px] flex-1 text-left truncate">{item.name}</span>
+                <item.icon size={20} className={`shrink-0 ${isActive ? 'text-white' : 'group-hover:scale-110 transition-transform'}`} />
+                <span className="font-medium text-[14px] flex-1 text-left truncate">{item.name}</span>
               </Link>
             );
           })}

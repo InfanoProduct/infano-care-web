@@ -108,7 +108,7 @@ export default function AdminLayout({
   return (
     <div className="flex min-h-screen bg-background admin-panel">
       {/* Admin Sidebar */}
-      <aside className="w-80 border-r border-border p-8 flex flex-col gap-10 hidden lg:flex bg-white/50 backdrop-blur-md">
+      <aside className="w-[350px] border-r border-border p-8 flex flex-col gap-10 hidden lg:flex bg-white/50 backdrop-blur-md">
         <div className="flex items-center gap-4 px-2">
           <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-light rounded-2xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
             <ShieldCheck size={28} />
@@ -129,13 +129,13 @@ export default function AdminLayout({
                 <div key={item.name} className="space-y-1">
                   <button
                     onClick={() => toggleExpand(item.name)}
-                    className={`flex items-center w-full px-5 py-4 rounded-2xl transition-all duration-300 group ${
+                    className={`flex items-center gap-3 w-full px-5 py-4 rounded-2xl transition-all duration-300 group ${
                       isSubActive 
                         ? 'bg-primary/5 text-primary' 
                         : 'hover:bg-primary/5 text-muted-foreground hover:text-primary'
                     }`}
                   >
-                    <item.icon size={20} className={`shrink-0 gap-3 mr-3 ${isSubActive ? 'text-primary' : 'group-hover:scale-110 transition-transform'}`} />
+                    <item.icon size={20} className={`shrink-0 ${isSubActive ? 'text-primary' : 'group-hover:scale-110 transition-transform'}`} />
                     <span className="font-medium text-[14px] flex-1 text-left truncate">{item.name}</span>
                     <ChevronDown size={16} className={`shrink-0 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
                   </button>

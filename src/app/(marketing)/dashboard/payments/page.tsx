@@ -46,7 +46,7 @@ export default function CustomerPaymentsOverview() {
     const bookTitle = (book.title || it.bookTitle || '').toLowerCase();
     
     // Check if it's a program by fields
-    if (book.sessions || book.classRange || book.duration) return true;
+    if ((book as any).curriculum?.length || book.classRange || book.duration) return true;
     
     // Check by title or id
     if (bookId.includes('program') || bookId.includes('private') || bookId.includes('group') || bookId.includes('cohort')) return true;
@@ -147,7 +147,7 @@ export default function CustomerPaymentsOverview() {
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">
-                            {enr.type === 'PRIVATE' ? '1:1 Private Mentoring' : 'Group Cohort (4 Girls)'}
+                            1:1 Private Mentoring
                           </span>
                           <span className="text-[10px] font-medium text-slate-400 flex items-center gap-1">
                             <Calendar size={11} />

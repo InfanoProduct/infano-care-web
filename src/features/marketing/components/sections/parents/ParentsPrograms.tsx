@@ -184,8 +184,7 @@ export function ParentsPrograms() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
             {programs.map((program, i) => {
               const styles = STYLES_MAP[program.title] || DEFAULT_STYLE;
-              const formattedPricePrivate = program.pricePrivate.toLocaleString('en-IN');
-              const formattedPriceGroup = program.priceGroup.toLocaleString('en-IN');
+              const formattedPrice = program.price?.toLocaleString('en-IN');
 
               return (
                 <motion.div
@@ -284,7 +283,7 @@ export function ParentsPrograms() {
                                   "Menstrual Tracker"
                                 ];
                             const items = [
-                              `${program.sessions} sessions by trained experts`,
+                              `${program.sessionsList?.length || 0} sessions by trained experts`,
                               `${consultationsCount} doctors consultations`,
                               ...remainingFeatures
                             ];

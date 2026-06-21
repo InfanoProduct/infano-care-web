@@ -260,7 +260,7 @@ export default function CustomerDashboardOverview() {
                         <div className="mb-4">
                           <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md ${theme.badge}`}>Book Demo Session</span>
                           <h3 className={`text-xl font-bold mt-1.5 ${theme.accent}`}>{demoModalProg.title} Program</h3>
-                          <p className="text-xs text-slate-500 font-medium mt-0.5">{demoModalProg.classRange} • {demoModalProg.sessions} Sessions • {demoModalProg.duration}</p>
+                          <p className="text-xs text-slate-500 font-medium mt-0.5">{demoModalProg.classRange} • {demoModalProg.curriculum?.length || 8} Sessions • {demoModalProg.duration}</p>
                         </div>
 
                         <form onSubmit={handleDemoSubmit} className="space-y-3.5">
@@ -456,7 +456,7 @@ export default function CustomerDashboardOverview() {
               <div className="space-y-3.5">
                 {enrollments.map(enr => {
                   const theme = ENROLLED_THEMES[enr.program.title?.toUpperCase()] || DEFAULT_ENROLLED_THEME;
-                  const total = enr.program.sessions || 8;
+                  const total = enr.program.curriculum?.length || 8;
                   const dbSessions = enr.user?.scheduledSessions || [];
                   const completed = dbSessions.filter((s: any) => s.status?.toLowerCase() === 'completed' && s.programId === enr.programId).length;
                   const scheduled = dbSessions.find((s: any) => s.status?.toLowerCase() === 'scheduled' && s.programId === enr.programId);
@@ -473,7 +473,7 @@ export default function CustomerDashboardOverview() {
                             )}
                             <div>
                               <h4 className={`font-bold text-base ${theme.accent}`}>{enr.program.title}</h4>
-                              <p className="text-xs font-medium text-slate-400">{enr.program.classRange} • {enr.type === 'PRIVATE' ? '1:1 Private' : 'Group Cohort'}</p>
+                              <p className="text-xs font-medium text-slate-400">{enr.program.classRange} • 1:1 Private Mentoring</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
@@ -650,7 +650,7 @@ export default function CustomerDashboardOverview() {
                       <div className={`flex items-center gap-3 py-2 px-3 ${styles.metaBg} rounded-lg border shadow-sm mb-4 text-slate-600 text-[10px] font-bold relative z-10`}>
                         <div className="flex items-center gap-1">
                           <BookOpen size={12} className={styles.text} />
-                          <span>{program.sessions} Sessions</span>
+                          <span>{program.curriculum?.length || 8} Sessions</span>
                         </div>
                         <div className="h-3 w-[1px] bg-slate-200" />
                         <div className="flex items-center gap-1">

@@ -107,7 +107,7 @@ class ApiClient {
       if (authToken) {
         requestHeaders.set('Authorization', `Bearer ${authToken}`);
       }
-      if (!requestHeaders.has('Content-Type')) {
+      if (!requestHeaders.has('Content-Type') && !(init.body instanceof FormData)) {
         requestHeaders.set('Content-Type', 'application/json');
       }
       if (requestHeaders.get('Content-Type') === 'skip') {
@@ -191,7 +191,7 @@ class ApiClient {
     return this.request<T>(endpoint, {
       ...options,
       method: 'POST',
-      body: body ? JSON.stringify(body) : undefined
+      body: body instanceof FormData ? body : (body ? JSON.stringify(body) : undefined)
     });
   }
 
@@ -207,7 +207,7 @@ class ApiClient {
     return this.request<T>(endpoint, {
       ...options,
       method: 'PATCH',
-      body: body ? JSON.stringify(body) : undefined
+      body: body instanceof FormData ? body : (body ? JSON.stringify(body) : undefined)
     });
   }
 

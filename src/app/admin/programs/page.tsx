@@ -137,7 +137,6 @@ export default function ProgramsManagement() {
   const [addStudentEmail, setAddStudentEmail] = useState('');
   const [addStudentRole, setAddStudentRole] = useState<'PARENT' | 'TEEN'>('PARENT');
   const [addStudentProgramId, setAddStudentProgramId] = useState('');
-  const [addStudentType, setAddStudentType] = useState<'PRIVATE' | 'GROUP'>('PRIVATE');
   const [addStudentPricePaid, setAddStudentPricePaid] = useState('');
   const [addStudentSubmitting, setAddStudentSubmitting] = useState(false);
   const [enrollStep, setEnrollStep] = useState<1 | 2>(1);
@@ -162,10 +161,8 @@ export default function ProgramsManagement() {
   const [formClassRange, setFormClassRange] = useState('');
   const [formMinClass, setFormMinClass] = useState(5);
   const [formMaxClass, setFormMaxClass] = useState(6);
-  const [formSessions, setFormSessions] = useState(8);
   const [formDuration, setFormDuration] = useState('');
-  const [formPricePrivate, setFormPricePrivate] = useState(0);
-  const [formPriceGroup, setFormPriceGroup] = useState(0);
+  const [formPrice, setFormPrice] = useState(0);
   const [formIsActive, setFormIsActive] = useState(true);
   const [formTopics, setFormTopics] = useState<string[]>([]);
   const [newTopicInput, setNewTopicInput] = useState('');
@@ -267,7 +264,7 @@ export default function ProgramsManagement() {
 
   const handleAddStudentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!addStudentName.trim() || !addStudentPhone.trim() || !addStudentProgramId || !addStudentType) {
+    if (!addStudentName.trim() || !addStudentPhone.trim() || !addStudentProgramId) {
       toast.error('Please fill in all required fields.');
       return;
     }
@@ -280,7 +277,6 @@ export default function ProgramsManagement() {
         email: addStudentEmail || undefined,
         role: addStudentRole,
         programId: addStudentProgramId,
-        type: addStudentType,
         pricePaid: addStudentPricePaid !== '' ? parseFloat(addStudentPricePaid) : undefined
       };
 
@@ -294,7 +290,6 @@ export default function ProgramsManagement() {
         setAddStudentEmail('');
         setAddStudentRole('PARENT');
         setAddStudentProgramId('');
-        setAddStudentType('PRIVATE');
         setAddStudentPricePaid('');
         setEnrollStep(1);
         setExistingUserData(null);
@@ -344,10 +339,8 @@ export default function ProgramsManagement() {
     setFormClassRange('');
     setFormMinClass(5);
     setFormMaxClass(6);
-    setFormSessions(8);
     setFormDuration('');
-    setFormPricePrivate(0);
-    setFormPriceGroup(0);
+    setFormPrice(0);
     setFormIsActive(true);
     setFormTopics([]);
     setNewTopicInput('');
@@ -372,10 +365,8 @@ export default function ProgramsManagement() {
     setFormClassRange(program.classRange);
     setFormMinClass(program.minClass);
     setFormMaxClass(program.maxClass);
-    setFormSessions(program.sessions);
     setFormDuration(program.duration);
-    setFormPricePrivate(program.pricePrivate);
-    setFormPriceGroup(program.priceGroup);
+    setFormPrice(program.price || 0);
     setFormIsActive(program.isActive);
     setFormTopics(program.topics || []);
     setNewTopicInput('');
@@ -450,10 +441,8 @@ export default function ProgramsManagement() {
       classRange: formClassRange,
       minClass: Number(formMinClass),
       maxClass: Number(formMaxClass),
-      sessions: Number(formSessions),
       duration: formDuration,
-      pricePrivate: Number(formPricePrivate),
-      priceGroup: Number(formPriceGroup),
+      price: Number(formPrice),
       isActive: formIsActive,
       topics: formTopics,
       features: formFeatures,
@@ -654,19 +643,7 @@ export default function ProgramsManagement() {
                 />
               </div>
 
-              {/* Sessions, Duration, Status */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Total Sessions *</label>
-                  <input
-                    type="number"
-                    required
-                    min={1}
-                    value={formSessions}
-                    onChange={(e) => setFormSessions(Number(e.target.value))}
-                    className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground outline-none focus:border-primary/50 transition-all font-semibold"
-                  />
-                </div>
 
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Duration Label *</label>
@@ -715,19 +692,6 @@ export default function ProgramsManagement() {
                   {formConsultations.map((consultation, idx) => (
                     <div key={idx} className="flex gap-2 items-center bg-slate-50 p-3 rounded-xl border border-slate-200/60 animate-in fade-in duration-300">
                       <div className="flex-1 space-y-2">
-                        <input
-                          type="text"
-                          required
-                          placeholder={`Consultation ${idx + 1} Title`}
-                          value={consultation.title}
-                          onChange={(e) => {
-                            const updated = [...formConsultations];
-                            updated[idx] = { ...updated[idx], title: e.target.value };
-                            setFormConsultations(updated);
-                          }}
-                          className="w-full bg-white border border-border/50 rounded-xl px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-all font-semibold"
-                        />
-
                         <select
                           required
                           value={consultation.expertId}
@@ -771,30 +735,15 @@ export default function ProgramsManagement() {
               {/* Pricing Tiers */}
               <div className="bg-secondary/15 border border-border/40 rounded-2xl p-4 space-y-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">1:1 Private Price (₹ / mo) *</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Price (₹ / mo) *</label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-black">₹</span>
                     <input
                       type="number"
                       required
                       min={0}
-                      value={formPricePrivate}
-                      onChange={(e) => setFormPricePrivate(Number(e.target.value))}
-                      className="w-full bg-white border border-border/50 rounded-xl pl-10 pr-4 py-2.5 text-foreground outline-none focus:border-primary/50 transition-all font-semibold"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Group Price (₹ / mo) *</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-black">₹</span>
-                    <input
-                      type="number"
-                      required
-                      min={0}
-                      value={formPriceGroup}
-                      onChange={(e) => setFormPriceGroup(Number(e.target.value))}
+                      value={formPrice}
+                      onChange={(e) => setFormPrice(Number(e.target.value))}
                       className="w-full bg-white border border-border/50 rounded-xl pl-10 pr-4 py-2.5 text-foreground outline-none focus:border-primary/50 transition-all font-semibold"
                     />
                   </div>
@@ -1096,6 +1045,7 @@ export default function ProgramsManagement() {
   }
 
   return (
+    <>
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Admin Header */}
       <div className="admin-header flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-border/10 pb-6">
@@ -1229,7 +1179,7 @@ export default function ProgramsManagement() {
                             {program.isActive ? 'Active' : 'Draft'}
                           </span>
                           <span className="text-[10px] font-bold text-slate-500">
-                            {program.sessions} Sessions • {program.duration}
+                            {program.curriculum?.length || 8} Sessions • {program.duration}
                           </span>
                         </div>
                       </div>
@@ -1294,15 +1244,11 @@ export default function ProgramsManagement() {
                         </div>
                         <div className="bg-slate-50 border border-border/40 p-3 rounded-2xl text-center">
                           <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Total Sessions</span>
-                          <span className="text-sm font-black text-slate-800 block mt-1">{activeProgram.sessions} Sessions</span>
+                          <span className="text-sm font-black text-slate-800 block mt-1">{activeProgram.curriculum?.length || 8} Sessions</span>
                         </div>
                         <div className="bg-slate-50 border border-border/40 p-3 rounded-2xl text-center">
-                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">1:1 Private Price</span>
-                          <span className="text-sm font-black text-slate-800 block mt-1">₹{activeProgram.pricePrivate.toLocaleString()} <span className="text-[9px] text-slate-400 font-normal">/mo</span></span>
-                        </div>
-                        <div className="bg-slate-50 border border-border/40 p-3 rounded-2xl text-center">
-                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Group Price</span>
-                          <span className="text-sm font-black text-slate-800 block mt-1">₹{activeProgram.priceGroup.toLocaleString()} <span className="text-[9px] text-slate-400 font-normal">/mo</span></span>
+                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Price</span>
+                          <span className="text-sm font-black text-slate-800 block mt-1">₹{activeProgram.price.toLocaleString()}</span>
                         </div>
                       </div>
 
@@ -1459,7 +1405,7 @@ export default function ProgramsManagement() {
                     setAddStudentEmail('');
                     setAddStudentRole('PARENT');
                     setAddStudentProgramId(programs[0]?.id || '');
-                    setAddStudentType('PRIVATE');
+
                     setAddStudentPricePaid('');
                     setEnrollStep(1);
                     setExistingUserData(null);
@@ -1557,12 +1503,9 @@ export default function ProgramsManagement() {
                         {isAdmin && (
                           <td className="p-6">
                             <div className="space-y-1">
-                              <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${enrollment.type === 'PRIVATE'
-                                ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20'
-                                : 'bg-sky-500/10 text-sky-600 border-sky-500/20'
-                                }`}>
-                                <CreditCard size={10} />
-                                {enrollment.type === 'PRIVATE' ? '1:1 Private' : 'Group Cohort'}
+                              <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border bg-purple-50 text-purple-700 border-purple-200`}>
+                                <div className={`w-1.5 h-1.5 rounded-full bg-purple-500`} />
+                                1:1 Private Mentoring
                               </span>
 
                               <p className="font-black text-sm text-foreground flex items-center">
@@ -1816,6 +1759,7 @@ export default function ProgramsManagement() {
           )}
         </div>
       )}
+      </div>
 
       {/* --- ADD STUDENT MODAL --- */}
       {showAddStudentModal && (
@@ -1924,7 +1868,7 @@ export default function ProgramsManagement() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">User Role *</label>
                       <select
@@ -1935,19 +1879,6 @@ export default function ProgramsManagement() {
                       >
                         <option value="PARENT">Parent</option>
                         <option value="TEEN">Teen</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Format *</label>
-                      <select
-                        required
-                        value={addStudentType}
-                        onChange={(e) => setAddStudentType(e.target.value as any)}
-                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-750 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm cursor-pointer"
-                      >
-                        <option value="PRIVATE">1:1 Private</option>
-                        <option value="GROUP">Group Cohort</option>
                       </select>
                     </div>
                   </div>
@@ -2014,6 +1945,6 @@ export default function ProgramsManagement() {
         </div>
       )}
 
-    </div>
+    </>
   );
 }

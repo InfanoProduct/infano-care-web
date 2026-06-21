@@ -273,7 +273,7 @@ export default function OrderDetailPage() {
               {order.items.map((item: any) => {
                 const book = item.book || {};
                 const title = book.title || item.bookTitle || item.name || item.bookId || 'Product Item';
-                const isProgram = !!(book.sessions || book.classRange || book.duration || (book.title && book.title.toLowerCase().includes('program')));
+                const isProgram = !!((book as any).curriculum?.length || book.classRange || book.duration || (book.title && book.title.toLowerCase().includes('program')));
                 const isbnId = (book.id || item.bookId || 'unknown').toString().slice(0, 6).toUpperCase();
                 const unitPrice = item.price || book.price || 0;
 

@@ -15,11 +15,9 @@ export interface Program {
   classRange: string;
   minClass: number;
   maxClass: number;
-  sessions: number;
   duration: string;
   topics: string[];
-  pricePrivate: number;
-  priceGroup: number;
+  price: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -34,7 +32,6 @@ export interface ProgramEnrollment {
   id: string;
   userId: string;
   programId: string;
-  type: string;
   status: string;
   pricePaid: number;
   guestName?: string | null;
@@ -183,8 +180,8 @@ export const ProgramsService = {
   /**
    * Enrolls the current logged-in user in a program
    */
-  async enrollInProgram(programId: string, type: 'PRIVATE' | 'GROUP'): Promise<{ success: boolean; message: string; enrollment: any }> {
-    return apiClient.post<{ success: boolean; message: string; enrollment: any }>(`/programs/${programId}/enroll`, { type });
+  async enrollInProgram(programId: string): Promise<{ success: boolean; message: string; enrollment: any }> {
+    return apiClient.post<{ success: boolean; message: string; enrollment: any }>(`/programs/${programId}/enroll`, {});
   },
 
   /**

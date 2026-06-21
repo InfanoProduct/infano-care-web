@@ -75,7 +75,7 @@ export default function EnrolledProgramsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {enrollments.map(enr => {
           const theme = THEMES_MAP[enr.program.title?.toUpperCase()] || DEFAULT_THEME;
-          const sessions: ProgramSession[] = (enr.program.sessionsList as ProgramSession[]) || Array.from({ length: enr.program.sessions || 8 }, (_, i) => ({ title: `Session ${i + 1}`, description: `Topic ${i + 1}` }));
+          const sessions: ProgramSession[] = (enr.program.sessionsList as ProgramSession[]) || Array.from({ length: enr.program.curriculum?.length || 8 }, (_, i) => ({ title: `Session ${i + 1}`, description: `Topic ${i + 1}` }));
           const dbSessions = enr.user?.scheduledSessions || [];
           const completed = dbSessions.filter((s: any) => s.status?.toLowerCase() === 'completed' && s.programId === enr.programId).length;
           const scheduled = dbSessions.find((s: any) => s.status?.toLowerCase() === 'scheduled' && s.programId === enr.programId);
@@ -98,11 +98,11 @@ export default function EnrolledProgramsPage() {
                   <div className="flex items-center justify-between mb-1">
                     <h3 className={`font-bold text-lg ${theme.accent} leading-tight`}>{enr.program.title}</h3>
                     <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${theme.badge} shrink-0 ml-2`}>
-                      {enr.type === 'PRIVATE' ? '1:1 Private' : 'Group'}
+                      1:1 Private
                     </span>
                   </div>
                   <div className="flex items-center flex-wrap gap-1.5">
-                    <p className="text-xs font-medium text-slate-400">{enr.program.classRange} • {enr.program.sessions} Sessions</p>
+                    <p className="text-xs font-medium text-slate-400">{enr.program.classRange} • {enr.program.curriculum?.length || 8} Sessions</p>
                     {enr.user?.id && user?.id && enr.user.id !== user.id && (
                       <>
                         <span className="text-[10px] text-slate-300 font-bold">•</span>

@@ -178,7 +178,7 @@ export default function EnrollmentDetailPage({ params }: { params: Promise<{ id:
             <div className="flex flex-col gap-1 p-3 bg-secondary/30 rounded-2xl border border-border/20">
               <span className="text-xs text-muted-foreground/80 font-normal">Pricing format & fee paid</span>
               <span className="text-slate-600 font-medium flex items-center gap-2">
-                <span>{enrollment.type === 'PRIVATE' ? '1:1 Private' : 'Group Cohort'}</span>
+                <span>1:1 Private Mentoring</span>
                 <span>•</span>
                 <span className="text-primary/90">₹{enrollment.pricePaid.toLocaleString()}</span>
               </span>

@@ -141,7 +141,7 @@ export default function EnrollmentDetail({ params }: { params: Promise<{ id: str
   const { enrollment, sessions } = details;
   const studentName = enrollment.guestName || enrollment.user?.profile?.displayName || enrollment.user?.username || 'Student';
   const studentEmail = enrollment.guestEmail || '';
-  const totalSessions = enrollment.program.sessions || 1;
+  const totalSessions = enrollment.program.curriculum?.length || 1;
   const sessionArray = Array.from({ length: totalSessions }, (_, i) => i + 1);
 
   return (

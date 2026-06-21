@@ -9,6 +9,7 @@ interface ExpertProfile {
   specialisation?: string;
   consultationPrice?: number;
   bio?: string;
+  avatarUrl?: string;
 }
 
 interface Expert {
@@ -37,6 +38,7 @@ export default function ManageExperts() {
     consultationPrice: '',
     bio: ''
   });
+  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   
@@ -69,6 +71,7 @@ export default function ManageExperts() {
       consultationPrice: '500',
       bio: ''
     });
+    setProfilePhoto(null);
     setError('');
     setIsModalOpen(true);
   };
@@ -83,6 +86,7 @@ export default function ManageExperts() {
       consultationPrice: expert.profile?.consultationPrice?.toString() || '500',
       bio: expert.profile?.bio || ''
     });
+    setProfilePhoto(null);
     setError('');
     setIsModalOpen(true);
   };
@@ -92,10 +96,20 @@ export default function ManageExperts() {
     setError('');
     setSaving(true);
     try {
+      const formPayload = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formPayload.append(key, value.toString());
+        }
+      });
+      if (profilePhoto) {
+        formPayload.append('profilePhoto', profilePhoto);
+      }
+
       if (editingExpert) {
-        await apiClient.patch(`/admin/experts/${editingExpert.id}`, formData);
+        await apiClient.patch(`/admin/experts/${editingExpert.id}`, formPayload);
       } else {
-        await apiClient.post('/admin/experts', formData);
+        await apiClient.post('/admin/experts', formPayload);
       }
       await fetchExperts();
       setIsModalOpen(false);
@@ -185,9 +199,13 @@ export default function ManageExperts() {
               </div>
 
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-lg">
-                  {expert.profile?.displayName?.charAt(0)?.toUpperCase() || '?'}
-                </div>
+                {expert.profile?.avatarUrl ? (
+                  <img src={expert.profile.avatarUrl} alt={expert.profile.displayName} className="w-12 h-12 rounded-2xl object-cover" />
+                ) : (
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-lg">
+                    {expert.profile?.displayName?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                )}
                 <div>
                   <h3 className="font-bold text-slate-800">{expert.profile?.displayName || 'Unnamed'}</h3>
                   <p className="text-xs text-muted-foreground">{expert.profile?.specialisation || 'No specialisation'}</p>
@@ -236,6 +254,37 @@ export default function ManageExperts() {
               )}
               
               <form id="expert-form" onSubmit={handleSubmit} className="space-y-4">
+                <div className="flex flex-col items-center gap-3 mb-6">
+                  <label className="relative cursor-pointer group">
+                    <div className="w-24 h-24 rounded-full border-2 border-dashed border-primary/40 bg-slate-50 overflow-hidden flex items-center justify-center relative shadow-sm group-hover:border-primary transition-colors">
+                      {profilePhoto ? (
+                        <img src={URL.createObjectURL(profilePhoto)} alt="Preview" className="w-full h-full object-cover" />
+                      ) : editingExpert?.profile?.avatarUrl ? (
+                        <img src={editingExpert.profile.avatarUrl} alt="Current" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="text-center">
+                          <User className="mx-auto text-primary/40 mb-1" size={24} />
+                          <span className="text-[10px] font-bold text-primary/60 uppercase tracking-wider">Upload</span>
+                        </div>
+                      )}
+                      
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Pencil className="text-white" size={20} />
+                      </div>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={e => setProfilePhoto(e.target.files?.[0] || null)}
+                    />
+                  </label>
+                  <div className="text-center">
+                    <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">Profile Photo</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Click to upload a clear headshot</p>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Display Name *</label>
@@ -303,6 +352,8 @@ export default function ManageExperts() {
                     onChange={e => setFormData({...formData, bio: e.target.value})}
                   />
                 </div>
+
+
                 
                 {!editingExpert && (
                   <p className="text-xs text-muted-foreground italic flex items-center gap-1.5">

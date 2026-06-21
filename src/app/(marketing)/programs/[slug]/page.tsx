@@ -431,7 +431,7 @@ export default function ProgramDetailsPage() {
                   </div>
                   <div>
                     <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Structure</h5>
-                    <p className="text-slate-800 font-bold text-sm">{program.sessions} Sessions</p>
+                    <p className="text-slate-800 font-bold text-sm">{program.curriculum?.length || 8} Sessions</p>
                   </div>
                 </div>
 

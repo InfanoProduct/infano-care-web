@@ -59,7 +59,7 @@ export default function EnrolledProgramDetailsPage() {
   if (!enrollment) return null;
 
   const theme = THEMES_MAP[enrollment.program.title?.toUpperCase()] || DEFAULT_THEME;
-  const sessions: ProgramSession[] = (enrollment.program.sessionsList as ProgramSession[]) || Array.from({ length: enrollment.program.sessions || 8 }, (_, i): ProgramSession => ({ title: `Session ${i + 1}: Live Interaction`, description: `Dynamic developmental topic course lesson ${i + 1} led by verified guides.` }));
+  const sessions: ProgramSession[] = (enrollment.program.sessionsList as ProgramSession[]) || Array.from({ length: enrollment.program.curriculum?.length || 8 }, (_, i): ProgramSession => ({ title: `Session ${i + 1}: Live Interaction`, description: `Dynamic developmental topic course lesson ${i + 1} led by verified guides.` }));
   const dbSessions = enrollment.user?.scheduledSessions || [];
   
   const sessionsWithStatus = sessions.map((session: ProgramSession, index: number) => {
@@ -107,7 +107,7 @@ export default function EnrolledProgramDetailsPage() {
             </div>
             <h2 className={`text-xl font-bold mt-1.5 ${theme.accent}`}>{enrollment.program.title} Program</h2>
             <p className="text-xs font-semibold text-slate-400 mt-1">
-              {enrollment.program.classRange} • Enrolled {new Date(enrollment.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} • {enrollment.type === 'PRIVATE' ? '1:1 Private Mentoring' : 'Group Cohort'}
+              {enrollment.program.classRange} • Enrolled {new Date(enrollment.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} • 1:1 Private Mentoring
             </p>
           </div>
           <div className="flex items-center gap-3.5 shrink-0 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100">

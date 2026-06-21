@@ -726,7 +726,7 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                             </span>
                             <span className="text-xs font-medium text-slate-400 flex items-center gap-1">
                               <Calendar size={11} />
-                              {prog.duration} • {prog.sessions} Sessions
+                              {prog.duration} • {prog.sessionsList?.length || 0} Sessions
                             </span>
                           </div>
                           
@@ -784,9 +784,9 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                         {/* Pricing summary */}
                         <div className="border-t border-slate-100 pt-2 flex flex-wrap justify-between items-center gap-2 mt-0.5">
                           <div>
-                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Available Learning Tiers:</span>
+                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Price:</span>
                             <p className="text-xs font-bold text-slate-600 mt-0.5">
-                              ₹{prog.pricePrivate.toLocaleString()} <span className="text-[10px] font-normal text-slate-400">/mo (Private)</span> • ₹{prog.priceGroup.toLocaleString()} <span className="text-[10px] font-normal text-slate-400">/mo (Group)</span>
+                              ₹{prog.price?.toLocaleString() || 0} <span className="text-[10px] font-normal text-slate-400">/mo</span>
                             </p>
                           </div>
                         </div>
@@ -1108,7 +1108,7 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                 <div>
                   <p className="text-slate-400 font-medium">Demo Request For</p>
                   <p className="font-semibold text-slate-800 mt-0.5">
-                    {selectedFormat === 'BOTH' ? 'Private & Group' : selectedFormat === 'PRIVATE' ? '1:1 Private' : 'Group Cohort'}
+                    1:1 Private Mentoring
                   </p>
                 </div>
 

@@ -14,20 +14,16 @@ import Link from 'next/link';
 export default function CustomerPaymentsOverview() {
   const { user } = useAuthStore();
   const [enrollments, setEnrollments] = useState<ProgramEnrollment[]>([]);
-  const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'programs' | 'books'>('programs');
 
   const loadPaymentData = useCallback(async () => {
     try {
       setLoading(true);
-      const [enrollRes, ordersRes] = await Promise.all([
-        ProgramsService.getUserEnrollments().catch(() => ({ success: true, data: [] })),
-        ShopService.getUserOrders().catch(() => [])
+      const [enrollRes] = await Promise.all([
+        ProgramsService.getUserEnrollments().catch(() => ({ success: true, data: [] }))
       ]);
 
       setEnrollments(enrollRes.data || []);
-      setOrders(ordersRes || []);
     } catch (err) {
       console.error('Failed to load payment & invoice data:', err);
     } finally {
@@ -39,23 +35,7 @@ export default function CustomerPaymentsOverview() {
     loadPaymentData();
   }, [loadPaymentData]);
 
-  // Helper to detect program-like items vs book items
-  const isProgramItem = (it: any) => {
-    const book = it.book || {};
-    const bookId = (it.bookId || '').toLowerCase();
-    const bookTitle = (book.title || it.bookTitle || '').toLowerCase();
-    
-    // Check if it's a program by fields
-    if ((book as any).curriculum?.length || book.classRange || book.duration) return true;
-    
-    // Check by title or id
-    if (bookId.includes('program') || bookId.includes('private') || bookId.includes('group') || bookId.includes('cohort')) return true;
-    if (bookTitle.includes('program') || bookTitle.includes('mentoring') || bookTitle.includes('cohort')) return true;
-    
-    return false;
-  };
 
-  const productOrders = orders.filter((o: any) => (o.items || []).some((it: any) => !isProgramItem(it)));
 
   if (loading) {
     return (
@@ -90,35 +70,8 @@ export default function CustomerPaymentsOverview() {
         {/* LEFT COLUMN: Tab Switcher & Data Lists (lg:col-span-8) */}
         <div className="lg:col-span-8 space-y-5">
           
-          {/* Tab buttons */}
-          <div className="flex bg-slate-100 p-1.5 rounded-lg border border-slate-200 text-xs font-bold select-none w-fit">
-            <button
-              onClick={() => setActiveTab('programs')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-md transition-all duration-200 ${
-                activeTab === 'programs'
-                  ? 'bg-white text-primary shadow-sm font-bold'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <Award size={14} />
-              Program Enrollments ({enrollments.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('books')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-md transition-all duration-200 ${
-                activeTab === 'books'
-                  ? 'bg-white text-primary shadow-sm font-bold'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <ShoppingBag size={14} />
-              Product Orders ({productOrders.length})
-            </button>
-          </div>
-
-          {/* Tab 1: Program Enrollments list */}
-          {activeTab === 'programs' && (
-            <div className="space-y-4">
+          {/* Program Enrollments list */}
+          <div className="space-y-4">
               {enrollments.length === 0 ? (
                 <div className="text-center py-12 bg-white border border-slate-100 rounded-xl p-6 shadow-sm space-y-3.5">
                   <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center mx-auto text-slate-300">
@@ -195,141 +148,6 @@ export default function CustomerPaymentsOverview() {
                 ))
               )}
             </div>
-          )}
-
-          {/* Tab 2: Book Orders list */}
-          {activeTab === 'books' && (
-            <div className="space-y-4">
-              {productOrders.length === 0 ? (
-                <div className="text-center py-12 bg-white border border-slate-100 rounded-xl p-6 shadow-sm space-y-3.5">
-                  <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center mx-auto text-slate-300">
-                    <ShoppingBag size={22} />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-850">No Product Orders Found</h4>
-                    <p className="text-xs text-slate-400 font-medium mt-1 max-w-sm mx-auto">
-                      You haven't ordered any books or products yet. Check out the Gigi Survival Guide!
-                    </p>
-                  </div>
-                  <Link 
-                    href="/gigi-the-awkward-age-book" 
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-white font-bold text-xs rounded-lg shadow-sm hover:scale-[1.01] active:scale-[0.99] transition-all"
-                  >
-                    View Book Details <ArrowRight size={13} />
-                  </Link>
-                </div>
-              ) : (
-                productOrders.map((order) => (
-                  <div 
-                    key={order.id}
-                    className="bg-white border border-slate-100 rounded-xl p-5 shadow-sm relative overflow-hidden"
-                  >
-                    {/* Top Order Row */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-                      <div className="space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[9px] font-bold bg-slate-100 text-slate-655 px-2 py-0.5 rounded-md border border-slate-200/60">
-                            Order ID: #{order.id.slice(0, 8)}
-                          </span>
-                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md ${
-                            order.paymentStatus === 'COMPLETED' 
-                              ? 'bg-emerald-50 text-emerald-650 border border-emerald-100' 
-                              : order.paymentStatus === 'PENDING'
-                              ? 'bg-amber-50 text-amber-650 border border-amber-100'
-                              : 'bg-rose-50 text-rose-650 border border-rose-100'
-                          }`}>
-                            Payment {order.paymentStatus}
-                          </span>
-                          <span className="text-[10px] font-medium text-slate-400 flex items-center gap-1">
-                            <Calendar size={11} />
-                            {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                          </span>
-                        </div>
-                        <h4 className="text-sm font-bold text-slate-800 mt-1">
-                          {order.items?.filter((it: any) => !isProgramItem(it)).map((it: any) => {
-                            const book = it.book || {};
-                            const title = book.title || it.bookTitle || it.name || 'Book Order';
-                            return `${title} (x${it.quantity})`;
-                          }).join(', ') || 'Book Order'}
-                        </h4>
-                      </div>
-
-                      <div className="text-left sm:text-right shrink-0">
-                        <span className="text-lg font-bold text-slate-850">₹{order.totalAmount.toLocaleString()}</span>
-                        <p className="text-[9px] font-semibold text-slate-400 mt-0.5">Method: {order.paymentMethod}</p>
-                      </div>
-                    </div>
-
-                    {/* Middle Detail Row: Shipping and Breakdown */}
-                    <div className="py-4 border-b border-slate-100 grid md:grid-cols-2 gap-4 text-xs text-slate-500 font-semibold">
-                      <div className="space-y-2">
-                        <h5 className="text-[9px] font-bold text-slate-400 flex items-center gap-1">
-                          <MapPin size={11} /> Shipping Address
-                        </h5>
-                        <p className="text-slate-700 leading-normal text-[11px] font-medium pl-4">
-                          {order.guestName || 'Recipient'}<br />
-                          {order.shippingAddress}, {order.city}, {order.state} - {order.pincode}
-                        </p>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <h5 className="text-[9px] font-bold text-slate-400 flex items-center gap-1">
-                          <FileText size={11} /> Tax Invoice Breakdown
-                        </h5>
-                        <div className="space-y-1 bg-slate-50 p-2.5 rounded-lg border border-slate-100 font-medium text-[11px]">
-                          <div className="flex justify-between">
-                            <span className="text-slate-400">Subtotal:</span>
-                            <span className="text-slate-600">₹{order.subtotal}</span>
-                          </div>
-                          {order.discountAmount > 0 && (
-                            <div className="flex justify-between text-emerald-600">
-                              <span>Coupon Discount:</span>
-                              <span>-₹{order.discountAmount}</span>
-                            </div>
-                          )}
-                          <div className="flex justify-between">
-                            <span className="text-slate-400">Taxable Value:</span>
-                            <span className="text-slate-600">₹{order.taxableAmount}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-slate-400">GST (5%):</span>
-                            <span className="text-slate-650">₹{order.gstAmount} (CGST ₹{order.cgstAmount} + SGST ₹{order.sgstAmount})</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Bottom Order Row */}
-                    <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-semibold text-slate-500">
-                      <div className="flex flex-wrap gap-4">
-                        {order.razorpayPaymentId && (
-                          <div>
-                            <span className="text-[9px] font-bold text-slate-400 block">Razorpay Payment ID</span>
-                            <span className="text-slate-700 font-medium font-mono text-[10px] block mt-0.5">{order.razorpayPaymentId}</span>
-                          </div>
-                        )}
-                        <div>
-                          <span className="text-[9px] font-bold text-slate-400 block">Delivery Status</span>
-                          <span className="text-slate-800 font-bold block mt-0.5 text-[11px]">
-                            {order.orderStatus}
-                          </span>
-                        </div>
-                      </div>
-
-                      <a 
-                        href={`https://wa.me/916362994347?text=Hi%2C%20I%27d%20like%20to%20track%20my%20order%20%23${order.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-primary hover:text-primary-dark font-bold text-[11px] group"
-                      >
-                        <MessageCircle size={12} /> Support Chat
-                      </a>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
 
         </div>
 

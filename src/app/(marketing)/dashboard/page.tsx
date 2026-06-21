@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import {
   BookOpen, Calendar, ShieldCheck, Star, Sparkles,
   ChevronRight, Play, Loader2, Award, Layers, Compass, X, Check, ArrowRight, User, Users, Bookmark, Heart, GraduationCap
@@ -71,6 +72,10 @@ const DEFAULT_ENROLLED_THEME = { accent: 'text-primary', gradient: 'from-primary
 
 export default function CustomerDashboardOverview() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const { user } = useAuthStore();
   const [enrollments, setEnrollments] = useState<ProgramEnrollment[]>([]);
   const [allPrograms, setAllPrograms] = useState<Program[]>([]);
@@ -225,17 +230,17 @@ export default function CustomerDashboardOverview() {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-[1280px] mx-auto pb-8">
 
       {/* Demo Booking Modal */}
-      {demoModalProg && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setDemoModalProg(null)} />
-          <div className="relative w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden z-10 border border-slate-100 animate-in zoom-in-95">
+      {mounted && demoModalProg && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setDemoModalProg(null)} />
+          <div className="relative w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden z-[10000] border border-slate-100 animate-in zoom-in-95">
             {(() => {
               const theme = ENROLLED_THEMES[demoModalProg.title?.toUpperCase()] || DEFAULT_ENROLLED_THEME;
               return (
                 <>
                   <div className={`h-1.5 w-full bg-gradient-to-r ${theme.gradient}`} />
                   <div className="p-6">
-                    <button onClick={() => setDemoModalProg(null)} className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-650 hover:bg-slate-50 rounded-lg transition-all">
+                    <button onClick={() => setDemoModalProg(null)} className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-655 hover:bg-slate-50 rounded-lg transition-all z-20">
                       <X size={16} />
                     </button>
 
@@ -245,7 +250,7 @@ export default function CustomerDashboardOverview() {
                           <Check size={24} strokeWidth={2.5} />
                         </div>
                         <h3 className="text-lg font-bold text-slate-800 mb-1.5">Demo Booked Successfully!</h3>
-                        <p className="text-slate-500 text-xs leading-relaxed mb-5 font-medium">
+                        <p className="text-slate-505 text-xs leading-relaxed mb-5 font-medium">
                           Your demo session for <strong className={theme.accent}>{demoModalProg.title} Program</strong> is requested for <strong className="text-slate-800">{demoSlotDate}</strong> at <strong className="text-slate-800">{demoSlotTime}</strong>. A guide will call you at <strong className="text-slate-800">{demoPhone}</strong>.
                         </p>
                         <button
@@ -260,46 +265,16 @@ export default function CustomerDashboardOverview() {
                         <div className="mb-4">
                           <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md ${theme.badge}`}>Book Demo Session</span>
                           <h3 className={`text-xl font-bold mt-1.5 ${theme.accent}`}>{demoModalProg.title} Program</h3>
-                          <p className="text-xs text-slate-500 font-medium mt-0.5">{demoModalProg.classRange} • {demoModalProg.curriculum?.length || 8} Sessions • {demoModalProg.duration}</p>
+                          <p className="text-xs text-slate-505 font-medium mt-0.5">{demoModalProg.classRange} • {demoModalProg.curriculum?.length || 8} Sessions • {demoModalProg.duration}</p>
+                        </div>
+
+                        <div className="bg-slate-50 border border-slate-100 rounded-lg p-3 text-xs text-slate-600 mb-4">
+                          <span className="font-bold text-slate-700 block mb-0.5">Booking Profile Details:</span>
+                          <span className="font-semibold text-slate-800">{demoName}</span> • <span className="font-medium">{demoPhone}</span>{demoEmail && <span className="font-medium"> • {demoEmail}</span>}
                         </div>
 
                         <form onSubmit={handleDemoSubmit} className="space-y-3.5">
-                          <div>
-                            <label className="block text-xs font-semibold text-slate-700 mb-1">Full Name *</label>
-                            <input
-                              type="text"
-                              required
-                              value={demoName}
-                              onChange={e => setDemoName(e.target.value)}
-                              placeholder="Your full name"
-                              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-semibold text-slate-700 mb-1">Phone Number *</label>
-                            <input
-                              type="tel"
-                              required
-                              value={demoPhone}
-                              onChange={e => setDemoPhone(e.target.value)}
-                              placeholder="Your phone number"
-                              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-semibold text-slate-700 mb-1">Email Address (Optional)</label>
-                            <input
-                              type="email"
-                              value={demoEmail}
-                              onChange={e => setDemoEmail(e.target.value)}
-                              placeholder="Your email address"
-                              className="w-full px-3.5 py-2.5 bg-[#FAFBFE] border border-slate-200 rounded-lg text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-2 gap-3.5">
                             <div>
                               <label className="block text-xs font-semibold text-slate-700 mb-1">Preferred Date *</label>
                               <input
@@ -313,7 +288,7 @@ export default function CustomerDashboardOverview() {
                                 })()}
                                 value={demoSlotDate}
                                 onChange={e => setDemoSlotDate(e.target.value)}
-                                className={`w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer ${demoSlotDate ? 'text-slate-700' : 'text-slate-400'}`}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-205 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
                               />
                             </div>
 
@@ -323,9 +298,10 @@ export default function CustomerDashboardOverview() {
                                 required
                                 value={demoSlotTime}
                                 onChange={e => setDemoSlotTime(e.target.value)}
-                                className={`w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer ${demoSlotTime ? 'text-slate-700' : 'text-slate-400'}`}
+                                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-205 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
                               >
                                 <option value="">Select Time</option>
+                                <option value="09:00 AM - 10:00 AM">09:00 AM - 10:00 AM</option>
                                 <option value="10:00 AM - 11:00 AM">10:00 AM - 11:00 AM</option>
                                 <option value="11:00 AM - 12:00 PM">11:00 AM - 12:00 PM</option>
                                 <option value="12:00 PM - 01:00 PM">12:00 PM - 01:00 PM</option>
@@ -353,7 +329,8 @@ export default function CustomerDashboardOverview() {
               );
             })()}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Welcome Banner */}
@@ -474,6 +451,11 @@ export default function CustomerDashboardOverview() {
                             <div>
                               <h4 className={`font-bold text-base ${theme.accent}`}>{enr.program.title}</h4>
                               <p className="text-xs font-medium text-slate-400">{enr.program.classRange} • 1:1 Private Mentoring</p>
+                              {enr.program.consultations && Array.isArray(enr.program.consultations) && enr.program.consultations.length > 0 && (
+                                <p className="text-[10px] font-semibold text-purple-600 mt-1 flex items-center gap-1">
+                                  <Sparkles size={11} className="animate-pulse" /> Included: {enr.program.consultations.map((c: any) => c.title).join(', ')}
+                                </p>
+                              )}
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
@@ -657,6 +639,15 @@ export default function CustomerDashboardOverview() {
                           <Calendar size={12} className={styles.text} />
                           <span>{program.duration}</span>
                         </div>
+                        {program.consultations && Array.isArray(program.consultations) && program.consultations.length > 0 && (
+                          <>
+                            <div className="h-3 w-[1px] bg-slate-200" />
+                            <div className="flex items-center gap-1 text-purple-600">
+                              <Sparkles size={12} className="text-purple-500 shrink-0" />
+                              <span>{program.consultations.length} {program.consultations.length === 1 ? 'Free Consultation' : 'Free Consultations'}</span>
+                            </div>
+                          </>
+                        )}
                       </div>
 
                       {/* Topics covered block */}

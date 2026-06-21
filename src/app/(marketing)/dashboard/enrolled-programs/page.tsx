@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Layers, ChevronRight, Loader2, ArrowLeft, Calendar, Play } from 'lucide-react';
+import { Layers, ChevronRight, Loader2, ArrowLeft, Calendar, Play, Sparkles } from 'lucide-react';
 import { ProgramsService, ProgramEnrollment, ProgramSession } from '@/services/programs.service';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
@@ -112,6 +112,14 @@ export default function EnrolledProgramsPage() {
                       </>
                     )}
                   </div>
+                  {enr.program.consultations && Array.isArray(enr.program.consultations) && enr.program.consultations.length > 0 && (
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <Sparkles size={11} className={`${theme.accent} animate-pulse`} />
+                      <span className="text-[10.5px] font-bold text-slate-500">
+                        Free Consultation: <span className={theme.accent}>{enr.program.consultations.map((c: any) => c.title).join(', ')}</span>
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
               

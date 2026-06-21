@@ -33,6 +33,7 @@ export default function EnrollmentDetail({ params }: { params: Promise<{ id: str
   const resolvedParams = React.use(params);
   const router = useRouter();
   const { user } = useAuthStore();
+  const isExpert = user?.role === 'EXPERT';
   const [details, setDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [experts, setExperts] = useState<any[]>([]);
@@ -232,6 +233,11 @@ export default function EnrollmentDetail({ params }: { params: Promise<{ id: str
                             <Video size={13} /> Join Virtual Meet
                           </a>
                         )}
+                        {existingSession.expert && (
+                          <p className="text-[11px] text-slate-500 font-semibold mt-1">
+                            Scheduled Expert: <span className="text-primary font-bold">{existingSession.expert.profile?.displayName || existingSession.expert.username}</span>
+                          </p>
+                        )}
                       </div>
                     ) : (
                       <p className="text-sm text-muted-foreground">Not scheduled yet</p>
@@ -242,48 +248,61 @@ export default function EnrollmentDetail({ params }: { params: Promise<{ id: str
                 {/* Right: Actions */}
                 <div className="w-full md:w-auto md:min-w-[220px] shrink-0">
                   {/* Can schedule: session not yet created */}
-                  {!existingSession && !isScheduling && canSchedule && (
-                    <button
-                      onClick={() => setSchedulingSessionNum(sessionNum)}
-                      className="w-full px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-all shadow-md shadow-primary/20"
-                    >
-                      Schedule Session
-                    </button>
-                  )}
-
-                  {/* Blocked: previous not completed */}
-                  {!existingSession && !isScheduling && !canSchedule && (
-                    <span className="block w-full text-center text-xs text-muted-foreground font-semibold px-4 py-3 bg-slate-50 rounded-xl border border-slate-200">
-                      Complete Session {sessionNum - 1} first
-                    </span>
+                  {!existingSession && !isScheduling && (
+                    isExpert ? (
+                      canSchedule ? (
+                        <button
+                          onClick={() => setSchedulingSessionNum(sessionNum)}
+                          className="w-full px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-all shadow-md shadow-primary/20"
+                        >
+                          Schedule Session
+                        </button>
+                      ) : (
+                        <span className="block w-full text-center text-xs text-muted-foreground font-semibold px-4 py-3 bg-slate-50 rounded-xl border border-slate-200">
+                          Complete Session {sessionNum - 1} first
+                        </span>
+                      )
+                    ) : (
+                      <span className="block w-full text-center text-xs text-muted-foreground font-semibold px-4 py-3 bg-slate-50 rounded-xl border border-slate-200">
+                        Not Scheduled - View Only
+                      </span>
+                    )
                   )}
 
                   {/* Mark completed button */}
                   {existingSession?.status === 'SCHEDULED' && (
                     <div className="space-y-2">
-                      <button
-                        onClick={() => handleComplete(existingSession.id)}
-                        disabled={completing === existingSession.id}
-                        className="w-full px-6 py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-all shadow-md shadow-green-500/20 flex items-center justify-center gap-2 disabled:opacity-70"
-                      >
-                        {completing === existingSession.id
-                          ? <Loader2 size={16} className="animate-spin" />
-                          : 'Mark Completed'}
-                      </button>
+                      {isExpert ? (
+                        <>
+                          <button
+                            onClick={() => handleComplete(existingSession.id)}
+                            disabled={completing === existingSession.id}
+                            className="w-full px-6 py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-all shadow-md shadow-green-500/20 flex items-center justify-center gap-2 disabled:opacity-70"
+                          >
+                            {completing === existingSession.id
+                              ? <Loader2 size={16} className="animate-spin" />
+                              : 'Mark Completed'}
+                          </button>
 
-                      {new Date(existingSession.scheduledAt) < new Date() && (
-                        <button
-                          onClick={() => {
-                            setSchedulingSessionNum(sessionNum);
-                            const d = new Date(existingSession.scheduledAt);
-                            setScheduleDate(d.toISOString().split('T')[0]);
-                            setScheduleTime(d.toTimeString().slice(0, 5));
-                            setMeetLink(existingSession.meetLink || '');
-                          }}
-                          className="w-full px-6 py-3 bg-white text-primary border border-primary rounded-xl font-bold hover:bg-primary/5 transition-all shadow-sm flex items-center justify-center gap-2"
-                        >
-                          Reschedule Session
-                        </button>
+                          {new Date(existingSession.scheduledAt) < new Date() && (
+                            <button
+                              onClick={() => {
+                                setSchedulingSessionNum(sessionNum);
+                                const d = new Date(existingSession.scheduledAt);
+                                setScheduleDate(d.toISOString().split('T')[0]);
+                                setScheduleTime(d.toTimeString().slice(0, 5));
+                                setMeetLink(existingSession.meetLink || '');
+                              }}
+                              className="w-full px-6 py-3 bg-white text-primary border border-primary rounded-xl font-bold hover:bg-primary/5 transition-all shadow-sm flex items-center justify-center gap-2"
+                            >
+                              Reschedule Session
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <span className="block w-full text-center text-xs text-muted-foreground font-semibold px-4 py-3 bg-slate-50 rounded-xl border border-slate-200">
+                          Scheduled - View Only
+                        </span>
                       )}
                     </div>
                   )}

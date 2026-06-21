@@ -80,7 +80,7 @@ export default function ManageExperts() {
     setEditingExpert(expert);
     setFormData({
       email: expert.email || '',
-      phone: expert.phone || '',
+      phone: (expert.phone || '').replace(/^\+91/, ''),
       displayName: expert.profile?.displayName || '',
       specialisation: expert.profile?.specialisation || '',
       consultationPrice: expert.profile?.consultationPrice?.toString() || '500',
@@ -94,12 +94,42 @@ export default function ManageExperts() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Check for duplicates
+    if (formData.email) {
+      const duplicateEmail = experts.find(
+        (expert) => expert.email?.toLowerCase() === formData.email.toLowerCase() && expert.id !== editingExpert?.id
+      );
+      if (duplicateEmail) {
+        setError('An expert with this email already exists.');
+        return;
+      }
+    }
+
+    if (formData.phone) {
+      const phoneVal = formData.phone.toString().trim();
+      const finalPhone = phoneVal.startsWith('+') ? phoneVal : `+91${phoneVal}`;
+      const duplicatePhone = experts.find(
+        (expert) => expert.phone === finalPhone && expert.id !== editingExpert?.id
+      );
+      if (duplicatePhone) {
+        setError('An expert with this phone number already exists.');
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       const formPayload = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          formPayload.append(key, value.toString());
+          if (key === 'phone' && value.toString().trim() !== '') {
+            const phoneVal = value.toString().trim();
+            const finalPhone = phoneVal.startsWith('+') ? phoneVal : `+91${phoneVal}`;
+            formPayload.append(key, finalPhone);
+          } else {
+            formPayload.append(key, value.toString());
+          }
         }
       });
       if (profilePhoto) {
@@ -315,20 +345,28 @@ export default function ManageExperts() {
                     <input
                       required={!editingExpert}
                       type="email"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border focus:border-primary/50 focus:ring-2 focus:ring-primary/10 outline-none text-sm transition-all bg-slate-50 focus:bg-white"
+                      disabled={!!editingExpert}
+                      className={`w-full px-3.5 py-2.5 rounded-xl border border-border outline-none text-sm transition-all ${
+                        editingExpert ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-slate-50 focus:bg-white focus:border-primary/50 focus:ring-2 focus:ring-primary/10'
+                      }`}
                       value={formData.email}
                       onChange={e => setFormData({...formData, email: e.target.value})}
                     />
+                    <p className="text-[10px] text-slate-500 font-medium leading-tight">This email is used as the login ID and cannot be changed.</p>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Phone {editingExpert ? '' : '*'}</label>
-                    <input
-                      required={!editingExpert}
-                      type="tel"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-border focus:border-primary/50 focus:ring-2 focus:ring-primary/10 outline-none text-sm transition-all bg-slate-50 focus:bg-white"
-                      value={formData.phone}
-                      onChange={e => setFormData({...formData, phone: e.target.value})}
-                    />
+                    <div className="relative flex items-center">
+                      <span className="absolute left-3.5 text-sm font-bold text-slate-500 select-none pointer-events-none">+91</span>
+                      <input
+                        required={!editingExpert}
+                        type="tel"
+                        maxLength={10}
+                        className="w-full pl-11 pr-3.5 py-2.5 rounded-xl border border-border focus:border-primary/50 focus:ring-2 focus:ring-primary/10 outline-none text-sm transition-all bg-slate-50 focus:bg-white"
+                        value={formData.phone}
+                        onChange={e => setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10)})}
+                      />
+                    </div>
                   </div>
                 </div>
 

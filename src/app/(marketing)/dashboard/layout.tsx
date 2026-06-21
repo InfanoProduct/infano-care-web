@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { 
   ShieldCheck, LogOut, LayoutDashboard, Calendar, Compass, User, 
   Sparkles, CreditCard, BookOpen, Layers, GraduationCap, Menu, X, 
-  ChevronLeft, ChevronRight 
+  ChevronLeft, ChevronRight, Package 
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
@@ -149,6 +149,7 @@ export default function CustomerDashboardLayout({
     { href: '/dashboard/enrolled-programs', label: 'Enrolled Programs', icon: Layers },
     { href: '/dashboard/learning-journeys', label: 'Learning Journeys', icon: GraduationCap, matchPrefix: true },
     { href: '/dashboard/payments', label: 'Payment Details', icon: CreditCard },
+    { href: '/dashboard/orders', label: 'My Orders', icon: Package },
     ...(!isTeen ? [{ href: '/dashboard/expert-sessions', label: 'My Consultations', icon: Calendar }] : []),
     ...(!isTeen ? [{ href: '/dashboard/resources', label: 'Library', icon: BookOpen }] : []),
     ...(isTeen ? [{ href: '/dashboard/expert-sessions', label: 'My Consultations', icon: Calendar }] : []),

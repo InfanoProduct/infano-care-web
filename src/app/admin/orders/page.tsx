@@ -16,6 +16,7 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState('ALL');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('ALL');
+  const [isActiveFilter, setIsActiveFilter] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 15;
   const [stats, setStats] = useState({
@@ -28,14 +29,14 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, dateFrom, dateTo, statusFilter, paymentMethodFilter, paymentStatusFilter]);
+  }, [searchTerm, dateFrom, dateTo, statusFilter, paymentMethodFilter, paymentStatusFilter, isActiveFilter]);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       fetchOrders();
     }, 300);
     return () => clearTimeout(delayDebounceFn);
-  }, [currentPage, searchTerm, dateFrom, dateTo, statusFilter, paymentMethodFilter, paymentStatusFilter]);
+  }, [currentPage, searchTerm, dateFrom, dateTo, statusFilter, paymentMethodFilter, paymentStatusFilter, isActiveFilter]);
 
   const fetchOrders = async () => {
     try {
@@ -43,6 +44,7 @@ export default function AdminOrdersPage() {
       const queryParams = new URLSearchParams();
       queryParams.append('page', currentPage.toString());
       queryParams.append('limit', recordsPerPage.toString());
+      queryParams.append('isActive', isActiveFilter.toString());
       if (searchTerm) queryParams.append('search', searchTerm);
       if (dateFrom) queryParams.append('dateFrom', dateFrom);
       if (dateTo) queryParams.append('dateTo', dateTo);
@@ -247,18 +249,20 @@ export default function AdminOrdersPage() {
       </div>
 
       <div className="bg-white rounded-3xl shadow-sm border border-border overflow-hidden">
-        <div className="p-6 border-b border-border flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-50/50">
-          <div className="relative w-full md:w-96">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-            <input
-              type="text"
-              placeholder="Search by Order ID, Name, Email or Phone..."
-              className="w-full pl-12 pr-4 py-3 rounded-2xl border border-border bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <div className="p-6 border-b border-border flex flex-col lg:flex-row gap-4 justify-between items-center bg-slate-50/50">
+          <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto items-center">
+            <div className="relative w-full sm:w-80">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+              <input
+                type="text"
+                placeholder="Search by Order ID, Name, Email or Phone..."
+                className="w-full pl-12 pr-4 py-3 rounded-2xl border border-border bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
-          <div className="relative">
+          <div className="relative w-full lg:w-auto flex justify-end">
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`flex items-center gap-2 px-5 py-3 rounded-2xl border transition-colors font-bold text-sm ${showFilters ? 'bg-primary text-white border-primary' : 'border-border bg-white hover:bg-slate-50'}`}
@@ -272,11 +276,23 @@ export default function AdminOrdersPage() {
                 <div className="flex items-center justify-between">
                   <h3 className="font-bold text-sm">Filter Orders</h3>
                   <button
-                    onClick={() => { setStatusFilter('ALL'); setPaymentMethodFilter('ALL'); setPaymentStatusFilter('ALL'); }}
+                    onClick={() => { setStatusFilter('ALL'); setPaymentMethodFilter('ALL'); setPaymentStatusFilter('ALL'); setIsActiveFilter(true); }}
                     className="text-xs text-primary font-bold hover:underline"
                   >
                     Clear All
                   </button>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Order Visibility</label>
+                  <select
+                    value={isActiveFilter ? 'ACTIVE' : 'INACTIVE'}
+                    onChange={(e) => setIsActiveFilter(e.target.value === 'ACTIVE')}
+                    className="w-full border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary bg-white"
+                  >
+                    <option value="ACTIVE">Active Orders</option>
+                    <option value="INACTIVE">Inactive Orders</option>
+                  </select>
                 </div>
 
                 <div className="flex flex-col gap-1.5">

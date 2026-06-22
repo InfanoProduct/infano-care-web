@@ -10,20 +10,28 @@ import { ProgramsService, ProgramEnrollment } from '@/services/programs.service'
 import { ShopService } from '@/services/shop.service';
 import { useAuthStore } from '@/store/auth-store';
 import Link from 'next/link';
+import { InvoiceModal } from '@/components/common/InvoiceModal';
 
 export default function CustomerPaymentsOverview() {
   const { user } = useAuthStore();
   const [enrollments, setEnrollments] = useState<ProgramEnrollment[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeInvoice, setActiveInvoice] = useState<{
+    type: 'PROGRAM' | 'BOOK';
+    data: any;
+  } | null>(null);
 
   const loadPaymentData = useCallback(async () => {
     try {
       setLoading(true);
-      const [enrollRes] = await Promise.all([
-        ProgramsService.getUserEnrollments().catch(() => ({ success: true, data: [] }))
+      const [enrollRes, ordersRes] = await Promise.all([
+        ProgramsService.getUserEnrollments().catch(() => ({ success: true, data: [] })),
+        ShopService.getUserOrders().catch(() => [])
       ]);
 
       setEnrollments(enrollRes.data || []);
+      setOrders(ordersRes || []);
     } catch (err) {
       console.error('Failed to load payment & invoice data:', err);
     } finally {
@@ -34,8 +42,6 @@ export default function CustomerPaymentsOverview() {
   useEffect(() => {
     loadPaymentData();
   }, [loadPaymentData]);
-
-
 
   if (loading) {
     return (
@@ -49,8 +55,8 @@ export default function CustomerPaymentsOverview() {
   return (
     <div className="space-y-6 w-full max-w-[1280px] mx-auto pb-8 font-sans">
       
-      {/* Header Banner */}
-      <div className="bg-slate-50 p-6 rounded-xl border border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden shadow-sm">
+      {/* Header Banner - hidden on print */}
+      <div className="bg-slate-50 p-6 rounded-xl border border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden shadow-sm no-print">
         <div className="space-y-2 relative z-10">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-white border border-primary/20 rounded-md text-[10px] font-bold text-primary shadow-sm">
             <CreditCard size={11} /> Secure Transactions
@@ -64,30 +70,35 @@ export default function CustomerPaymentsOverview() {
         </div>
       </div>
 
-      {/* Main Grid: Left Column for Payments lists, Right for FAQs/Support info */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* Main Grid: Left Column for Payments lists, Right for FAQs/Support info - hidden on print */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start no-print">
         
         {/* LEFT COLUMN: Tab Switcher & Data Lists (lg:col-span-8) */}
-        <div className="lg:col-span-8 space-y-5">
+        <div className="lg:col-span-8 space-y-6">
           
-          {/* Program Enrollments list */}
-          <div className="space-y-4">
+          {/* Program Payments Section */}
+          <div className="space-y-3.5">
+            <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">
+              Program Enrollments
+            </h2>
+            
+            <div className="space-y-4">
               {enrollments.length === 0 ? (
-                <div className="text-center py-12 bg-white border border-slate-100 rounded-xl p-6 shadow-sm space-y-3.5">
-                  <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center mx-auto text-slate-300">
-                    <Award size={22} />
+                <div className="text-center py-10 bg-white border border-slate-100 rounded-xl p-5 shadow-sm space-y-3">
+                  <div className="w-11 h-11 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center mx-auto text-slate-300">
+                    <Award size={20} />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-850">No Program Enrollments Found</h4>
-                    <p className="text-xs text-slate-400 font-medium mt-1 max-w-sm mx-auto">
+                    <h4 className="font-bold text-slate-850 text-sm">No Program Enrollments Found</h4>
+                    <p className="text-xs text-slate-450 font-medium mt-0.5 max-w-xs mx-auto">
                       You haven't enrolled in any developmental programs yet. Explore classes to get started!
                     </p>
                   </div>
                   <Link 
                     href="/#programs" 
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-white font-bold text-xs rounded-lg shadow-sm hover:scale-[1.01] active:scale-[0.99] transition-all"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-primary text-white font-bold text-xs rounded-lg shadow-sm hover:scale-[1.01] active:scale-[0.99] transition-all"
                   >
-                    View Curriculums <ArrowRight size={13} />
+                    View Curriculums <ArrowRight size={12} />
                   </Link>
                 </div>
               ) : (
@@ -137,17 +148,124 @@ export default function CustomerPaymentsOverview() {
                         </div>
                       </div>
 
-                      <Link 
-                        href="/dashboard"
-                        className="inline-flex items-center gap-1 text-primary hover:text-primary-dark font-bold text-[11px] group"
-                      >
-                        Go to Workspace <ArrowRight className="group-hover:translate-x-0.5 transition-transform" size={12} />
-                      </Link>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => setActiveInvoice({ type: 'PROGRAM', data: enr })}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-650 hover:text-slate-800 rounded-lg text-[11px] font-bold shadow-sm transition-all cursor-pointer active:scale-95"
+                        >
+                          <FileText size={12} />
+                          Invoice
+                        </button>
+                        <Link 
+                          href="/dashboard"
+                          className="inline-flex items-center gap-1 text-primary hover:text-primary-dark font-bold text-[11px] group"
+                        >
+                          Go to Workspace <ArrowRight className="group-hover:translate-x-0.5 transition-transform" size={12} />
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 ))
               )}
             </div>
+          </div>
+
+          {/* Book Payments Section */}
+          <div className="space-y-3.5 pt-2">
+            <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">
+              Book Purchases
+            </h2>
+            
+            <div className="space-y-4">
+              {orders.length === 0 ? (
+                <div className="text-center py-10 bg-white border border-slate-100 rounded-xl p-5 shadow-sm space-y-3">
+                  <div className="w-11 h-11 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center mx-auto text-slate-300">
+                    <ShoppingBag size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-850 text-sm">No Book Orders Found</h4>
+                    <p className="text-xs text-slate-450 font-medium mt-0.5 max-w-xs mx-auto">
+                      You haven't ordered the Gigi Book guide yet. Visit our store to get your copy!
+                    </p>
+                  </div>
+                  <Link 
+                    href="/gigi-the-awkward-age-book" 
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-primary text-white font-bold text-xs rounded-lg shadow-sm hover:scale-[1.01] active:scale-[0.99] transition-all"
+                  >
+                    Go to Store <ArrowRight size={12} />
+                  </Link>
+                </div>
+              ) : (
+                orders.map((order) => (
+                  <div 
+                    key={order.id}
+                    className="bg-white border border-slate-100 rounded-xl p-5 shadow-sm relative overflow-hidden border-t-4 border-t-primary"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+                            Gigi Book Order
+                          </span>
+                          <span className="text-[10px] font-medium text-slate-400 flex items-center gap-1">
+                            <Calendar size={11} />
+                            {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </span>
+                        </div>
+                        <h3 className="text-base font-bold text-slate-800 mt-1">
+                          {order.items?.map((it: any) => `${it.book?.title || 'Gigi Book'} (x${it.quantity})`).join(', ')}
+                        </h3>
+                      </div>
+
+                      <div className="text-left sm:text-right shrink-0">
+                        <span className="text-lg font-bold text-slate-850">₹{order.totalAmount.toLocaleString()}</span>
+                        <p className="text-[9px] font-semibold text-slate-400 mt-0.5">
+                          {order.paymentStatus === 'COMPLETED' ? 'Paid successfully' : order.paymentStatus || 'Placed'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-semibold text-slate-500">
+                      <div className="flex flex-wrap gap-4">
+                        <div>
+                          <span className="text-[9px] font-bold text-slate-400 block">Order ID</span>
+                          <span className="text-slate-700 font-bold font-mono text-[11px] block mt-0.5">{order.id}</span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] font-bold text-slate-400 block">Order Status</span>
+                          <span className="text-slate-700 font-bold flex items-center gap-1 mt-0.5 text-[11px]">
+                            <ShoppingBag size={12} className="text-primary" /> {order.orderStatus}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] font-bold text-slate-400 block">Deliver to</span>
+                          <span className="text-slate-650 font-bold flex items-center gap-1 mt-0.5 text-[11px]">
+                            <MapPin size={11} className="text-slate-400" /> {order.city || 'N/A'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => setActiveInvoice({ type: 'BOOK', data: order })}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-655 hover:text-slate-800 rounded-lg text-[11px] font-bold shadow-sm transition-all cursor-pointer active:scale-95"
+                        >
+                          <FileText size={12} />
+                          Invoice
+                        </button>
+                        <Link 
+                          href="/dashboard/orders"
+                          className="inline-flex items-center gap-1 text-primary hover:text-primary-dark font-bold text-[11px] group"
+                        >
+                          Track Order <ArrowRight className="group-hover:translate-x-0.5 transition-transform" size={12} />
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
 
         </div>
 
@@ -200,11 +318,16 @@ export default function CustomerPaymentsOverview() {
               </div>
             </div>
           </div>
-
         </div>
-
       </div>
 
+      {/* Invoice Download Modal */}
+      <InvoiceModal 
+        isOpen={activeInvoice !== null}
+        onClose={() => setActiveInvoice(null)}
+        type={activeInvoice?.type || 'PROGRAM'}
+        data={activeInvoice?.data}
+      />
     </div>
   );
 }

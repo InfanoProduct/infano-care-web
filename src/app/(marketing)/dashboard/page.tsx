@@ -587,7 +587,7 @@ export default function CustomerDashboardOverview() {
             );
           })()}
 
-          {availablePrograms.length > 0 && (
+          {/* {availablePrograms.length > 0 && (
             <div className="space-y-4">
               <div>
                 <h3 className="text-base font-bold text-slate-800 flex items-center gap-2.5">
@@ -604,7 +604,6 @@ export default function CustomerDashboardOverview() {
                       key={program.id}
                       className={`rounded-xl border ${styles.bg} ${styles.border} shadow-sm hover:shadow-md transition-all duration-300 flex flex-col group relative overflow-hidden`}
                     >
-                      {/* Thumbnail Image */}
                       {program.thumbnailUrl && (
                         <div className="w-full h-32 relative overflow-hidden shrink-0 border-b border-white/40">
                           <img src={program.thumbnailUrl} alt={program.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -613,7 +612,6 @@ export default function CustomerDashboardOverview() {
                       )}
                       
                       <div className="p-5 flex flex-col flex-1 relative z-10">
-                        {/* Header: Title and Class Range */}
                         <div className="flex items-center justify-between mb-4 relative z-10">
                           <h3 className={`text-lg font-bold tracking-tight ${styles.text}`}>
                             {program.title}
@@ -623,12 +621,10 @@ export default function CustomerDashboardOverview() {
                           </span>
                         </div>
 
-                        {/* Tagline */}
                         <p className="text-slate-700 font-semibold text-xs leading-relaxed mb-4 min-h-[36px] relative z-10">
                           "{program.tagline || program.description}"
                         </p>
 
-                      {/* Session / Duration details bar */}
                       <div className={`flex items-center gap-3 py-2 px-3 ${styles.metaBg} rounded-lg border shadow-sm mb-4 text-slate-600 text-[10px] font-bold relative z-10`}>
                         <div className="flex items-center gap-1">
                           <BookOpen size={12} className={styles.text} />
@@ -650,12 +646,11 @@ export default function CustomerDashboardOverview() {
                         )}
                       </div>
 
-                      {/* Topics covered block */}
                       <div className="mb-5 flex-1 relative z-10">
                         <h4 className="text-[9px] font-bold text-slate-400 mb-2.5">What she will cover:</h4>
                         <ul className="space-y-2">
                           {program.topics?.slice(0, 5).map((topic, topicIdx) => (
-                            <li key={topicIdx} className="flex items-start gap-2 text-slate-600 text-xs font-medium leading-tight">
+                             <li key={topicIdx} className="flex items-start gap-2 text-slate-600 text-xs font-medium leading-tight">
                               <span className={`w-4 h-4 shrink-0 rounded-md flex items-center justify-center text-[9px] font-bold ${styles.bulletBg} mt-0.5`}>
                                 <Check size={9} strokeWidth={3} />
                               </span>
@@ -665,7 +660,6 @@ export default function CustomerDashboardOverview() {
                         </ul>
                       </div>
 
-                      {/* Book Demo CTA */}
                       <button
                         onClick={() => handleBookDemoClick(program)}
                         className={`w-full inline-flex items-center justify-center gap-1.5 py-3 px-4 rounded-lg text-white font-bold text-xs transition-all ${styles.btnBg} relative z-10 cursor-pointer`}
@@ -679,7 +673,7 @@ export default function CustomerDashboardOverview() {
                 })}
               </div>
             </div>
-          )}
+          )} */}
 
 
 

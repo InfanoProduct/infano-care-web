@@ -423,6 +423,43 @@ export default function OrderDetailPage() {
         {/* Right Column: Sidebar Actions */}
         <div className="space-y-6">
 
+          {/* Active / Inactive Visibility Control */}
+          <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+              <h2 className="font-semibold text-slate-900">Order Status (Admin)</h2>
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${order.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                {order.isActive ? 'Active' : 'Inactive'}
+              </span>
+            </div>
+            <div className="p-5 space-y-3">
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Toggle the active state of this order. Inactive orders will be hidden from the default active orders dashboard view.
+              </p>
+              <button
+                onClick={async () => {
+                  if (!window.confirm(`Are you sure you want to mark this order as ${order.isActive ? 'Inactive' : 'Active'}?`)) return;
+                  try {
+                    setUpdating(true);
+                    await apiClient.patch(`/admin/orders/${order.id}/active`, { isActive: !order.isActive });
+                    await fetchOrder();
+                  } catch (err: any) {
+                    setError(err.message || 'Failed to update visibility status');
+                  } finally {
+                    setUpdating(false);
+                  }
+                }}
+                disabled={updating}
+                className={`w-full py-2.5 px-4 rounded-md font-bold text-xs uppercase tracking-wide transition-all border flex items-center justify-center gap-2 ${
+                  order.isActive
+                    ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
+                    : 'bg-green-50 text-green-600 border-green-200 hover:bg-green-100'
+                }`}
+              >
+                {order.isActive ? 'Mark as Inactive' : 'Mark as Active'}
+              </button>
+            </div>
+          </div>
+
           {/* Status Controls */}
           <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-200 bg-slate-50">

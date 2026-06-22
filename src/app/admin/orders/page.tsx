@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { ShoppingBag, Search, Filter, Eye, Clock, CheckCircle, Truck, XCircle, Package, CreditCard } from 'lucide-react';
 import Link from 'next/link';
@@ -17,6 +17,9 @@ export default function AdminOrdersPage() {
   const [paymentMethodFilter, setPaymentMethodFilter] = useState('ALL');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  const filterContainerRef = useRef<HTMLDivElement>(null);
   const recordsPerPage = 15;
   const [stats, setStats] = useState({
     totalOrders: 0, totalRevenue: 0, onlineRevenue: 0, codRevenue: 0,
@@ -26,16 +29,60 @@ export default function AdminOrdersPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
 
+  // Load initial filters and page from localStorage
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, dateFrom, dateTo, statusFilter, paymentMethodFilter, paymentStatusFilter]);
+    if (typeof window !== 'undefined') {
+      const savedSearchTerm = localStorage.getItem('orders_searchTerm') || '';
+      const savedDateFrom = localStorage.getItem('orders_dateFrom') || '';
+      const savedDateTo = localStorage.getItem('orders_dateTo') || '';
+      const savedStatusFilter = localStorage.getItem('orders_statusFilter') || 'ALL';
+      const savedPaymentMethodFilter = localStorage.getItem('orders_paymentMethodFilter') || 'ALL';
+      const savedPaymentStatusFilter = localStorage.getItem('orders_paymentStatusFilter') || 'ALL';
+      const savedCurrentPage = localStorage.getItem('orders_currentPage')
+        ? parseInt(localStorage.getItem('orders_currentPage')!, 10)
+        : 1;
+
+      setSearchTerm(savedSearchTerm);
+      setDateFrom(savedDateFrom);
+      setDateTo(savedDateTo);
+      setStatusFilter(savedStatusFilter);
+      setPaymentMethodFilter(savedPaymentMethodFilter);
+      setPaymentStatusFilter(savedPaymentStatusFilter);
+      setCurrentPage(savedCurrentPage);
+      setIsInitialized(true);
+    }
+  }, []);
+
+  // Save filters and page to localStorage when they change
+  useEffect(() => {
+    if (!isInitialized) return;
+    localStorage.setItem('orders_searchTerm', searchTerm);
+    localStorage.setItem('orders_dateFrom', dateFrom);
+    localStorage.setItem('orders_dateTo', dateTo);
+    localStorage.setItem('orders_statusFilter', statusFilter);
+    localStorage.setItem('orders_paymentMethodFilter', paymentMethodFilter);
+    localStorage.setItem('orders_paymentStatusFilter', paymentStatusFilter);
+    localStorage.setItem('orders_currentPage', currentPage.toString());
+  }, [isInitialized, searchTerm, dateFrom, dateTo, statusFilter, paymentMethodFilter, paymentStatusFilter, currentPage]);
+
+  // Click outside to close filters
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterContainerRef.current && !filterContainerRef.current.contains(event.target as Node)) {
+        setShowFilters(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
+    if (!isInitialized) return;
     const delayDebounceFn = setTimeout(() => {
       fetchOrders();
     }, 300);
     return () => clearTimeout(delayDebounceFn);
-  }, [currentPage, searchTerm, dateFrom, dateTo, statusFilter, paymentMethodFilter, paymentStatusFilter]);
+  }, [isInitialized, currentPage, searchTerm, dateFrom, dateTo, statusFilter, paymentMethodFilter, paymentStatusFilter]);
 
   const fetchOrders = async () => {
     try {
@@ -143,7 +190,7 @@ export default function AdminOrdersPage() {
             <input
               type="date"
               value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
+              onChange={(e) => { setDateFrom(e.target.value); setCurrentPage(1); }}
               className="text-sm font-medium border-none focus:ring-0 cursor-pointer outline-none px-2 py-1 bg-transparent"
             />
           </div>
@@ -153,13 +200,13 @@ export default function AdminOrdersPage() {
             <input
               type="date"
               value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
+              onChange={(e) => { setDateTo(e.target.value); setCurrentPage(1); }}
               className="text-sm font-medium border-none focus:ring-0 cursor-pointer outline-none px-2 py-1 bg-transparent"
             />
           </div>
           {(dateFrom || dateTo) && (
             <button
-              onClick={() => { setDateFrom(''); setDateTo(''); }}
+              onClick={() => { setDateFrom(''); setDateTo(''); setCurrentPage(1); }}
               className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-colors ml-1"
               title="Clear Filter"
             >
@@ -185,7 +232,14 @@ export default function AdminOrdersPage() {
           </div>
 
           <div className="flex flex-wrap gap-4">
-            <div className="bg-blue-50/50 px-6 py-4 rounded-2xl border border-blue-100 flex items-center gap-5">
+            <button
+              onClick={() => { setPaymentMethodFilter(prev => prev === 'ONLINE' ? 'ALL' : 'ONLINE'); setCurrentPage(1); }}
+              className={`text-left px-6 py-4 rounded-2xl border flex items-center gap-5 transition-all hover:scale-[1.02] active:scale-95 ${
+                paymentMethodFilter === 'ONLINE'
+                  ? 'bg-blue-100 border-blue-400 shadow-sm ring-1 ring-blue-400'
+                  : 'bg-blue-50/50 border-blue-100 hover:border-blue-300'
+              }`}
+            >
               <div className="p-3 bg-blue-100/50 rounded-xl">
                 <CreditCard className="text-blue-600" size={28} />
               </div>
@@ -199,8 +253,15 @@ export default function AdminOrdersPage() {
                   ₹{stats.onlineRevenue.toLocaleString('en-IN')}
                 </div>
               </div>
-            </div>
-            <div className="bg-amber-50/50 px-6 py-4 rounded-2xl border border-amber-100 flex items-center gap-5">
+            </button>
+            <button
+              onClick={() => { setPaymentMethodFilter(prev => prev === 'COD' ? 'ALL' : 'COD'); setCurrentPage(1); }}
+              className={`text-left px-6 py-4 rounded-2xl border flex items-center gap-5 transition-all hover:scale-[1.02] active:scale-95 ${
+                paymentMethodFilter === 'COD'
+                  ? 'bg-amber-100 border-amber-400 shadow-sm ring-1 ring-amber-400'
+                  : 'bg-amber-50/50 border-amber-100 hover:border-amber-300'
+              }`}
+            >
               <div className="p-3 bg-amber-100/50 rounded-xl">
                 <Truck className="text-amber-600" size={28} />
               </div>
@@ -214,35 +275,77 @@ export default function AdminOrdersPage() {
                   ₹{stats.codRevenue.toLocaleString('en-IN')}
                 </div>
               </div>
-            </div>
+            </button>
           </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 pt-6 border-t border-slate-100">
-          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-1 hover:border-slate-300 transition-colors">
+          <button
+            onClick={() => { setStatusFilter(prev => prev === 'PLACED' ? 'ALL' : 'PLACED'); setCurrentPage(1); }}
+            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${
+              statusFilter === 'PLACED'
+                ? 'bg-slate-200 border-slate-400 shadow-sm ring-1 ring-slate-400'
+                : 'bg-slate-50 border-slate-100 hover:border-slate-300'
+            }`}
+          >
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Order Placed</span>
             <span className="text-2xl font-bold text-slate-700">{stats.placedCount}</span>
-          </div>
-          <div className="bg-amber-50/30 rounded-2xl p-4 border border-amber-100 flex flex-col gap-1 hover:border-amber-300 transition-colors">
+          </button>
+          <button
+            onClick={() => { setStatusFilter(prev => prev === 'PROCESSING' ? 'ALL' : 'PROCESSING'); setCurrentPage(1); }}
+            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${
+              statusFilter === 'PROCESSING'
+                ? 'bg-amber-100 border-amber-400 shadow-sm ring-1 ring-amber-400'
+                : 'bg-amber-50/30 border-amber-100 hover:border-amber-300'
+            }`}
+          >
             <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Processing</span>
             <span className="text-2xl font-bold text-amber-700">{stats.processingCount}</span>
-          </div>
-          <div className="bg-indigo-50/30 rounded-2xl p-4 border border-indigo-100 flex flex-col gap-1 hover:border-indigo-300 transition-colors">
+          </button>
+          <button
+            onClick={() => { setStatusFilter(prev => prev === 'SHIPPED' ? 'ALL' : 'SHIPPED'); setCurrentPage(1); }}
+            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${
+              statusFilter === 'SHIPPED'
+                ? 'bg-indigo-100 border-indigo-400 shadow-sm ring-1 ring-indigo-400'
+                : 'bg-indigo-50/30 border-indigo-100 hover:border-indigo-300'
+            }`}
+          >
             <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Shipped</span>
             <span className="text-2xl font-bold text-indigo-700">{stats.shippedCount}</span>
-          </div>
-          <div className="bg-green-50/30 rounded-2xl p-4 border border-green-100 flex flex-col gap-1 hover:border-green-300 transition-colors">
+          </button>
+          <button
+            onClick={() => { setStatusFilter(prev => prev === 'DELIVERED' ? 'ALL' : 'DELIVERED'); setCurrentPage(1); }}
+            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${
+              statusFilter === 'DELIVERED'
+                ? 'bg-green-100 border-green-400 shadow-sm ring-1 ring-green-400'
+                : 'bg-green-50/30 border-green-100 hover:border-green-300'
+            }`}
+          >
             <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">Delivered</span>
             <span className="text-2xl font-bold text-green-700">{stats.deliveredCount}</span>
-          </div>
-          <div className="bg-red-50/30 rounded-2xl p-4 border border-red-100 flex flex-col gap-1 hover:border-red-300 transition-colors">
+          </button>
+          <button
+            onClick={() => { setStatusFilter(prev => prev === 'FAILED' ? 'ALL' : 'FAILED'); setCurrentPage(1); }}
+            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${
+              statusFilter === 'FAILED'
+                ? 'bg-red-100 border-red-400 shadow-sm ring-1 ring-red-400'
+                : 'bg-red-50/30 border-red-100 hover:border-red-300'
+            }`}
+          >
             <span className="text-[10px] font-bold text-red-600 uppercase tracking-wider">Failed</span>
             <span className="text-2xl font-bold text-red-700">{stats.failedCount}</span>
-          </div>
-          <div className="bg-rose-50/30 rounded-2xl p-4 border border-rose-100 flex flex-col gap-1 hover:border-rose-300 transition-colors">
+          </button>
+          <button
+            onClick={() => { setStatusFilter(prev => prev === 'CANCELLED' ? 'ALL' : 'CANCELLED'); setCurrentPage(1); }}
+            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${
+              statusFilter === 'CANCELLED'
+                ? 'bg-rose-100 border-rose-400 shadow-sm ring-1 ring-rose-400'
+                : 'bg-rose-50/30 border-rose-100 hover:border-rose-300'
+            }`}
+          >
             <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider">Cancelled</span>
             <span className="text-2xl font-bold text-rose-700">{stats.cancelledCount}</span>
-          </div>
+          </button>
         </div>
       </div>
 
@@ -255,10 +358,10 @@ export default function AdminOrdersPage() {
               placeholder="Search by Order ID, Name, Email or Phone..."
               className="w-full pl-12 pr-4 py-3 rounded-2xl border border-border bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
             />
           </div>
-          <div className="relative">
+          <div className="relative" ref={filterContainerRef}>
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`flex items-center gap-2 px-5 py-3 rounded-2xl border transition-colors font-bold text-sm ${showFilters ? 'bg-primary text-white border-primary' : 'border-border bg-white hover:bg-slate-50'}`}
@@ -272,7 +375,7 @@ export default function AdminOrdersPage() {
                 <div className="flex items-center justify-between">
                   <h3 className="font-bold text-sm">Filter Orders</h3>
                   <button
-                    onClick={() => { setStatusFilter('ALL'); setPaymentMethodFilter('ALL'); setPaymentStatusFilter('ALL'); }}
+                    onClick={() => { setStatusFilter('ALL'); setPaymentMethodFilter('ALL'); setPaymentStatusFilter('ALL'); setCurrentPage(1); }}
                     className="text-xs text-primary font-bold hover:underline"
                   >
                     Clear All
@@ -283,7 +386,7 @@ export default function AdminOrdersPage() {
                   <label className="text-[10px] font-bold text-muted-foreground uppercase">Order Status</label>
                   <select
                     value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
+                    onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
                     className="w-full border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary bg-white"
                   >
                     <option value="ALL">All Statuses</option>
@@ -300,7 +403,7 @@ export default function AdminOrdersPage() {
                   <label className="text-[10px] font-bold text-muted-foreground uppercase">Payment Method</label>
                   <select
                     value={paymentMethodFilter}
-                    onChange={(e) => setPaymentMethodFilter(e.target.value)}
+                    onChange={(e) => { setPaymentMethodFilter(e.target.value); setCurrentPage(1); }}
                     className="w-full border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary bg-white"
                   >
                     <option value="ALL">All Methods</option>
@@ -313,7 +416,7 @@ export default function AdminOrdersPage() {
                   <label className="text-[10px] font-bold text-muted-foreground uppercase">Payment Status</label>
                   <select
                     value={paymentStatusFilter}
-                    onChange={(e) => setPaymentStatusFilter(e.target.value)}
+                    onChange={(e) => { setPaymentStatusFilter(e.target.value); setCurrentPage(1); }}
                     className="w-full border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary bg-white"
                   >
                     <option value="ALL">All Statuses</option>

@@ -90,6 +90,11 @@ export const metadata: Metadata = {
     shortcut: "/favicon.ico",
     apple: "/icon.png",
   },
+  verification: process.env.NODE_ENV === "production" ? {
+    other: {
+      "facebook-domain-verification": ["rvcuesxaaxj1ecb6sm92t6jzgd8i0p"],
+    },
+  } : undefined,
 };
 
 

@@ -35,7 +35,6 @@ function CheckoutContent() {
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
-  const [orderSuccess, setOrderSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [cachedOrder, setCachedOrder] = useState<any>(null);
@@ -76,11 +75,7 @@ function CheckoutContent() {
     }
   }, [nameParam, phoneParam, emailParam, user]);
 
-  useEffect(() => {
-    if (orderSuccess) {
-      window.scrollTo(0, 0);
-    }
-  }, [orderSuccess]);
+
 
   useEffect(() => {
     setCachedOrder(null);
@@ -129,6 +124,27 @@ function CheckoutContent() {
     }
     loadBook();
   }, [bookId]);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production' && book) {
+      const windowObj = window as any;
+      windowObj.dataLayer = windowObj.dataLayer || [];
+      windowObj.dataLayer.push({ ecommerce: null });
+      windowObj.dataLayer.push({
+        event: 'begin_checkout',
+        ecommerce: {
+          currency: 'INR',
+          value: book.price * quantity,
+          items: [{
+            item_id: book.id,
+            item_name: book.title,
+            price: book.price,
+            quantity: quantity
+          }]
+        }
+      });
+    }
+  }, [book]);
 
   useEffect(() => {
     if (formData.pincode.length === 6) {
@@ -260,7 +276,15 @@ function CheckoutContent() {
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpaySignature: response.razorpay_signature,
               });
-              setOrderSuccess(true);
+              const successParams = new URLSearchParams({
+                transaction_id: order.id,
+                value: order.totalAmount.toString(),
+                quantity: quantity.toString(),
+                item_id: book.id,
+                item_name: book.title,
+                price: book.price.toString()
+              });
+              router.push(`/purchase-success?${successParams.toString()}`);
             } catch (err) {
               setError('Payment verification failed.');
             } finally {
@@ -289,7 +313,15 @@ function CheckoutContent() {
         rzpRef.current = rzp;
         rzp.open();
       } else {
-        setOrderSuccess(true);
+        const successParams = new URLSearchParams({
+          transaction_id: order.id,
+          value: order.totalAmount.toString(),
+          quantity: quantity.toString(),
+          item_id: book.id,
+          item_name: book.title,
+          price: book.price.toString()
+        });
+        router.push(`/purchase-success?${successParams.toString()}`);
         setProcessing(false);
       }
     } catch (err: any) {
@@ -306,37 +338,7 @@ function CheckoutContent() {
     );
   }
 
-  if (orderSuccess) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-        <div className="max-w-xl w-full bg-white rounded-2xl shadow-2xl p-10 text-center animate-in zoom-in duration-500">
-          <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8">
-            <CheckCircle2 size={48} />
-          </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold mb-6 text-slate-900">Order Confirmed! 🎉</h1>
-          <p className="text-slate-600 mb-6 text-lg leading-relaxed">
-            Thank you for ordering your book. Your order has been successfully placed, and we will get it delivered to you soon! Our team will connect with you shortly with further updates.
-          </p>
 
-          <div className="bg-slate-50 border border-slate-100 rounded-xl p-6 text-left mb-8 max-w-sm mx-auto">
-            <h3 className="font-bold text-slate-900 mb-4 text-center">Need help? We're here for you:</h3>
-            <div className="space-y-3 font-medium text-slate-700">
-              <p className="flex items-center justify-center gap-2">
-                <span>📧</span> Email: <a href="mailto:connect@infano.care" className="text-primary hover:underline font-bold">connect@infano.care</a>
-              </p>
-              <p className="flex items-center justify-center gap-2">
-                <span>💬</span> WhatsApp: <a href="https://wa.me/916362994347" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-bold">+91 6362994347</a>
-              </p>
-            </div>
-          </div>
-
-          <button onClick={() => router.push('/')} className="w-full sm:w-auto px-10 py-4 bg-primary text-white rounded-lg font-bold shadow-lg hover:opacity-90 transition-all active:scale-95">
-            Back to Home
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#FDFCFB] selection:bg-primary/20 pt-20 md:pt-28 pb-16 font-sans">

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { ShoppingBag, Search, Filter, Eye, Clock, CheckCircle, Truck, XCircle, Package, CreditCard } from 'lucide-react';
+import { ShoppingBag, Search, Filter, Eye, Clock, CheckCircle, Truck, XCircle, Package, CreditCard, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { formatIndianDate, formatOrderId } from '@/lib/utils';
 
@@ -25,6 +25,7 @@ export default function AdminOrdersPage() {
   const [stats, setStats] = useState({
     totalOrders: 0, totalRevenue: 0, onlineRevenue: 0, codRevenue: 0,
     onlineCount: 0, codCount: 0, placedCount: 0, processingCount: 0,
+    onHoldCount: 0,
     shippedCount: 0, deliveredCount: 0, failedCount: 0, cancelledCount: 0
   });
   const [totalPages, setTotalPages] = useState(1);
@@ -39,6 +40,7 @@ export default function AdminOrdersPage() {
       const savedStatusFilter = localStorage.getItem('orders_statusFilter') || 'ALL';
       const savedPaymentMethodFilter = localStorage.getItem('orders_paymentMethodFilter') || 'ALL';
       const savedPaymentStatusFilter = localStorage.getItem('orders_paymentStatusFilter') || 'ALL';
+      const savedIsActiveFilter = localStorage.getItem('orders_isActiveFilter') !== 'false';
       const savedCurrentPage = localStorage.getItem('orders_currentPage')
         ? parseInt(localStorage.getItem('orders_currentPage')!, 10)
         : 1;
@@ -49,6 +51,7 @@ export default function AdminOrdersPage() {
       setStatusFilter(savedStatusFilter);
       setPaymentMethodFilter(savedPaymentMethodFilter);
       setPaymentStatusFilter(savedPaymentStatusFilter);
+      setIsActiveFilter(savedIsActiveFilter);
       setCurrentPage(savedCurrentPage);
       setIsInitialized(true);
     }
@@ -63,8 +66,9 @@ export default function AdminOrdersPage() {
     localStorage.setItem('orders_statusFilter', statusFilter);
     localStorage.setItem('orders_paymentMethodFilter', paymentMethodFilter);
     localStorage.setItem('orders_paymentStatusFilter', paymentStatusFilter);
+    localStorage.setItem('orders_isActiveFilter', isActiveFilter.toString());
     localStorage.setItem('orders_currentPage', currentPage.toString());
-  }, [isInitialized, searchTerm, dateFrom, dateTo, statusFilter, paymentMethodFilter, paymentStatusFilter, currentPage]);
+  }, [isInitialized, searchTerm, dateFrom, dateTo, statusFilter, paymentMethodFilter, paymentStatusFilter, isActiveFilter, currentPage]);
 
   // Click outside to close filters
   useEffect(() => {
@@ -83,7 +87,7 @@ export default function AdminOrdersPage() {
       fetchOrders();
     }, 300);
     return () => clearTimeout(delayDebounceFn);
-  }, [isInitialized, currentPage, searchTerm, dateFrom, dateTo, statusFilter, paymentMethodFilter, paymentStatusFilter]);
+  }, [isInitialized, currentPage, searchTerm, dateFrom, dateTo, statusFilter, paymentMethodFilter, paymentStatusFilter, isActiveFilter]);
 
   const fetchOrders = async () => {
     try {
@@ -127,6 +131,7 @@ export default function AdminOrdersPage() {
     switch (status) {
       case 'PLACED': return 'bg-blue-100 text-blue-600';
       case 'PROCESSING': return 'bg-amber-100 text-amber-600';
+      case 'ON_HOLD': return 'bg-orange-100 text-orange-655 border border-orange-200/50';
       case 'SHIPPED': return 'bg-indigo-100 text-indigo-600';
       case 'DELIVERED': return 'bg-green-100 text-green-600';
       case 'CANCELLED': return 'bg-rose-100 text-rose-600';
@@ -139,6 +144,7 @@ export default function AdminOrdersPage() {
     switch (status) {
       case 'PLACED': return <Clock size={14} />;
       case 'PROCESSING': return <Package size={14} />;
+      case 'ON_HOLD': return <AlertCircle size={14} />;
       case 'SHIPPED': return <Truck size={14} />;
       case 'DELIVERED': return <CheckCircle size={14} />;
       case 'CANCELLED': return <XCircle size={14} />;
@@ -151,6 +157,7 @@ export default function AdminOrdersPage() {
     switch (status) {
       case 'PLACED': return 'Order Placed';
       case 'PROCESSING': return 'Processing';
+      case 'ON_HOLD': return 'On Hold';
       case 'SHIPPED': return 'Shipped';
       case 'DELIVERED': return 'Delivered';
       case 'CANCELLED': return 'Cancelled';
@@ -279,7 +286,7 @@ export default function AdminOrdersPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 pt-6 border-t border-slate-100">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 pt-6 border-t border-slate-100">
           <button
             onClick={() => { setStatusFilter(prev => prev === 'PLACED' ? 'ALL' : 'PLACED'); setCurrentPage(1); }}
             className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${statusFilter === 'PLACED'
@@ -299,6 +306,16 @@ export default function AdminOrdersPage() {
           >
             <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Processing</span>
             <span className="text-2xl font-bold text-amber-700">{stats.processingCount}</span>
+          </button>
+          <button
+            onClick={() => { setStatusFilter(prev => prev === 'ON_HOLD' ? 'ALL' : 'ON_HOLD'); setCurrentPage(1); }}
+            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${statusFilter === 'ON_HOLD'
+                ? 'bg-orange-100 border-orange-400 shadow-sm ring-1 ring-orange-400'
+                : 'bg-orange-50/30 border-orange-100 hover:border-orange-300'
+              }`}
+          >
+            <span className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">On Hold</span>
+            <span className="text-2xl font-bold text-orange-700">{stats.onHoldCount}</span>
           </button>
           <button
             onClick={() => { setStatusFilter(prev => prev === 'SHIPPED' ? 'ALL' : 'SHIPPED'); setCurrentPage(1); }}
@@ -369,7 +386,7 @@ export default function AdminOrdersPage() {
                 <div className="flex items-center justify-between">
                   <h3 className="font-bold text-sm">Filter Orders</h3>
                   <button
-                    onClick={() => { setStatusFilter('ALL'); setPaymentMethodFilter('ALL'); setPaymentStatusFilter('ALL'); setCurrentPage(1); }}
+                    onClick={() => { setStatusFilter('ALL'); setPaymentMethodFilter('ALL'); setPaymentStatusFilter('ALL'); setIsActiveFilter(true); setCurrentPage(1); }}
                     className="text-xs text-primary font-bold hover:underline"
                   >
                     Clear All
@@ -380,7 +397,7 @@ export default function AdminOrdersPage() {
                   <label className="text-[10px] font-bold text-muted-foreground uppercase">Order Visibility</label>
                   <select
                     value={isActiveFilter ? 'ACTIVE' : 'INACTIVE'}
-                    onChange={(e) => setIsActiveFilter(e.target.value === 'ACTIVE')}
+                    onChange={(e) => { setIsActiveFilter(e.target.value === 'ACTIVE'); setCurrentPage(1); }}
                     className="w-full border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary bg-white"
                   >
                     <option value="ACTIVE">Active Orders</option>
@@ -398,6 +415,7 @@ export default function AdminOrdersPage() {
                     <option value="ALL">All Statuses</option>
                     <option value="PLACED">Placed</option>
                     <option value="PROCESSING">Processing</option>
+                    <option value="ON_HOLD">On Hold</option>
                     <option value="SHIPPED">Shipped</option>
                     <option value="DELIVERED">Delivered</option>
                     <option value="CANCELLED">Cancelled</option>
@@ -460,7 +478,14 @@ export default function AdminOrdersPage() {
                 orders.map((order) => (
                   <tr key={order.id} className="hover:bg-slate-50/80 transition-colors group">
                     <td className="px-6 py-5">
-                      <div className="font-bold text-sm text-foreground">{formatOrderId(order.id)}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="font-bold text-sm text-foreground">{formatOrderId(order.id)}</div>
+                        {order.isActive === false && (
+                          <span className="bg-rose-100 text-rose-700 text-[10px] font-extrabold px-1.5 py-0.5 rounded-md uppercase tracking-wider">
+                            Inactive
+                          </span>
+                        )}
+                      </div>
                       <div className="text-[11px] text-muted-foreground mt-1">{order.items?.length || 0} Item(s)</div>
                     </td>
                     <td className="px-6 py-5">

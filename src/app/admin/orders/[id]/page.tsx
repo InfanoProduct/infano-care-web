@@ -10,19 +10,31 @@ import {
 } from 'lucide-react';
 import { formatIndianDate, formatOrderId } from '@/lib/utils';
 
-const STATUS_STEPS = [
+const ALL_STATUS_OPTIONS = [
+  { id: 'PLACED', label: 'Order Placed' },
+  { id: 'PROCESSING', label: 'Processing' },
+  { id: 'ON_HOLD', label: 'On Hold' },
+  { id: 'SHIPPED', label: 'Shipped' },
+  { id: 'DELIVERED', label: 'Delivered' },
+];
+
+const getStatusSteps = (currentStatus: string) => [
   { id: 'PLACED', label: 'Order Placed', icon: Clock },
-  { id: 'PROCESSING', label: 'Processing', icon: Package },
+  currentStatus === 'ON_HOLD'
+    ? { id: 'ON_HOLD', label: 'On Hold', icon: AlertCircle }
+    : { id: 'PROCESSING', label: 'Processing', icon: Package },
   { id: 'SHIPPED', label: 'Shipped', icon: Truck },
   { id: 'DELIVERED', label: 'Delivered', icon: CheckCircle },
 ];
 
 const STATUS_TRANSITIONS: Record<string, string[]> = {
-  PLACED: ['PROCESSING', 'CANCELLED'],
+  PLACED: ['PROCESSING', 'ON_HOLD', 'CANCELLED'],
   PROCESSING: ['SHIPPED', 'CANCELLED'],
+  ON_HOLD: ['PROCESSING', 'CANCELLED'],
   SHIPPED: ['DELIVERED', 'CANCELLED'],
   DELIVERED: [],
   CANCELLED: [],
+  FAILED: [],
 };
 
 export default function OrderDetailPage() {
@@ -134,7 +146,8 @@ export default function OrderDetailPage() {
 
   const isFailed = order ? (order.paymentMethod === 'ONLINE' && !order.razorpayPaymentId && order.orderStatus !== 'CANCELLED') : false;
   const displayOrderStatus = order ? (isFailed ? 'FAILED' : order.orderStatus) : '';
-  const currentStepIndex = STATUS_STEPS.findIndex(s => s.id === displayOrderStatus);
+  const statusSteps = getStatusSteps(displayOrderStatus);
+  const currentStepIndex = statusSteps.findIndex(s => s.id === displayOrderStatus);
   const isCancelled = displayOrderStatus === 'CANCELLED';
   const isPendingCod = order ? (order.paymentMethod === 'COD' && order.paymentStatus === 'PENDING' && !isCancelled && displayOrderStatus !== 'DELIVERED') : false;
   const showManualPaymentInput = isFailed || isPendingCod;
@@ -146,7 +159,7 @@ export default function OrderDetailPage() {
         <div className="flex items-start gap-3">
           <button
             onClick={() => router.back()}
-            className="p-2 rounded-md hover:bg-slate-100 text-slate-600 transition-colors mt-1"
+            className="p-2 rounded-md hover:bg-slate-100 text-slate-655 transition-colors mt-1"
           >
             <ArrowLeft size={18} />
           </button>
@@ -172,10 +185,10 @@ export default function OrderDetailPage() {
             <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-100 -translate-y-1/2 z-0"></div>
             <div
               className="absolute top-1/2 left-0 h-0.5 bg-primary -translate-y-1/2 z-0 transition-all duration-500"
-              style={{ width: `${(currentStepIndex / (STATUS_STEPS.length - 1)) * 100}%` }}
+              style={{ width: `${(currentStepIndex / (statusSteps.length - 1)) * 100}%` }}
             ></div>
 
-            {STATUS_STEPS.map((step, index) => {
+            {statusSteps.map((step, index) => {
               const isCompleted = index <= currentStepIndex;
               const isCurrent = index === currentStepIndex;
               return (
@@ -478,7 +491,7 @@ export default function OrderDetailPage() {
                   onChange={(e) => updateStatus(e.target.value)}
                   disabled={updating || isCancelled}
                 >
-                  {STATUS_STEPS.map((step) => {
+                  {ALL_STATUS_OPTIONS.map((step) => {
                     const isCurrent = displayOrderStatus === step.id;
                     const canTransition = STATUS_TRANSITIONS[order.orderStatus]?.includes(step.id);
                     const isDisabled = isFailed || (!isCurrent && !canTransition);

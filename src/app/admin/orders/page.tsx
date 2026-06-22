@@ -16,9 +16,10 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState('ALL');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('ALL');
+  const [isActiveFilter, setIsActiveFilter] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [isInitialized, setIsInitialized] = useState(false);
-  
+
   const filterContainerRef = useRef<HTMLDivElement>(null);
   const recordsPerPage = 15;
   const [stats, setStats] = useState({
@@ -90,6 +91,7 @@ export default function AdminOrdersPage() {
       const queryParams = new URLSearchParams();
       queryParams.append('page', currentPage.toString());
       queryParams.append('limit', recordsPerPage.toString());
+      queryParams.append('isActive', isActiveFilter.toString());
       if (searchTerm) queryParams.append('search', searchTerm);
       if (dateFrom) queryParams.append('dateFrom', dateFrom);
       if (dateTo) queryParams.append('dateTo', dateTo);
@@ -234,11 +236,10 @@ export default function AdminOrdersPage() {
           <div className="flex flex-wrap gap-4">
             <button
               onClick={() => { setPaymentMethodFilter(prev => prev === 'ONLINE' ? 'ALL' : 'ONLINE'); setCurrentPage(1); }}
-              className={`text-left px-6 py-4 rounded-2xl border flex items-center gap-5 transition-all hover:scale-[1.02] active:scale-95 ${
-                paymentMethodFilter === 'ONLINE'
+              className={`text-left px-6 py-4 rounded-2xl border flex items-center gap-5 transition-all hover:scale-[1.02] active:scale-95 ${paymentMethodFilter === 'ONLINE'
                   ? 'bg-blue-100 border-blue-400 shadow-sm ring-1 ring-blue-400'
                   : 'bg-blue-50/50 border-blue-100 hover:border-blue-300'
-              }`}
+                }`}
             >
               <div className="p-3 bg-blue-100/50 rounded-xl">
                 <CreditCard className="text-blue-600" size={28} />
@@ -256,11 +257,10 @@ export default function AdminOrdersPage() {
             </button>
             <button
               onClick={() => { setPaymentMethodFilter(prev => prev === 'COD' ? 'ALL' : 'COD'); setCurrentPage(1); }}
-              className={`text-left px-6 py-4 rounded-2xl border flex items-center gap-5 transition-all hover:scale-[1.02] active:scale-95 ${
-                paymentMethodFilter === 'COD'
+              className={`text-left px-6 py-4 rounded-2xl border flex items-center gap-5 transition-all hover:scale-[1.02] active:scale-95 ${paymentMethodFilter === 'COD'
                   ? 'bg-amber-100 border-amber-400 shadow-sm ring-1 ring-amber-400'
                   : 'bg-amber-50/50 border-amber-100 hover:border-amber-300'
-              }`}
+                }`}
             >
               <div className="p-3 bg-amber-100/50 rounded-xl">
                 <Truck className="text-amber-600" size={28} />
@@ -282,66 +282,60 @@ export default function AdminOrdersPage() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 pt-6 border-t border-slate-100">
           <button
             onClick={() => { setStatusFilter(prev => prev === 'PLACED' ? 'ALL' : 'PLACED'); setCurrentPage(1); }}
-            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${
-              statusFilter === 'PLACED'
+            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${statusFilter === 'PLACED'
                 ? 'bg-slate-200 border-slate-400 shadow-sm ring-1 ring-slate-400'
                 : 'bg-slate-50 border-slate-100 hover:border-slate-300'
-            }`}
+              }`}
           >
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Order Placed</span>
             <span className="text-2xl font-bold text-slate-700">{stats.placedCount}</span>
           </button>
           <button
             onClick={() => { setStatusFilter(prev => prev === 'PROCESSING' ? 'ALL' : 'PROCESSING'); setCurrentPage(1); }}
-            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${
-              statusFilter === 'PROCESSING'
+            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${statusFilter === 'PROCESSING'
                 ? 'bg-amber-100 border-amber-400 shadow-sm ring-1 ring-amber-400'
                 : 'bg-amber-50/30 border-amber-100 hover:border-amber-300'
-            }`}
+              }`}
           >
             <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Processing</span>
             <span className="text-2xl font-bold text-amber-700">{stats.processingCount}</span>
           </button>
           <button
             onClick={() => { setStatusFilter(prev => prev === 'SHIPPED' ? 'ALL' : 'SHIPPED'); setCurrentPage(1); }}
-            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${
-              statusFilter === 'SHIPPED'
+            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${statusFilter === 'SHIPPED'
                 ? 'bg-indigo-100 border-indigo-400 shadow-sm ring-1 ring-indigo-400'
                 : 'bg-indigo-50/30 border-indigo-100 hover:border-indigo-300'
-            }`}
+              }`}
           >
             <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Shipped</span>
             <span className="text-2xl font-bold text-indigo-700">{stats.shippedCount}</span>
           </button>
           <button
             onClick={() => { setStatusFilter(prev => prev === 'DELIVERED' ? 'ALL' : 'DELIVERED'); setCurrentPage(1); }}
-            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${
-              statusFilter === 'DELIVERED'
+            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${statusFilter === 'DELIVERED'
                 ? 'bg-green-100 border-green-400 shadow-sm ring-1 ring-green-400'
                 : 'bg-green-50/30 border-green-100 hover:border-green-300'
-            }`}
+              }`}
           >
             <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">Delivered</span>
             <span className="text-2xl font-bold text-green-700">{stats.deliveredCount}</span>
           </button>
           <button
             onClick={() => { setStatusFilter(prev => prev === 'FAILED' ? 'ALL' : 'FAILED'); setCurrentPage(1); }}
-            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${
-              statusFilter === 'FAILED'
+            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${statusFilter === 'FAILED'
                 ? 'bg-red-100 border-red-400 shadow-sm ring-1 ring-red-400'
                 : 'bg-red-50/30 border-red-100 hover:border-red-300'
-            }`}
+              }`}
           >
             <span className="text-[10px] font-bold text-red-600 uppercase tracking-wider">Failed</span>
             <span className="text-2xl font-bold text-red-700">{stats.failedCount}</span>
           </button>
           <button
             onClick={() => { setStatusFilter(prev => prev === 'CANCELLED' ? 'ALL' : 'CANCELLED'); setCurrentPage(1); }}
-            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${
-              statusFilter === 'CANCELLED'
+            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${statusFilter === 'CANCELLED'
                 ? 'bg-rose-100 border-rose-400 shadow-sm ring-1 ring-rose-400'
                 : 'bg-rose-50/30 border-rose-100 hover:border-rose-300'
-            }`}
+              }`}
           >
             <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider">Cancelled</span>
             <span className="text-2xl font-bold text-rose-700">{stats.cancelledCount}</span>
@@ -380,6 +374,18 @@ export default function AdminOrdersPage() {
                   >
                     Clear All
                   </button>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Order Visibility</label>
+                  <select
+                    value={isActiveFilter ? 'ACTIVE' : 'INACTIVE'}
+                    onChange={(e) => setIsActiveFilter(e.target.value === 'ACTIVE')}
+                    className="w-full border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary bg-white"
+                  >
+                    <option value="ACTIVE">Active Orders</option>
+                    <option value="INACTIVE">Inactive Orders</option>
+                  </select>
                 </div>
 
                 <div className="flex flex-col gap-1.5">

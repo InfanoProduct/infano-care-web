@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { ShopService } from '@/services/shop.service';
 import Link from 'next/link';
+import { InvoiceModal } from '@/components/common/InvoiceModal';
 
 export default function OrderDetailsPage() {
   const params = useParams();
@@ -16,6 +17,10 @@ export default function OrderDetailsPage() {
 
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [activeInvoice, setActiveInvoice] = useState<{
+    type: 'PROGRAM' | 'BOOK';
+    data: any;
+  } | null>(null);
 
   const loadOrderData = useCallback(async () => {
     try {
@@ -69,7 +74,7 @@ export default function OrderDetailsPage() {
     <div className="space-y-6 w-full max-w-[1000px] mx-auto pb-8 font-sans">
       
       {/* Back button & Header */}
-      <div className="flex items-center gap-4 mb-2">
+      <div className="flex items-center gap-4 mb-2 no-print">
         <button 
           onClick={() => router.push('/dashboard/orders')}
           className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-all shadow-sm"
@@ -84,22 +89,22 @@ export default function OrderDetailsPage() {
         </div>
         <button 
           className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 hover:text-slate-900 hover:bg-slate-50 shadow-sm transition-all"
-          onClick={() => alert("Invoice download will be available soon.")}
+          onClick={() => setActiveInvoice({ type: 'BOOK', data: order })}
         >
           <Download size={14} /> Download Invoice
         </button>
       </div>
 
-      <div className="sm:hidden mb-6">
+      <div className="sm:hidden mb-6 no-print">
         <button 
           className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-sm transition-all"
-          onClick={() => alert("Invoice download will be available soon.")}
+          onClick={() => setActiveInvoice({ type: 'BOOK', data: order })}
         >
           <Download size={14} /> Download Invoice
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 no-print">
         
         {/* Left Col: Combined Items & Status Card */}
         <div className="lg:col-span-2 space-y-6">
@@ -289,6 +294,13 @@ export default function OrderDetailsPage() {
         </div>
       </div>
 
+      {/* Invoice Download Modal */}
+      <InvoiceModal 
+        isOpen={activeInvoice !== null}
+        onClose={() => setActiveInvoice(null)}
+        type={activeInvoice?.type || 'BOOK'}
+        data={activeInvoice?.data}
+      />
     </div>
   );
 }

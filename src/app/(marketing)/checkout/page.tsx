@@ -9,7 +9,8 @@ import { useAuthStore } from '@/store/auth-store';
 import { ShopService, Book } from '@/services/shop.service';
 import {
   ArrowLeft, CheckCircle2, ShoppingBag, Tag,
-  Loader2, CreditCard, Truck, AlertCircle
+  Loader2, CreditCard, Truck, AlertCircle,
+  Plus, Minus
 } from 'lucide-react';
 
 const bookImages = [
@@ -190,7 +191,7 @@ function CheckoutContent() {
     if (!book) return { subtotal: 0, gst: 0, delivery: 0, total: 0 };
     const baseSubtotal = book.price * quantity;
     const priceAfterDiscount = baseSubtotal - discountAmount;
-    const delivery = 0; // Free delivery for all orders
+    const delivery = formData.paymentMethod === 'COD' ? 40 : 0;
     const taxableValue = Math.round((priceAfterDiscount / 1.05) * 100) / 100;
     const gst = Math.round((priceAfterDiscount - taxableValue) * 100) / 100;
     const total = priceAfterDiscount + delivery;
@@ -432,6 +433,18 @@ function CheckoutContent() {
                   <span className="font-bold text-slate-900 text-sm">₹{book?.price || 499}</span>
                 </div>
 
+                <div className="flex justify-between items-center pt-1">
+                  <span className="text-slate-500 text-sm font-medium">Shipping charge</span>
+                  <span className="font-bold text-emerald-600 text-sm">Free</span>
+                </div>
+
+                {formData.paymentMethod === 'COD' && (
+                  <div className="flex justify-between items-center pt-1">
+                    <span className="text-slate-500 text-sm font-medium">Cash on Delivery</span>
+                    <span className="font-bold text-slate-900 text-sm">₹40</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500 text-sm font-medium">Quantity</span>
                   <div className="flex items-center gap-3 bg-slate-50 rounded-lg px-3 py-1.5 border border-slate-200 text-xs">
@@ -643,9 +656,9 @@ function CheckoutContent() {
                       }`}
                   >
                     <CreditCard size={20} className={formData.paymentMethod === 'ONLINE' ? 'text-primary' : 'text-slate-400'} />
-                    <div className="space-y-0 text-center">
-                      <div className={`text-sm font-bold ${formData.paymentMethod === 'ONLINE' ? 'text-primary' : 'text-slate-800'}`}>Pay online</div>
-                      <div className="text-[10px] font-medium text-slate-500">Cards, UPI, NetBanking</div>
+                    <div className="space-y-1 text-center">
+                      <div className={`text-base font-bold ${formData.paymentMethod === 'ONLINE' ? 'text-primary' : 'text-slate-800'}`}>Pay online</div>
+                      <div className="text-xs font-medium text-slate-500">Cards, UPI, NetBanking</div>
                     </div>
                   </button>
                   <button
@@ -655,9 +668,10 @@ function CheckoutContent() {
                       }`}
                   >
                     <Truck size={20} className={formData.paymentMethod === 'COD' ? 'text-primary' : 'text-slate-400'} />
-                    <div className="space-y-0 text-center">
-                      <div className={`text-sm font-bold ${formData.paymentMethod === 'COD' ? 'text-primary' : 'text-slate-800'}`}>Cash on delivery</div>
-                      <div className="text-[10px] font-medium text-slate-500">Pay when you receive</div>
+                    <div className="space-y-1 text-center">
+                      <div className={`text-base font-bold ${formData.paymentMethod === 'COD' ? 'text-primary' : 'text-slate-800'}`}>Cash on delivery</div>
+                      <div className="text-xs font-medium text-slate-500">Pay at door, just a little more!</div>
+
                     </div>
                   </button>
                 </div>

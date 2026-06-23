@@ -58,7 +58,7 @@ const homeSchema = {
     {
       "@type": "ContactPoint",
       "contactType": "customer support",
-      "email": "support@infano.care",
+      "email": "connect@infano.care",
       "areaServed": "IN",
       "availableLanguage": "English"
     },

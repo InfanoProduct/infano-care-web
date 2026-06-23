@@ -292,7 +292,7 @@ export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps)
               <p className="font-extrabold text-slate-900 text-sm">infano.care</p>
               <p className="text-slate-500 font-semibold text-[10px]">Empowering adolescent girls, one family at a time.</p>
               <p className="text-slate-600 font-bold mt-2">GSTIN: <span className="text-slate-800 font-black">29AAFCI8765A1Z2</span></p>
-              <p className="text-slate-500 font-semibold">Bengaluru, Karnataka, India • hello@infano.care</p>
+              <p className="text-slate-500 font-semibold">Bengaluru, Karnataka, India • connect@infano.care</p>
             </div>
             <div className="text-right space-y-1 mt-1 shrink-0">
               <span className="inline-block px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-250/50 rounded-lg font-black text-[10px] uppercase tracking-wider print:border-none print:bg-transparent print:p-0 print:text-xs">

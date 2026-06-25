@@ -118,6 +118,7 @@ export function BookPreview({ book }: BookPreviewProps = {}) {
                   onClick={prev}
                   disabled={page === 0}
                   className="rounded-full bg-slate-100 hover:bg-slate-200 transition-colors p-3 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                  suppressHydrationWarning
                 >
                   <ArrowLeft className="h-5 w-5 text-slate-700" />
                 </button>
@@ -130,6 +131,7 @@ export function BookPreview({ book }: BookPreviewProps = {}) {
                   onClick={next}
                   disabled={isLastPage}
                   className="rounded-full bg-slate-100 hover:bg-slate-200 transition-colors p-3 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                  suppressHydrationWarning
                 >
                   <ArrowRight className="h-5 w-5 text-slate-700" />
                 </button>

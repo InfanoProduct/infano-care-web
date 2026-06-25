@@ -38,6 +38,49 @@ export function BookHero({ book }: BookHeroProps) {
 
           {/* Right: Content */}
           <div className="flex flex-col lg:order-2 py-16 lg:py-20">
+            {/* Animated Social Proof Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: -30, scale: 0.95 }}
+              animate={{ 
+                opacity: 1, 
+                y: [0, -6, 0],
+                x: [0, 3, 0],
+                rotate: [-0.5, 0.5, -0.5]
+              }}
+              whileHover={{ scale: 1.03, rotate: 0.5, transition: { duration: 0.2 } }}
+              transition={{ 
+                y: { repeat: Infinity, duration: 3, ease: "easeInOut" },
+                x: { repeat: Infinity, duration: 4, ease: "easeInOut" },
+                rotate: { repeat: Infinity, duration: 6, ease: "easeInOut" },
+                opacity: { duration: 0.6 },
+                scale: { duration: 0.6 }
+              }}
+              className="w-fit flex items-center gap-2 sm:gap-2.5 px-4 sm:px-5 py-2 sm:py-2.5 bg-primary/8 backdrop-blur-md text-primary-dark rounded-full mb-6 border border-primary/15 relative overflow-hidden group cursor-pointer hover:bg-primary/12 transition-colors"
+            >
+              <style dangerouslySetInnerHTML={{__html: `
+                @keyframes shimmerSweep {
+                  0% { left: -100%; }
+                  30% { left: 150%; }
+                  100% { left: 150%; }
+                }
+              `}} />
+              {/* Shimmer Sweep Effect */}
+              <div 
+                className="absolute top-0 bottom-0 w-1/2 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12"
+                style={{ animation: 'shimmerSweep 4s infinite ease-in-out' }}
+              />
+
+              {/* Pulsing live indicator */}
+              <span className="flex h-2 w-2 relative shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+
+              <span className="font-semibold text-[11px] sm:text-xs tracking-wide select-none">
+                <span className="text-pink-600 font-extrabold tracking-wider animate-pulse drop-shadow-[0_1px_3px_rgba(219,39,119,0.15)]">400 COPIES</span> ordered in the past 10 days! <span className="bg-primary text-white px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] uppercase font-bold tracking-widest ml-1.5 shadow-sm group-hover:bg-primary-dark transition-colors">Join the family</span>
+              </span>
+            </motion.div>
+
             <div
               className="flex items-center gap-3 mb-6 animate-in fade-in slide-in-from-left-4 duration-500 fill-mode-both"
             >
@@ -71,6 +114,7 @@ export function BookHero({ book }: BookHeroProps) {
               <button
                 onClick={() => document.getElementById('read')?.scrollIntoView({ behavior: 'smooth' })}
                 className="px-10 py-4 bg-white text-slate-900 border border-slate-200 rounded-full font-bold text-base hover:bg-slate-50 transition-all active:scale-95 flex items-center gap-2"
+                suppressHydrationWarning
               >
                 <BookOpen size={18} className="text-primary" /> Read Sample
               </button>

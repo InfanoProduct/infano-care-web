@@ -13,6 +13,7 @@ import { BookAchieve } from '@/features/marketing/components/sections/the-book/B
 import { BookChapters } from '@/features/marketing/components/sections/the-book/BookChapters';
 import { BookTrust } from '@/features/marketing/components/sections/the-book/BookTrust';
 import { FloatingBuyWidget } from '@/features/marketing/components/sections/the-book/FloatingBuyWidget';
+import { LivePurchasePrompt } from '@/features/marketing/components/sections/the-book/LivePurchasePrompt';
 
 const DEFAULT_BOOK: Book = {
   id: '7e248707-c9e8-462c-a716-99f3852ef8c0',
@@ -44,6 +45,7 @@ export function TheBookClient() {
   return (
     <div className="flex flex-col min-h-screen">
       <FloatingBuyWidget book={book} />
+      <LivePurchasePrompt />
       <BookHero book={book} />
       <BookAbout />
       <BookDetailedSection book={book} />
@@ -57,3 +59,4 @@ export function TheBookClient() {
     </div>
   );
 }
+

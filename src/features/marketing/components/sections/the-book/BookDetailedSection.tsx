@@ -132,6 +132,7 @@ export function BookDetailedSection({ book }: BookDetailedSectionProps) {
                     <button
                       onClick={() => document.getElementById('read')?.scrollIntoView({ behavior: 'smooth' })}
                       className="px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-full font-bold text-sm hover:bg-slate-50 transition-all active:scale-95 flex items-center gap-2"
+                      suppressHydrationWarning
                     >
                       <BookOpen size={16} className="text-primary" /> Read Sample
                     </button>

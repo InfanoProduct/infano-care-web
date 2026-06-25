@@ -653,6 +653,7 @@ function CheckoutContent() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <button
                     type="button"
+                    id='payment-online'
                     onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'ONLINE' }))}
                     className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'ONLINE' ? 'border-primary bg-primary/[0.03]' : 'border-slate-100 hover:border-slate-200 bg-white'
                       }`}
@@ -665,6 +666,7 @@ function CheckoutContent() {
                   </button>
                   <button
                     type="button"
+                    id='payment-cod'
                     onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'COD' }))}
                     className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'COD' ? 'border-primary bg-primary/[0.03]' : 'border-slate-100 hover:border-slate-200 bg-white'
                       }`}

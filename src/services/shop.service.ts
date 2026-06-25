@@ -83,6 +83,11 @@ export const ShopService = {
     return apiClient.get<any[]>('/shop/orders/me');
   },
 
+  async getRecentPurchases(): Promise<{ name: string; bookTitle: string; createdAt: string }[]> {
+    return apiClient.get('/shop/recent-purchases');
+  },
+
+
   // Admin Methods
   async adminGetBooks(): Promise<Book[]> {
     return apiClient.get<Book[]>('/admin/books'); 

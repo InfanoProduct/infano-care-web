@@ -38,10 +38,9 @@ const sections = [
     icon: AlertCircle,
     subsections: [
       { id: 'refund-intro', title: 'Introduction' },
-      { id: 'request-cancel', title: 'How to request' },
-      { id: 'cancel-terms', title: 'Cancellations' },
-      { id: 'disbursal', title: 'Refund Disbursal' },
-      { id: 'refund-contact', title: 'Contact Us' },
+      { id: 'return-policy', title: 'No Return Policy' },
+      { id: 'cancel-terms', title: 'Cancellations & Refunds' },
+      { id: 'refund-contact', title: 'Raising Queries' },
     ]
   },
   { 
@@ -264,7 +263,7 @@ export default function LegalPage() {
                 <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-colors duration-700" />
                 <h4 className="font-bold text-slate-800 mb-2 relative z-10">Need Help?</h4>
                 <p className="text-xs text-slate-500 mb-4 leading-relaxed relative z-10">Our legal team is here to clarify any questions you might have.</p>
-                <a href="mailto:infano.care@gmail.com" className="group/btn block w-full py-3 bg-primary text-white rounded-xl text-center text-xs font-bold transition-all hover:bg-primary-dark shadow-sm hover:shadow-lg hover:-translate-y-0.5 relative z-10">
+                <a href="mailto:connect@infano.care" className="group/btn block w-full py-3 bg-primary text-white rounded-xl text-center text-xs font-bold transition-all hover:bg-primary-dark shadow-sm hover:shadow-lg hover:-translate-y-0.5 relative z-10">
                   <div className="flex items-center justify-center gap-2">
                     <span>Email Us</span>
                     <ArrowRight size={14} className="transition-transform group-hover/btn:translate-x-1" />
@@ -452,7 +451,7 @@ export default function LegalPage() {
                           </h3>
                           <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed">
                             <p>
-                              If you believe that any copyrighted work has been copied and is accessible on the Infano platform in a way that constitutes copyright infringement, please send us a detailed mail with all relevant information, evidence and your contact information to <span className="text-primary font-bold">infano.care@gmail.com</span>.
+                              If you believe that any copyrighted work has been copied and is accessible on the Infano platform in a way that constitutes copyright infringement, please send us a detailed mail with all relevant information, evidence and your contact information to <span className="text-primary font-bold">connect@infano.care</span>.
                             </p>
                           </div>
                         </div>
@@ -528,7 +527,7 @@ export default function LegalPage() {
                             <div className="mt-12 bg-primary/5 border border-primary/20 p-6 rounded-2xl shadow-sm">
                               <p className="text-sm font-bold text-primary mb-2 uppercase tracking-wide">Governing law and dispute resolution</p>
                               <p className="text-sm text-slate-600 leading-relaxed">
-                                These Terms and Conditions are governed by the laws of India. Any action, suit, or other legal proceeding, which is commenced to resolve any matter arising under or relating to the Infano Platform or these Terms and Conditions, shall be subject to the jurisdiction of the courts at Bangalore, India. Questions and Concerns about the Terms and Conditions should be sent to us at <span className="text-primary font-bold underline">infano.care@gmail.com</span>
+                                These Terms and Conditions are governed by the laws of India. Any action, suit, or other legal proceeding, which is commenced to resolve any matter arising under or relating to the Infano Platform or these Terms and Conditions, shall be subject to the jurisdiction of the courts at Bangalore, India. Questions and Concerns about the Terms and Conditions should be sent to us at <span className="text-primary font-bold underline">connect@infano.care</span>
                               </p>
                             </div>
                           </div>
@@ -681,8 +680,8 @@ export default function LegalPage() {
                               <p className="text-slate-600 text-sm mb-6 leading-relaxed">
                                 If you have any questions about this Privacy Policy, please send us a detailed mail.
                               </p>
-                              <a href="mailto:infano.care@gmail.com" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all hover:shadow-lg hover:-translate-y-0.5">
-                                infano.care@gmail.com
+                              <a href="mailto:connect@infano.care" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all hover:shadow-lg hover:-translate-y-0.5">
+                                connect@infano.care
                               </a>
                             </div>
                           </div>
@@ -699,7 +698,7 @@ export default function LegalPage() {
                           <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white shadow-xl shadow-primary/20 group-hover/section:scale-110 transition-transform duration-500">
                             <AlertCircle size={24} />
                           </div>
-                          <h2 className="text-4xl font-black text-slate-800 tracking-tight">Refund <span className="text-primary">Policy</span></h2>
+                          <h2 className="text-4xl font-black text-slate-800 tracking-tight">Refund & Return <span className="text-primary">Policy</span></h2>
                         </div>
                       </section>
 
@@ -711,27 +710,24 @@ export default function LegalPage() {
                           </h3>
                           <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed prose-p:text-lg">
                             <p>
-                              Thank you for choosing Infano (“Berrybird Technologies, we, us, our”). Our platform infano.care (the “Website”) referred to as the “Infano Platform”. Please read this Cancellations and Refund Policy (“Agreement”) prior to making any transactions on the Infano Platform.
+                              Thank you for choosing Infano (“Berrybird Technologies, we, us, our”). Our platform infano.care (the “Website”) is referred to as the “Infano Platform”. Please read this Cancellations, Return, and Refund Policy carefully before making any purchases or transactions on the Infano Platform.
                             </p>
                             <p>
-                              This Agreement contains the terms regarding how we issue refunds to the Learners (“you, your”). All the live online classes, webinar, master classes or courses are considered (“Order”) hereafter in this agreement. This Agreement is hereby through this reference construed as part of our Terms and Conditions.
+                              By registering, enrolling, or purchasing physical products (like the printed Gigi Book) or online programs from the Infano Platform, you acknowledge and agree to be bound by the terms outlined in this policy.
                             </p>
                           </div>
                         </div>
                       </section>
 
-                      <section id="request-cancel" className="scroll-mt-32 pt-8 border-t border-slate-100">
+                      <section id="return-policy" className="scroll-mt-32 pt-8 border-t border-slate-100">
                         <div className="pl-0 md:pl-16">
                           <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
                             <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            How to request cancellations
+                            No Return Policy
                           </h3>
                           <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed">
                             <p>
-                              You may cancel and place a request for a refund for your Order created through the Infano Platform by sending an email to <a href="mailto:assist.infanocare@gmail.com" className="text-primary font-bold">assist.infanocare@gmail.com</a> from the registered email address used when booking the Order.
-                            </p>
-                            <p className="font-medium text-slate-800 italic border-l-4 border-primary pl-6 py-2 bg-primary/5 rounded-r-2xl">
-                              The decision of Infano with respect to refunds shall be considered as final.
+                              We enforce a strict <strong>No Return Policy</strong> for all our products. Once a product—whether it is a physical/printed item like the Gigi Book, a digital handbook, or digital learning resources—has been ordered, processed, or shipped, it is considered a final sale. We do not accept returns or offer exchanges under any circumstances.
                             </p>
                           </div>
                         </div>
@@ -741,32 +737,14 @@ export default function LegalPage() {
                         <div className="pl-0 md:pl-16">
                           <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
                             <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Cancellations
-                          </h3>
-                          <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed prose-li:text-slate-600">
-                            <p>For the purpose of this Agreement, “Learning Period” means the duration for which services are to be provided by the Instructors to Learners.</p>
-                            <ul>
-                              <li>Learners may cancel the Order for a refund solely if cancellations are requested before attending the regular class or watching permitted free recording of any course (“Cancellation Period”).</li>
-                              <li>After the expiration of the Cancellation Period, we will not provide any refunds under any circumstances.</li>
-                              <li>Notwithstanding anything in this Agreement, we do not provide any refund for webinar or masterclasses offered on our platform.</li>
-                              <li>All the services provided to the learner shall be cancelled after the refund including but not limited to website account and user credentials.</li>
-                            </ul>
-                          </div>
-                        </div>
-                      </section>
-
-                      <section id="disbursal" className="scroll-mt-32 pt-8 border-t border-slate-100">
-                        <div className="pl-0 md:pl-16">
-                          <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
-                            <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Refund Disbursal
+                            Cancellations & Refunds
                           </h3>
                           <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed">
                             <p>
-                              If you are determined to be eligible for a refund by Infano, we will disburse the applicable refund amount to your original payment method used to make your purchase as soon as we can but not less than <span className="font-bold">7 to 14 days</span> (subject to your appropriate payment method issuer policy) of receipt of your refund request.
+                              All digital services, memberships, subscriptions, mentoring programs, live online classes, webinars, and masterclasses offered on the Infano Platform are non-cancellable and non-refundable. 
                             </p>
                             <p>
-                              Transaction charges deducted by your card issuer or the payment processor are non-refundable. However, there may be factors beyond our control which may cause delays with respect to your entitled refund, and with this regard we disclaim all liabilities.
+                              Once enrollment is confirmed and payment is processed, no cancellations will be accepted, and no refunds or credits will be issued for sessions missed, partially completed, or unattended.
                             </p>
                           </div>
                         </div>
@@ -776,17 +754,17 @@ export default function LegalPage() {
                         <div className="pl-0 md:pl-16">
                           <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
                             <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Contact Us
+                            Raising Queries
                           </h3>
                           <div className="prose prose-slate max-w-none">
                             <div className="bg-primary/5 border border-primary/20 p-8 rounded-2xl shadow-sm">
                               <p className="text-sm font-bold mb-2 text-primary uppercase tracking-widest">Support</p>
-                              <p className="text-xl font-bold mb-4 text-slate-800">Need Help with a Refund?</p>
+                              <p className="text-xl font-bold mb-4 text-slate-800">Have a Query or Order Issue?</p>
                               <p className="text-slate-600 text-sm mb-6 leading-relaxed">
-                                Questions and Concerns about this Cancellations and Refund Policy should be sent to us.
+                                Your satisfaction is important to us. If you face any issues with your order (such as receiving a damaged book, shipping problems, or difficulty accessing your online program), you can raise a query or issue by writing to us.
                               </p>
-                              <a href="mailto:infano.care@gmail.com" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all hover:shadow-lg hover:-translate-y-0.5">
-                                infano.care@gmail.com
+                              <a href="mailto:connect@infano.care" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all hover:shadow-lg hover:-translate-y-0.5">
+                                connect@infano.care
                               </a>
                             </div>
                           </div>
@@ -946,8 +924,8 @@ export default function LegalPage() {
                               <p className="text-slate-600 text-sm mb-6 leading-relaxed">
                                 If you have any questions or concerns about our Pricing Policy, please contact us.
                               </p>
-                              <a href="mailto:infano.care@gmail.com" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all hover:shadow-lg hover:-translate-y-0.5">
-                                infano.care@gmail.com
+                              <a href="mailto:connect@infano.care" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all hover:shadow-lg hover:-translate-y-0.5">
+                                connect@infano.care
                               </a>
                             </div>
                           </div>

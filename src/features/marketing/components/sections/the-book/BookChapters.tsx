@@ -135,6 +135,7 @@ export function BookChapters() {
                 <button
                   onClick={() => setOpenId(openId === chapter.id ? null : chapter.id)}
                   className="w-full flex items-center justify-between p-5 transition-all"
+                  suppressHydrationWarning
                 >
                   <div className="flex items-center gap-4">
                     <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${

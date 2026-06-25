@@ -14,6 +14,7 @@ import { BookAchieve } from '@/features/marketing/components/sections/the-book/B
 import { BookChapters } from '@/features/marketing/components/sections/the-book/BookChapters';
 import { BookTrust } from '@/features/marketing/components/sections/the-book/BookTrust';
 import { FloatingBuyWidget } from '@/features/marketing/components/sections/the-book/FloatingBuyWidget';
+import { LivePurchasePrompt } from '@/features/marketing/components/sections/the-book/LivePurchasePrompt';
 
 export function TheBookClient() {
   const [book, setBook] = useState<Book | null>(null);
@@ -68,6 +69,7 @@ export function TheBookClient() {
   return (
     <div className="flex flex-col min-h-screen">
       <FloatingBuyWidget book={book} />
+      <LivePurchasePrompt />
       <BookHero book={book} />
       <BookAbout />
       <BookDetailedSection book={book} />
@@ -81,3 +83,4 @@ export function TheBookClient() {
     </div>
   );
 }
+

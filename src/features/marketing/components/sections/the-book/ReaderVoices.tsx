@@ -100,6 +100,7 @@ export function VideoPlayer({ videoUrl, name, age, location }: VideoPlayerProps)
           }
         }}
         className="absolute inset-0 cursor-pointer z-10"
+        suppressHydrationWarning
       />
 
       {/* Loading Spinner */}
@@ -116,6 +117,7 @@ export function VideoPlayer({ videoUrl, name, age, location }: VideoPlayerProps)
           className="w-16 h-16 bg-white/25 hover:bg-white/35 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all active:scale-95 border border-white/15 pointer-events-auto cursor-pointer shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           aria-label={isPlaying ? 'Pause' : 'Play'}
           tabIndex={-1}
+          suppressHydrationWarning
         >
           {isPlaying ? <Pause size={28} className="fill-white" /> : <Play size={28} className="fill-white translate-x-0.5" />}
         </button>
@@ -145,6 +147,7 @@ export function VideoPlayer({ videoUrl, name, age, location }: VideoPlayerProps)
           aria-valuetext={`${formatTime(currentTime)} of ${formatTime(duration)}`}
           className="rv-seeker w-full cursor-pointer"
           style={{ '--rv-progress': `${progressPct}%` } as React.CSSProperties}
+          suppressHydrationWarning
         />
 
         {/* ── Buttons + Time + Badge ── */}
@@ -155,6 +158,7 @@ export function VideoPlayer({ videoUrl, name, age, location }: VideoPlayerProps)
               onClick={togglePlay}
               className="w-9 h-9 bg-white/20 hover:bg-white/35 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all active:scale-90 border border-white/15 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               aria-label={isPlaying ? 'Pause video' : 'Play video'}
+              suppressHydrationWarning
             >
               {isPlaying
                 ? <Pause size={14} className="fill-white" />
@@ -167,6 +171,7 @@ export function VideoPlayer({ videoUrl, name, age, location }: VideoPlayerProps)
               className="w-9 h-9 bg-white/20 hover:bg-white/35 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all active:scale-90 border border-white/15 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               aria-label={isMuted ? 'Unmute video' : 'Mute video'}
               aria-pressed={!isMuted}
+              suppressHydrationWarning
             >
               {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
             </button>

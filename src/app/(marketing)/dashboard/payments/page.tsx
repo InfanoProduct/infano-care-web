@@ -254,7 +254,7 @@ export default function CustomerPaymentsOverview() {
                           Invoice
                         </button>
                         <Link 
-                          href="/dashboard/orders"
+                          href={`/dashboard/orders/${order.id}`}
                           className="inline-flex items-center gap-1 text-primary hover:text-primary-dark font-bold text-[11px] group"
                         >
                           Track Order <ArrowRight className="group-hover:translate-x-0.5 transition-transform" size={12} />

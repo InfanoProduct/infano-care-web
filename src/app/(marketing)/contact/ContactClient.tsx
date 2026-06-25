@@ -382,7 +382,7 @@ export function ContactClient() {
                 <Mail className="text-primary mt-1 shrink-0" />
                 <div>
                   <h4 className="font-bold text-slate-800">Schools Enquiries</h4>
-                  <p className="text-muted-foreground mt-1">schools@infano.care</p>
+                  <p className="text-muted-foreground mt-1">connect@infano.care</p>
                   <p className="text-xs text-slate-400 mt-1 font-medium">Mon–Fri, 9am–6pm IST</p>
                 </div>
               </div>

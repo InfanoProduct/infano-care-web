@@ -170,6 +170,7 @@ export function MarketingFooter() {
                     <button
                       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                       className="text-sm font-medium text-slate-400 hover:text-primary transition-colors flex items-center group w-full text-left"
+                      suppressHydrationWarning
                     >
                       <span className="h-1 w-0 bg-primary mr-0 group-hover:w-2 group-hover:mr-2 transition-all rounded-full" />
                       {link.name}

@@ -170,7 +170,7 @@ export function LivePurchasePrompt() {
           animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
           exit={{ opacity: 0, y: 20, scale: 0.95 }}
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          className="fixed bottom-6 right-6 z-50 w-80 sm:w-85 glass-card rounded-2xl p-4 flex items-start gap-4 select-none font-sans overflow-hidden hover:shadow-glow hover:-translate-y-0.5 hover:border-primary/20"
+          className="fixed bottom-[9.5rem] right-3 sm:bottom-6 sm:right-6 z-50 w-[calc(100%-1.5rem)] max-w-[20rem] sm:w-80 glass-card rounded-2xl p-4 flex items-start gap-4 select-none font-sans overflow-hidden hover:shadow-glow hover:-translate-y-0.5 hover:border-primary/20"
         >
 
           {/* Premium Gradient Icon Block */}

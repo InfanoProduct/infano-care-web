@@ -604,6 +604,27 @@ function CheckoutContent() {
                       name="state"
                       value={formData.state}
                       onChange={handleInputChange}
+                      onBlur={(e) => {
+                        if (process.env.NODE_ENV === 'production' && e.target.value.trim() !== '') {
+                          const windowObj = window as any;
+                          windowObj.dataLayer = windowObj.dataLayer || [];
+                          windowObj.dataLayer.push({ ecommerce: null });
+                          windowObj.dataLayer.push({
+                            event: 'add_shipping_info',
+                            ecommerce: {
+                              currency: 'INR',
+                              value: 499,
+                              shipping_tier: 'Standard',
+                              items: [{
+                                item_id: '5e569d64-9678-4689-a594-ec9c0020f07b',
+                                item_name: 'Gigi - The Awkward Age',
+                                price: 499,
+                                quantity: 1
+                              }]
+                            }
+                          });
+                        }
+                      }}
                       className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
                       placeholder="State"
                     />
@@ -654,7 +675,28 @@ function CheckoutContent() {
                   <button
                     type="button"
                     id='payment-online'
-                    onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'ONLINE' }))}
+                    onClick={() => {
+                      setFormData(prev => ({ ...prev, paymentMethod: 'ONLINE' }));
+                      if (process.env.NODE_ENV === 'production') {
+                        const windowObj = window as any;
+                        windowObj.dataLayer = windowObj.dataLayer || [];
+                        windowObj.dataLayer.push({ ecommerce: null });
+                        windowObj.dataLayer.push({
+                          event: 'add_payment_info',
+                          ecommerce: {
+                            currency: 'INR',
+                            value: 499,
+                            payment_type: 'Online Payment',
+                            items: [{
+                              item_id: '5e569d64-9678-4689-a594-ec9c0020f07b',
+                              item_name: 'Gigi - The Awkward Age',
+                              price: 499,
+                              quantity: 1
+                            }]
+                          }
+                        });
+                      }
+                    }}
                     className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'ONLINE' ? 'border-primary bg-primary/[0.03]' : 'border-slate-100 hover:border-slate-200 bg-white'
                       }`}
                   >
@@ -667,7 +709,28 @@ function CheckoutContent() {
                   <button
                     type="button"
                     id='payment-cod'
-                    onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'COD' }))}
+                    onClick={() => {
+                      setFormData(prev => ({ ...prev, paymentMethod: 'COD' }));
+                      if (process.env.NODE_ENV === 'production') {
+                        const windowObj = window as any;
+                        windowObj.dataLayer = windowObj.dataLayer || [];
+                        windowObj.dataLayer.push({ ecommerce: null });
+                        windowObj.dataLayer.push({
+                          event: 'add_payment_info',
+                          ecommerce: {
+                            currency: 'INR',
+                            value: 499,
+                            payment_type: 'Cash on Delivery',
+                            items: [{
+                              item_id: '5e569d64-9678-4689-a594-ec9c0020f07b',
+                              item_name: 'Gigi - The Awkward Age',
+                              price: 499,
+                              quantity: 1
+                            }]
+                          }
+                        });
+                      }
+                    }}
                     className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'COD' ? 'border-primary bg-primary/[0.03]' : 'border-slate-100 hover:border-slate-200 bg-white'
                       }`}
                   >

@@ -50,6 +50,10 @@ export default function OrderDetailPage() {
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
+  const [showAwbModal, setShowAwbModal] = useState(false);
+  const [awbInput, setAwbInput] = useState('');
+  const [awbError, setAwbError] = useState<string | null>(null);
+  const [savingAwb, setSavingAwb] = useState(false);
 
   useEffect(() => {
     fetchOrder();
@@ -70,18 +74,47 @@ export default function OrderDetailPage() {
     }
   };
 
-  const updateStatus = async (newStatus: string) => {
+  const updateStatus = async (newStatus: string, awbNumber?: string) => {
     if (!STATUS_TRANSITIONS[order.orderStatus].includes(newStatus)) return;
+
+    // Intercept SHIPPED to require AWB number
+    if (newStatus === 'SHIPPED') {
+      const existingAwb = order.awbNumber?.trim();
+      if (!existingAwb && !awbNumber) {
+        setShowAwbModal(true);
+        return;
+      }
+    }
 
     try {
       setUpdating(true);
       setError(null);
-      await apiClient.patch(`/admin/orders/${id}/status`, { status: newStatus });
+      await apiClient.patch(`/admin/orders/${id}/status`, { status: newStatus, awbNumber });
       await fetchOrder();
     } catch (error: any) {
       setError(error.message || 'Failed to update status');
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const confirmShipWithAwb = async () => {
+    const trimmed = awbInput.trim();
+    if (!trimmed) {
+      setAwbError('AWB number is required to mark this order as Shipped.');
+      return;
+    }
+    try {
+      setSavingAwb(true);
+      setAwbError(null);
+      await apiClient.patch(`/admin/orders/${id}/status`, { status: 'SHIPPED', awbNumber: trimmed });
+      setShowAwbModal(false);
+      setAwbInput('');
+      await fetchOrder();
+    } catch (err: any) {
+      setAwbError(err.message || 'Failed to update status');
+    } finally {
+      setSavingAwb(false);
     }
   };
 
@@ -154,6 +187,63 @@ export default function OrderDetailPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-12">
+
+      {/* AWB Number Modal */}
+      {showAwbModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md mx-4 p-6">
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+                <Truck size={20} className="text-orange-600" />
+              </div>
+              <div>
+                <h2 className="font-bold text-slate-900 text-lg">Enter AWB Number</h2>
+                <p className="text-xs text-slate-500">Required before marking order as Shipped</p>
+              </div>
+            </div>
+            <p className="text-sm text-slate-600 mt-3 mb-5">
+              Please enter the <strong>Delhivery AWB (Air Waybill) number</strong> for this shipment. This will be included in the shipping confirmation email sent to the customer.
+            </p>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wide">AWB Number <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  placeholder="e.g. 44757310001551"
+                  value={awbInput}
+                  onChange={(e) => { setAwbInput(e.target.value); setAwbError(null); }}
+                  onKeyDown={(e) => e.key === 'Enter' && confirmShipWithAwb()}
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-orange-400"
+                  autoFocus
+                  disabled={savingAwb}
+                />
+                {awbError && <p className="text-xs text-red-600 mt-1.5 font-medium">{awbError}</p>}
+              </div>
+              <p className="text-xs text-slate-400">The tracking link will be: <span className="font-mono">delhivery.com/track-v2/package/&#123;awb&#125;</span></p>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => { setShowAwbModal(false); setAwbInput(''); setAwbError(null); }}
+                disabled={savingAwb}
+                className="flex-1 py-2.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmShipWithAwb}
+                disabled={savingAwb || !awbInput.trim()}
+                className="flex-1 py-2.5 rounded-lg bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+              >
+                {savingAwb ? (
+                  <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /> Saving...</>
+                ) : (
+                  <><Truck size={15} /> Mark as Shipped</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div className="flex items-start gap-3">
@@ -594,6 +684,24 @@ export default function OrderDetailPage() {
                   <p className="text-xs text-slate-500 mb-1">Pincode</p>
                   <p className="font-medium text-slate-900 text-sm">{order.pincode}</p>
                 </div>
+
+                {/* AWB Number display */}
+                {order.awbNumber && (
+                  <div className="pt-3 border-t border-slate-100">
+                    <p className="text-xs text-slate-500 mb-1 flex items-center gap-1"><Truck size={12} /> AWB / Tracking Number</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-mono font-semibold text-slate-900 text-sm">{order.awbNumber}</p>
+                      <a
+                        href={`https://www.delhivery.com/track-v2/package/${order.awbNumber}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:underline font-medium"
+                      >
+                        Track →
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="bg-slate-50 rounded-md p-4 border border-slate-100">

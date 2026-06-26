@@ -50,10 +50,10 @@ export default function OrderDetailPage() {
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
-  const [showAwbModal, setShowAwbModal] = useState(false);
   const [awbInput, setAwbInput] = useState('');
   const [awbError, setAwbError] = useState<string | null>(null);
   const [savingAwb, setSavingAwb] = useState(false);
+  const [showMissingAwbWarning, setShowMissingAwbWarning] = useState(false);
 
   useEffect(() => {
     fetchOrder();
@@ -74,22 +74,18 @@ export default function OrderDetailPage() {
     }
   };
 
-  const updateStatus = async (newStatus: string, awbNumber?: string) => {
+  const updateStatus = async (newStatus: string) => {
     if (!STATUS_TRANSITIONS[order.orderStatus].includes(newStatus)) return;
 
-    // Intercept SHIPPED to require AWB number
-    if (newStatus === 'SHIPPED') {
-      const existingAwb = order.awbNumber?.trim();
-      if (!existingAwb && !awbNumber) {
-        setShowAwbModal(true);
-        return;
-      }
+    if (newStatus === 'SHIPPED' && !order.awbNumber?.trim()) {
+      setShowMissingAwbWarning(true);
+      return;
     }
 
     try {
       setUpdating(true);
       setError(null);
-      await apiClient.patch(`/admin/orders/${id}/status`, { status: newStatus, awbNumber });
+      await apiClient.patch(`/admin/orders/${id}/status`, { status: newStatus });
       await fetchOrder();
     } catch (error: any) {
       setError(error.message || 'Failed to update status');
@@ -98,21 +94,34 @@ export default function OrderDetailPage() {
     }
   };
 
-  const confirmShipWithAwb = async () => {
+  const confirmShipWithoutAwb = async () => {
+    setShowMissingAwbWarning(false);
+    try {
+      setUpdating(true);
+      setError(null);
+      await apiClient.patch(`/admin/orders/${id}/status`, { status: 'SHIPPED' });
+      await fetchOrder();
+    } catch (error: any) {
+      setError(error.message || 'Failed to update status');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const saveAwbNumber = async () => {
     const trimmed = awbInput.trim();
     if (!trimmed) {
-      setAwbError('AWB number is required to mark this order as Shipped.');
+      setAwbError('Please enter a valid AWB number.');
       return;
     }
     try {
       setSavingAwb(true);
       setAwbError(null);
-      await apiClient.patch(`/admin/orders/${id}/status`, { status: 'SHIPPED', awbNumber: trimmed });
-      setShowAwbModal(false);
+      await apiClient.patch(`/admin/orders/${id}/awb`, { awbNumber: trimmed });
       setAwbInput('');
       await fetchOrder();
     } catch (err: any) {
-      setAwbError(err.message || 'Failed to update status');
+      setAwbError(err.message || 'Failed to save AWB number');
     } finally {
       setSavingAwb(false);
     }
@@ -188,62 +197,47 @@ export default function OrderDetailPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-12">
 
-      {/* AWB Number Modal */}
-      {showAwbModal && (
+      {/* Missing AWB Warning Modal */}
+      {showMissingAwbWarning && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md mx-4 p-6">
-            <div className="flex items-center gap-3 mb-1">
-              <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
-                <Truck size={20} className="text-orange-600" />
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <AlertCircle size={20} className="text-red-600" />
               </div>
               <div>
-                <h2 className="font-bold text-slate-900 text-lg">Enter AWB Number</h2>
-                <p className="text-xs text-slate-500">Required before marking order as Shipped</p>
+                <h2 className="font-bold text-slate-900 text-lg">Missing AWB Number</h2>
+                <p className="text-xs text-red-600 font-medium">Proceed with caution</p>
               </div>
             </div>
-            <p className="text-sm text-slate-600 mt-3 mb-5">
-              Please enter the <strong>Delhivery AWB (Air Waybill) number</strong> for this shipment. This will be included in the shipping confirmation email sent to the customer.
+            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+              Are you sure you want to mark this order as <strong>Shipped</strong> without adding a Tracking Number?
+              The customer will not be able to track their package directly via Delhivery.
             </p>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wide">AWB Number <span className="text-red-500">*</span></label>
-                <input
-                  type="text"
-                  placeholder="e.g. 44757310001551"
-                  value={awbInput}
-                  onChange={(e) => { setAwbInput(e.target.value); setAwbError(null); }}
-                  onKeyDown={(e) => e.key === 'Enter' && confirmShipWithAwb()}
-                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-orange-400"
-                  autoFocus
-                  disabled={savingAwb}
-                />
-                {awbError && <p className="text-xs text-red-600 mt-1.5 font-medium">{awbError}</p>}
-              </div>
-              <p className="text-xs text-slate-400">The tracking link will be: <span className="font-mono">delhivery.com/track-v2/package/&#123;awb&#125;</span></p>
-            </div>
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-3">
               <button
-                onClick={() => { setShowAwbModal(false); setAwbInput(''); setAwbError(null); }}
-                disabled={savingAwb}
+                onClick={() => setShowMissingAwbWarning(false)}
+                disabled={updating}
                 className="flex-1 py-2.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={confirmShipWithAwb}
-                disabled={savingAwb || !awbInput.trim()}
-                className="flex-1 py-2.5 rounded-lg bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                onClick={confirmShipWithoutAwb}
+                disabled={updating}
+                className="flex-1 py-2.5 rounded-lg bg-red-500 text-white text-sm font-semibold hover:bg-red-600 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
               >
-                {savingAwb ? (
-                  <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /> Saving...</>
+                {updating ? (
+                  <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /> Updating...</>
                 ) : (
-                  <><Truck size={15} /> Mark as Shipped</>
+                  'Yes, Mark as Shipped'
                 )}
               </button>
             </div>
           </div>
         </div>
       )}
+
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div className="flex items-start gap-3">
@@ -612,6 +606,60 @@ export default function OrderDetailPage() {
               </p>
             </div>
           </div>
+
+          {/* Inline AWB Input for PROCESSING status */}
+          {order.orderStatus === 'PROCESSING' && (
+            <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+              <div className="px-5 py-4 border-b border-slate-200 bg-orange-50 flex items-center gap-2">
+                <Truck className="text-orange-600" size={18} />
+                <h2 className="font-semibold text-slate-900">Add Tracking Number</h2>
+              </div>
+              <div className="p-5">
+                <p className="text-xs text-slate-600 mb-4 leading-relaxed">
+                  Enter the <strong>Delhivery AWB</strong> number before shipping. This is required and will be emailed to the customer.
+                </p>
+                
+                {order.awbNumber ? (
+                  <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                    <p className="text-xs text-green-800 mb-1 font-semibold">AWB Saved Successfully</p>
+                    <p className="text-sm font-mono text-green-900">{order.awbNumber}</p>
+                    <button 
+                      onClick={() => setAwbInput(order.awbNumber)}
+                      className="text-xs text-green-700 underline mt-2 hover:text-green-800"
+                    >
+                      Edit AWB
+                    </button>
+                  </div>
+                ) : null}
+
+                {(!order.awbNumber || awbInput) && (
+                  <div className="flex flex-col gap-2">
+                    <input
+                      type="text"
+                      placeholder="e.g. 44757310001551"
+                      value={awbInput}
+                      onChange={(e) => { setAwbInput(e.target.value); setAwbError(null); }}
+                      onKeyDown={(e) => e.key === 'Enter' && saveAwbNumber()}
+                      className="w-full px-3 py-2.5 border border-slate-300 rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-orange-400"
+                      disabled={savingAwb}
+                    />
+                    {awbError && <p className="text-xs text-red-600 font-medium">{awbError}</p>}
+                    <button
+                      onClick={saveAwbNumber}
+                      disabled={savingAwb || !awbInput.trim()}
+                      className="w-full py-2.5 rounded-md bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 disabled:opacity-50 transition-colors flex items-center justify-center gap-2 mt-1"
+                    >
+                      {savingAwb ? (
+                        <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /> Saving...</>
+                      ) : (
+                        'Save AWB Number'
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Customer Card */}
           <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">

@@ -41,14 +41,14 @@ export function BookHero({ book }: BookHeroProps) {
             {/* Animated Social Proof Badge */}
             <motion.div
               initial={{ opacity: 0, y: -30, scale: 0.95 }}
-              animate={{ 
-                opacity: 1, 
+              animate={{
+                opacity: 1,
                 y: [0, -6, 0],
                 x: [0, 3, 0],
                 rotate: [-0.5, 0.5, -0.5]
               }}
               whileHover={{ scale: 1.03, rotate: 0.5, transition: { duration: 0.2 } }}
-              transition={{ 
+              transition={{
                 y: { repeat: Infinity, duration: 3, ease: "easeInOut" },
                 x: { repeat: Infinity, duration: 4, ease: "easeInOut" },
                 rotate: { repeat: Infinity, duration: 6, ease: "easeInOut" },
@@ -57,7 +57,8 @@ export function BookHero({ book }: BookHeroProps) {
               }}
               className="w-fit flex items-center gap-2 sm:gap-2.5 px-4 sm:px-5 py-2 sm:py-2.5 bg-primary/8 backdrop-blur-md text-primary-dark rounded-full mb-6 border border-primary/15 relative overflow-hidden group cursor-pointer hover:bg-primary/12 transition-colors"
             >
-              <style dangerouslySetInnerHTML={{__html: `
+              <style dangerouslySetInnerHTML={{
+                __html: `
                 @keyframes shimmerSweep {
                   0% { left: -100%; }
                   30% { left: 150%; }
@@ -65,7 +66,7 @@ export function BookHero({ book }: BookHeroProps) {
                 }
               `}} />
               {/* Shimmer Sweep Effect */}
-              <div 
+              <div
                 className="absolute top-0 bottom-0 w-1/2 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12"
                 style={{ animation: 'shimmerSweep 4s infinite ease-in-out' }}
               />
@@ -76,8 +77,8 @@ export function BookHero({ book }: BookHeroProps) {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
 
-              <span className="font-semibold text-[11px] sm:text-xs tracking-wide select-none">
-                <span className="text-pink-600 font-extrabold tracking-wider animate-pulse drop-shadow-[0_1px_3px_rgba(219,39,119,0.15)]">400 COPIES</span> ordered in the past 10 days! <span className="bg-primary text-white px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] uppercase font-bold tracking-widest ml-1.5 shadow-sm group-hover:bg-primary-dark transition-colors">Join the family</span>
+              <span className="font-semibold text-[9.5px] sm:text-xs tracking-wide select-none whitespace-nowrap flex items-center">
+                <span className="text-pink-600 font-extrabold tracking-wider  drop-shadow-[0_1px_3px_rgba(219,39,119,0.15)] mr-1">400 COPIES</span> ordered in the past 10 days! <span className="bg-primary text-white px-1.5 sm:px-2 py-0.5 rounded-full text-[7.5px] sm:text-[10px] uppercase font-bold tracking-widest ml-1 sm:ml-1.5 shadow-sm group-hover:bg-primary-dark transition-colors inline-block">Join the family</span>
               </span>
             </motion.div>
 

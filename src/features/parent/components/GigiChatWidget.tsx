@@ -267,7 +267,6 @@ export function GigiChatWidget() {
 
   const isExcludedPage = 
     pathname?.startsWith('/admin') || 
-    pathname?.startsWith('/schools') || 
     pathname?.startsWith('/peerline') || 
     pathname?.startsWith('/peerline-onboarding') ||
     pathname?.startsWith('/checkout') ||

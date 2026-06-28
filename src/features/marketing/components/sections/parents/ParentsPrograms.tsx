@@ -95,6 +95,131 @@ const DEFAULT_STYLE = {
 
 // STATIC_FALLBACK_PROGRAMS removed to ensure all program curriculum data is backend driven.
 
+function StaticList({ items, styles, title, isExpanded }: { items: string[], styles: any, title: string, isExpanded: boolean }) {
+  return (
+    <div className={`h-full p-5 rounded-2xl bg-white border ${styles.border} shadow-sm flex flex-col`}>
+      <h4 className={`text-[11px] font-bold uppercase tracking-widest mb-4 ${styles.text} flex items-center gap-2`}>
+        <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
+        {title}
+      </h4>
+      <ul className="space-y-3.5 flex-1">
+        {items.map((item, idx) => (
+          <li key={idx} className={`items-start gap-3 text-slate-700 ${isExpanded ? 'flex' : (idx < 2 ? 'flex' : (idx < 4 ? 'hidden md:flex' : 'hidden'))}`}>
+            <span className={`w-5 h-5 shrink-0 rounded-full flex items-center justify-center text-[10px] font-bold ${styles.bulletBg} shadow-sm mt-0.5`}>
+              <Check size={12} strokeWidth={3} />
+            </span>
+            <span className="text-sm font-semibold leading-snug">{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ProgramCard({ program, index }: { program: Program; index: number }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const themeKeys = Object.keys(STYLES_MAP);
+  const styles = STYLES_MAP[themeKeys[index % themeKeys.length]] || DEFAULT_STYLE;
+  
+  const consultationsCount = Array.isArray(program.consultations)
+    ? program.consultations.length
+    : 0;
+  const remainingFeatures = (program.features && program.features.length > 0)
+    ? program.features
+    : [
+        "1 physical book",
+        "Digital learning access",
+        "Safe community led by experts",
+        "Menstrual Tracker"
+      ];
+  const programIncludesItems = [
+    `${program.sessionsList?.length || 0} sessions by trained experts`,
+    `${consultationsCount} doctors consultations`,
+    ...remainingFeatures
+  ];
+
+  const hasMoreItems = program.topics.length > 2 || programIncludesItems.length > 2;
+  const hasMoreThanFourItems = program.topics.length > 4 || programIncludesItems.length > 4;
+
+  return (
+    <motion.div
+      key={program.id || program.title}
+      initial={{ opacity: 0, y: 25 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+      className={`rounded-3xl border ${styles.bg} ${styles.border} shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col lg:flex-row group relative overflow-hidden`}
+      style={{
+        boxShadow: `0 20px 40px -15px ${styles.glow}`,
+      }}
+    >
+      <div
+        className="absolute -top-12 -right-12 w-28 h-28 rounded-full blur-[40px] pointer-events-none opacity-40 transition-all group-hover:scale-125 duration-500 z-0"
+        style={{ backgroundColor: styles.glow.replace('0.06', '0.2').replace('0.05', '0.15').replace('0.15', '0.3') }}
+      />
+
+      {program.thumbnailUrl && (
+        <div className="w-full lg:w-[35%] h-64 lg:h-auto relative overflow-hidden shrink-0 border-b lg:border-b-0 lg:border-r border-white/40">
+          <img src={program.thumbnailUrl} alt={program.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-80" />
+        </div>
+      )}
+
+      <div className="p-8 md:p-9 flex flex-col flex-1 relative z-10">
+        <div className="flex flex-col md:flex-row md:items-start justify-between mb-6 md:mb-8 relative z-10 gap-5 md:gap-4">
+          <div className="flex flex-col gap-2 md:gap-1.5 flex-1">
+            <div className="flex items-start gap-2 md:gap-3">
+              <h3 className={`text-2xl md:text-3xl font-bold tracking-tight ${styles.text}`}>
+                {program.title}
+              </h3>
+              <span className={`shrink-0 whitespace-nowrap mt-1 md:mt-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-white shadow-sm border border-slate-100 ${styles.text}`}>
+                {program.classRange}
+              </span>
+            </div>
+            <p className="text-slate-800 font-semibold text-sm md:text-[15px] leading-snug">
+              "{program.tagline}"
+            </p>
+          </div>
+
+          <div className="shrink-0 self-start md:pt-1">
+            <div className={`flex flex-col items-center justify-center px-3 py-2 rounded-xl bg-white/80 border ${styles.border} shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] backdrop-blur-md`}>
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <Users size={14} className={styles.text} />
+                <span className={`text-sm font-black ${styles.text}`}>{(program.enrolledCount || 1200).toLocaleString()}+</span>
+              </div>
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Enrolled</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 flex-1 relative z-10">
+          <StaticList items={program.topics} styles={styles} title="What She Will Cover" isExpanded={isExpanded} />
+          <StaticList items={programIncludesItems} styles={styles} title="Program Includes" isExpanded={isExpanded} />
+        </div>
+
+        {hasMoreItems && (
+          <div className="flex justify-center mb-6 z-10 relative">
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className={`text-[11px] font-bold uppercase tracking-widest ${styles.text} hover:opacity-80 transition-opacity flex items-center gap-1 py-2 px-6 rounded-full bg-white/50 border border-white shadow-sm ${!hasMoreThanFourItems ? 'md:hidden' : ''}`}
+            >
+              {isExpanded ? '- Show Less' : '+ Show More'}
+            </button>
+          </div>
+        )}
+
+        <Link
+          href={`/programs/${program.title.toLowerCase()}`}
+          className={`w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-2xl text-white font-semibold  transition-all ${styles.btnBg} relative z-10`}
+        >
+          <span>Enroll Now</span>
+          <ArrowRight size={14} className="transition-transform group-hover:translate-x-1 duration-300" />
+        </Link>
+      </div>
+    </motion.div>
+  );
+}
+
 export function ParentsPrograms() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
@@ -162,186 +287,34 @@ export function ParentsPrograms() {
 
         {/* Loading Skeletons */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="flex flex-col gap-8">
             {[1, 2].map((idx) => (
-              <div key={idx} className="p-8 bg-white/70 border border-slate-100 rounded-3xl animate-pulse flex flex-col gap-6">
-                <div className="h-6 bg-slate-200 rounded w-1/3" />
-                <div className="h-4 bg-slate-200 rounded w-3/4" />
-                <div className="space-y-2">
-                  <div className="h-3 bg-slate-200 rounded w-full" />
-                  <div className="h-3 bg-slate-200 rounded w-5/6" />
+              <div key={idx} className="p-8 bg-white/70 border border-slate-100 rounded-3xl animate-pulse flex flex-col lg:flex-row gap-6">
+                <div className="w-full lg:w-1/3 h-52 lg:h-auto min-h-[250px] bg-slate-200 rounded-2xl" />
+                <div className="flex flex-col flex-1 gap-6">
+                  <div className="h-6 bg-slate-200 rounded w-1/3" />
+                  <div className="h-4 bg-slate-200 rounded w-3/4" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                    <div className="space-y-2">
+                      <div className="h-3 bg-slate-200 rounded w-full" />
+                      <div className="h-3 bg-slate-200 rounded w-5/6" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-slate-200 rounded w-full" />
+                      <div className="h-3 bg-slate-200 rounded w-5/6" />
+                    </div>
+                  </div>
+                  <div className="h-12 bg-slate-200 rounded mt-auto w-48" />
                 </div>
-                <div className="border-t border-slate-100 pt-4 space-y-2">
-                  <div className="h-3 bg-slate-200 rounded w-1/2" />
-                  <div className="h-3 bg-slate-200 rounded w-2/3" />
-                </div>
-                <div className="h-10 bg-slate-200 rounded mt-auto" />
               </div>
             ))}
           </div>
         ) : (
           /* Programs Card Deck Grid */
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
-            {programs.map((program, i) => {
-              const styles = STYLES_MAP[program.title] || DEFAULT_STYLE;
-              const formattedPrice = program.price?.toLocaleString('en-IN');
-
-              return (
-                <motion.div
-                  key={program.id || program.title}
-                  initial={{ opacity: 0, y: 25 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.1 }}
-                  className={`rounded-3xl border ${styles.bg} ${styles.border} shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col group relative overflow-hidden`}
-                  style={{
-                    boxShadow: `0 20px 40px -15px ${styles.glow}`,
-                  }}
-                >
-                  {/* Decorative glow circle */}
-                  <div
-                    className="absolute -top-12 -right-12 w-28 h-28 rounded-full blur-[40px] pointer-events-none opacity-40 transition-all group-hover:scale-125 duration-500 z-0"
-                    style={{ backgroundColor: styles.glow.replace('0.06', '0.2').replace('0.05', '0.15').replace('0.15', '0.3') }}
-                  />
-
-                  {/* Thumbnail Image Section */}
-                  {program.thumbnailUrl && (
-                    <div className="w-full h-52 relative overflow-hidden shrink-0 border-b border-white/40">
-                      <img src={program.thumbnailUrl} alt={program.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-80" />
-                    </div>
-                  )}
-
-                  <div className="p-8 md:p-9 flex flex-col flex-1 relative z-10">
-                    {/* Header & Tagline Area */}
-                    <div className="flex items-start justify-between mb-8 relative z-10 gap-4">
-                      {/* Left side: Title, Class badge, and Tagline */}
-                      <div className="flex flex-col gap-1.5">
-                        <div className="flex items-center gap-3">
-                          <h3 className={`text-3xl font-bold tracking-tight ${styles.text}`}>
-                            {program.title}
-                          </h3>
-                          <span className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-white shadow-sm border border-slate-100 ${styles.text}`}>
-                            {program.classRange}
-                          </span>
-                        </div>
-                        <p className="text-slate-800 font-semibold text-[15px] leading-snug whitespace-nowrap overflow-hidden text-ellipsis">
-                          "{program.tagline}"
-                        </p>
-                      </div>
-
-                      {/* Right side: Enrolled Highlight */}
-                      <div className="shrink-0 pt-1">
-                        <div className={`flex flex-col items-center justify-center px-3 py-2 rounded-xl bg-white/80 border ${styles.border} shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] backdrop-blur-md`}>
-                          <div className="flex items-center gap-1.5 mb-0.5">
-                            <Users size={14} className={styles.text} />
-                            <span className={`text-sm font-black ${styles.text}`}>{(program.enrolledCount || 1200).toLocaleString()}+</span>
-                          </div>
-                          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Enrolled</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Session / Duration details bar removed */}
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 flex-1 relative z-10">
-                      {/* Topics covered block */}
-                      <div className={`h-full p-5 rounded-2xl bg-white/60 border border-white shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]`}>
-                        <h4 className={`text-[11px] font-bold uppercase tracking-widest mb-4 ${styles.text} flex items-center gap-2`}>
-                          <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
-                          What She Will Cover
-                        </h4>
-                        <ul className="space-y-3.5">
-                          {program.topics.map((topic, topicIdx) => (
-                            <li key={topicIdx} className="flex items-start gap-3 text-slate-700">
-                              <span className={`w-5 h-5 shrink-0 rounded-full flex items-center justify-center text-[10px] font-bold ${styles.bulletBg} shadow-sm mt-0.5`}>
-                                <Check size={12} strokeWidth={3} />
-                              </span>
-                              <span className="text-sm font-semibold leading-snug">{topic}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      {/* Features block */}
-                      <div className={`h-full p-5 rounded-2xl bg-white/60 border border-white shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]`}>
-                        <h4 className={`text-[11px] font-bold uppercase tracking-widest mb-4 ${styles.text} flex items-center gap-2`}>
-                          <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
-                          Program Includes
-                        </h4>
-                        <ul className="space-y-3.5">
-                          {(() => {
-                            const consultationsCount = Array.isArray(program.consultations)
-                              ? program.consultations.length
-                              : 0;
-                            const remainingFeatures = (program.features && program.features.length > 0)
-                              ? program.features
-                              : [
-                                  "1 physical book",
-                                  "Digital learning access",
-                                  "Safe community led by experts",
-                                  "Menstrual Tracker"
-                                ];
-                            const items = [
-                              `${program.sessionsList?.length || 0} sessions by trained experts`,
-                              `${consultationsCount} doctors consultations`,
-                              ...remainingFeatures
-                            ];
-                            return items.map((feature, featureIdx) => (
-                              <li key={featureIdx} className="flex items-start gap-3 text-slate-700">
-                                <span className={`w-5 h-5 shrink-0 rounded-full flex items-center justify-center text-[10px] font-bold ${styles.bulletBg} shadow-sm mt-0.5`}>
-                                  <Check size={12} strokeWidth={3} />
-                                </span>
-                                <span className="text-sm font-semibold leading-snug">{feature}</span>
-                              </li>
-                            ));
-                          })()}
-                        </ul>
-                      </div>
-                    </div>
-
-                    {/* Pricing details Block */}
-                    {/* <div className="border-t border-slate-100 pt-6 mb-8 relative z-10">
-                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Pricing Options:</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                     
-                      <div className={`p-3 ${styles.pricingBg} rounded-2xl border shadow-sm hover:shadow transition-all duration-300`}>
-                        <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                          <User size={10} className={styles.text} />
-                          <span>1:1 Private</span>
-                        </div>
-                        <div className="text-slate-900 font-bold text-base leading-none">
-                          ₹{formattedPricePrivate}
-                          <span className="text-[10px] font-semibold text-slate-400">/mo</span>
-                        </div>
-                      </div>
-
-             
-                      <div className={`p-3 ${styles.pricingBg} rounded-2xl border shadow-sm hover:shadow transition-all duration-300`}>
-                        <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                          <Users size={10} className={styles.text} />
-                          <span>Group (4 girls)</span>
-                        </div>
-                        <div className="text-slate-900 font-bold text-base leading-none">
-                          ₹{formattedPriceGroup}
-                          <span className="text-[10px] font-semibold text-slate-400">/mo</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div> */}
-
-                    {/* Direct Link CTA */}
-                    <Link
-                      href={`/programs/${program.title.toLowerCase()}`}
-                      className={`w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-2xl text-white font-semibold  transition-all ${styles.btnBg} relative z-10`}
-                    >
-                      <span>Enroll Now</span>
-                      <ArrowRight size={14} className="transition-transform group-hover:translate-x-1 duration-300" />
-                    </Link>
-                  </div>
-                </motion.div>
-              );
-            })}
+          <div className="flex flex-col gap-8 lg:gap-10">
+            {programs.map((program, i) => (
+              <ProgramCard key={program.id || program.title} program={program} index={i} />
+            ))}
           </div>
         )}
       </div>

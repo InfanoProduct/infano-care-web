@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { 
-  ShieldCheck, LogOut, LayoutDashboard, Calendar, Compass, User, 
-  Sparkles, CreditCard, BookOpen, Layers, GraduationCap, Menu, X, 
-  ChevronLeft, ChevronRight, Package 
+import {
+  ShieldCheck, LogOut, LayoutDashboard, Calendar, Compass, User,
+  Sparkles, CreditCard, BookOpen, Layers, GraduationCap, Menu, X,
+  ChevronLeft, ChevronRight, Package
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
@@ -165,24 +165,24 @@ export default function CustomerDashboardLayout({
   };
 
   const sidebarContent = (
-    <div className="flex flex-col h-full justify-between py-5 px-3">
+    <div className="flex flex-col h-full justify-between py-6 px-3.5">
       <div className="space-y-6">
         {/* Brand Logo */}
-        <div className={`flex items-center px-2.5 h-12 ${isCollapsed ? 'justify-center' : ''}`}>
+        <div className={`flex items-center px-2.5 h-14 ${isCollapsed ? 'justify-center' : ''}`}>
           <Link href="/" className="flex items-center shrink-0 w-full h-full relative">
             {isCollapsed ? (
-              <div className="w-9 h-9 relative flex items-center justify-center overflow-hidden">
+              <div className="w-10 h-10 relative flex items-center justify-center overflow-hidden">
                 <img
                   src="/logo/infano-logo-for-light-bg.png"
                   alt="Infano Logo"
-                  className="w-24 max-w-none h-9 object-contain object-left"
+                  className="w-28 max-w-none h-11 object-contain object-left"
                 />
               </div>
             ) : (
               <img
                 src="/logo/infano-logo-for-light-bg.png"
                 alt="Infano Logo"
-                className="h-9 object-contain object-left animate-in fade-in duration-300"
+                className="h-11 sm:h-12 object-contain object-left animate-in fade-in duration-300 scale-105 origin-left"
               />
             )}
           </Link>
@@ -190,24 +190,25 @@ export default function CustomerDashboardLayout({
 
         {/* Workspace Mode Badge */}
         {!isCollapsed ? (
-          <div className="px-2.5">
-            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10px] font-bold shadow-sm ${
-              isTeen ? 'bg-purple-100 text-purple-700' : 'bg-rose-100 text-rose-600'
-            }`}>
-              <Sparkles size={11} />
+          <div className="px-2">
+            <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-extrabold shadow-2xs border ${isTeen
+                ? 'bg-purple-50/90 text-purple-700 border-purple-200/80'
+                : 'bg-rose-50/90 text-rose-600 border-rose-200/80'
+              }`}>
+              <Sparkles size={13} className={isTeen ? 'text-purple-500' : 'text-rose-500'} />
               {isTeen ? 'Teen Workspace' : 'Parent Portal'}
             </div>
           </div>
         ) : null}
 
         {/* Navigation Links */}
-        <div className="space-y-1">
+        <div className="space-y-1.5 pt-1">
           {!isCollapsed && (
-            <span className="text-[10px] font-bold text-slate-400 block px-2.5 uppercase tracking-wider mb-2">
-              Workspace Menu
+            <span className="text-[10px] font-extrabold text-slate-400 block px-3 uppercase tracking-widest mb-2">
+              WORKSPACE MENU
             </span>
           )}
-          <nav className="space-y-0.5">
+          <nav className="space-y-1">
             {menuItems.map((item, idx) => {
               const Icon = item.icon;
               const active = isLinkActive(item);
@@ -216,16 +217,15 @@ export default function CustomerDashboardLayout({
                 <Link
                   key={idx}
                   href={item.href}
-                  className={`group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
-                    active
-                      ? 'bg-primary/10 text-primary shadow-sm font-black'
-                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
-                  } ${isCollapsed ? 'justify-center' : ''}`}
+                  className={`group relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all duration-200 ${active
+                      ? 'bg-gradient-to-r from-rose-500/10 via-rose-500/5 to-transparent text-primary border-l-4 border-primary rounded-r-xl rounded-l-none pl-3 font-black shadow-2xs'
+                      : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
+                    } ${isCollapsed ? 'justify-center' : ''}`}
                 >
-                  <Icon size={16} className="shrink-0" />
-                  
+                  <Icon size={18} className={`shrink-0 ${active ? 'text-primary' : 'text-slate-400 group-hover:text-slate-700'}`} />
+
                   {!isCollapsed ? (
-                    <span className="animate-in fade-in duration-200">{item.label}</span>
+                    <span className="animate-in fade-in duration-200 tracking-tight">{item.label}</span>
                   ) : (
                     /* Tooltip for collapsed mode */
                     <span className="absolute left-full ml-3 px-2.5 py-1 bg-slate-900 text-white text-[10px] font-black tracking-wider rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 shadow-md">
@@ -240,19 +240,19 @@ export default function CustomerDashboardLayout({
       </div>
 
       {/* Support & Collapse Slat */}
-      <div className="space-y-4 pt-4 border-t border-slate-100/60">
+      <div className="space-y-4 pt-4 border-t border-slate-200/70">
         {/* Support Widget */}
         {!isCollapsed ? (
-          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-2.5 animate-in fade-in duration-300">
-            <h5 className="text-[9px] font-black uppercase tracking-widest text-slate-400">Parent Support</h5>
-            <p className="text-[11px] text-slate-505 font-semibold leading-relaxed">
+          <div className="bg-gradient-to-br from-slate-50 to-slate-100/90 border border-slate-200/80 rounded-2xl p-4 space-y-2.5 animate-in fade-in duration-300 shadow-2xs">
+            <h5 className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">Parent Support</h5>
+            <p className="text-[11px] text-slate-600 font-semibold leading-relaxed">
               Need to reschedule sessions or have billing questions?
             </p>
             <a
               href="https://wa.me/916362994347"
               target="_blank"
               rel="noopener noreferrer"
-              className="block text-center py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-primary transition-all rounded-xl text-[10px] font-bold shadow-sm active:scale-95"
+              className="block text-center py-2 bg-emerald-600 hover:bg-emerald-700 text-white transition-all rounded-xl text-[11px] font-extrabold shadow-xs active:scale-95"
             >
               Chat on WhatsApp
             </a>
@@ -277,9 +277,8 @@ export default function CustomerDashboardLayout({
         {/* Collapse Toggle Button */}
         <button
           onClick={toggleCollapse}
-          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all text-xs font-bold ${
-            isCollapsed ? 'justify-center' : ''
-          }`}
+          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100/70 transition-all text-xs font-bold ${isCollapsed ? 'justify-center' : ''
+            }`}
           title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
         >
           {isCollapsed ? (
@@ -296,13 +295,12 @@ export default function CustomerDashboardLayout({
   );
 
   return (
-    <div className="h-screen w-screen overflow-hidden flex bg-[#FFFBF9] customer-dashboard font-sans">
-      
+    <div className="h-screen w-screen overflow-hidden flex bg-[#FAF9FC] customer-dashboard font-sans">
+
       {/* Desktop Sticky Sidebar */}
-      <aside 
-        className={`hidden md:flex flex-col h-full bg-white border-r border-slate-100/80 shrink-0 select-none transition-all duration-300 ease-in-out ${
-          isCollapsed ? 'w-20' : 'w-64'
-        }`}
+      <aside
+        className={`hidden md:flex flex-col h-full bg-white border-r border-slate-200/80 shrink-0 select-none transition-all duration-300 ease-in-out ${isCollapsed ? 'w-20' : 'w-64'
+          }`}
       >
         {sidebarContent}
       </aside>
@@ -311,13 +309,13 @@ export default function CustomerDashboardLayout({
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden animate-in fade-in duration-200">
           {/* Backdrop */}
-          <div 
+          <div
             onClick={() => setIsMobileMenuOpen(false)}
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs" 
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs"
           />
           {/* Drawer Body */}
           <aside className="relative flex flex-col w-64 h-full bg-white border-r border-slate-100 z-10 animate-in slide-in-from-left-4 duration-300">
-            <button 
+            <button
               onClick={() => setIsMobileMenuOpen(false)}
               className="absolute top-4 right-4 p-2 rounded-lg bg-slate-55 border border-slate-100 text-slate-500 hover:text-slate-800"
             >
@@ -330,25 +328,25 @@ export default function CustomerDashboardLayout({
 
       {/* Right Core Workspace Pane */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        
+
         {/* Universal Top Header */}
-        <header className="h-16 bg-white/85 backdrop-blur-xl border-b border-slate-100 px-6 flex items-center justify-between shadow-xs shrink-0 z-30">
+        <header className="h-16 bg-white/90 backdrop-blur-xl border-b border-slate-200/70 px-6 flex items-center justify-between shadow-2xs shrink-0 z-30">
           <div className="flex items-center gap-3">
             {/* Hamburger mobile menu button */}
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="p-2.5 rounded-xl border border-slate-100 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-800 transition-all md:hidden active:scale-95 shadow-xs"
+              className="p-2.5 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-800 transition-all md:hidden active:scale-95 shadow-xs"
             >
               <Menu size={18} />
             </button>
-            
+
             {/* Mobile-only branding display */}
-            <div className="md:hidden flex items-center h-10 w-28 relative">
+            <div className="md:hidden flex items-center h-10 w-32 relative">
               <Link href="/" className="w-full h-full relative flex items-center">
                 <img
                   src="/logo/infano-logo-for-light-bg.png"
                   alt="Infano Logo"
-                  className="h-7 object-contain object-left"
+                  className="h-9 object-contain object-left"
                 />
               </Link>
             </div>
@@ -363,17 +361,16 @@ export default function CustomerDashboardLayout({
             <NotificationBell />
 
             <div className="flex items-center gap-2.5 bg-slate-50/50 border border-slate-100/80 py-1 pl-2.5 pr-3.5 rounded-xl">
-              <div className={`w-7 h-7 rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-xs shadow-xs shrink-0 ${
-                isTeen ? 'bg-purple-500' : 'bg-rose-500'
-              }`}>
+              <div className={`w-7 h-7 rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-xs shadow-xs shrink-0 ${isTeen ? 'bg-purple-500' : 'bg-rose-500'
+                }`}>
                 {avatarPhoto ? (
                   <img src={avatarPhoto} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
                   user?.profile?.displayName
                     ? user.profile.displayName.charAt(0).toUpperCase()
                     : user?.username
-                    ? user.username.charAt(0).toUpperCase()
-                    : 'U'
+                      ? user.username.charAt(0).toUpperCase()
+                      : 'U'
                 )}
               </div>
               <div className="text-left leading-none">
@@ -397,7 +394,7 @@ export default function CustomerDashboardLayout({
         </header>
 
         {/* Scrollable Content Container */}
-        <main className="flex-1 overflow-y-auto p-5 md:p-8 bg-[#FFFBF9] custom-scrollbar">
+        <main className="flex-1 overflow-y-auto p-5 md:p-8 bg-[#FAF9FC] custom-scrollbar">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
@@ -408,19 +405,19 @@ export default function CustomerDashboardLayout({
       {showLogoutConfirm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 select-none">
           {/* Backdrop */}
-          <div 
+          <div
             onClick={() => setShowLogoutConfirm(false)}
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity duration-300 animate-in fade-in"
           />
           {/* Modal content */}
-          <div 
+          <div
             className="relative bg-white rounded-[2rem] p-6 max-w-sm w-full shadow-2xl border border-slate-100/80 text-center space-y-5 z-10 animate-in zoom-in-95 duration-200"
             onClick={e => e.stopPropagation()}
           >
             <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center mx-auto shadow-sm">
               <LogOut size={22} />
             </div>
-            
+
             <div className="space-y-1.5">
               <h3 className="font-extrabold text-slate-800 text-lg">Confirm Sign Out</h3>
               <p className="text-slate-500 text-xs font-semibold leading-relaxed">

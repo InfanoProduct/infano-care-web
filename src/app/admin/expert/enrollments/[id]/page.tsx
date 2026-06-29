@@ -173,7 +173,12 @@ export default function EnrollmentDetail({ params }: { params: Promise<{ id: str
         {sessionArray.map(sessionNum => {
           const existingSession = sessions.find((s: any) => s.sessionNumber === sessionNum);
           const isScheduling = schedulingSessionNum === sessionNum;
-          const sessionDetails = enrollment.program.sessionsList?.[sessionNum - 1];
+          const sessionsList = (enrollment.program.curriculum && Array.isArray(enrollment.program.curriculum) && enrollment.program.curriculum.length > 0)
+            ? (enrollment.program.curriculum as any[])
+            : (enrollment.program.sessionsList && enrollment.program.sessionsList.length > 0)
+              ? enrollment.program.sessionsList
+              : [];
+          const sessionDetails = sessionsList?.[sessionNum - 1];
           const sessionTitle = sessionDetails?.title || `Session ${sessionNum}`;
           const sessionDesc = sessionDetails?.description || '';
 

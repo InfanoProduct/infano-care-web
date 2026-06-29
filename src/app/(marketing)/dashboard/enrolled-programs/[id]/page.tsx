@@ -59,7 +59,22 @@ export default function EnrolledProgramDetailsPage() {
   if (!enrollment) return null;
 
   const theme = THEMES_MAP[enrollment.program.title?.toUpperCase()] || DEFAULT_THEME;
-  const sessions: ProgramSession[] = (enrollment.program.sessionsList as ProgramSession[]) || Array.from({ length: enrollment.program.curriculum?.length || 8 }, (_, i): ProgramSession => ({ title: `Session ${i + 1}: Live Interaction`, description: `Dynamic developmental topic course lesson ${i + 1} led by verified guides.` }));
+  const sessions: ProgramSession[] = (enrollment.program.curriculum && Array.isArray(enrollment.program.curriculum) && enrollment.program.curriculum.length > 0)
+    ? (enrollment.program.curriculum as any[]).map((s: any) => ({
+        title: s.title || `Session ${s.week || ''}`,
+        description: s.description || '',
+        thumbnailUrl: s.thumbnailUrl || enrollment.program.thumbnailUrl || undefined
+      }))
+    : (enrollment.program.sessionsList && enrollment.program.sessionsList.length > 0)
+      ? (enrollment.program.sessionsList as ProgramSession[]).map((s: any) => ({
+          ...s,
+          thumbnailUrl: s.thumbnailUrl || enrollment.program.thumbnailUrl || undefined
+        }))
+      : Array.from({ length: 8 }, (_, i): ProgramSession => ({
+          title: `Session ${i + 1}: Live Interaction`,
+          description: `Dynamic developmental topic course lesson ${i + 1} led by verified guides.`,
+          thumbnailUrl: enrollment.program.thumbnailUrl || undefined
+        }));
   const dbSessions = enrollment.user?.scheduledSessions || [];
   
   const sessionsWithStatus = sessions.map((session: ProgramSession, index: number) => {

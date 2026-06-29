@@ -75,7 +75,22 @@ export default function EnrolledProgramsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {enrollments.map(enr => {
           const theme = THEMES_MAP[enr.program.title?.toUpperCase()] || DEFAULT_THEME;
-          const sessions: ProgramSession[] = (enr.program.sessionsList as ProgramSession[]) || Array.from({ length: enr.program.curriculum?.length || 8 }, (_, i) => ({ title: `Session ${i + 1}`, description: `Topic ${i + 1}` }));
+          const sessions: ProgramSession[] = (enr.program.curriculum && Array.isArray(enr.program.curriculum) && enr.program.curriculum.length > 0)
+            ? (enr.program.curriculum as any[]).map((s: any) => ({
+                title: s.title || `Session ${s.week || ''}`,
+                description: s.description || '',
+                thumbnailUrl: s.thumbnailUrl || enr.program.thumbnailUrl || undefined
+              }))
+            : (enr.program.sessionsList && enr.program.sessionsList.length > 0)
+              ? (enr.program.sessionsList as ProgramSession[]).map((s: any) => ({
+                  ...s,
+                  thumbnailUrl: s.thumbnailUrl || enr.program.thumbnailUrl || undefined
+                }))
+              : Array.from({ length: 8 }, (_, i) => ({
+                  title: `Session ${i + 1}`,
+                  description: `Topic ${i + 1}`,
+                  thumbnailUrl: enr.program.thumbnailUrl || undefined
+                }));
           const dbSessions = enr.user?.scheduledSessions || [];
           const completed = dbSessions.filter((s: any) => s.status?.toLowerCase() === 'completed' && s.programId === enr.programId).length;
           const scheduled = dbSessions.find((s: any) => s.status?.toLowerCase() === 'scheduled' && s.programId === enr.programId);

@@ -587,7 +587,7 @@ export default function CustomerDashboardOverview() {
             );
           })()}
 
-          {/* {availablePrograms.length > 0 && (
+          {availablePrograms.length > 0 && (
             <div className="space-y-4">
               <div>
                 <h3 className="text-base font-bold text-slate-800 flex items-center gap-2.5">
@@ -673,7 +673,7 @@ export default function CustomerDashboardOverview() {
                 })}
               </div>
             </div>
-          )} */}
+          )}
 
 
 

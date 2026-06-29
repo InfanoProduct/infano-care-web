@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import {
   BookOpen, Calendar, ShieldCheck, Star, Sparkles,
-  ChevronRight, Play, Loader2, Award, Layers, Compass, X, Check, ArrowRight, User, Users, Bookmark, Heart, GraduationCap
+  ChevronRight, Play, Loader2, Award, Layers, Compass, X, Check, ArrowRight, User, Users, Bookmark, Heart, GraduationCap,
+  Package, ShoppingBag, Truck
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 import { ProgramsService, Program, ProgramEnrollment } from '@/services/programs.service';
@@ -86,6 +87,7 @@ export default function CustomerDashboardOverview() {
   const [demosLoading, setDemosLoading] = useState(false);
   const [learningJourneys, setLearningJourneys] = useState<LearningJourney[]>([]);
   const [learningProgress, setLearningProgress] = useState<UserProgress[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
 
   // Demo booking modal state
   const [demoModalProg, setDemoModalProg] = useState<Program | null>(null);
@@ -110,15 +112,17 @@ export default function CustomerDashboardOverview() {
   const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
-      const [enrollRes, programsRes, linksRes, demosRes] = await Promise.all([
+      const [enrollRes, programsRes, linksRes, demosRes, ordersRes] = await Promise.all([
         ProgramsService.getUserEnrollments().catch(() => ({ success: true, data: [] })),
         ProgramsService.getPrograms().catch(() => []),
         ParentService.getLinks().catch(() => []),
-        ProgramsService.getUserDemos().catch(() => ({ success: true, data: [] }))
+        ProgramsService.getUserDemos().catch(() => ({ success: true, data: [] })),
+        ShopService.getUserOrders().catch(() => [])
       ]);
       setEnrollments(enrollRes.data || []);
       setAllPrograms(programsRes);
       setDemoSessions(demosRes.data || []);
+      setOrders(ordersRes || []);
       const linked = linksRes.some((link: any) => link.status === 'LINKED');
       setIsLinked(linked);
 
@@ -224,6 +228,17 @@ export default function CustomerDashboardOverview() {
   const enrolledProgramIds = enrollments.map(e => e.programId);
   const availablePrograms = allPrograms.filter(p => !enrolledProgramIds.includes(p.id));
   const showSidebar = isTeen && parentBookmarks.length > 0;
+
+  const isProgramItem = (it: any) => {
+    const book = it.book || {};
+    const bookId = (it.bookId || '').toLowerCase();
+    const bookTitle = (book.title || it.bookTitle || '').toLowerCase();
+    if ((book as any).curriculum?.length || book.classRange || book.duration) return true;
+    if (bookId.includes('program') || bookId.includes('private') || bookId.includes('group') || bookId.includes('cohort')) return true;
+    if (bookTitle.includes('program') || bookTitle.includes('mentoring') || bookTitle.includes('cohort')) return true;
+    return false;
+  };
+  const productOrders = orders.filter((o: any) => (o.items || []).some((it: any) => !isProgramItem(it)));
 
 
   return (
@@ -412,6 +427,77 @@ export default function CustomerDashboardOverview() {
                   );
                 })}
               </div>
+            </div>
+          )}
+
+          {/* LATEST ORDER DETAILS GLIMPSE */}
+          {productOrders.length > 0 && (
+            <div className="bg-white border border-slate-100 rounded-xl p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div>
+                  <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <ShoppingBag className="text-primary" size={20} /> Latest Order Details
+                  </h3>
+                  <p className="text-xs font-medium text-slate-400 mt-0.5">Track your physical product orders and delivery updates</p>
+                </div>
+                <Link href="/dashboard/orders" className="text-xs font-bold text-primary hover:underline flex items-center gap-0.5">
+                  View All Orders <ChevronRight size={14} />
+                </Link>
+              </div>
+
+              {(() => {
+                const latest = productOrders[0];
+                const item = latest.items?.find((it: any) => !isProgramItem(it)) || latest.items?.[0];
+                const book = item?.book || {};
+                const title = book.title || item?.bookTitle || item?.name || 'Book Order';
+                const quantity = item?.quantity || 1;
+
+                return (
+                  <div className="p-4 bg-slate-50/70 border border-slate-200/70 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-primary/30 transition-all">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-12 h-14 rounded-lg overflow-hidden bg-white shrink-0 border border-slate-200 shadow-sm flex items-center justify-center">
+                        {book.imageUrl ? (
+                          <img src={book.imageUrl} alt={title} className="w-full h-full object-cover" />
+                        ) : (
+                          <Package size={22} className="text-slate-400" />
+                        )}
+                      </div>
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-[9px] font-bold bg-white text-slate-600 px-2 py-0.5 rounded border border-slate-200">
+                            #{latest.id.slice(0, 8)}
+                          </span>
+                          <span className="text-[10px] font-medium text-slate-400 flex items-center gap-1">
+                            <Calendar size={11} />
+                            {new Date(latest.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-sm text-slate-800 truncate">{title} <span className="text-slate-400 text-xs font-semibold">(x{quantity})</span></h4>
+                        <p className="text-xs font-bold text-slate-700">Total: ₹{latest.totalAmount?.toLocaleString()}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 shrink-0 border-t sm:border-t-0 border-slate-200/60 pt-3 sm:pt-0">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[9px] font-bold px-2.5 py-1 rounded-md border ${
+                          latest.orderStatus === 'DELIVERED' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                          latest.orderStatus === 'SHIPPED' ? 'bg-indigo-50 text-indigo-600 border-indigo-200' :
+                          latest.orderStatus === 'PROCESSING' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                          'bg-amber-50 text-amber-600 border-amber-200'
+                        }`}>
+                          {latest.orderStatus}
+                        </span>
+                      </div>
+                      <Link
+                        href={`/dashboard/orders/${latest.id}`}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-lg border border-slate-200 shadow-sm transition-all"
+                      >
+                        Details <ArrowRight size={12} />
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
 

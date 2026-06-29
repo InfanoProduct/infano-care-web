@@ -42,7 +42,7 @@ export function ParentsHero() {
       });
 
       // Automatically attempt to download/open the guide PDF
-      const pdfUrl = getImageUrl('/uploads/assets/file-1780515770686-bb4008e0-b17f-4149-8578-b75920a01e11.pdf');
+      const pdfUrl = getImageUrl('/uploads/assets/programs.pdf');
       window.open(pdfUrl, '_blank');
 
       setIsSubmitted(true);
@@ -249,7 +249,7 @@ export function ParentsHero() {
                       Your enquiry has been successfully submitted. Click below to download the guide:
                     </p>
                     <a
-                      href={getImageUrl('/uploads/assets/file-1780515770686-bb4008e0-b17f-4149-8578-b75920a01e11.pdf')}
+                      href={getImageUrl('/uploads/assets/programs.pdf')}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-full btn-primary py-4 rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-2 mb-4 font-bold text-white bg-primary text-sm"

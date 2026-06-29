@@ -10,19 +10,31 @@ import {
 } from 'lucide-react';
 import { formatIndianDate, formatOrderId } from '@/lib/utils';
 
-const STATUS_STEPS = [
+const ALL_STATUS_OPTIONS = [
+  { id: 'PLACED', label: 'Order Placed' },
+  { id: 'PROCESSING', label: 'Processing' },
+  { id: 'ON_HOLD', label: 'On Hold' },
+  { id: 'SHIPPED', label: 'Shipped' },
+  { id: 'DELIVERED', label: 'Delivered' },
+];
+
+const getStatusSteps = (currentStatus: string) => [
   { id: 'PLACED', label: 'Order Placed', icon: Clock },
-  { id: 'PROCESSING', label: 'Processing', icon: Package },
+  currentStatus === 'ON_HOLD'
+    ? { id: 'ON_HOLD', label: 'On Hold', icon: AlertCircle }
+    : { id: 'PROCESSING', label: 'Processing', icon: Package },
   { id: 'SHIPPED', label: 'Shipped', icon: Truck },
   { id: 'DELIVERED', label: 'Delivered', icon: CheckCircle },
 ];
 
 const STATUS_TRANSITIONS: Record<string, string[]> = {
-  PLACED: ['PROCESSING', 'CANCELLED'],
+  PLACED: ['PROCESSING', 'ON_HOLD', 'CANCELLED'],
   PROCESSING: ['SHIPPED', 'CANCELLED'],
+  ON_HOLD: ['PROCESSING', 'CANCELLED'],
   SHIPPED: ['DELIVERED', 'CANCELLED'],
   DELIVERED: [],
   CANCELLED: [],
+  FAILED: [],
 };
 
 export default function OrderDetailPage() {
@@ -38,6 +50,10 @@ export default function OrderDetailPage() {
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
+  const [awbInput, setAwbInput] = useState('');
+  const [awbError, setAwbError] = useState<string | null>(null);
+  const [savingAwb, setSavingAwb] = useState(false);
+  const [showMissingAwbWarning, setShowMissingAwbWarning] = useState(false);
 
   useEffect(() => {
     fetchOrder();
@@ -61,6 +77,11 @@ export default function OrderDetailPage() {
   const updateStatus = async (newStatus: string) => {
     if (!STATUS_TRANSITIONS[order.orderStatus].includes(newStatus)) return;
 
+    if (newStatus === 'SHIPPED' && !order.awbNumber?.trim()) {
+      setShowMissingAwbWarning(true);
+      return;
+    }
+
     try {
       setUpdating(true);
       setError(null);
@@ -70,6 +91,39 @@ export default function OrderDetailPage() {
       setError(error.message || 'Failed to update status');
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const confirmShipWithoutAwb = async () => {
+    setShowMissingAwbWarning(false);
+    try {
+      setUpdating(true);
+      setError(null);
+      await apiClient.patch(`/admin/orders/${id}/status`, { status: 'SHIPPED' });
+      await fetchOrder();
+    } catch (error: any) {
+      setError(error.message || 'Failed to update status');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const saveAwbNumber = async () => {
+    const trimmed = awbInput.trim();
+    if (!trimmed) {
+      setAwbError('Please enter a valid AWB number.');
+      return;
+    }
+    try {
+      setSavingAwb(true);
+      setAwbError(null);
+      await apiClient.patch(`/admin/orders/${id}/awb`, { awbNumber: trimmed });
+      setAwbInput('');
+      await fetchOrder();
+    } catch (err: any) {
+      setAwbError(err.message || 'Failed to save AWB number');
+    } finally {
+      setSavingAwb(false);
     }
   };
 
@@ -134,19 +188,62 @@ export default function OrderDetailPage() {
 
   const isFailed = order ? (order.paymentMethod === 'ONLINE' && !order.razorpayPaymentId && order.orderStatus !== 'CANCELLED') : false;
   const displayOrderStatus = order ? (isFailed ? 'FAILED' : order.orderStatus) : '';
-  const currentStepIndex = STATUS_STEPS.findIndex(s => s.id === displayOrderStatus);
+  const statusSteps = getStatusSteps(displayOrderStatus);
+  const currentStepIndex = statusSteps.findIndex(s => s.id === displayOrderStatus);
   const isCancelled = displayOrderStatus === 'CANCELLED';
   const isPendingCod = order ? (order.paymentMethod === 'COD' && order.paymentStatus === 'PENDING' && !isCancelled && displayOrderStatus !== 'DELIVERED') : false;
   const showManualPaymentInput = isFailed || isPendingCod;
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-12">
+
+      {/* Missing AWB Warning Modal */}
+      {showMissingAwbWarning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md mx-4 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <AlertCircle size={20} className="text-red-600" />
+              </div>
+              <div>
+                <h2 className="font-bold text-slate-900 text-lg">Missing AWB Number</h2>
+                <p className="text-xs text-red-600 font-medium">Proceed with caution</p>
+              </div>
+            </div>
+            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+              Are you sure you want to mark this order as <strong>Shipped</strong> without adding a Tracking Number?
+              The customer will not be able to track their package directly via Delhivery.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowMissingAwbWarning(false)}
+                disabled={updating}
+                className="flex-1 py-2.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmShipWithoutAwb}
+                disabled={updating}
+                className="flex-1 py-2.5 rounded-lg bg-red-500 text-white text-sm font-semibold hover:bg-red-600 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+              >
+                {updating ? (
+                  <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /> Updating...</>
+                ) : (
+                  'Yes, Mark as Shipped'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div className="flex items-start gap-3">
           <button
             onClick={() => router.back()}
-            className="p-2 rounded-md hover:bg-slate-100 text-slate-600 transition-colors mt-1"
+            className="p-2 rounded-md hover:bg-slate-100 text-slate-655 transition-colors mt-1"
           >
             <ArrowLeft size={18} />
           </button>
@@ -172,10 +269,10 @@ export default function OrderDetailPage() {
             <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-100 -translate-y-1/2 z-0"></div>
             <div
               className="absolute top-1/2 left-0 h-0.5 bg-primary -translate-y-1/2 z-0 transition-all duration-500"
-              style={{ width: `${(currentStepIndex / (STATUS_STEPS.length - 1)) * 100}%` }}
+              style={{ width: `${(currentStepIndex / (statusSteps.length - 1)) * 100}%` }}
             ></div>
 
-            {STATUS_STEPS.map((step, index) => {
+            {statusSteps.map((step, index) => {
               const isCompleted = index <= currentStepIndex;
               const isCurrent = index === currentStepIndex;
               return (
@@ -478,7 +575,7 @@ export default function OrderDetailPage() {
                   onChange={(e) => updateStatus(e.target.value)}
                   disabled={updating || isCancelled}
                 >
-                  {STATUS_STEPS.map((step) => {
+                  {ALL_STATUS_OPTIONS.map((step) => {
                     const isCurrent = displayOrderStatus === step.id;
                     const canTransition = STATUS_TRANSITIONS[order.orderStatus]?.includes(step.id);
                     const isDisabled = isFailed || (!isCurrent && !canTransition);
@@ -509,6 +606,60 @@ export default function OrderDetailPage() {
               </p>
             </div>
           </div>
+
+          {/* Inline AWB Input for PROCESSING status */}
+          {order.orderStatus === 'PROCESSING' && (
+            <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+              <div className="px-5 py-4 border-b border-slate-200 bg-orange-50 flex items-center gap-2">
+                <Truck className="text-orange-600" size={18} />
+                <h2 className="font-semibold text-slate-900">Add Tracking Number</h2>
+              </div>
+              <div className="p-5">
+                <p className="text-xs text-slate-600 mb-4 leading-relaxed">
+                  Enter the <strong>Delhivery AWB</strong> number before shipping. This is required and will be emailed to the customer.
+                </p>
+                
+                {order.awbNumber ? (
+                  <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                    <p className="text-xs text-green-800 mb-1 font-semibold">AWB Saved Successfully</p>
+                    <p className="text-sm font-mono text-green-900">{order.awbNumber}</p>
+                    <button 
+                      onClick={() => setAwbInput(order.awbNumber)}
+                      className="text-xs text-green-700 underline mt-2 hover:text-green-800"
+                    >
+                      Edit AWB
+                    </button>
+                  </div>
+                ) : null}
+
+                {(!order.awbNumber || awbInput) && (
+                  <div className="flex flex-col gap-2">
+                    <input
+                      type="text"
+                      placeholder="e.g. 44757310001551"
+                      value={awbInput}
+                      onChange={(e) => { setAwbInput(e.target.value); setAwbError(null); }}
+                      onKeyDown={(e) => e.key === 'Enter' && saveAwbNumber()}
+                      className="w-full px-3 py-2.5 border border-slate-300 rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-orange-400"
+                      disabled={savingAwb}
+                    />
+                    {awbError && <p className="text-xs text-red-600 font-medium">{awbError}</p>}
+                    <button
+                      onClick={saveAwbNumber}
+                      disabled={savingAwb || !awbInput.trim()}
+                      className="w-full py-2.5 rounded-md bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 disabled:opacity-50 transition-colors flex items-center justify-center gap-2 mt-1"
+                    >
+                      {savingAwb ? (
+                        <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /> Saving...</>
+                      ) : (
+                        'Save AWB Number'
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Customer Card */}
           <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
@@ -581,6 +732,24 @@ export default function OrderDetailPage() {
                   <p className="text-xs text-slate-500 mb-1">Pincode</p>
                   <p className="font-medium text-slate-900 text-sm">{order.pincode}</p>
                 </div>
+
+                {/* AWB Number display */}
+                {order.awbNumber && (
+                  <div className="pt-3 border-t border-slate-100">
+                    <p className="text-xs text-slate-500 mb-1 flex items-center gap-1"><Truck size={12} /> AWB / Tracking Number</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-mono font-semibold text-slate-900 text-sm">{order.awbNumber}</p>
+                      <a
+                        href={`https://www.delhivery.com/track-v2/package/${order.awbNumber}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:underline font-medium"
+                      >
+                        Track →
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="bg-slate-50 rounded-md p-4 border border-slate-100">

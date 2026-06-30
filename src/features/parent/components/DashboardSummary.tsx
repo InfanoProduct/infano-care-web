@@ -181,7 +181,7 @@ export function DashboardSummary({ enrollments = [], demoSessions = [], learning
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         
         {/* CARD 1: LEARNING JOURNEY */}
-        <div className="bg-[#FFF4F6] border border-rose-200/70 rounded-[26px] p-5 sm:p-6 shadow-[0_4px_20px_rgba(244,63,94,0.06)] hover:shadow-lg transition-all duration-300 flex flex-col justify-between min-h-[190px] relative overflow-hidden group">
+        <div className="bg-[#FFF4F6] border border-rose-200/70 rounded-[26px] p-5 sm:p-6 shadow-[0_4px_20px_rgba(244,63,94,0.06)] hover:shadow-lg transition-all duration-300 flex flex-col justify-between min-h-47.5 relative overflow-hidden group">
           {/* Background graphic elements */}
           <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-rose-200/40 rounded-full blur-2xl group-hover:scale-125 transition-all duration-500 pointer-events-none" />
           <div className="absolute -right-2 -bottom-2 text-rose-400/10 pointer-events-none transform rotate-12 scale-150 group-hover:rotate-6 transition-transform duration-500">
@@ -210,7 +210,7 @@ export function DashboardSummary({ enrollments = [], demoSessions = [], learning
                   </div>
                   <div className="h-2 w-full bg-white/80 rounded-full overflow-hidden border border-rose-100">
                     <div
-                      className="h-full bg-gradient-to-r from-rose-400 to-pink-500 rounded-full transition-all duration-500"
+                      className="h-full bg-linear-to-r from-rose-400 to-pink-500 rounded-full transition-all duration-500"
                       style={{ width: `${displayActiveJourney.percentComplete}%` }}
                     />
                   </div>
@@ -223,7 +223,7 @@ export function DashboardSummary({ enrollments = [], demoSessions = [], learning
         </div>
 
         {/* CARD 2: NEXT SESSION */}
-        <div className="bg-[#F0F7FF] border border-blue-200/70 rounded-[26px] p-5 sm:p-6 shadow-[0_4px_20px_rgba(59,130,246,0.06)] hover:shadow-lg transition-all duration-300 flex flex-col justify-between min-h-[190px] relative overflow-hidden group">
+        <div className="bg-[#F0F7FF] border border-blue-200/70 rounded-[26px] p-5 sm:p-6 shadow-[0_4px_20px_rgba(59,130,246,0.06)] hover:shadow-lg transition-all duration-300 flex flex-col justify-between min-h-47.5 relative overflow-hidden group">
           {/* Background graphic elements */}
           <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-blue-200/40 rounded-full blur-2xl group-hover:scale-125 transition-all duration-500 pointer-events-none" />
           <div className="absolute -right-2 -bottom-2 text-blue-400/10 pointer-events-none transform -rotate-12 scale-150 group-hover:rotate-0 transition-transform duration-500">
@@ -260,7 +260,7 @@ export function DashboardSummary({ enrollments = [], demoSessions = [], learning
         </div>
 
         {/* CARD 3: ACTIVE PROGRAMS */}
-        <div className="bg-[#F0FDF4] border border-emerald-200/70 rounded-[26px] p-5 sm:p-6 shadow-[0_4px_20px_rgba(16,185,129,0.06)] hover:shadow-lg transition-all duration-300 flex flex-col justify-between min-h-[190px] relative overflow-hidden group">
+        <div className="bg-[#F0FDF4] border border-emerald-200/70 rounded-[26px] p-5 sm:p-6 shadow-[0_4px_20px_rgba(16,185,129,0.06)] hover:shadow-lg transition-all duration-300 flex flex-col justify-between min-h-47.5 relative overflow-hidden group">
           {/* Background graphic elements */}
           <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-emerald-200/40 rounded-full blur-2xl group-hover:scale-125 transition-all duration-500 pointer-events-none" />
           <div className="absolute -right-2 -bottom-2 text-emerald-400/10 pointer-events-none transform rotate-45 scale-150 group-hover:rotate-12 transition-transform duration-500">
@@ -300,7 +300,7 @@ export function DashboardSummary({ enrollments = [], demoSessions = [], learning
         </div>
 
         {/* CARD 4: MOOD INSIGHTS */}
-        <div className="bg-[#FAF5FF] border border-purple-200/70 rounded-[26px] p-5 sm:p-6 shadow-[0_4px_20px_rgba(168,85,247,0.06)] hover:shadow-lg transition-all duration-300 flex flex-col justify-between min-h-[190px] relative overflow-hidden group">
+        <div className="bg-[#FAF5FF] border border-purple-200/70 rounded-[26px] p-5 sm:p-6 shadow-[0_4px_20px_rgba(168,85,247,0.06)] hover:shadow-lg transition-all duration-300 flex flex-col justify-between min-h-47.5 relative overflow-hidden group">
           {/* Background graphic elements */}
           <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-purple-200/40 rounded-full blur-2xl group-hover:scale-125 transition-all duration-500 pointer-events-none" />
           <div className="absolute -right-2 -bottom-2 text-purple-400/10 pointer-events-none transform -rotate-12 scale-150 group-hover:rotate-0 transition-transform duration-500">

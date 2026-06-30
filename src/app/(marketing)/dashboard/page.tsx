@@ -273,18 +273,18 @@ export default function CustomerDashboardOverview() {
 
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-[1280px] mx-auto pb-8">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto pb-8">
 
       {/* Demo Booking Modal */}
       {mounted && demoModalProg && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4">
+        <div className="fixed inset-0 z-9999 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setDemoModalProg(null)} />
-          <div className="relative w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden z-[10000] border border-slate-100 animate-in zoom-in-95">
+          <div className="relative w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden z-10000 border border-slate-100 animate-in zoom-in-95">
             {(() => {
               const theme = ENROLLED_THEMES[demoModalProg.title?.toUpperCase()] || DEFAULT_ENROLLED_THEME;
               return (
                 <>
-                  <div className={`h-1.5 w-full bg-gradient-to-r ${theme.gradient}`} />
+                  <div className={`h-1.5 w-full bg-linear-to-r ${theme.gradient}`} />
                   <div className="p-6">
                     <button onClick={() => setDemoModalProg(null)} className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-655 hover:bg-slate-50 rounded-lg transition-all z-20">
                       <X size={16} />
@@ -380,8 +380,8 @@ export default function CustomerDashboardOverview() {
       )}
 
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-purple-200 via-purple-100 to-purple-50/80 p-6 sm:p-7 rounded-[26px] border border-rose-100/80 shadow-[0_4px_25px_rgba(244,63,94,0.06)] flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden group">
-        <div className="absolute -right-16 -top-16 w-72 h-72 bg-gradient-to-br from-rose-200/50 via-pink-200/40 to-purple-200/30 rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+      <div className="bg-linear-to-r from-purple-200 via-purple-100 to-purple-50/80 p-6 sm:p-7 rounded-[26px] border border-rose-100/80 shadow-[0_4px_25px_rgba(244,63,94,0.06)] flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden group">
+        <div className="absolute -right-16 -top-16 w-72 h-72 bg-linear-to-br from-rose-200/50 via-pink-200/40 to-purple-200/30 rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
         <div className="absolute -right-4 -bottom-4 text-rose-500/10 pointer-events-none transform rotate-12 scale-150 group-hover:rotate-6 transition-transform duration-500">
           <Sparkles size={160} />
         </div>
@@ -406,7 +406,7 @@ export default function CustomerDashboardOverview() {
           </p>
         </div>
         {isTeen && enrollments.length > 0 && (
-          <button className="bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-extrabold py-3 px-6 rounded-full flex items-center gap-2 shadow-md transition-all duration-200 active:scale-95 text-xs shrink-0 relative z-10">
+          <button className="bg-linear-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-extrabold py-3 px-6 rounded-full flex items-center gap-2 shadow-md transition-all duration-200 active:scale-95 text-xs shrink-0 relative z-10">
             <Play size={14} className="fill-white" /> Join Active Cohort
           </button>
         )}
@@ -594,7 +594,7 @@ export default function CustomerDashboardOverview() {
                   return (
                     <div key={enr.id} className="group/item relative p-6 bg-white border border-slate-100/90 rounded-[22px] flex flex-col gap-4.5 hover:shadow-[0_12px_30px_rgba(0,0,0,0.04)] hover:border-slate-200/80 transition-all duration-300 overflow-hidden">
                       {/* Left color bar glow indicator */}
-                      <div className={`absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b ${theme.gradient}`} />
+                      <div className={`absolute left-0 top-0 bottom-0 w-1.5 bg-linear-to-b ${theme.gradient}`} />
                       
                       <div className="flex-1 space-y-3.5 pl-2">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -633,7 +633,7 @@ export default function CustomerDashboardOverview() {
                             <span className={`${theme.accent} font-black`}>{pct}%</span>
                           </div>
                           <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                            <div className={`h-full bg-gradient-to-r ${theme.gradient} transition-all duration-1000 ease-out rounded-full`} style={{ width: `${pct}%` }} />
+                            <div className={`h-full bg-linear-to-r ${theme.gradient} transition-all duration-1000 ease-out rounded-full`} style={{ width: `${pct}%` }} />
                           </div>
                         </div>
 
@@ -649,7 +649,7 @@ export default function CustomerDashboardOverview() {
                               </div>
                             </div>
                             {scheduled.meetingLink && (
-                              <a href={scheduled.meetingLink} target="_blank" className={`shrink-0 px-3.5 py-1.5 text-white text-[11px] font-extrabold rounded-full flex items-center gap-1 shadow-sm transition-all hover:scale-102 active:scale-95 hover:shadow-md bg-gradient-to-r ${theme.gradient}`}>
+                              <a href={scheduled.meetingLink} target="_blank" className={`shrink-0 px-3.5 py-1.5 text-white text-[11px] font-extrabold rounded-full flex items-center gap-1 shadow-sm transition-all hover:scale-102 active:scale-95 hover:shadow-md bg-linear-to-r ${theme.gradient}`}>
                                 <Play size={11} className="fill-current" /> Join Live
                               </a>
                             )}
@@ -727,7 +727,7 @@ export default function CustomerDashboardOverview() {
                           </div>
                           <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                             <div
-                              className={`h-full ${isMastered ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : 'bg-gradient-to-r from-purple-400 to-indigo-500'} transition-all duration-700 rounded-full`}
+                              className={`h-full ${isMastered ? 'bg-linear-to-r from-emerald-400 to-emerald-500' : 'bg-linear-to-r from-purple-400 to-indigo-500'} transition-all duration-700 rounded-full`}
                               style={{ width: `${pct}%` }}
                             />
                           </div>
@@ -771,14 +771,14 @@ export default function CustomerDashboardOverview() {
                     >
                       {/* Dynamic Background Soft Orb */}
                       <div
-                        className="absolute -top-12 -right-12 w-32 h-32 rounded-full blur-[40px] pointer-events-none opacity-40 group-hover:scale-125 transition-all duration-500 z-0"
+                        className="absolute -top-12 -right-12 w-32 h-32 rounded-full blur-2xl pointer-events-none opacity-40 group-hover:scale-125 transition-all duration-500 z-0"
                         style={{ backgroundColor: styles.glow.replace('0.15', '0.3') }}
                       />
 
                       {program.thumbnailUrl && (
                         <div className="w-full h-40 sm:h-44 relative overflow-hidden shrink-0 border-b border-white/40">
                           <img src={program.thumbnailUrl} alt={program.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                          <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
                           <div className="absolute top-3 right-3 z-10">
                             <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${styles.badge} shadow-sm backdrop-blur-md border border-white/50`}>
                               {program.classRange}
@@ -802,14 +802,14 @@ export default function CustomerDashboardOverview() {
                             <BookOpen size={13} className={styles.text} />
                             <span>{program.curriculum?.length || 8} Sessions</span>
                           </div>
-                          <div className="h-3 w-[1px] bg-slate-200" />
+                          <div className="h-3 w-px bg-slate-200" />
                           <div className="flex items-center gap-1.5">
                             <Calendar size={13} className={styles.text} />
                             <span>{program.duration}</span>
                           </div>
                           {program.consultations && Array.isArray(program.consultations) && program.consultations.length > 0 && (
                             <>
-                              <div className="h-3 w-[1px] bg-slate-200" />
+                              <div className="h-3 w-px bg-slate-200" />
                               <div className="flex items-center gap-1.5 text-purple-600">
                                 <Sparkles size={13} className="text-purple-500 shrink-0 animate-pulse" />
                                 <span>{program.consultations.length} {program.consultations.length === 1 ? 'Free Consultation' : 'Free Consultations'}</span>
@@ -858,12 +858,12 @@ export default function CustomerDashboardOverview() {
               <div className="flex items-center justify-between border-b border-slate-50 pb-3">
                 <div>
                   <div className="flex items-center gap-2 mb-0.5">
-                    <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-rose-100 to-pink-100 flex items-center justify-center shrink-0">
+                    <div className="w-7 h-7 rounded-xl bg-linear-to-br from-rose-100 to-pink-100 flex items-center justify-center shrink-0">
                       <Heart size={14} className="text-rose-500 fill-rose-500" />
                     </div>
                     <h4 className="text-sm font-extrabold text-slate-800">Recommended by Parent</h4>
                   </div>
-                  <p className="text-[11px] font-medium text-slate-400 ml-[36px]">Your parent bookmarked these articles for you</p>
+                  <p className="text-[11px] font-medium text-slate-400 ml-9">Your parent bookmarked these articles for you</p>
                 </div>
                 <span className="text-[10px] font-extrabold bg-rose-50 text-rose-600 border border-rose-100 px-2.5 py-0.5 rounded-full">
                   {parentBookmarks.length}

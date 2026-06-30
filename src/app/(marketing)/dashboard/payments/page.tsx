@@ -95,13 +95,13 @@ export default function CustomerPaymentsOverview() {
   });
 
   return (
-    <div className="space-y-6 w-full max-w-[1280px] mx-auto pb-8 font-sans px-4 sm:px-6">
+    <div className="space-y-6 w-full max-w-7xl mx-auto pb-8 font-sans px-4 sm:px-6">
       
       {/* Header Banner - hidden on print */}
       <div className="bg-white p-6 sm:p-8 rounded-[28px] border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.015)] no-print">
         {/* Decorative fading grid mesh background */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-[size:2.5rem_2.5rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_80%,transparent_100%)] opacity-50 pointer-events-none" />
-        <div className="absolute -right-16 -top-16 w-48 h-48 bg-gradient-to-br from-slate-200/20 to-slate-100/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-size-[2.5rem_2.5rem] mask-[radial-gradient(ellipse_60%_50%_at_50%_50%,#000_80%,transparent_100%)] opacity-50 pointer-events-none" />
+        <div className="absolute -right-16 -top-16 w-48 h-48 bg-linear-to-br from-slate-200/20 to-slate-100/10 rounded-full blur-2xl pointer-events-none" />
         
         <div className="space-y-2.5 relative z-10">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-primary/20 rounded-full text-[10px] font-black text-primary shadow-3xs uppercase tracking-widest">
@@ -176,7 +176,7 @@ export default function CustomerPaymentsOverview() {
               >
                 <span className="flex items-center gap-1.5">
                   {tab.label}
-                  <span className={`px-1.5 py-0.25 text-[9px] rounded-full font-black ${
+                  <span className={`px-1.5 py-px text-[9px] rounded-full font-black ${
                     activeTab === tab.id ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-650'
                   }`}>
                     {tab.count}
@@ -213,7 +213,7 @@ export default function CustomerPaymentsOverview() {
                   className="group bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs hover:shadow-sm hover:border-slate-300 transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-5 relative overflow-hidden"
                 >
                   {/* Left branding colored accent bar */}
-                  <div className={`absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b ${
+                  <div className={`absolute left-0 top-0 bottom-0 w-1.5 bg-linear-to-b ${
                     tx.type === 'PROGRAM' ? 'from-purple-500 to-indigo-600' : 'from-rose-500 to-pink-600'
                   }`} />
                   
@@ -315,7 +315,7 @@ export default function CustomerPaymentsOverview() {
         <div className="lg:col-span-4 space-y-6">
           
           {/* Quick Billing Support Card */}
-          <div className="bg-gradient-to-br from-[#FFF8F8] to-[#FFFBFB] border border-rose-200/60 rounded-2xl p-5 shadow-2xs space-y-4">
+          <div className="bg-linear-to-br from-[#FFF8F8] to-[#FFFBFB] border border-rose-200/60 rounded-2xl p-5 shadow-2xs space-y-4">
             <h4 className="text-xs font-black text-rose-750 uppercase tracking-widest flex items-center gap-2">
               <MessageCircle size={16} className="text-rose-500 animate-pulse" />
               Billing Assistance

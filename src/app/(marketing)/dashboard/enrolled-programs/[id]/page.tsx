@@ -112,7 +112,7 @@ export default function EnrolledProgramDetailsPage() {
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-[1280px] mx-auto pb-8 px-4 sm:px-6">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto pb-8 px-4 sm:px-6">
       <Link 
         href="/dashboard/enrolled-programs" 
         className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-primary transition-colors group mb-2"
@@ -123,10 +123,10 @@ export default function EnrolledProgramDetailsPage() {
 
       <div className="bg-white border border-slate-100 rounded-[28px] shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
         {/* Header background with subtle gradient, grids & abstract elements */}
-        <div className="relative p-6 sm:p-8 border-b border-slate-150/50 bg-gradient-to-br from-white via-slate-50/40 to-slate-100/10 overflow-hidden">
+        <div className="relative p-6 sm:p-8 border-b border-slate-150/50 bg-linear-to-br from-white via-slate-50/40 to-slate-100/10 overflow-hidden">
           {/* Decorative Grid Mesh Graphics Element */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-[size:2.5rem_2.5rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_40%,#000_80%,transparent_100%)] opacity-60 pointer-events-none" />
-          <div className="absolute -right-16 -top-16 w-48 h-48 bg-gradient-to-br from-slate-200/30 to-slate-100/15 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-size-[2.5rem_2.5rem] mask-[radial-gradient(ellipse_60%_50%_at_50%_40%,#000_80%,transparent_100%)] opacity-60 pointer-events-none" />
+          <div className="absolute -right-16 -top-16 w-48 h-48 bg-linear-to-br from-slate-200/30 to-slate-100/15 rounded-full blur-2xl pointer-events-none" />
           
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
@@ -164,7 +164,7 @@ export default function EnrolledProgramDetailsPage() {
 
             {/* Circular Progress Wheel with glowing back-orb */}
             <div className="relative flex items-center gap-4 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-              <div className={`absolute -inset-1 rounded-[18px] bg-gradient-to-br ${theme.gradient} opacity-5 blur-xl pointer-events-none`} />
+              <div className={`absolute -inset-1 rounded-[18px] bg-linear-to-br ${theme.gradient} opacity-5 blur-xl pointer-events-none`} />
               <div className="text-left hidden sm:block relative z-10">
                 <p className="text-slate-900 font-black text-sm">Your Progress</p>
                 <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-0.5">Sessions completed</p>
@@ -208,7 +208,7 @@ export default function EnrolledProgramDetailsPage() {
         </div>
 
         {/* Sessions timeline */}
-        <div className="p-6 sm:p-8 bg-gradient-to-b from-slate-50/50 via-slate-50/20 to-white">
+        <div className="p-6 sm:p-8 bg-linear-to-b from-slate-50/50 via-slate-50/20 to-white">
           <h4 className="text-xs font-extrabold uppercase tracking-widest text-slate-450 mb-6 flex items-center gap-2">
             <BookOpen size={14} className="text-slate-400" /> Session Timeline
           </h4>
@@ -220,7 +220,7 @@ export default function EnrolledProgramDetailsPage() {
                   key={index}
                   className="group relative p-5 bg-white border border-slate-200/80 rounded-2xl shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-start gap-4 overflow-hidden"
                 >
-                  <div className="absolute top-0 left-0 bottom-0 w-1 bg-gradient-to-b from-emerald-400 to-teal-500" />
+                  <div className="absolute top-0 left-0 bottom-0 w-1 bg-linear-to-b from-emerald-400 to-teal-500" />
                   
                   {/* Decorative success watermark icon */}
                   <div className="absolute -right-2 -bottom-2 text-emerald-500/5 pointer-events-none transform rotate-12 scale-150 group-hover:scale-160 group-hover:rotate-6 transition-all duration-500">
@@ -233,7 +233,7 @@ export default function EnrolledProgramDetailsPage() {
                       <div className="absolute inset-0 bg-emerald-500/10" />
                     </div>
                   ) : (
-                    <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0 border border-emerald-100 shadow-3xs hidden sm:block">
+                    <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-xl hidden sm:flex items-center justify-center shrink-0 border border-emerald-100 shadow-3xs">
                       <CheckCircle2 size={22} className="fill-emerald-100" />
                     </div>
                   )}
@@ -255,7 +255,7 @@ export default function EnrolledProgramDetailsPage() {
                 <div
                   key={index}
                   id="upcoming-session"
-                  className="group/scheduled p-6 border border-purple-200 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col gap-5 relative overflow-hidden sm:col-span-2 bg-gradient-to-br from-purple-50/80 via-indigo-50/30 to-white/90"
+                  className="group/scheduled p-6 border border-purple-200 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col gap-5 relative overflow-hidden sm:col-span-2 bg-linear-to-br from-purple-50/80 via-indigo-50/30 to-white/90"
                 >
                   {/* Decorative live watermark icon */}
                   <div className="absolute -right-4 -bottom-4 text-purple-650/5 pointer-events-none transform -rotate-12 scale-160 group-hover/scheduled:scale-170 group-hover/scheduled:rotate-0 transition-all duration-750">
@@ -267,7 +267,7 @@ export default function EnrolledProgramDetailsPage() {
                     {session.thumbnailUrl ? (
                       <div className="relative w-18 h-18 rounded-2xl overflow-hidden shrink-0 border border-purple-100 shadow-sm bg-white">
                         <img src={session.thumbnailUrl} alt={session.title} className="w-full h-full object-cover group-hover/scheduled:scale-105 transition-transform duration-500" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-purple-900/10 to-transparent" />
+                        <div className="absolute inset-0 bg-linear-to-t from-purple-900/10 to-transparent" />
                       </div>
                     ) : (
                       <div className="w-18 h-18 bg-purple-650 text-white rounded-2xl flex items-center justify-center shrink-0 shadow-md animate-pulse">
@@ -309,7 +309,7 @@ export default function EnrolledProgramDetailsPage() {
                             href={session.meetLink} 
                             target="_blank" 
                             rel="noopener noreferrer" 
-                            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-extrabold py-2.5 px-6 rounded-full flex items-center justify-center gap-1.5 text-xs shadow-[0_4px_14px_rgba(124,58,237,0.3)] hover:shadow-[0_6px_20px_rgba(124,58,237,0.45)] hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer"
+                            className="bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-extrabold py-2.5 px-6 rounded-full flex items-center justify-center gap-1.5 text-xs shadow-[0_4px_14px_rgba(124,58,237,0.3)] hover:shadow-[0_6px_20px_rgba(124,58,237,0.45)] hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer"
                           >
                             Join Live Class <ChevronRight size={14} className="group-hover/scheduled:translate-x-0.5 transition-transform" />
                           </a>

@@ -306,7 +306,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
           >
             <span className="flex items-center gap-1.5">
               {t.label}
-              <span className={`px-1.5 py-0.25 text-[9px] rounded-full font-black ${
+              <span className={`px-1.5 py-px text-[9px] rounded-full font-black ${
                 tab === t.id ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-650'
               }`}>
                 {t.count}
@@ -374,10 +374,10 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                   </div>
                   
                   {/* Decorative gradient stripe */}
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-purple-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-primary via-purple-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                   <div className="flex items-start gap-4 mb-5">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-indigo-100 flex items-center justify-center text-primary font-black text-lg border border-primary/20 shrink-0">
+                    <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-primary/10 to-indigo-100 flex items-center justify-center text-primary font-black text-lg border border-primary/20 shrink-0">
                       {getInitials(expert.displayName)}
                     </div>
                     <div className="min-w-0 space-y-1">
@@ -512,7 +512,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                           return (
                             <div
                               key={c.id}
-                              className="group/scheduled p-6 border border-purple-200 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col gap-5 relative overflow-hidden bg-gradient-to-br from-purple-50/80 via-indigo-50/30 to-white/90"
+                              className="group/scheduled p-6 border border-purple-200 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col gap-5 relative overflow-hidden bg-linear-to-br from-purple-50/80 via-indigo-50/30 to-white/90"
                             >
                               {/* Decorative live watermark icon */}
                               <div className="absolute -right-4 -bottom-4 text-purple-650/5 pointer-events-none transform -rotate-12 scale-160 group-hover/scheduled:scale-170 group-hover/scheduled:rotate-0 transition-all duration-750">
@@ -561,7 +561,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                                       href={c.meetLink}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-extrabold py-2.5 px-6 rounded-full flex items-center justify-center gap-1.5 text-xs shadow-[0_4px_14px_rgba(124,58,237,0.3)] hover:shadow-[0_6px_20px_rgba(124,58,237,0.45)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+                                      className="bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-extrabold py-2.5 px-6 rounded-full flex items-center justify-center gap-1.5 text-xs shadow-[0_4px_14px_rgba(124,58,237,0.3)] hover:shadow-[0_6px_20px_rgba(124,58,237,0.45)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
                                     >
                                       Join Live Class <ChevronRight size={14} />
                                     </a>
@@ -612,7 +612,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                               </div>
                               
                               <div className="flex items-start gap-4.5 relative z-10 flex-1 min-w-0">
-                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-50 to-indigo-50 text-violet-650 border border-violet-150 font-black flex flex-col items-center justify-center shrink-0 leading-none shadow-3xs">
+                                <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-violet-50 to-indigo-50 text-violet-655 border border-violet-150 font-black flex flex-col items-center justify-center shrink-0 leading-none shadow-3xs">
                                   <span className="text-[9px] tracking-wider font-black opacity-85 uppercase">FREE</span>
                                   <span className="text-xl font-black mt-0.5">{c.idx + 1}</span>
                                 </div>
@@ -781,7 +781,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
             {/* Modal Header */}
             <div className="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white rounded-t-[28px] z-10">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-purple-100 flex items-center justify-center text-primary font-black text-sm border border-primary/10 shrink-0 shadow-3xs">
+                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-primary/10 to-purple-100 flex items-center justify-center text-primary font-black text-sm border border-primary/10 shrink-0 shadow-3xs">
                   {getInitials(selectedExpert.displayName)}
                 </div>
                 <div>

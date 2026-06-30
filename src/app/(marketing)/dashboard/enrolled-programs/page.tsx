@@ -66,7 +66,7 @@ export default function EnrolledProgramsPage() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-[1280px] mx-auto pb-8">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto pb-8">
       <div>
         <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Layers size={20} className="text-primary" /> Enrolled Programs</h1>
         <p className="text-xs font-medium text-slate-505 mt-1">Click a program to view its full session timeline and details</p>
@@ -101,10 +101,10 @@ export default function EnrolledProgramsPage() {
             <Link
               key={enr.id}
               href={`/dashboard/enrolled-programs/${enr.id}`}
-              className="group relative block w-full text-left p-6 pt-8 rounded-[24px] border transition-all duration-300 bg-white border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:-translate-y-1.5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.05)] hover:border-slate-200/80 overflow-hidden"
+              className="group relative block w-full text-left p-6 pt-8 rounded-2xl border transition-all duration-300 bg-white border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:-translate-y-1.5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.05)] hover:border-slate-200/80 overflow-hidden"
             >
               {/* Absolute top gradient border */}
-              <div className={`absolute top-0 left-0 right-0 h-2 bg-gradient-to-r ${theme.gradient}`} />
+              <div className={`absolute top-0 left-0 right-0 h-2 bg-linear-to-r ${theme.gradient}`} />
               
               <div className="flex gap-4 mb-4.5">
                 {enr.program.thumbnailUrl && (
@@ -157,7 +157,7 @@ export default function EnrolledProgramsPage() {
                 </div>
                 <div className="h-2 bg-slate-100/70 rounded-full overflow-hidden">
                   <div 
-                    className={`h-full bg-gradient-to-r ${theme.gradient} transition-all duration-1000 ease-out rounded-full shadow-2xs`} 
+                    className={`h-full bg-linear-to-r ${theme.gradient} transition-all duration-1000 ease-out rounded-full shadow-2xs`} 
                     style={{ width: `${pct}%` }} 
                   />
                 </div>
@@ -181,7 +181,7 @@ export default function EnrolledProgramsPage() {
                         e.preventDefault(); 
                         window.open(scheduled.meetingLink, '_blank'); 
                       }} 
-                      className={`shrink-0 px-3.5 py-1.5 text-white text-[11px] font-extrabold rounded-full flex items-center gap-1 shadow-sm transition-all hover:scale-102 active:scale-95 hover:shadow-md bg-gradient-to-r ${theme.gradient}`}
+                      className={`shrink-0 px-3.5 py-1.5 text-white text-[11px] font-extrabold rounded-full flex items-center gap-1 shadow-sm transition-all hover:scale-102 active:scale-95 hover:shadow-md bg-linear-to-r ${theme.gradient}`}
                     >
                       <Play size={11} className="fill-current" /> Join Live
                     </button>

@@ -278,7 +278,7 @@ export default function CustomerLoginPage() {
         src={getAssetUrl(DECORATIVE_ILLUSTRATION)}
         alt=""
         aria-hidden="true"
-        className="absolute bottom-[-10%] left-[-10%] w-[400px] sm:w-[520px] lg:w-[1000px] opacity-100 pointer-events-none select-none translate-x-[10%] translate-y-[10%]"
+        className="absolute bottom-[-10%] left-[-10%] w-100 sm:w-130 lg:w-250 opacity-100 pointer-events-none select-none translate-x-[10%] translate-y-[10%]"
         draggable={false}
       />
 
@@ -386,7 +386,7 @@ export default function CustomerLoginPage() {
 
           {step === 'OTP' && (
             <form onSubmit={handleVerifyOtp} className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-              <div className="max-w-[240px] mx-auto w-full space-y-4">
+              <div className="max-w-60 mx-auto w-full space-y-4">
                 <div className="flex justify-between items-center">
                   <label className="text-xs font-bold text-slate-500 pl-0.5">
                     Enter Verification Code
@@ -467,7 +467,7 @@ export default function CustomerLoginPage() {
               <button
                 type="submit"
                 disabled={isLoading || otp.length < 4}
-                className="w-full py-3.5 bg-primary hover:bg-primary-dark text-white font-bold rounded-lg flex items-center justify-center gap-2 group hover:shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:grayscale transition-all duration-200 cursor-pointer"
+                className="w-full py-3.5 bg-primary hover:bg-primary-dark text-white font-bold rounded-lg flex items-center justify-center gap-2 group hover:shadow-md active:scale-95 disabled:opacity-50 disabled:grayscale transition-all duration-200 cursor-pointer"
               >
                 {isLoading ? (
                   <Loader2 className="animate-spin" size={18} />
@@ -494,7 +494,7 @@ export default function CustomerLoginPage() {
                 <button
                   type="button"
                   onClick={() => selectRoleAndRegister('TEEN')}
-                  className="flex items-start gap-4 p-5 bg-gradient-to-br from-purple-50/60 to-violet-50/30 hover:from-purple-50 hover:to-violet-50/60 border border-purple-100 hover:border-purple-300 rounded-xl text-left transition-all duration-300 group hover:shadow-md hover:shadow-purple-100/10 cursor-pointer"
+                  className="flex items-start gap-4 p-5 bg-linear-to-br from-purple-50/60 to-violet-50/30 hover:from-purple-50 hover:to-violet-50/60 border border-purple-100 hover:border-purple-300 rounded-xl text-left transition-all duration-300 group hover:shadow-md hover:shadow-purple-100/10 cursor-pointer"
                 >
                   <div className="w-12 h-12 bg-white text-purple-600 rounded-lg flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform border border-purple-100">
                     <Heart className="fill-purple-200 text-purple-600" size={22} />
@@ -510,7 +510,7 @@ export default function CustomerLoginPage() {
                 <button
                   type="button"
                   onClick={() => selectRoleAndRegister('PARENT')}
-                  className="flex items-start gap-4 p-5 bg-gradient-to-br from-rose-50/60 to-orange-50/30 hover:from-rose-50 hover:to-orange-50/60 border border-rose-100 hover:border-rose-300 rounded-xl text-left transition-all duration-300 group hover:shadow-md hover:shadow-rose-100/10 cursor-pointer"
+                  className="flex items-start gap-4 p-5 bg-linear-to-br from-rose-50/60 to-orange-50/30 hover:from-rose-50 hover:to-orange-50/60 border border-rose-100 hover:border-rose-300 rounded-xl text-left transition-all duration-300 group hover:shadow-md hover:shadow-rose-100/10 cursor-pointer"
                 >
                   <div className="w-12 h-12 bg-white text-rose-500 rounded-lg flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform border border-rose-100">
                     <Star className="fill-rose-100 text-rose-500" size={22} />

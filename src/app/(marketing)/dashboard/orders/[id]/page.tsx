@@ -74,7 +74,7 @@ export default function OrderDetailsPage() {
   }
 
   return (
-    <div className="space-y-6 w-full max-w-[1100px] mx-auto pb-8 font-sans px-4 sm:px-6">
+    <div className="space-y-6 w-full max-w-275 mx-auto pb-8 font-sans px-4 sm:px-6">
       
       {/* Back button & Header */}
       <div className="flex items-center gap-4 mb-2 no-print">
@@ -159,7 +159,7 @@ export default function OrderDetailsPage() {
             </div>
  
             {/* 2. Horizontal Progress Tracker */}
-            <div className="px-6 py-8 border-t border-slate-100 bg-gradient-to-b from-slate-50/50 to-white">
+            <div className="px-6 py-8 border-t border-slate-100 bg-linear-to-b from-slate-50/50 to-white">
               <h4 className="text-xs font-black uppercase tracking-widest text-slate-450 mb-8 flex items-center gap-1.5">
                 <Truck size={14} className="text-slate-400" /> Delivery Tracking
               </h4>
@@ -177,7 +177,7 @@ export default function OrderDetailsPage() {
                     
                     {/* Active Track */}
                     <div 
-                      className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full z-0 transition-all duration-700 shadow-2xs"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-linear-to-r from-emerald-400 to-teal-500 rounded-full z-0 transition-all duration-700 shadow-2xs"
                       style={{ width: `${(currentIndex / (steps.length - 1)) * 100}%` }}
                     ></div>
 
@@ -298,7 +298,7 @@ export default function OrderDetailsPage() {
           </div>
 
           {/* Quick Billing Support Card */}
-          <div className="bg-gradient-to-br from-[#FFF8F8] to-[#FFFBFB] border border-rose-200/60 rounded-2xl p-5 shadow-2xs space-y-4 text-center sm:text-left">
+          <div className="bg-linear-to-br from-[#FFF8F8] to-[#FFFBFB] border border-rose-200/60 rounded-2xl p-5 shadow-2xs space-y-4 text-center sm:text-left">
             <h4 className="text-xs font-black text-rose-750 uppercase tracking-widest flex items-center justify-center sm:justify-start gap-2">
               <MessageCircle size={16} className="text-rose-500 animate-pulse" />
               Order Assistance

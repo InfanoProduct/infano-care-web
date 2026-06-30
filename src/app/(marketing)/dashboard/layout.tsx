@@ -138,7 +138,7 @@ export default function CustomerDashboardLayout({
 
   // Episode Isolation check: bypass dashboard shell for cleaner full-screen player experience
   if (pathname.includes('/episodes/')) {
-    return <div className="min-h-screen bg-[#FFFCFA] overflow-hidden">{children}</div>;
+    return <div className="min-h-screen bg-background overflow-hidden">{children}</div>;
   }
 
   const isTeen = user.role === 'TEEN';
@@ -157,7 +157,7 @@ export default function CustomerDashboardLayout({
     { href: '/dashboard/profile', label: 'Profile', icon: User },
   ];
 
-  const isLinkActive = (item: typeof menuItems[0]) => {
+  const isLinkActive = (item: { href: string; label: string; icon: any; matchPrefix?: boolean }) => {
     if (item.matchPrefix) {
       return pathname === item.href || pathname.startsWith(item.href + '/');
     }
@@ -218,7 +218,7 @@ export default function CustomerDashboardLayout({
                   key={idx}
                   href={item.href}
                   className={`group relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all duration-200 ${active
-                      ? 'bg-gradient-to-r from-rose-500/10 via-rose-500/5 to-transparent text-primary border-l-4 border-primary rounded-r-xl rounded-l-none pl-3 font-black shadow-2xs'
+                      ? 'bg-linear-to-r from-rose-500/10 via-rose-500/5 to-transparent text-primary border-l-4 border-primary rounded-r-xl rounded-l-none pl-3 font-black shadow-2xs'
                       : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
                     } ${isCollapsed ? 'justify-center' : ''}`}
                 >
@@ -243,7 +243,7 @@ export default function CustomerDashboardLayout({
       <div className="space-y-4 pt-4 border-t border-slate-200/70">
         {/* Support Widget */}
         {!isCollapsed ? (
-          <div className="bg-gradient-to-br from-slate-50 to-slate-100/90 border border-slate-200/80 rounded-2xl p-4 space-y-2.5 animate-in fade-in duration-300 shadow-2xs">
+          <div className="bg-linear-to-br from-slate-50 to-slate-100/90 border border-slate-200/80 rounded-2xl p-4 space-y-2.5 animate-in fade-in duration-300 shadow-2xs">
             <h5 className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">Parent Support</h5>
             <p className="text-[11px] text-slate-600 font-semibold leading-relaxed">
               Need to reschedule sessions or have billing questions?
@@ -374,7 +374,7 @@ export default function CustomerDashboardLayout({
                 )}
               </div>
               <div className="text-left leading-none">
-                <p className="text-xs font-semibold text-slate-800 truncate max-w-[120px]" title={user?.profile?.displayName || user?.username || 'User'}>
+                <p className="text-xs font-semibold text-slate-800 truncate max-w-30" title={user?.profile?.displayName || user?.username || 'User'}>
                   {user?.profile?.displayName || user?.username || 'User'}
                 </p>
                 <p className="text-[9px] font-bold text-slate-400 mt-0.5 uppercase tracking-wide">
@@ -403,7 +403,7 @@ export default function CustomerDashboardLayout({
 
       {/* Logout Confirmation Modal */}
       {showLogoutConfirm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 select-none">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 select-none">
           {/* Backdrop */}
           <div
             onClick={() => setShowLogoutConfirm(false)}
@@ -434,7 +434,7 @@ export default function CustomerDashboardLayout({
               </button>
               <button
                 onClick={confirmLogout}
-                className="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs font-black shadow-md shadow-rose-200/50 hover:shadow-rose-300/60 transition-all active:scale-98"
+                className="flex-1 py-3 px-4 rounded-2xl bg-linear-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs font-black shadow-md shadow-rose-200/50 hover:shadow-rose-300/60 transition-all active:scale-98"
               >
                 Yes, Sign Out
               </button>

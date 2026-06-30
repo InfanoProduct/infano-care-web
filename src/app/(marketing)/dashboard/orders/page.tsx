@@ -63,13 +63,13 @@ export default function CustomerOrdersOverview() {
   const delivered = productOrders.filter(o => (o.orderStatus || '').toUpperCase() === 'DELIVERED').length;
 
   return (
-    <div className="space-y-6 w-full max-w-[1280px] mx-auto pb-8 font-sans px-4 sm:px-6">
+    <div className="space-y-6 w-full max-w-7xl mx-auto pb-8 font-sans px-4 sm:px-6">
       
       {/* Header Banner */}
       <div className="bg-white p-6 sm:p-8 rounded-[28px] border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.015)]">
         {/* Decorative fading grid mesh background */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-[size:2.5rem_2.5rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_80%,transparent_100%)] opacity-50 pointer-events-none" />
-        <div className="absolute -right-16 -top-16 w-48 h-48 bg-gradient-to-br from-slate-200/20 to-slate-100/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-size-[2.5rem_2.5rem] mask-[radial-gradient(ellipse_60%_50%_at_50%_50%,#000_80%,transparent_100%)] opacity-50 pointer-events-none" />
+        <div className="absolute -right-16 -top-16 w-48 h-48 bg-linear-to-br from-slate-200/20 to-slate-100/10 rounded-full blur-2xl pointer-events-none" />
         
         <div className="space-y-2.5 relative z-10">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-primary/20 rounded-full text-[10px] font-black text-primary shadow-3xs uppercase tracking-widest">

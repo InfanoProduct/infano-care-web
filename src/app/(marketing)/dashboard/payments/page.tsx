@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { 
   CreditCard, Award, ShoppingBag, Calendar, CheckCircle2, 
   Loader2, ShieldCheck, ArrowRight, MessageCircle, ExternalLink,
-  DollarSign, FileText, AlertCircle, HelpCircle, BadgeCheck, MapPin
+  DollarSign, FileText, AlertCircle, HelpCircle, BadgeCheck, MapPin,
+  GraduationCap, BookOpen
 } from 'lucide-react';
 import { ProgramsService, ProgramEnrollment } from '@/services/programs.service';
 import { ShopService } from '@/services/shop.service';
@@ -17,6 +18,7 @@ export default function CustomerPaymentsOverview() {
   const [enrollments, setEnrollments] = useState<ProgramEnrollment[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'all' | 'programs' | 'books'>('all');
   const [activeInvoice, setActiveInvoice] = useState<{
     type: 'PROGRAM' | 'BOOK';
     data: any;
@@ -47,272 +49,329 @@ export default function CustomerPaymentsOverview() {
     return (
       <div className="flex flex-col items-center justify-center py-32 gap-4 text-primary">
         <Loader2 className="animate-spin text-primary" size={44} />
-        <span className="font-extrabold text-lg text-slate-600 tracking-wide">Compiling Financial Ledger...</span>
+        <span className="font-extrabold text-lg text-slate-650 tracking-wide">Compiling Financial Ledger...</span>
       </div>
     );
   }
 
+  // Calculate totals and statistics
+  const totalProgramsCost = enrollments.reduce((sum, e) => sum + e.pricePaid, 0);
+  const totalBooksCost = orders.reduce((sum, o) => sum + o.totalAmount, 0);
+  const totalInvested = totalProgramsCost + totalBooksCost;
+
+  // Unify and format transactions chronologically
+  const allTransactions = [
+    ...enrollments.map(e => ({
+      id: e.id,
+      type: 'PROGRAM' as const,
+      title: `${e.program.title} Program`,
+      date: new Date(e.createdAt),
+      amount: e.pricePaid,
+      status: e.status,
+      badgeText: '1:1 Private Mentoring',
+      invoiceData: e,
+      original: e,
+    })),
+    ...orders.map(o => ({
+      id: o.id,
+      type: 'BOOK' as const,
+      title: o.items?.map((it: any) => `${it.book?.title || 'Gigi Book'} (x${it.quantity})`).join(', ') || 'Gigi Book',
+      date: new Date(o.createdAt),
+      amount: o.totalAmount,
+      status: o.paymentStatus === 'COMPLETED' ? 'PAID' : o.paymentStatus || 'PLACED',
+      orderStatus: o.orderStatus,
+      badgeText: 'Gigi Book Order',
+      invoiceData: o,
+      city: o.city,
+      original: o,
+    }))
+  ].sort((a, b) => b.date.getTime() - a.date.getTime());
+
+  // Filtered transactions based on active tab
+  const filteredTransactions = allTransactions.filter(tx => {
+    if (activeTab === 'programs') return tx.type === 'PROGRAM';
+    if (activeTab === 'books') return tx.type === 'BOOK';
+    return true;
+  });
+
   return (
-    <div className="space-y-6 w-full max-w-[1280px] mx-auto pb-8 font-sans">
+    <div className="space-y-6 w-full max-w-[1280px] mx-auto pb-8 font-sans px-4 sm:px-6">
       
       {/* Header Banner - hidden on print */}
-      <div className="bg-slate-50 p-6 rounded-xl border border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden shadow-sm no-print">
-        <div className="space-y-2 relative z-10">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-white border border-primary/20 rounded-md text-[10px] font-bold text-primary shadow-sm">
+      <div className="bg-white p-6 sm:p-8 rounded-[28px] border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.015)] no-print">
+        {/* Decorative fading grid mesh background */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-[size:2.5rem_2.5rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_80%,transparent_100%)] opacity-50 pointer-events-none" />
+        <div className="absolute -right-16 -top-16 w-48 h-48 bg-gradient-to-br from-slate-200/20 to-slate-100/10 rounded-full blur-2xl pointer-events-none" />
+        
+        <div className="space-y-2.5 relative z-10">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-primary/20 rounded-full text-[10px] font-black text-primary shadow-3xs uppercase tracking-widest">
             <CreditCard size={11} /> Secure Transactions
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
             Payments & Invoices
           </h1>
-          <p className="text-xs font-semibold text-slate-500 max-w-lg leading-relaxed">
+          <p className="text-xs font-bold text-slate-500 max-w-xl leading-relaxed">
             Review detailed invoice summaries, track physical product delivery coordinates, and audit digital program enrollments.
           </p>
         </div>
       </div>
 
-      {/* Main Grid: Left Column for Payments lists, Right for FAQs/Support info - hidden on print */}
+      {/* Financial Overview Metrics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 no-print">
+        <div className="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-2xs flex items-center justify-between overflow-hidden relative group hover:border-slate-300 transition-all duration-300">
+          <div className="space-y-1.5 relative z-10">
+            <span className="text-[10px] font-black text-slate-450 uppercase tracking-widest block">Total Invested</span>
+            <h3 className="text-2xl font-black text-slate-900">₹{totalInvested.toLocaleString('en-IN')}</h3>
+            <p className="text-[10px] text-slate-500 font-bold">Across all services</p>
+          </div>
+          <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center border border-purple-100 shadow-3xs shrink-0">
+            <DollarSign size={20} />
+          </div>
+        </div>
+
+        <div className="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-2xs flex items-center justify-between overflow-hidden relative group hover:border-slate-300 transition-all duration-300">
+          <div className="space-y-1.5 relative z-10">
+            <span className="text-[10px] font-black text-slate-450 uppercase tracking-widest block">Learning Programs</span>
+            <h3 className="text-2xl font-black text-slate-900">{enrollments.length}</h3>
+            <p className="text-[10px] text-slate-500 font-bold">Active enrollments</p>
+          </div>
+          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center border border-emerald-100 shadow-3xs shrink-0">
+            <GraduationCap size={20} />
+          </div>
+        </div>
+
+        <div className="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-2xs flex items-center justify-between overflow-hidden relative group hover:border-slate-300 transition-all duration-300">
+          <div className="space-y-1.5 relative z-10">
+            <span className="text-[10px] font-black text-slate-450 uppercase tracking-widest block">Book Purchases</span>
+            <h3 className="text-2xl font-black text-slate-900">{orders.length}</h3>
+            <p className="text-[10px] text-slate-500 font-bold">Orders placed</p>
+          </div>
+          <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center border border-rose-100 shadow-3xs shrink-0">
+            <ShoppingBag size={20} />
+          </div>
+        </div>
+      </div>
+
+      {/* Main Grid: Left Column for Payments lists, Right for FAQs/Support info */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start no-print">
         
         {/* LEFT COLUMN: Tab Switcher & Data Lists (lg:col-span-8) */}
         <div className="lg:col-span-8 space-y-6">
           
-          {/* Program Payments Section */}
-          <div className="space-y-3.5">
-            <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">
-              Program Enrollments
-            </h2>
-            
-            <div className="space-y-4">
-              {enrollments.length === 0 ? (
-                <div className="text-center py-10 bg-white border border-slate-100 rounded-xl p-5 shadow-sm space-y-3">
-                  <div className="w-11 h-11 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center mx-auto text-slate-300">
-                    <Award size={20} />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-850 text-sm">No Program Enrollments Found</h4>
-                    <p className="text-xs text-slate-450 font-medium mt-0.5 max-w-xs mx-auto">
-                      You haven't enrolled in any developmental programs yet. Explore classes to get started!
-                    </p>
-                  </div>
-                  <Link 
-                    href="/#programs" 
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-primary text-white font-bold text-xs rounded-lg shadow-sm hover:scale-[1.01] active:scale-[0.99] transition-all"
-                  >
-                    View Curriculums <ArrowRight size={12} />
-                  </Link>
-                </div>
-              ) : (
-                enrollments.map((enr) => (
-                  <div 
-                    key={enr.id}
-                    className="bg-white border border-slate-100 rounded-xl p-5 shadow-sm relative overflow-hidden border-t-4 border-t-primary"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">
-                            1:1 Private Mentoring
-                          </span>
-                          <span className="text-[10px] font-medium text-slate-400 flex items-center gap-1">
-                            <Calendar size={11} />
-                            {new Date(enr.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                          </span>
-                        </div>
-                        <h3 className="text-base font-bold text-slate-800 flex items-center gap-2 mt-1">
-                          {enr.program.title} Program
-                          {enr.user?.id && user?.id && enr.user.id !== user.id && (
-                            <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded border ${enr.user?.role === 'TEEN' ? 'bg-purple-50 text-purple-600 border-purple-200' : 'bg-blue-50 text-blue-600 border-blue-200'}`}>
-                              By {enr.user?.role === 'TEEN' ? 'Daughter' : 'Parent'}
-                            </span>
-                          )}
-                        </h3>
-                      </div>
+          {/* Tab Switcher */}
+          <div className="flex border-b border-slate-100 no-print pb-1 gap-2">
+            {[
+              { id: 'all', label: 'All Transactions', count: allTransactions.length },
+              { id: 'programs', label: 'Program Enrollments', count: enrollments.length },
+              { id: 'books', label: 'Book Purchases', count: orders.length }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all relative ${
+                  activeTab === tab.id
+                    ? 'bg-slate-900 text-white shadow-sm'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                }`}
+              >
+                <span className="flex items-center gap-1.5">
+                  {tab.label}
+                  <span className={`px-1.5 py-0.25 text-[9px] rounded-full font-black ${
+                    activeTab === tab.id ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-650'
+                  }`}>
+                    {tab.count}
+                  </span>
+                </span>
+              </button>
+            ))}
+          </div>
 
-                      <div className="text-left sm:text-right shrink-0">
-                        <span className="text-lg font-bold text-slate-850">₹{enr.pricePaid.toLocaleString()}</span>
-                        <p className="text-[9px] font-semibold text-slate-400 mt-0.5">Paid successfully</p>
+          {/* Transactions List */}
+          <div className="space-y-4">
+            {filteredTransactions.length === 0 ? (
+              <div className="text-center py-16 bg-white border border-slate-150 rounded-2xl p-5 shadow-2xs space-y-4">
+                <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center mx-auto text-slate-350">
+                  <FileText size={22} />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-slate-800 text-sm">No transaction records found</h4>
+                  <p className="text-xs text-slate-500 font-semibold mt-1 max-w-xs mx-auto">
+                    There are no invoices matching the selected tab. Explore programs to get started!
+                  </p>
+                </div>
+                <Link 
+                  href="/#programs" 
+                  className="inline-flex items-center gap-1.5 px-4.5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-full shadow-sm hover:scale-102 active:scale-98 transition-all"
+                >
+                  Browse Catalog <ArrowRight size={12} />
+                </Link>
+              </div>
+            ) : (
+              filteredTransactions.map((tx) => (
+                <div 
+                  key={tx.id}
+                  className="group bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs hover:shadow-sm hover:border-slate-300 transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-5 relative overflow-hidden"
+                >
+                  {/* Left branding colored accent bar */}
+                  <div className={`absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b ${
+                    tx.type === 'PROGRAM' ? 'from-purple-500 to-indigo-600' : 'from-rose-500 to-pink-600'
+                  }`} />
+                  
+                  <div className="flex items-start gap-4">
+                    {/* Styled Icon */}
+                    {tx.type === 'PROGRAM' ? (
+                      <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-650 flex items-center justify-center border border-purple-100/60 shadow-3xs shrink-0 group-hover:scale-105 transition-transform duration-300">
+                        <GraduationCap size={20} />
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-650 flex items-center justify-center border border-rose-100/60 shadow-3xs shrink-0 group-hover:scale-105 transition-transform duration-300">
+                        <BookOpen size={20} />
+                      </div>
+                    )}
+                    
+                    <div className="space-y-1.5 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`inline-flex items-center gap-1 text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                          tx.type === 'PROGRAM' 
+                            ? 'bg-purple-50 border border-purple-100 text-purple-750' 
+                            : 'bg-rose-50 border border-rose-100 text-rose-750'
+                        }`}>
+                          {tx.badgeText}
+                        </span>
+                        <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                          <Calendar size={11} />
+                          {tx.date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
+                        
+                        {/* Role tag if program and child-linked */}
+                        {tx.type === 'PROGRAM' && tx.original.user?.id && user?.id && tx.original.user.id !== user.id && (
+                          <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-full border uppercase tracking-wider ${
+                            tx.original.user?.role === 'TEEN' 
+                              ? 'bg-purple-50 text-purple-650 border-purple-200/60' 
+                              : 'bg-blue-50 text-blue-600 border-blue-200/60'
+                          }`}>
+                            By {tx.original.user?.role === 'TEEN' ? 'Daughter' : 'Parent'}
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="text-sm md:text-base font-black text-slate-800 leading-snug group-hover:text-primary transition-colors">
+                        {tx.title}
+                      </h3>
+                      
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[10px] font-bold text-slate-500 pt-0.5">
+                        <span>ID: <span className="font-mono text-slate-700">{tx.id.slice(0, 8)}...</span></span>
+                        {tx.type === 'BOOK' && tx.city && (
+                          <span className="flex items-center gap-0.5">
+                            <MapPin size={11} className="text-slate-450" /> City: <span className="text-slate-700">{tx.city}</span>
+                          </span>
+                        )}
                       </div>
                     </div>
+                  </div>
 
-                    <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-semibold text-slate-500">
-                      <div className="flex flex-wrap gap-4">
-                        <div>
-                          <span className="text-[9px] font-bold text-slate-400 block">Registration ID</span>
-                          <span className="text-slate-700 font-bold font-mono text-[11px] block mt-0.5">{enr.id}</span>
-                        </div>
-                        <div>
-                          <span className="text-[9px] font-bold text-slate-400 block">Enrollment Status</span>
-                          <span className="text-emerald-600 font-bold flex items-center gap-1 mt-0.5 text-[11px]">
-                            <BadgeCheck size={13} /> {enr.status}
-                          </span>
-                        </div>
+                  <div className="flex flex-row md:flex-col md:items-end justify-between items-center gap-3 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100">
+                    <div className="text-left md:text-right">
+                      <span className="text-lg md:text-xl font-black text-slate-900">₹{tx.amount.toLocaleString('en-IN')}</span>
+                      <div className="flex items-center md:justify-end gap-1.5 mt-0.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[9px] font-black text-slate-450 uppercase tracking-widest">
+                          {tx.type === 'BOOK' && tx.orderStatus ? tx.orderStatus : 'Successful'}
+                        </span>
                       </div>
-
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => setActiveInvoice({ type: 'PROGRAM', data: enr })}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-650 hover:text-slate-800 rounded-lg text-[11px] font-bold shadow-sm transition-all cursor-pointer active:scale-95"
-                        >
-                          <FileText size={12} />
-                          Invoice
-                        </button>
+                    </div>
+                    
+                    <div className="flex items-center gap-2.5">
+                      <button
+                        onClick={() => setActiveInvoice({ type: tx.type, data: tx.original })}
+                        className="inline-flex items-center gap-1 px-3.5 py-1.5 border border-slate-205 hover:border-slate-350 hover:bg-slate-50 text-slate-650 hover:text-slate-800 rounded-full text-[10px] font-extrabold shadow-3xs transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+                      >
+                        <FileText size={11} /> Invoice
+                      </button>
+                      
+                      {tx.type === 'PROGRAM' ? (
                         <Link 
                           href="/dashboard"
-                          className="inline-flex items-center gap-1 text-primary hover:text-primary-dark font-bold text-[11px] group"
+                          className="inline-flex items-center gap-0.5 text-primary hover:text-primary-dark font-extrabold text-[10px] bg-slate-50 hover:bg-slate-100 border border-slate-150 px-3.5 py-1.5 rounded-full shadow-3xs transition-all whitespace-nowrap group-hover:border-slate-300"
                         >
-                          Go to Workspace <ArrowRight className="group-hover:translate-x-0.5 transition-transform" size={12} />
+                          Workspace <ArrowRight className="group-hover:translate-x-0.5 transition-transform" size={11} />
                         </Link>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Book Payments Section */}
-          <div className="space-y-3.5 pt-2">
-            <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">
-              Book Purchases
-            </h2>
-            
-            <div className="space-y-4">
-              {orders.length === 0 ? (
-                <div className="text-center py-10 bg-white border border-slate-100 rounded-xl p-5 shadow-sm space-y-3">
-                  <div className="w-11 h-11 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center mx-auto text-slate-300">
-                    <ShoppingBag size={20} />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-850 text-sm">No Book Orders Found</h4>
-                    <p className="text-xs text-slate-450 font-medium mt-0.5 max-w-xs mx-auto">
-                      You haven't ordered the Gigi Book guide yet. Visit our store to get your copy!
-                    </p>
-                  </div>
-                  <Link 
-                    href="/gigi-the-awkward-age-book" 
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-primary text-white font-bold text-xs rounded-lg shadow-sm hover:scale-[1.01] active:scale-[0.99] transition-all"
-                  >
-                    Go to Store <ArrowRight size={12} />
-                  </Link>
-                </div>
-              ) : (
-                orders.map((order) => (
-                  <div 
-                    key={order.id}
-                    className="bg-white border border-slate-100 rounded-xl p-5 shadow-sm relative overflow-hidden border-t-4 border-t-primary"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">
-                            Gigi Book Order
-                          </span>
-                          <span className="text-[10px] font-medium text-slate-400 flex items-center gap-1">
-                            <Calendar size={11} />
-                            {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                          </span>
-                        </div>
-                        <h3 className="text-base font-bold text-slate-800 mt-1">
-                          {order.items?.map((it: any) => `${it.book?.title || 'Gigi Book'} (x${it.quantity})`).join(', ')}
-                        </h3>
-                      </div>
-
-                      <div className="text-left sm:text-right shrink-0">
-                        <span className="text-lg font-bold text-slate-850">₹{order.totalAmount.toLocaleString()}</span>
-                        <p className="text-[9px] font-semibold text-slate-400 mt-0.5">
-                          {order.paymentStatus === 'COMPLETED' ? 'Paid successfully' : order.paymentStatus || 'Placed'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-semibold text-slate-500">
-                      <div className="flex flex-wrap gap-4">
-                        <div>
-                          <span className="text-[9px] font-bold text-slate-400 block">Order ID</span>
-                          <span className="text-slate-700 font-bold font-mono text-[11px] block mt-0.5">{order.id}</span>
-                        </div>
-                        <div>
-                          <span className="text-[9px] font-bold text-slate-400 block">Order Status</span>
-                          <span className="text-slate-700 font-bold flex items-center gap-1 mt-0.5 text-[11px]">
-                            <ShoppingBag size={12} className="text-primary" /> {order.orderStatus}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-[9px] font-bold text-slate-400 block">Deliver to</span>
-                          <span className="text-slate-650 font-bold flex items-center gap-1 mt-0.5 text-[11px]">
-                            <MapPin size={11} className="text-slate-400" /> {order.city || 'N/A'}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => setActiveInvoice({ type: 'BOOK', data: order })}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-655 hover:text-slate-800 rounded-lg text-[11px] font-bold shadow-sm transition-all cursor-pointer active:scale-95"
-                        >
-                          <FileText size={12} />
-                          Invoice
-                        </button>
+                      ) : (
                         <Link 
-                          href={`/dashboard/orders/${order.id}`}
-                          className="inline-flex items-center gap-1 text-primary hover:text-primary-dark font-bold text-[11px] group"
+                          href={`/dashboard/orders/${tx.id}`}
+                          className="inline-flex items-center gap-0.5 text-primary hover:text-primary-dark font-extrabold text-[10px] bg-slate-50 hover:bg-slate-100 border border-slate-150 px-3.5 py-1.5 rounded-full shadow-3xs transition-all whitespace-nowrap group-hover:border-slate-300"
                         >
-                          Track Order <ArrowRight className="group-hover:translate-x-0.5 transition-transform" size={12} />
+                          Track <ArrowRight className="group-hover:translate-x-0.5 transition-transform" size={11} />
                         </Link>
-                      </div>
+                      )}
                     </div>
                   </div>
-                ))
-              )}
-            </div>
+                </div>
+              ))
+            )}
           </div>
-
         </div>
 
         {/* RIGHT COLUMN: Support, Security, FAQs (lg:col-span-4) */}
-        <div className="lg:col-span-4 space-y-5">
+        <div className="lg:col-span-4 space-y-6">
           
+          {/* Quick Billing Support Card */}
+          <div className="bg-gradient-to-br from-[#FFF8F8] to-[#FFFBFB] border border-rose-200/60 rounded-2xl p-5 shadow-2xs space-y-4">
+            <h4 className="text-xs font-black text-rose-750 uppercase tracking-widest flex items-center gap-2">
+              <MessageCircle size={16} className="text-rose-500 animate-pulse" />
+              Billing Assistance
+            </h4>
+            <p className="text-xs font-bold text-slate-650 leading-relaxed">
+              Have questions about your invoice, tax structure, or need corporate reimbursement details? Chat directly with our finance coordinator.
+            </p>
+            <button
+              onClick={() => window.open('https://wa.me/919380724606?text=Hi,%20I%2520have%2520a%2520billing%2520inquiry%2520from%2520my%2520dashboard', '_blank')}
+              className="w-full bg-[#25D366] hover:bg-[#20BA56] text-white font-extrabold py-2.5 px-4 rounded-full flex items-center justify-center gap-1.5 text-xs shadow-md transition-all duration-200 active:scale-95 cursor-pointer"
+            >
+              <MessageCircle size={14} className="fill-white" /> Chat on WhatsApp
+            </button>
+          </div>
+
           {/* Safety Verification Badge */}
-          <div className="bg-white border border-slate-100 rounded-xl p-5 shadow-sm space-y-3.5">
-            <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <ShieldCheck className="text-green-500" size={16} />
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs space-y-3.5">
+            <h4 className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+              <ShieldCheck className="text-emerald-500 shrink-0" size={16} />
               Billing Security
             </h4>
-            <p className="text-xs font-medium text-slate-500 leading-relaxed">
+            <p className="text-xs font-bold text-slate-600 leading-relaxed">
               Every checkout is processed securely using modern 256-bit encryption through Razorpay, India's leading payment infrastructure. 
             </p>
-            <div className="border-t border-slate-100 pt-2.5 flex items-center gap-2.5 text-[9px] font-bold text-slate-400">
-              <span>🔒 PCI-DSS Compliant</span>
+            <div className="border-t border-slate-100 pt-3.5 flex items-center gap-2.5 text-[9px] font-black text-slate-400">
+              <span className="flex items-center gap-0.5">🔒 PCI-DSS Compliant</span>
               <span>•</span>
-              <span>💳 UPI & Card Safe</span>
+              <span className="flex items-center gap-0.5">💳 UPI & Card Safe</span>
             </div>
           </div>
 
           {/* Billing FAQs */}
-          <div className="bg-white border border-slate-100 rounded-xl p-5 shadow-sm space-y-4">
-            <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <HelpCircle className="text-primary" size={16} />
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs space-y-4">
+            <h4 className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+              <HelpCircle className="text-primary shrink-0" size={16} />
               Billing FAQs
             </h4>
 
-            <div className="space-y-3 text-xs">
-              <div className="space-y-0.5">
-                <h5 className="font-bold text-slate-700">How do I access sessions after enrolling?</h5>
-                <p className="text-slate-500 font-medium leading-relaxed">
+            <div className="space-y-3.5 text-xs">
+              <div className="space-y-1">
+                <h5 className="font-bold text-slate-800">How do I access sessions after enrolling?</h5>
+                <p className="text-slate-550 font-medium leading-relaxed">
                   Log in with the registered phone number. Your dashboard immediately hosts live Google Meet links for active program cohorts.
                 </p>
               </div>
 
-              <div className="space-y-0.5">
-                <h5 className="font-bold text-slate-700">Can I request a payment refund?</h5>
-                <p className="text-slate-500 font-medium leading-relaxed">
+              <div className="space-y-1">
+                <h5 className="font-bold text-slate-800">Can I request a payment refund?</h5>
+                <p className="text-slate-550 font-medium leading-relaxed">
                   Refunds are subject to terms based on book shipping and program session completions. Reach out directly to support at WhatsApp or email.
                 </p>
               </div>
 
-              <div className="space-y-0.5">
-                <h5 className="font-bold text-slate-700">How do I get my Tax Invoice?</h5>
-                <p className="text-slate-500 font-medium leading-relaxed">
+              <div className="space-y-1">
+                <h5 className="font-bold text-slate-800">How do I get my Tax Invoice?</h5>
+                <p className="text-slate-550 font-medium leading-relaxed">
                   Tax invoice structures are dynamically printed above. If you need a formal PDF for corporate reimbursement, chat with our coordinator on WhatsApp.
                 </p>
               </div>

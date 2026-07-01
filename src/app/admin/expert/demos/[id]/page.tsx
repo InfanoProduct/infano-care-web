@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProgramsService, DemoSession } from '@/services/programs.service';
 import { 
-  ArrowLeft, Calendar, Clock, Phone, Mail, Sliders, Check, Loader2, Award 
+  ArrowLeft, Calendar, Clock, Phone, Mail, Sliders, Check, Loader2, Award, Video, Users, AlertCircle 
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -83,10 +83,22 @@ export default function DemoSessionDetail({ params }: { params: Promise<{ id: st
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
+  const [currentStatus, setCurrentStatus] = useState<string>('PENDING');
+  const [meetLink, setMeetLink] = useState<string>('');
+  const [slotDate, setSlotDate] = useState<string>('');
+  const [slotTime, setSlotTime] = useState<string>('');
+  const [savingSchedule, setSavingSchedule] = useState(false);
+
   const fetchDemo = async () => {
     try {
       const data = await ProgramsService.getAdminDemo(resolvedParams.id);
-      setDemo(data);
+      if (data) {
+        setDemo(data);
+        setCurrentStatus(data.status);
+        setMeetLink(data.meetLink || '');
+        setSlotDate(data.slotDate || '');
+        setSlotTime(data.slotTime || '');
+      }
     } catch (error) {
       console.error(error);
       toast.error('Failed to load demo session details');
@@ -103,14 +115,40 @@ export default function DemoSessionDetail({ params }: { params: Promise<{ id: st
     if (!demo) return;
     setUpdating(true);
     try {
-      await ProgramsService.updateDemoStatus(demo.id, { status });
+      const updated = await ProgramsService.updateDemoStatus(demo.id, { status });
+      setCurrentStatus(status);
+      setDemo(updated);
       toast.success(`Booking status updated to ${formatStatus(status)}`);
-      fetchDemo();
     } catch (error) {
       console.error(error);
       toast.error('Failed to update status');
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleSaveSchedule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!demo) return;
+    setSavingSchedule(true);
+    try {
+      let targetStatus = currentStatus;
+      if (meetLink.trim() && currentStatus === 'PENDING') {
+        targetStatus = 'SCHEDULED';
+      }
+      const updated = await ProgramsService.updateDemoStatus(demo.id, {
+        meetLink,
+        slotDate,
+        slotTime,
+        status: targetStatus
+      });
+      setDemo(updated);
+      setCurrentStatus(targetStatus);
+      toast.success('Meeting scheduled successfully!');
+    } catch (error) {
+      toast.error('Failed to save meeting schedule');
+    } finally {
+      setSavingSchedule(false);
     }
   };
 
@@ -258,6 +296,79 @@ export default function DemoSessionDetail({ params }: { params: Promise<{ id: st
                 })}
               </div>
             </div>
+          </div>
+
+          {/* Schedule Demo Meeting Card */}
+          <div className="bg-white border border-border/30 rounded-3xl p-6 shadow-sm space-y-4">
+            <h3 className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 border-b border-slate-100 pb-2">
+              <Video size={14} className="text-primary" /> schedule demo meeting
+            </h3>
+
+            <form onSubmit={handleSaveSchedule} className="space-y-3 text-xs">
+              <div className="flex flex-col gap-1 p-2.5 bg-secondary/30 rounded-xl border border-border/20">
+                <span className="text-[10px] text-muted-foreground font-normal">Meet Link (Google Meet / Zoom)</span>
+                <input
+                  type="url"
+                  required
+                  placeholder="https://meet.google.com/abc-defg-hij"
+                  value={meetLink}
+                  onChange={(e) => setMeetLink(e.target.value)}
+                  className="w-full bg-white border border-border/20 rounded-lg px-2.5 py-1.5 text-xs text-slate-600 placeholder:text-slate-400 outline-none focus:border-primary/50 transition-all leading-normal"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1 p-2.5 bg-secondary/30 rounded-xl border border-border/20">
+                <span className="text-[10px] text-muted-foreground font-normal">Scheduled Date</span>
+                <input
+                  type="date"
+                  required
+                  value={slotDate}
+                  onChange={(e) => setSlotDate(e.target.value)}
+                  className="w-full bg-white border border-border/20 rounded-lg px-2.5 py-1.5 text-xs text-slate-600 outline-none focus:border-primary/50 transition-all cursor-pointer leading-normal"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1 p-2.5 bg-secondary/30 rounded-xl border border-border/20">
+                <span className="text-[10px] text-muted-foreground font-normal">Scheduled Time Slot</span>
+                <select
+                  required
+                  value={slotTime}
+                  onChange={(e) => setSlotTime(e.target.value)}
+                  className="w-full bg-white border border-border/20 rounded-lg px-2.5 py-1.5 text-xs text-slate-650 outline-none focus:border-primary/50 transition-all cursor-pointer leading-normal"
+                >
+                  <option value="">Select Time</option>
+                  <option value="09:00 AM - 09:30 AM">09:00 AM - 09:30 AM</option>
+                  <option value="09:30 AM - 10:00 AM">09:30 AM - 10:00 AM</option>
+                  <option value="10:00 AM - 10:30 AM">10:00 AM - 10:30 AM</option>
+                  <option value="10:30 AM - 11:00 AM">10:30 AM - 11:00 AM</option>
+                  <option value="11:00 AM - 11:30 AM">11:00 AM - 11:30 AM</option>
+                  <option value="11:30 AM - 12:00 PM">11:30 AM - 12:00 PM</option>
+                  <option value="12:00 PM - 12:30 PM">12:00 PM - 12:30 PM</option>
+                  <option value="12:30 PM - 01:00 PM">12:30 PM - 01:00 PM</option>
+                  <option value="02:00 PM - 02:30 PM">02:00 PM - 02:30 PM</option>
+                  <option value="02:30 PM - 03:00 PM">02:30 PM - 03:00 PM</option>
+                  <option value="03:00 PM - 03:30 PM">03:00 PM - 03:30 PM</option>
+                  <option value="03:30 PM - 04:00 PM">03:30 PM - 04:00 PM</option>
+                  <option value="04:00 PM - 04:30 PM">04:00 PM - 04:30 PM</option>
+                  <option value="04:30 PM - 05:00 PM">04:30 PM - 05:00 PM</option>
+                  <option value="05:00 PM - 05:30 PM">05:00 PM - 05:30 PM</option>
+                  <option value="05:30 PM - 06:00 PM">05:30 PM - 06:00 PM</option>
+                  <option value="06:00 PM - 06:30 PM">06:00 PM - 06:30 PM</option>
+                  <option value="06:30 PM - 07:00 PM">06:30 PM - 07:00 PM</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end pt-1">
+                <button
+                  type="submit"
+                  disabled={savingSchedule}
+                  className="w-full justify-center px-4 py-2 bg-primary text-white font-semibold rounded-xl shadow-md shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center gap-1.5 text-xs cursor-pointer disabled:opacity-50"
+                >
+                  {savingSchedule && <Loader2 className="animate-spin" size={12} />}
+                  <span>{savingSchedule ? 'scheduling...' : 'save schedule'}</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
 

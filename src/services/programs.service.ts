@@ -71,6 +71,7 @@ export interface DemoSession {
   status: string;
   isReadyToEnroll: boolean;
   comment: string | null;
+  meetLink?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -166,7 +167,7 @@ export const ProgramsService = {
   /**
    * Updates the status of a demo session request (e.g. PENDING, CONTACTED, SCHEDULED, COMPLETED, CANCELLED)
    */
-  async updateDemoStatus(id: string, payload: { status?: string; isReadyToEnroll?: boolean; comment?: string }): Promise<DemoSession> {
+  async updateDemoStatus(id: string, payload: { status?: string; isReadyToEnroll?: boolean; comment?: string; meetLink?: string; slotDate?: string; slotTime?: string }): Promise<DemoSession> {
     return apiClient.patch<DemoSession>(`/admin/programs/demos/${id}`, payload);
   },
 

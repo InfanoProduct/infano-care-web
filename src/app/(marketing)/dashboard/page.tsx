@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import {
   BookOpen, Calendar, ShieldCheck, Star, Sparkles,
   ChevronRight, Play, Loader2, Award, Layers, Compass, X, Check, ArrowRight, User, Users, Bookmark, Heart, GraduationCap,
-  Package, ShoppingBag, Truck
+  Package, ShoppingBag, Truck, Video
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 import { ProgramsService, Program, ProgramEnrollment } from '@/services/programs.service';
@@ -347,15 +347,24 @@ export default function CustomerDashboardOverview() {
                                 className="w-full px-3 py-2.5 bg-slate-50 border border-slate-205 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
                               >
                                 <option value="">Select Time</option>
-                                <option value="09:00 AM - 10:00 AM">09:00 AM - 10:00 AM</option>
-                                <option value="10:00 AM - 11:00 AM">10:00 AM - 11:00 AM</option>
-                                <option value="11:00 AM - 12:00 PM">11:00 AM - 12:00 PM</option>
-                                <option value="12:00 PM - 01:00 PM">12:00 PM - 01:00 PM</option>
-                                <option value="02:00 PM - 03:00 PM">02:00 PM - 03:00 PM</option>
-                                <option value="03:00 PM - 04:00 PM">03:00 PM - 04:00 PM</option>
-                                <option value="04:00 PM - 05:00 PM">04:00 PM - 05:00 PM</option>
-                                <option value="05:00 PM - 06:00 PM">05:00 PM - 06:00 PM</option>
-                                <option value="06:00 PM - 07:00 PM">06:00 PM - 07:00 PM</option>
+                                <option value="09:00 AM - 09:30 AM">09:00 AM - 09:30 AM</option>
+                                <option value="09:30 AM - 10:00 AM">09:30 AM - 10:00 AM</option>
+                                <option value="10:00 AM - 10:30 AM">10:00 AM - 10:30 AM</option>
+                                <option value="10:30 AM - 11:00 AM">10:30 AM - 11:00 AM</option>
+                                <option value="11:00 AM - 11:30 AM">11:00 AM - 11:30 AM</option>
+                                <option value="11:30 AM - 12:00 PM">11:30 AM - 12:00 PM</option>
+                                <option value="12:00 PM - 12:30 PM">12:00 PM - 12:30 PM</option>
+                                <option value="12:30 PM - 01:00 PM">12:30 PM - 01:00 PM</option>
+                                <option value="02:00 PM - 02:30 PM">02:00 PM - 02:30 PM</option>
+                                <option value="02:30 PM - 03:00 PM">02:30 PM - 03:00 PM</option>
+                                <option value="03:00 PM - 03:30 PM">03:00 PM - 03:30 PM</option>
+                                <option value="03:30 PM - 04:00 PM">03:30 PM - 04:00 PM</option>
+                                <option value="04:00 PM - 04:30 PM">04:00 PM - 04:30 PM</option>
+                                <option value="04:30 PM - 05:00 PM">04:30 PM - 05:00 PM</option>
+                                <option value="05:00 PM - 05:30 PM">05:00 PM - 05:30 PM</option>
+                                <option value="05:30 PM - 06:00 PM">05:30 PM - 06:00 PM</option>
+                                <option value="06:00 PM - 06:30 PM">06:00 PM - 06:30 PM</option>
+                                <option value="06:30 PM - 07:00 PM">06:30 PM - 07:00 PM</option>
                               </select>
                             </div>
                           </div>
@@ -468,14 +477,26 @@ export default function CustomerDashboardOverview() {
                               </div>
                             </div>
 
-                            <span className={`text-[9px] font-bold px-2.5 py-1 rounded-full border shrink-0 ${demo.status === 'PENDING' ? 'bg-amber-50 text-amber-600 border-amber-200' :
-                              demo.status === 'CONTACTED' ? 'bg-teal-50 text-teal-600 border-teal-200' :
-                                demo.status === 'SCHEDULED' ? 'bg-purple-50 text-purple-600 border-purple-200' :
-                                  demo.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
-                                    'bg-rose-50 text-rose-600 border-rose-200'
-                              }`}>
-                              {demo.status}
-                            </span>
+                            <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 shrink-0">
+                              {demo.status === 'SCHEDULED' && demo.meetLink && (
+                                <a
+                                  href={demo.meetLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-2.5 py-1 bg-purple-650 hover:bg-purple-750 text-white rounded-lg text-[9px] font-bold transition-all shadow-3xs flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Video size={10} /> Join
+                                </a>
+                              )}
+                              <span className={`text-[9px] font-bold px-2.5 py-1 rounded-full border shrink-0 ${demo.status === 'PENDING' ? 'bg-amber-50 text-amber-600 border-amber-200' :
+                                demo.status === 'CONTACTED' ? 'bg-teal-50 text-teal-600 border-teal-200' :
+                                  demo.status === 'SCHEDULED' ? 'bg-purple-50 text-purple-600 border-purple-200' :
+                                    demo.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                                      'bg-rose-50 text-rose-600 border-rose-200'
+                                }`}>
+                                {demo.status}
+                              </span>
+                            </div>
                           </div>
                         );
                       })}

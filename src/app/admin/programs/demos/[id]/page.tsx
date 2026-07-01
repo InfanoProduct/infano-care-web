@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProgramsService, DemoSession } from '@/services/programs.service';
-import { ArrowLeft, Users, Phone, Mail, Award, Calendar, Clock, Loader2, AlertCircle, Sparkles, Check, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Users, Phone, Mail, Award, Calendar, Clock, Loader2, AlertCircle, Sparkles, Check, ShieldAlert, Video } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 // Helper functions for human-friendly questionnaire labels
@@ -81,6 +81,12 @@ export default function DemoDetailPage({ params }: { params: Promise<{ id: strin
   const [comment, setComment] = useState<string>('');
   const [saving, setSaving] = useState(false);
 
+  // Scheduling fields
+  const [meetLink, setMeetLink] = useState<string>('');
+  const [slotDate, setSlotDate] = useState<string>('');
+  const [slotTime, setSlotTime] = useState<string>('');
+  const [savingSchedule, setSavingSchedule] = useState(false);
+
   const fetchDemo = async () => {
     try {
       const data = await ProgramsService.getAdminDemo(resolvedParams.id);
@@ -89,6 +95,9 @@ export default function DemoDetailPage({ params }: { params: Promise<{ id: strin
         setCurrentStatus(data.status);
         setReadyToEnroll(data.isReadyToEnroll || false);
         setComment(data.comment || '');
+        setMeetLink(data.meetLink || '');
+        setSlotDate(data.slotDate || '');
+        setSlotTime(data.slotTime || '');
       } else {
         toast.error('Demo booking not found');
       }
@@ -130,6 +139,31 @@ export default function DemoDetailPage({ params }: { params: Promise<{ id: strin
       toast.error('Failed to save readiness details');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSaveSchedule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!demo) return;
+    setSavingSchedule(true);
+    try {
+      let targetStatus = currentStatus;
+      if (meetLink.trim() && currentStatus === 'PENDING') {
+        targetStatus = 'SCHEDULED';
+      }
+      const updated = await ProgramsService.updateDemoStatus(demo.id, {
+        meetLink,
+        slotDate,
+        slotTime,
+        status: targetStatus
+      });
+      setDemo(updated);
+      setCurrentStatus(targetStatus);
+      toast.success('Meeting scheduled successfully!');
+    } catch (error) {
+      toast.error('Failed to save meeting schedule');
+    } finally {
+      setSavingSchedule(false);
     }
   };
 
@@ -189,7 +223,7 @@ export default function DemoDetailPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Parent & Slot Details Card */}
         <div className="bg-white border border-border/30 rounded-[2.5rem] shadow-xl p-8 space-y-6">
           <h2 className="text-lg font-medium text-slate-600 border-b border-border/30 pb-3 flex items-center gap-2">
@@ -233,6 +267,80 @@ export default function DemoDetailPage({ params }: { params: Promise<{ id: strin
               )}
             </div>
           </div>
+        </div>
+
+        {/* Schedule Demo Meeting Card */}
+        <div className="bg-white border border-border/30 rounded-[2.5rem] shadow-xl p-8 space-y-6">
+          <h2 className="text-lg font-medium text-slate-600 border-b border-border/30 pb-3 flex items-center gap-2">
+            <Video size={20} className="text-primary/80" />
+            Schedule Demo Meeting
+          </h2>
+
+          <form onSubmit={handleSaveSchedule} className="space-y-4 font-normal text-sm">
+            <div className="flex flex-col gap-1 p-3 bg-secondary/30 rounded-2xl border border-border/20">
+              <span className="text-xs text-muted-foreground/80 font-normal">Meet Link (Google Meet / Zoom)</span>
+              <input
+                type="url"
+                required
+                placeholder="https://meet.google.com/abc-defg-hij"
+                value={meetLink}
+                onChange={(e) => setMeetLink(e.target.value)}
+                className="w-full bg-white border border-border/20 rounded-xl px-3 py-2 text-xs font-normal text-slate-600 placeholder:text-slate-400 outline-none focus:border-primary/50 transition-all leading-relaxed"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1 p-3 bg-secondary/30 rounded-2xl border border-border/20">
+              <span className="text-xs text-muted-foreground/80 font-normal">Scheduled Date</span>
+              <input
+                type="date"
+                required
+                value={slotDate}
+                onChange={(e) => setSlotDate(e.target.value)}
+                className="w-full bg-white border border-border/20 rounded-xl px-3 py-2 text-xs font-normal text-slate-600 outline-none focus:border-primary/50 transition-all cursor-pointer leading-relaxed"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1 p-3 bg-secondary/30 rounded-2xl border border-border/20">
+              <span className="text-xs text-muted-foreground/80 font-normal">Scheduled Time Slot</span>
+              <select
+                required
+                value={slotTime}
+                onChange={(e) => setSlotTime(e.target.value)}
+                className="w-full bg-white border border-border/20 rounded-xl px-3 py-2 text-xs font-normal text-slate-650 outline-none focus:border-primary/50 transition-all cursor-pointer leading-relaxed"
+              >
+                <option value="">Select Time</option>
+                <option value="09:00 AM - 09:30 AM">09:00 AM - 09:30 AM</option>
+                <option value="09:30 AM - 10:00 AM">09:30 AM - 10:00 AM</option>
+                <option value="10:00 AM - 10:30 AM">10:00 AM - 10:30 AM</option>
+                <option value="10:30 AM - 11:00 AM">10:30 AM - 11:00 AM</option>
+                <option value="11:00 AM - 11:30 AM">11:00 AM - 11:30 AM</option>
+                <option value="11:30 AM - 12:00 PM">11:30 AM - 12:00 PM</option>
+                <option value="12:00 PM - 12:30 PM">12:00 PM - 12:30 PM</option>
+                <option value="12:30 PM - 01:00 PM">12:30 PM - 01:00 PM</option>
+                <option value="02:00 PM - 02:30 PM">02:00 PM - 02:30 PM</option>
+                <option value="02:30 PM - 03:00 PM">02:30 PM - 03:00 PM</option>
+                <option value="03:00 PM - 03:30 PM">03:00 PM - 03:30 PM</option>
+                <option value="03:30 PM - 04:00 PM">03:30 PM - 04:00 PM</option>
+                <option value="04:00 PM - 04:30 PM">04:00 PM - 04:30 PM</option>
+                <option value="04:30 PM - 05:00 PM">04:30 PM - 05:00 PM</option>
+                <option value="05:00 PM - 05:30 PM">05:00 PM - 05:30 PM</option>
+                <option value="05:30 PM - 06:00 PM">05:30 PM - 06:00 PM</option>
+                <option value="06:00 PM - 06:30 PM">06:00 PM - 06:30 PM</option>
+                <option value="06:30 PM - 07:00 PM">06:30 PM - 07:00 PM</option>
+              </select>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="submit"
+                disabled={savingSchedule}
+                className="w-full justify-center px-5 py-2.5 bg-primary text-white font-medium rounded-xl shadow-md shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2 text-xs cursor-pointer disabled:opacity-50"
+              >
+                {savingSchedule && <Loader2 className="animate-spin" size={12} />}
+                <span>{savingSchedule ? 'Scheduling...' : 'Save Schedule'}</span>
+              </button>
+            </div>
+          </form>
         </div>
 
         {/* Booking Status & Enrollment Readiness Card */}

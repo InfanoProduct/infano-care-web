@@ -631,14 +631,22 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
 
         // Time slot options
         const TIME_SLOTS = [
-          { value: '10:00 AM - 11:00 AM', label: '10:00 AM - 11:00 AM', period: 'Morning' },
-          { value: '11:00 AM - 12:00 PM', label: '11:00 AM - 12:00 PM', period: 'Morning' },
-          { value: '12:00 PM - 01:00 PM', label: '12:00 PM - 01:00 PM', period: 'Afternoon' },
-          { value: '02:00 PM - 03:00 PM', label: '02:00 PM - 03:00 PM', period: 'Afternoon' },
-          { value: '03:00 PM - 04:00 PM', label: '03:00 PM - 04:00 PM', period: 'Afternoon' },
-          { value: '04:00 PM - 05:00 PM', label: '04:00 PM - 05:00 PM', period: 'Evening' },
-          { value: '05:00 PM - 06:00 PM', label: '05:00 PM - 06:00 PM', period: 'Evening' },
-          { value: '06:00 PM - 07:00 PM', label: '06:00 PM - 07:00 PM', period: 'Evening' },
+          { value: '10:00 AM - 10:30 AM', label: '10:00 AM - 10:30 AM', period: 'Morning' },
+          { value: '10:30 AM - 11:00 AM', label: '10:30 AM - 11:00 AM', period: 'Morning' },
+          { value: '11:00 AM - 11:30 AM', label: '11:00 AM - 11:30 AM', period: 'Morning' },
+          { value: '11:30 AM - 12:00 PM', label: '11:30 AM - 12:00 PM', period: 'Morning' },
+          { value: '12:00 PM - 12:30 PM', label: '12:00 PM - 12:30 PM', period: 'Afternoon' },
+          { value: '12:30 PM - 01:00 PM', label: '12:30 PM - 01:00 PM', period: 'Afternoon' },
+          { value: '02:00 PM - 02:30 PM', label: '02:00 PM - 02:30 PM', period: 'Afternoon' },
+          { value: '02:30 PM - 03:00 PM', label: '02:30 PM - 03:00 PM', period: 'Afternoon' },
+          { value: '03:00 PM - 03:30 PM', label: '03:00 PM - 03:30 PM', period: 'Afternoon' },
+          { value: '03:30 PM - 04:00 PM', label: '03:30 PM - 04:00 PM', period: 'Afternoon' },
+          { value: '04:00 PM - 04:30 PM', label: '04:00 PM - 04:30 PM', period: 'Evening' },
+          { value: '04:30 PM - 05:00 PM', label: '04:30 PM - 05:00 PM', period: 'Evening' },
+          { value: '05:00 PM - 05:30 PM', label: '05:00 PM - 05:30 PM', period: 'Evening' },
+          { value: '05:30 PM - 06:00 PM', label: '05:30 PM - 06:00 PM', period: 'Evening' },
+          { value: '06:00 PM - 06:30 PM', label: '06:00 PM - 06:30 PM', period: 'Evening' },
+          { value: '06:30 PM - 07:00 PM', label: '06:30 PM - 07:00 PM', period: 'Evening' },
         ];
 
         return (

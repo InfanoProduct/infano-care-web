@@ -752,6 +752,17 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0 z-10">
+                      {demo.status === 'SCHEDULED' && demo.meetLink && (
+                        <a
+                          href={demo.meetLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3.5 py-1.5 bg-purple-650 hover:bg-purple-750 text-white font-bold rounded-xl border border-purple-700 shadow-3xs transition-all text-[10px] uppercase tracking-wider flex items-center gap-1.5 cursor-pointer hover:scale-105 active:scale-95"
+                        >
+                          <Video size={12} />
+                          Join Meet
+                        </a>
+                      )}
                       <span className={`text-[9px] font-black px-3 py-1.5 rounded-full border shadow-3xs uppercase tracking-wider ${
                         demo.status === 'PENDING' ? 'bg-amber-50 text-amber-700 border-amber-200/60' :
                         demo.status === 'CONTACTED' ? 'bg-teal-50 text-teal-700 border-teal-200/60' :

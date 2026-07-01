@@ -143,14 +143,13 @@ export default function EnrolledProgramDetailsPage() {
                 <div
                   key={index}
                   className="p-4 bg-white border border-slate-200/60 rounded-lg shadow-sm hover:shadow-md transition-shadow flex items-start gap-3.5 relative overflow-hidden"
-                  style={{
-                    backgroundImage: session.thumbnailUrl
-                      ? `linear-gradient(to right, rgba(255, 255, 255, 0.96) 60%, rgba(255, 255, 255, 0.88)), url(${session.thumbnailUrl})`
-                      : undefined,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'right center',
-                  }}
                 >
+                  {session.thumbnailUrl && (
+                    <div
+                      className="absolute inset-0 bg-cover bg-right pointer-events-none filter blur-[6px] opacity-15"
+                      style={{ backgroundImage: `url(${session.thumbnailUrl})` }}
+                    />
+                  )}
                   <div className="absolute top-0 left-0 h-full w-1 bg-green-500" />
                   <div className="w-9 h-9 bg-green-50 text-green-600 border border-green-100 rounded-lg flex items-center justify-center shrink-0 relative z-10">
                     <CheckCircle2 size={18} className="fill-green-100" />
@@ -170,16 +169,14 @@ export default function EnrolledProgramDetailsPage() {
                 <div
                   key={index}
                   id="upcoming-session"
-                  className="p-5 border border-purple-200 rounded-lg shadow-md flex flex-col gap-3.5 relative overflow-hidden sm:col-span-2"
-                  style={{
-                    backgroundColor: '#F3E8FF',
-                    backgroundImage: session.thumbnailUrl
-                      ? `linear-gradient(to right, rgba(243, 232, 255, 0.96) 60%, rgba(243, 232, 255, 0.85)), url(${session.thumbnailUrl})`
-                      : 'linear-gradient(to bottom right, #FAF5FF, #EEF2F6)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'right center',
-                  }}
+                  className="p-5 border border-purple-200 rounded-lg shadow-md flex flex-col gap-3.5 relative overflow-hidden sm:col-span-2 bg-[#F3E8FF]"
                 >
+                  {session.thumbnailUrl && (
+                    <div
+                      className="absolute inset-0 bg-cover bg-right pointer-events-none filter blur-[6px] opacity-20"
+                      style={{ backgroundImage: `url(${session.thumbnailUrl})` }}
+                    />
+                  )}
                   <div className="flex items-start gap-3.5 relative z-10">
                     <div className="w-10 h-10 bg-purple-600 text-white rounded-lg flex items-center justify-center shrink-0 shadow-md animate-pulse">
                       <Play size={18} className="fill-white translate-x-0.5" />
@@ -220,15 +217,14 @@ export default function EnrolledProgramDetailsPage() {
               return (
                 <div
                   key={index}
-                  className="p-4 bg-slate-50 border border-slate-200/60 rounded-lg flex items-start gap-3.5 hover:border-slate-300 transition-colors overflow-hidden"
-                  style={{
-                    backgroundImage: session.thumbnailUrl
-                      ? `linear-gradient(to right, rgba(248, 250, 252, 0.96) 60%, rgba(248, 250, 252, 0.88)), url(${session.thumbnailUrl})`
-                      : undefined,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'right center',
-                  }}
+                  className="p-4 bg-slate-50 border border-slate-200/60 rounded-lg flex items-start gap-3.5 hover:border-slate-300 transition-colors overflow-hidden relative"
                 >
+                  {session.thumbnailUrl && (
+                    <div
+                      className="absolute inset-0 bg-cover bg-right pointer-events-none filter blur-[6px] opacity-10 grayscale"
+                      style={{ backgroundImage: `url(${session.thumbnailUrl})` }}
+                    />
+                  )}
                   <div className="w-8 h-8 bg-white text-slate-400 border border-slate-200 rounded-lg flex items-center justify-center shrink-0 shadow-sm relative z-10">
                     <Lock size={16} />
                   </div>

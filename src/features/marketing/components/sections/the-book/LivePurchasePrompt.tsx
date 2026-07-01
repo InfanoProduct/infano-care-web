@@ -90,7 +90,7 @@ export function LivePurchasePrompt() {
       setIsVisible(false);
     }, 10000); // 3s delay + 7s active
 
-    // Start 40-second cycle scheduler
+    // Start 10-second cycle scheduler
     intervalRef.current = setInterval(() => {
       setCurrentIndex((prevIndex) => {
         const nextIndex = prevIndex + 1;
@@ -102,7 +102,7 @@ export function LivePurchasePrompt() {
       setTimeout(() => {
         setIsVisible(false);
       }, 7000);
-    }, 40000);
+    }, 10000);
 
 
     return () => {
@@ -170,7 +170,7 @@ export function LivePurchasePrompt() {
           animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
           exit={{ opacity: 0, y: 20, scale: 0.95 }}
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          className="fixed bottom-6 right-6 z-50 w-80 sm:w-85 glass-card rounded-2xl p-4 flex items-start gap-4 select-none font-sans overflow-hidden hover:shadow-glow hover:-translate-y-0.5 hover:border-primary/20"
+          className="fixed bottom-[9.5rem] right-3 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-1.5rem)] sm:w-max sm:max-w-md glass-card rounded-2xl p-4 flex items-start gap-4 select-none font-sans hover:shadow-glow hover:-translate-y-0.5 hover:border-primary/20"
         >
 
           {/* Premium Gradient Icon Block */}
@@ -184,8 +184,8 @@ export function LivePurchasePrompt() {
 
           {/* Text Content */}
           <div className="flex-1 pr-5">
-            <p className="text-slate-600 text-xs sm:text-[13px] leading-relaxed font-semibold">
-              <span className="font-heading font-extrabold text-slate-900 tracking-tight text-[13px] sm:text-[14.5px]">
+            <p className="text-slate-600 text-[11px] sm:text-[13px] leading-tight font-semibold whitespace-nowrap">
+              <span className="font-heading font-extrabold text-slate-900 tracking-tight text-[12px] sm:text-[14.5px]">
                 {currentPurchase.name}
               </span>{' '}
               ordered{' '}

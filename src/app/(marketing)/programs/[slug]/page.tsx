@@ -133,6 +133,7 @@ export default function ProgramDetailsPage() {
   const router = useRouter();
 
   const [program, setProgram] = useState<Program | null>(null);
+  const [programIndex, setProgramIndex] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -164,6 +165,7 @@ export default function ProgramDetailsPage() {
 
   const [userExists, setUserExists] = useState(false);
   const [isCheckingUser, setIsCheckingUser] = useState(false);
+  const [isOverviewExpanded, setIsOverviewExpanded] = useState(false);
 
   const getFullNormalizedPhone = () => {
     const cleanPhone = phone.replace(/\D/g, '');
@@ -203,10 +205,16 @@ export default function ProgramDetailsPage() {
         setErrorMsg(null);
 
         // Attempt backend fetch
-        const data = await ProgramsService.getProgram(id);
+        const [data, allPrograms] = await Promise.all([
+          ProgramsService.getProgram(id),
+          ProgramsService.getPrograms()
+        ]);
+        
         if (data) {
           setProgram(data);
           setClassRange(data.classRange);
+          const pIndex = allPrograms.findIndex(p => p.id === id || p.title.toLowerCase() === decodeURIComponent(id).toLowerCase());
+          setProgramIndex(Math.max(0, pIndex));
         } else {
           throw new Error('Not found');
         }
@@ -359,7 +367,8 @@ export default function ProgramDetailsPage() {
     );
   }
 
-  const theme = THEMES_MAP[program.title.toUpperCase()] || DEFAULT_THEME;
+  const themeKeys = Object.keys(THEMES_MAP);
+  const theme = THEMES_MAP[themeKeys[programIndex % themeKeys.length]] || DEFAULT_THEME;
   const sessionsList = program.sessionsList || [];
 
   return (
@@ -408,7 +417,7 @@ export default function ProgramDetailsPage() {
                 </div>
               )}
 
-              <h1 className={`text-5xl md:text-6xl font-black font-heading tracking-tight leading-[1.1] ${theme.accent} mb-5`}>
+              <h1 className={`text-4xl md:text-5xl font-black font-heading tracking-tight leading-[1.1] ${theme.accent} mb-5`}>
                 {program.title}
               </h1>
               <p className="text-xl md:text-2xl font-semibold text-slate-800 italic leading-relaxed pl-4 border-l-4 border-slate-200">
@@ -419,9 +428,17 @@ export default function ProgramDetailsPage() {
             {/* Description Card */}
             <div className="p-8 rounded-[2rem] bg-white border border-slate-100/80 shadow-md mb-8">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Program Overview</h3>
-              <p className="text-slate-600 text-base leading-relaxed font-medium">
-                {program.description || 'A structured cohort curriculum designed to guide and uplift young girls during critical development years.'}
-              </p>
+              <div className="relative">
+                <p className={`text-slate-600 text-base leading-relaxed font-medium transition-all duration-300 ${!isOverviewExpanded ? 'line-clamp-4' : ''}`}>
+                  {program.description || 'A structured cohort curriculum designed to guide and uplift young girls during critical development years.'}
+                </p>
+                <button 
+                  onClick={() => setIsOverviewExpanded(!isOverviewExpanded)}
+                  className={`text-[11px] font-bold uppercase tracking-widest mt-4 ${theme.accent} hover:opacity-80 transition-opacity flex items-center gap-1`}
+                >
+                  {isOverviewExpanded ? '- Show Less' : '+ Show More'}
+                </button>
+              </div>
 
               {/* Core quick details list */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mt-8 pt-8 border-t border-slate-100">
@@ -451,7 +468,9 @@ export default function ProgramDetailsPage() {
                   </div>
                   <div>
                     <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Consultations</h5>
-                    <p className="text-slate-800 font-bold text-sm">3 Free Consultation</p>
+                    <p className="text-slate-800 font-bold text-sm">
+                      {Array.isArray(program.consultations) ? program.consultations.length : 0} Free Consultation{(Array.isArray(program.consultations) ? program.consultations.length : 0) !== 1 ? 's' : ''}
+                    </p>
                   </div>
                 </div>
               </div>

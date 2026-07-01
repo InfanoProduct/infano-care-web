@@ -9,7 +9,8 @@ import { useAuthStore } from '@/store/auth-store';
 import { ShopService, Book } from '@/services/shop.service';
 import {
   ArrowLeft, CheckCircle2, ShoppingBag, Tag,
-  Loader2, CreditCard, Truck, AlertCircle
+  Loader2, CreditCard, Truck, AlertCircle,
+  Plus, Minus
 } from 'lucide-react';
 
 const bookImages = [
@@ -34,7 +35,6 @@ function CheckoutContent() {
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
-  const [orderSuccess, setOrderSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [cachedOrder, setCachedOrder] = useState<any>(null);
@@ -75,11 +75,7 @@ function CheckoutContent() {
     }
   }, [nameParam, phoneParam, emailParam, user]);
 
-  useEffect(() => {
-    if (orderSuccess) {
-      window.scrollTo(0, 0);
-    }
-  }, [orderSuccess]);
+
 
   useEffect(() => {
     setCachedOrder(null);
@@ -128,6 +124,27 @@ function CheckoutContent() {
     }
     loadBook();
   }, [bookId]);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production' && book) {
+      const windowObj = window as any;
+      windowObj.dataLayer = windowObj.dataLayer || [];
+      windowObj.dataLayer.push({ ecommerce: null });
+      windowObj.dataLayer.push({
+        event: 'begin_checkout',
+        ecommerce: {
+          currency: 'INR',
+          value: book.price * quantity,
+          items: [{
+            item_id: book.id,
+            item_name: book.title,
+            price: book.price,
+            quantity: quantity
+          }]
+        }
+      });
+    }
+  }, [book]);
 
   useEffect(() => {
     if (formData.pincode.length === 6) {
@@ -190,7 +207,7 @@ function CheckoutContent() {
     if (!book) return { subtotal: 0, gst: 0, delivery: 0, total: 0 };
     const baseSubtotal = book.price * quantity;
     const priceAfterDiscount = baseSubtotal - discountAmount;
-    const delivery = 0; // Free delivery for all orders
+    const delivery = formData.paymentMethod === 'COD' ? 40 : 0;
     const taxableValue = Math.round((priceAfterDiscount / 1.05) * 100) / 100;
     const gst = Math.round((priceAfterDiscount - taxableValue) * 100) / 100;
     const total = priceAfterDiscount + delivery;
@@ -259,7 +276,15 @@ function CheckoutContent() {
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpaySignature: response.razorpay_signature,
               });
-              setOrderSuccess(true);
+              const successParams = new URLSearchParams({
+                transaction_id: order.id,
+                value: order.totalAmount.toString(),
+                quantity: quantity.toString(),
+                item_id: book.id,
+                item_name: book.title,
+                price: book.price.toString()
+              });
+              router.push(`/purchase-success?${successParams.toString()}`);
             } catch (err) {
               setError('Payment verification failed.');
             } finally {
@@ -288,7 +313,15 @@ function CheckoutContent() {
         rzpRef.current = rzp;
         rzp.open();
       } else {
-        setOrderSuccess(true);
+        const successParams = new URLSearchParams({
+          transaction_id: order.id,
+          value: order.totalAmount.toString(),
+          quantity: quantity.toString(),
+          item_id: book.id,
+          item_name: book.title,
+          price: book.price.toString()
+        });
+        router.push(`/purchase-success?${successParams.toString()}`);
         setProcessing(false);
       }
     } catch (err: any) {
@@ -305,37 +338,7 @@ function CheckoutContent() {
     );
   }
 
-  if (orderSuccess) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-        <div className="max-w-xl w-full bg-white rounded-2xl shadow-2xl p-10 text-center animate-in zoom-in duration-500">
-          <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8">
-            <CheckCircle2 size={48} />
-          </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold mb-6 text-slate-900">Order Confirmed! 🎉</h1>
-          <p className="text-slate-600 mb-6 text-lg leading-relaxed">
-            Thank you for ordering your book. Your order has been successfully placed, and we will get it delivered to you soon! Our team will connect with you shortly with further updates.
-          </p>
 
-          <div className="bg-slate-50 border border-slate-100 rounded-xl p-6 text-left mb-8 max-w-sm mx-auto">
-            <h3 className="font-bold text-slate-900 mb-4 text-center">Need help? We're here for you:</h3>
-            <div className="space-y-3 font-medium text-slate-700">
-              <p className="flex items-center justify-center gap-2">
-                <span>📧</span> Email: <a href="mailto:connect@infano.care" className="text-primary hover:underline font-bold">connect@infano.care</a>
-              </p>
-              <p className="flex items-center justify-center gap-2">
-                <span>💬</span> WhatsApp: <a href="https://wa.me/916362994347" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-bold">+91 6362994347</a>
-              </p>
-            </div>
-          </div>
-
-          <button onClick={() => router.push('/')} className="w-full sm:w-auto px-10 py-4 bg-primary text-white rounded-lg font-bold shadow-lg hover:opacity-90 transition-all active:scale-95">
-            Back to Home
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#FDFCFB] selection:bg-primary/20 pt-20 md:pt-28 pb-16 font-sans">
@@ -431,6 +434,18 @@ function CheckoutContent() {
                   <span className="text-slate-500 text-sm font-medium">Unit price</span>
                   <span className="font-bold text-slate-900 text-sm">₹{book?.price || 499}</span>
                 </div>
+
+                <div className="flex justify-between items-center pt-1">
+                  <span className="text-slate-500 text-sm font-medium">Shipping charge</span>
+                  <span className="font-bold text-emerald-600 text-sm">Free</span>
+                </div>
+
+                {formData.paymentMethod === 'COD' && (
+                  <div className="flex justify-between items-center pt-1">
+                    <span className="text-slate-500 text-sm font-medium">Cash on Delivery</span>
+                    <span className="font-bold text-slate-900 text-sm">₹40</span>
+                  </div>
+                )}
 
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500 text-sm font-medium">Quantity</span>
@@ -589,6 +604,27 @@ function CheckoutContent() {
                       name="state"
                       value={formData.state}
                       onChange={handleInputChange}
+                      onBlur={(e) => {
+                        if (process.env.NODE_ENV === 'production' && e.target.value.trim() !== '') {
+                          const windowObj = window as any;
+                          windowObj.dataLayer = windowObj.dataLayer || [];
+                          windowObj.dataLayer.push({ ecommerce: null });
+                          windowObj.dataLayer.push({
+                            event: 'add_shipping_info',
+                            ecommerce: {
+                              currency: 'INR',
+                              value: 499,
+                              shipping_tier: 'Standard',
+                              items: [{
+                                item_id: '5e569d64-9678-4689-a594-ec9c0020f07b',
+                                item_name: 'Gigi - The Awkward Age',
+                                price: 499,
+                                quantity: 1
+                              }]
+                            }
+                          });
+                        }
+                      }}
                       className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
                       placeholder="State"
                     />
@@ -638,26 +674,71 @@ function CheckoutContent() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <button
                     type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'ONLINE' }))}
+                    id='payment-online'
+                    onClick={() => {
+                      setFormData(prev => ({ ...prev, paymentMethod: 'ONLINE' }));
+                      if (process.env.NODE_ENV === 'production') {
+                        const windowObj = window as any;
+                        windowObj.dataLayer = windowObj.dataLayer || [];
+                        windowObj.dataLayer.push({ ecommerce: null });
+                        windowObj.dataLayer.push({
+                          event: 'add_payment_info',
+                          ecommerce: {
+                            currency: 'INR',
+                            value: 499,
+                            payment_type: 'Online Payment',
+                            items: [{
+                              item_id: '5e569d64-9678-4689-a594-ec9c0020f07b',
+                              item_name: 'Gigi - The Awkward Age',
+                              price: 499,
+                              quantity: 1
+                            }]
+                          }
+                        });
+                      }
+                    }}
                     className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'ONLINE' ? 'border-primary bg-primary/[0.03]' : 'border-slate-100 hover:border-slate-200 bg-white'
                       }`}
                   >
                     <CreditCard size={20} className={formData.paymentMethod === 'ONLINE' ? 'text-primary' : 'text-slate-400'} />
-                    <div className="space-y-0 text-center">
-                      <div className={`text-sm font-bold ${formData.paymentMethod === 'ONLINE' ? 'text-primary' : 'text-slate-800'}`}>Pay online</div>
-                      <div className="text-[10px] font-medium text-slate-500">Cards, UPI, NetBanking</div>
+                    <div className="space-y-1 text-center">
+                      <div className={`text-base font-bold ${formData.paymentMethod === 'ONLINE' ? 'text-primary' : 'text-slate-800'}`}>Pay online</div>
+                      <div className="text-xs font-medium text-slate-500">Cards, UPI, NetBanking</div>
                     </div>
                   </button>
                   <button
                     type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'COD' }))}
+                    id='payment-cod'
+                    onClick={() => {
+                      setFormData(prev => ({ ...prev, paymentMethod: 'COD' }));
+                      if (process.env.NODE_ENV === 'production') {
+                        const windowObj = window as any;
+                        windowObj.dataLayer = windowObj.dataLayer || [];
+                        windowObj.dataLayer.push({ ecommerce: null });
+                        windowObj.dataLayer.push({
+                          event: 'add_payment_info',
+                          ecommerce: {
+                            currency: 'INR',
+                            value: 499,
+                            payment_type: 'Cash on Delivery',
+                            items: [{
+                              item_id: '5e569d64-9678-4689-a594-ec9c0020f07b',
+                              item_name: 'Gigi - The Awkward Age',
+                              price: 499,
+                              quantity: 1
+                            }]
+                          }
+                        });
+                      }
+                    }}
                     className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'COD' ? 'border-primary bg-primary/[0.03]' : 'border-slate-100 hover:border-slate-200 bg-white'
                       }`}
                   >
                     <Truck size={20} className={formData.paymentMethod === 'COD' ? 'text-primary' : 'text-slate-400'} />
-                    <div className="space-y-0 text-center">
-                      <div className={`text-sm font-bold ${formData.paymentMethod === 'COD' ? 'text-primary' : 'text-slate-800'}`}>Cash on delivery</div>
-                      <div className="text-[10px] font-medium text-slate-500">Pay when you receive</div>
+                    <div className="space-y-1 text-center">
+                      <div className={`text-base font-bold ${formData.paymentMethod === 'COD' ? 'text-primary' : 'text-slate-800'}`}>Cash on delivery</div>
+                      <div className="text-xs font-medium text-slate-500">Pay at door, just a little more!</div>
+
                     </div>
                   </button>
                 </div>

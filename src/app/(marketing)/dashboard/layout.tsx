@@ -74,10 +74,6 @@ export default function CustomerDashboardLayout({
   const profileFetchedRef = useRef(false);
   useEffect(() => {
     if (!isAuthenticated || !user || !accessToken || profileFetchedRef.current) return;
-    if (user.profile) {
-      profileFetchedRef.current = true;
-      return;
-    }
 
     profileFetchedRef.current = true;
     const fetchUserProfile = async () => {
@@ -89,6 +85,9 @@ export default function CustomerDashboardLayout({
             email: fullUser.email,
             profile: fullUser.profile,
           });
+          if (fullUser.profile?.avatarUrl && fullUser.id) {
+            localStorage.setItem(`profileAvatar_${fullUser.id}`, fullUser.profile.avatarUrl);
+          }
         }
       } catch (err) {
         console.warn('[Dashboard] Failed to fetch user profile:', err);

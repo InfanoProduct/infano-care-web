@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Outfit, Poppins, Inter } from "next/font/google";
+import { Geist, Geist_Mono, Outfit, Poppins, Inter, Noto_Sans } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/providers/query-provider";
 import { Analytics, AnalyticsNoScript } from "@/components/common/Analytics";
@@ -28,6 +28,12 @@ const poppins = Poppins({
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+});
+
+const notoSans = Noto_Sans({
+  variable: "--font-noto-sans",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://infano.care";
@@ -109,7 +115,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} ${poppins.variable} ${inter.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} ${poppins.variable} ${inter.variable} ${notoSans.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>

@@ -68,6 +68,10 @@ export default function AdminLayout({
 
   useEffect(() => {
     setMounted(true);
+    document.body.classList.add('admin-panel');
+    return () => {
+      document.body.classList.remove('admin-panel');
+    };
   }, []);
 
   useEffect(() => {

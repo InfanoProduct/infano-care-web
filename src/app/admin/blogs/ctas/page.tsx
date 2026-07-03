@@ -113,17 +113,6 @@ export default function CTAsPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-1">Button Text</label>
-              <input
-                required
-                className="w-full bg-secondary/30 border-none rounded-2xl py-3 px-6 font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                placeholder="e.g. Sign Up Now"
-                value={newCTA.buttonText}
-                onChange={(e) => setNewCTA({...newCTA, buttonText: e.target.value})}
-              />
-            </div>
-
-            <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-1">Destination URL</label>
               <input
                 required
@@ -134,43 +123,44 @@ export default function CTAsPage() {
               />
             </div>
 
-            <div className="pt-6 border-t border-border/30 md:col-span-2">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-1">Live Preview & Poster Customization</p>
-                <div className="flex gap-2">
-                  <input
-                    className="bg-secondary/30 border-none rounded-xl py-1.5 px-4 text-[10px] font-bold focus:ring-1 focus:ring-primary/20 outline-none transition-all w-48"
-                    placeholder="Paste Image URL instead..."
-                    value={newCTA.imageUrl}
-                    onChange={(e) => setNewCTA({...newCTA, imageUrl: e.target.value})}
-                  />
-                </div>
-              </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-1">Image URL (Optional if uploading)</label>
+              <input
+                className="w-full bg-secondary/30 border-none rounded-2xl py-3 px-6 font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                placeholder="Paste Image URL instead..."
+                value={newCTA.imageUrl}
+                onChange={(e) => setNewCTA({...newCTA, imageUrl: e.target.value})}
+              />
+            </div>
+
+            <div className="pt-6 border-t border-border/30 md:col-span-2 space-y-4">
+              <p className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-1">Live Banner Preview & Upload Area</p>
               
               <div 
-                className={`relative p-12 rounded-[2.5rem] flex flex-col items-center text-center transition-all min-h-[300px] justify-center overflow-hidden shadow-2xl group/preview ${
-                  newCTA.imageUrl ? 'text-white' : 
-                  newCTA.type === 'primary' ? 'bg-primary text-white' : 
-                  newCTA.type === 'dark' ? 'bg-black text-white' : 'bg-white text-foreground'
-                }`}
+                className="relative p-0 rounded-[2rem] flex flex-col items-center justify-center overflow-hidden shadow-2xl group/preview bg-slate-50 border-2 border-dashed border-primary/20 min-h-[260px]"
               >
-                {newCTA.imageUrl && (
+                {newCTA.imageUrl ? (
                   <>
                     <img 
                       src={newCTA.imageUrl} 
-                      alt="" 
-                      className="absolute inset-0 w-full h-full object-cover"
+                      alt="CTA Preview" 
+                      className="w-full h-full object-cover max-h-[300px]"
                       onError={(e) => (e.currentTarget.style.display = 'none')}
                     />
-                    <div className="absolute inset-0 bg-black/25" />
                   </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center gap-2 p-12 text-center select-none">
+                    <Layout className="w-12 h-12 text-slate-300" />
+                    <p className="text-sm font-bold text-slate-400">No CTA Banner Uploaded</p>
+                    <p className="text-xs text-slate-400">Upload an image or paste a URL above</p>
+                  </div>
                 )}
 
                 {/* Upload Overlay */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/preview:opacity-100 transition-opacity flex items-center justify-center z-20">
                   <label className="cursor-pointer flex flex-col items-center gap-2 p-6 bg-white/10 backdrop-blur-md rounded-3xl border border-white/20 hover:bg-white/20 transition-all">
                     {isSaving ? <Loader2 className="animate-spin text-white" size={32} /> : <Plus size={32} className="text-white" />}
-                    <span className="text-white font-black text-xs uppercase tracking-widest">Update Poster</span>
+                    <span className="text-white font-black text-xs uppercase tracking-widest">Upload Banner</span>
                     <input 
                       type="file" 
                       className="hidden" 
@@ -200,93 +190,65 @@ export default function CTAsPage() {
                     </button>
                   )}
                 </div>
-                
-                <div className="relative z-10 space-y-4">
-                  {newCTA.title && (
-                    <h3 className="text-4xl font-black tracking-tight leading-tight">{newCTA.title}</h3>
-                  )}
-                  {newCTA.description && (
-                    <p className={`mt-4 max-w-xl text-lg font-bold ${newCTA.imageUrl || newCTA.type === 'primary' || newCTA.type === 'dark' ? 'text-white/90' : 'text-muted-foreground'}`}>
-                      {newCTA.description}
-                    </p>
-                  )}
-                  <div className="mt-8">
-                    <div className={`px-10 py-4 rounded-2xl font-black text-sm transition-all shadow-xl inline-block ${
-                      newCTA.imageUrl || newCTA.type === 'dark' || newCTA.type === 'primary' ? 'bg-white text-primary' : 'bg-primary text-white'
-                    }`}>
-                      {newCTA.buttonText || 'Button Text'}
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
-
-          <button type="submit" disabled={isSaving} className="btn-primary w-full py-4 rounded-2xl font-black shadow-xl shadow-primary/20 flex items-center justify-center gap-2">
-            {isSaving && <Loader2 className="animate-spin" size={20} />}
-            {editingId ? 'Update CTA' : 'Deploy New CTA'}
-          </button>
-        </form>
-      )}
-
-      {loading ? (
-        <div className="py-24 text-center flex flex-col items-center gap-4">
-          <Loader2 className="animate-spin text-primary" size={40} />
-          <p className="font-bold text-muted-foreground">Fetching interactive elements...</p>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {ctas.map((cta) => (
-            <div key={cta.id} className="glass-card p-8 rounded-[2.5rem] border-primary/5 hover:border-primary/20 transition-all group shadow-xl relative overflow-hidden">
-              <div className="flex items-center justify-between mb-8 relative z-10">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                    <Layout size={20} />
-                  </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Reusable Component</span>
-                </div>
-                <div className="flex gap-1">
-                  <button 
-                    onClick={() => handleEdit(cta)}
-                    className="p-2 rounded-xl text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
-                  >
-                    <Edit size={16} />
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(cta.id)}
-                    className="p-2 rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
 
-              <div className={`relative p-8 rounded-[2rem] border-2 border-dashed border-primary/10 min-h-[220px] flex flex-col justify-center overflow-hidden ${
-                cta.imageUrl ? 'text-white' : 
-                cta.type === 'primary' ? 'bg-primary/5' : 'bg-secondary/30'
-              }`}>
-                {cta.imageUrl && (
-                  <>
-                    <img src={cta.imageUrl} className="absolute inset-0 w-full h-full object-cover" alt="" />
-                    <div className="absolute inset-0 bg-black/25" />
-                  </>
-                )}
-                
-                <div className="relative z-10 text-center flex flex-col items-center justify-center">
-                  <div className="absolute -top-3 left-4 bg-white px-3 py-1 rounded-full border text-[8px] font-black uppercase tracking-widest text-black">Live Preview</div>
-                  {cta.title && <h3 className="text-xl font-black">{cta.title}</h3>}
-                  {cta.description && (
-                    <p className={`text-sm mt-2 font-medium line-clamp-2 ${cta.imageUrl ? 'text-white/80' : 'text-muted-foreground'}`}>
-                      {cta.description}
-                    </p>
-                  )}
-                  <div className={`mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl font-black text-xs transition-all shadow-lg ${
-                    cta.imageUrl || cta.type === 'primary' ? 'bg-white text-primary' : 'bg-primary text-white'
-                  }`}>
-                    {cta.buttonText || 'Click Here'} <ExternalLink size={14} />
-                  </div>
+        <button type="submit" disabled={isSaving} className="btn-primary w-full py-4 rounded-2xl font-black shadow-xl shadow-primary/20 flex items-center justify-center gap-2">
+          {isSaving && <Loader2 className="animate-spin" size={20} />}
+          {editingId ? 'Update CTA' : 'Deploy New CTA'}
+        </button>
+      </form>
+    )}
+
+    {loading ? (
+      <div className="py-24 text-center flex flex-col items-center gap-4">
+        <Loader2 className="animate-spin text-primary" size={40} />
+        <p className="font-bold text-muted-foreground">Fetching interactive elements...</p>
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {ctas.map((cta) => (
+          <div key={cta.id} className="glass-card p-8 rounded-[2.5rem] border-primary/5 hover:border-primary/20 transition-all group shadow-xl relative overflow-hidden">
+            <div className="flex items-center justify-between mb-8 relative z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <Layout size={20} />
                 </div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Reusable Component</span>
               </div>
+              <div className="flex gap-1">
+                <button 
+                  onClick={() => handleEdit(cta)}
+                  className="p-2 rounded-xl text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                >
+                  <Edit size={16} />
+                </button>
+                <button 
+                  onClick={() => handleDelete(cta.id)}
+                  className="p-2 rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </div>
+
+            <div className="relative rounded-[2rem] border border-slate-100 overflow-hidden min-h-[200px] flex flex-col justify-center bg-slate-50">
+              {cta.imageUrl ? (
+                <a href={cta.buttonLink} target="_blank" rel="noopener noreferrer" className="block relative w-full h-full min-h-[200px]">
+                  <img src={cta.imageUrl} className="absolute inset-0 w-full h-full object-cover animate-in fade-in duration-300" alt="CTA Banner" />
+                  <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors flex items-center justify-center group">
+                    <span className="bg-white/90 text-slate-800 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl shadow-md opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 border border-slate-100">
+                      Test Link <ExternalLink size={12} />
+                    </span>
+                  </div>
+                </a>
+              ) : (
+                <div className="p-8 text-center text-slate-400 text-xs font-bold uppercase tracking-wider">
+                  No Image Uploaded
+                </div>
+              )}
+            </div>
 
               <div className="mt-8 flex items-center justify-between pt-6 border-t border-border/30 relative z-10">
                 <div className="flex items-center gap-6">

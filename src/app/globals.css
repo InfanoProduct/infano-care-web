@@ -300,23 +300,23 @@
    CLASSIC & PROFESSIONAL ADMIN PANEL REDESIGN
    ========================================== */
 
-.admin-panel {
+.admin-panel,
+.admin-panel *,
+body.admin-panel,
+body.admin-panel * {
   font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+.admin-panel,
+body.admin-panel {
   background-color: #f8fafc !important; /* Elegant slate background */
 }
 
-.customer-dashboard {
-  font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
-}
-
-.customer-dashboard h1,
-.customer-dashboard h2,
-.customer-dashboard h3,
-.customer-dashboard h4,
-.customer-dashboard h5,
-.customer-dashboard h6,
-.customer-dashboard .font-heading {
-  font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+.customer-dashboard,
+.customer-dashboard *,
+body.customer-dashboard,
+body.customer-dashboard * {
+  font-family: var(--font-noto-sans), 'Noto Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
 }
 
 /* Downscale font weights from "bulky & blunt" to "classic & sleek" just like the admin panel */

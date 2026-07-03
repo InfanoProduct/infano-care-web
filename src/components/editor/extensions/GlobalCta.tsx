@@ -12,8 +12,7 @@ declare module '@tiptap/core' {
 }
 
 const CtaComponent = (props: any) => {
-  const { title, description, buttonText, type, imageUrl } = props.node.attrs;
-  const bg = type === "secondary" ? "#d940af" : type === "info" ? "#3b82f6" : "#6344d4";
+  const { buttonLink, imageUrl } = props.node.attrs;
 
   const deleteNode = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -22,61 +21,47 @@ const CtaComponent = (props: any) => {
   };
 
   return (
-    <NodeViewWrapper className="blog-cta-wrapper relative group my-10">
+    <NodeViewWrapper className="blog-cta-wrapper relative group my-10 select-none">
       <div 
         style={{
-          padding: '3.5rem 2rem',
-          borderRadius: '2.5rem',
-          textAlign: 'center',
+          borderRadius: '2rem',
           position: 'relative',
           overflow: 'hidden',
-          color: 'white',
-          backgroundImage: imageUrl ? `linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url('${imageUrl}')` : 'none',
-          backgroundColor: imageUrl ? 'transparent' : bg,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          border: '1px solid rgba(0, 0, 0, 0.05)',
+          maxWidth: '800px',
+          marginLeft: 'auto',
+          marginRight: 'auto'
         }}
       >
-        <div style={{ position: 'relative', zIndex: 10 }}>
-          {title && <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '2.25rem', fontWeight: 900, lineHeight: 1.1 }}>{title}</h3>}
-          {description && <p style={{ margin: '0 0 2rem 0', opacity: 0.9, fontSize: '1.125rem', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto', fontWeight: 500 }}>{description}</p>}
-          <div 
-            style={{
-              display: 'inline-block',
-              background: 'white',
-              color: imageUrl ? '#111' : bg,
-              padding: '1rem 3rem',
-              borderRadius: '1.25rem',
-              fontWeight: 900,
-              fontSize: '1rem',
-              boxShadow: '0 15px 30px rgba(0,0,0,0.15)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em'
-            }}
-          >
-            {buttonText}
+        {imageUrl ? (
+          <a href={buttonLink} target="_blank" rel="noopener noreferrer" style={{ display: 'block', pointerEvents: 'none' }}>
+            <img 
+              src={imageUrl} 
+              alt="CTA" 
+              style={{ width: '100%', height: 'auto', display: 'block' }}
+            />
+          </a>
+        ) : (
+          <div style={{ padding: '2rem', backgroundColor: '#f1f5f9', color: '#64748b', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 900, letterSpacing: '0.05em', textAlign: 'center' }}>
+            Please configure an image for this CTA
           </div>
-        </div>
+        )}
 
         {/* Action Buttons Overlay */}
-        <div className="absolute top-6 right-6 z-50 flex gap-2 transition-all opacity-0 group-hover:opacity-100">
+        <div className="absolute top-4 right-4 z-50 flex gap-2 transition-all opacity-0 group-hover:opacity-100">
           <button
             type="button"
             onClick={deleteNode}
-            className="p-3 bg-red-600 text-white rounded-2xl shadow-2xl hover:bg-red-700 transition-all border-none cursor-pointer flex items-center justify-center"
+            className="p-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg border-none cursor-pointer flex items-center justify-center transition-all"
             title="Remove CTA"
-            style={{ 
-              boxShadow: '0 10px 20px rgba(220, 38, 38, 0.4)',
-              cursor: 'pointer'
-            }}
           >
-            <Trash2 size={20} />
+            <Trash2 size={16} />
           </button>
         </div>
         
-        <div className="absolute top-6 left-6 px-3 py-1.5 bg-white/10 backdrop-blur-xl rounded-full text-[10px] font-black uppercase tracking-widest text-white border border-white/20">
-          Interactive Component
+        <div className="absolute top-4 left-4 px-3 py-1 bg-black/40 backdrop-blur-md rounded-full text-[9px] font-black uppercase tracking-widest text-white border border-white/10">
+          Image-Only CTA
         </div>
       </div>
     </NodeViewWrapper>
@@ -128,16 +113,7 @@ export const GlobalCta = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    const { id, title, description, buttonText, buttonLink, type, imageUrl } = HTMLAttributes;
-    const bg = type === "secondary" ? "#d940af" : type === "info" ? "#3b82f6" : "#6344d4";
-    
-    let containerStyle = `padding: 3.5rem 2rem; border-radius: 2.5rem; margin: 2.5rem 0; text-align: center; position: relative; overflow: hidden;`;
-    
-    if (imageUrl) {
-      containerStyle += `color: white; background-image: linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url('${imageUrl}'); background-size: cover; background-position: center;`;
-    } else {
-      containerStyle += `background-color:${bg}; color:white;`;
-    }
+    const { id, buttonLink, imageUrl } = HTMLAttributes;
     
     return [
       "div",
@@ -145,28 +121,28 @@ export const GlobalCta = Node.create({
         {
           "data-type": "global-cta",
           "data-cta-id": id,
-          "data-cta-title": title,
-          "data-cta-description": description,
-          "data-cta-button-text": buttonText,
           "data-cta-button-link": buttonLink,
-          "data-cta-type": type,
           "data-cta-image": imageUrl,
           class: "blog-cta-node",
-          style: containerStyle,
+          style: "margin: 2.5rem 0; position: relative; overflow: hidden; border-radius: 2rem;",
         }
       ),
-      ["div", { style: "position: relative; z-index: 10;" },
-        ...(title ? [["h3", { style: "margin: 0 0 0.5rem 0; font-size: 2rem; font-weight: 900; line-height: 1.2;" }, title]] : []),
-        ...(description ? [["p", { style: "margin: 0 0 1.5rem 0; opacity: 0.9; font-size: 1.1rem; max-width: 600px; margin-left: auto; margin-right: auto;" }, description]] : []),
+      [
+        "a",
+        {
+          href: buttonLink,
+          target: "_blank",
+          rel: "noopener noreferrer",
+          style: "display: block; width: 100%; transition: transform 0.3s ease; border-radius: 2rem; overflow: hidden;",
+        },
         [
-          "a",
+          "img",
           {
-            href: buttonLink,
-            target: "_blank",
-            style: `display: inline-block; background: white; color: ${imageUrl ? '#333' : bg}; padding: 1rem 2.5rem; border-radius: 1.2rem; font-weight: 900; text-decoration: none; box-shadow: 0 10px 20px rgba(0,0,0,0.1); margin-top: 1rem;`,
-          },
-          buttonText,
-        ],
+            src: imageUrl,
+            alt: "Call to Action",
+            style: "width: 100%; height: auto; display: block; border-radius: 2rem; object-fit: cover;",
+          }
+        ]
       ]
     ];
   },

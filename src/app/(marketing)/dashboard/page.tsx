@@ -390,10 +390,7 @@ export default function CustomerDashboardOverview() {
 
       {/* Welcome Banner */}
       <div className="bg-linear-to-r from-purple-200 via-purple-100 to-purple-50/80 p-6 sm:p-7 rounded-[26px] border border-rose-100/80 shadow-[0_4px_25px_rgba(244,63,94,0.06)] flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden group">
-        <div className="absolute -right-16 -top-16 w-72 h-72 bg-linear-to-br from-rose-200/50 via-pink-200/40 to-purple-200/30 rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
-        <div className="absolute -right-4 -bottom-4 text-rose-500/10 pointer-events-none transform rotate-12 scale-150 group-hover:rotate-6 transition-transform duration-500">
-          <Sparkles size={160} />
-        </div>
+
         <div className="space-y-2 relative z-10">
           <div className="flex items-center gap-2 flex-wrap">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/90 border border-rose-200 rounded-full text-[10px] font-extrabold text-rose-600 shadow-2xs">
@@ -437,10 +434,7 @@ export default function CustomerDashboardOverview() {
               {/* DEMO SESSIONS GLIMPSE */}
               {demoSessions.length > 0 && (
                 <div className="bg-[#FFFDF5] border border-amber-200/70 rounded-[26px] p-6 shadow-[0_4px_25px_rgba(245,158,11,0.06)] hover:shadow-lg transition-all duration-300 flex flex-col justify-between relative overflow-hidden group">
-                  <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-amber-200/40 rounded-full blur-2xl group-hover:scale-125 transition-all duration-500 pointer-events-none" />
-                  <div className="absolute -right-2 -bottom-2 text-amber-500/10 pointer-events-none transform rotate-12 scale-150 group-hover:rotate-6 transition-transform duration-500">
-                    <Calendar size={110} />
-                  </div>
+
 
                   <div className="space-y-4 relative z-10">
                     <div className="flex items-center justify-between border-b border-amber-200/60 pb-4">
@@ -508,10 +502,7 @@ export default function CustomerDashboardOverview() {
               {/* LATEST ORDER DETAILS GLIMPSE */}
               {productOrders.length > 0 && (
                 <div className="bg-[#F0F4FF] border border-indigo-200/70 rounded-[26px] p-6 shadow-[0_4px_25px_rgba(99,102,241,0.06)] hover:shadow-lg transition-all duration-300 flex flex-col justify-between relative overflow-hidden group">
-                  <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-indigo-200/40 rounded-full blur-2xl group-hover:scale-125 transition-all duration-500 pointer-events-none" />
-                  <div className="absolute -right-2 -bottom-2 text-indigo-500/10 pointer-events-none transform -rotate-12 scale-150 group-hover:rotate-0 transition-transform duration-500">
-                    <ShoppingBag size={110} />
-                  </div>
+
 
                   <div className="space-y-4 relative z-10">
                     <div className="flex items-center justify-between border-b border-indigo-200/60 pb-4">

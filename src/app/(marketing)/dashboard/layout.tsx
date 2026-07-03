@@ -50,6 +50,12 @@ export default function CustomerDashboardLayout({
     if (val === 'true') {
       setIsCollapsed(true);
     }
+
+    // Apply customer-dashboard class to body for portalled components
+    document.body.classList.add('customer-dashboard');
+    return () => {
+      document.body.classList.remove('customer-dashboard');
+    };
   }, []);
 
   // Sync token refresh on mount
@@ -148,7 +154,6 @@ export default function CustomerDashboardLayout({
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
     { href: '/dashboard/enrolled-programs', label: 'Enrolled Programs', icon: Layers },
     // { href: '/dashboard/learning-journeys', label: 'Learning Journeys', icon: GraduationCap, matchPrefix: true },
-    { href: '/dashboard/payments', label: 'Payment Details', icon: CreditCard },
     { href: '/dashboard/orders', label: 'My Orders', icon: Package },
     ...(!isTeen ? [{ href: '/dashboard/expert-sessions', label: 'My Consultations', icon: Calendar }] : []),
     ...(!isTeen ? [{ href: '/dashboard/resources', label: 'Library', icon: BookOpen }] : []),
@@ -217,12 +222,12 @@ export default function CustomerDashboardLayout({
                 <Link
                   key={idx}
                   href={item.href}
-                  className={`group relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all duration-200 ${active
-                      ? 'bg-linear-to-r from-rose-500/10 via-rose-500/5 to-transparent text-primary border-l-4 border-primary rounded-r-xl rounded-l-none pl-3 font-black shadow-2xs'
-                      : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
-                    } ${isCollapsed ? 'justify-center' : ''}`}
+                  className={`group relative flex items-center gap-3 px-5 py-3.5 rounded-2xl text-[14px] font-medium transition-all duration-300 ${active
+                      ? 'bg-primary text-white shadow-none'
+                      : 'text-slate-500 hover:bg-slate-100 hover:text-primary'
+                    } ${isCollapsed ? 'justify-center px-3.5 py-3.5 rounded-xl' : ''}`}
                 >
-                  <Icon size={18} className={`shrink-0 ${active ? 'text-primary' : 'text-slate-400 group-hover:text-slate-700'}`} />
+                  <Icon size={20} className={`shrink-0 ${active ? 'text-white' : 'text-slate-400 group-hover:text-primary group-hover:scale-110 transition-all duration-300'}`} />
 
                   {!isCollapsed ? (
                     <span className="animate-in fade-in duration-200 tracking-tight">{item.label}</span>
@@ -295,7 +300,7 @@ export default function CustomerDashboardLayout({
   );
 
   return (
-    <div className="h-screen w-screen overflow-hidden flex bg-[#FAF9FC] customer-dashboard font-sans">
+    <div className="h-screen w-screen overflow-hidden flex bg-[#FAF9FC] customer-dashboard">
 
       {/* Desktop Sticky Sidebar */}
       <aside

@@ -259,7 +259,7 @@ export default function CustomerLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex  justify-center bg-[#FFFAF7] relative overflow-hidden py-12 px-6">
+    <div className="min-h-screen flex items-center justify-center lg:justify-end bg-[#FFFAF7] relative overflow-hidden py-12 px-6 lg:px-24">
       {/* Back Button */}
       <Link
         href="/"
@@ -273,33 +273,30 @@ export default function CustomerLoginPage() {
       <div className="absolute top-[-10%] left-[-10%] w-[45%] h-[45%] bg-primary/5 rounded-full blur-[120px]" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[45%] h-[45%] bg-accent/5 rounded-full blur-[120px]" />
 
-      {/* Decorative Illustration - Bottom Right */}
+      {/* Decorative Illustration - Bottom Left */}
       <img
         src={getAssetUrl(DECORATIVE_ILLUSTRATION)}
         alt=""
         aria-hidden="true"
-        className="absolute bottom-[-10%] left-[-10%] w-100 sm:w-130 lg:w-250 opacity-100 pointer-events-none select-none translate-x-[10%] translate-y-[10%]"
+        className="absolute bottom-[-10%] left-[-10%] w-100 sm:w-130 lg:w-220 opacity-100 pointer-events-none select-none translate-x-[10%] translate-y-[10%]"
         draggable={false}
       />
 
-      {/* Decorative Illustration - Top Left (mirrored) */}
-
-
-      <div className="w-full max-w-md space-y-6 animate-fade-in relative z-10 mt-40">
-        <div className="text-center space-y-2.5">
-          <div className="w-40 h-10  flex items-center justify-center mx-auto mb-3 ">
+      {/* Unified Login Box */}
+      <div className="w-full max-w-md bg-white border border-slate-100 p-8 sm:p-10 rounded-2xl shadow-xl shadow-slate-200/30 backdrop-blur-md relative z-10 animate-in fade-in slide-in-from-right-8 duration-500 my-auto">
+        <div className="text-center space-y-2.5 mb-6">
+          <div className="w-40 h-10 flex items-center justify-center mx-auto mb-3">
             <Image src="/logo/infano-logo-for-light-bg.png" alt="Infano Logo" width={500} height={500} className="text-primary" />
           </div>
-          <h2 className="text-4xl font-bold tracking-tight text-slate-800">
+          <h2 className="text-3xl font-black tracking-tight text-slate-800">
             Welcome to <span className="text-primary">Infano.care</span>
           </h2>
-          <p className="text-sm text-slate-900 max-w-xs mx-auto">
+          <p className="text-xs font-bold text-slate-500 max-w-xs mx-auto">
             Securely sign in to access your learning dashboards and active sessions
           </p>
         </div>
 
-        <div className="bg-white/95 border border-slate-100 p-8 rounded-xl shadow-xl shadow-slate-200/30">
-          {error && (
+        {error && (
             <div className="mb-5 p-3.5 bg-rose-50 border border-rose-100 text-rose-600 text-xs font-semibold rounded-lg text-center">
               {error}
             </div>
@@ -525,7 +522,6 @@ export default function CustomerLoginPage() {
               </div>
             </div>
           )}
-        </div>
       </div>
     </div>
   );

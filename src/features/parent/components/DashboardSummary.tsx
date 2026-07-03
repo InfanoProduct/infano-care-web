@@ -182,11 +182,7 @@ export function DashboardSummary({ enrollments = [], demoSessions = [], learning
         
         {/* CARD 1: LEARNING JOURNEY */}
         <div className="bg-[#FFF4F6] border border-rose-200/70 rounded-[26px] p-5 sm:p-6 shadow-[0_4px_20px_rgba(244,63,94,0.06)] hover:shadow-lg transition-all duration-300 flex flex-col justify-between min-h-47.5 relative overflow-hidden group">
-          {/* Background graphic elements */}
-          <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-rose-200/40 rounded-full blur-2xl group-hover:scale-125 transition-all duration-500 pointer-events-none" />
-          <div className="absolute -right-2 -bottom-2 text-rose-400/10 pointer-events-none transform rotate-12 scale-150 group-hover:rotate-6 transition-transform duration-500">
-            <BookOpen size={100} />
-          </div>
+
 
           <div className="flex items-center gap-2.5 relative z-10">
             <div className="w-8 h-8 rounded-xl bg-white/90 border border-rose-200 flex items-center justify-center text-rose-500 shrink-0 shadow-2xs">
@@ -224,11 +220,7 @@ export function DashboardSummary({ enrollments = [], demoSessions = [], learning
 
         {/* CARD 2: NEXT SESSION */}
         <div className="bg-[#F0F7FF] border border-blue-200/70 rounded-[26px] p-5 sm:p-6 shadow-[0_4px_20px_rgba(59,130,246,0.06)] hover:shadow-lg transition-all duration-300 flex flex-col justify-between min-h-47.5 relative overflow-hidden group">
-          {/* Background graphic elements */}
-          <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-blue-200/40 rounded-full blur-2xl group-hover:scale-125 transition-all duration-500 pointer-events-none" />
-          <div className="absolute -right-2 -bottom-2 text-blue-400/10 pointer-events-none transform -rotate-12 scale-150 group-hover:rotate-0 transition-transform duration-500">
-            <Calendar size={100} />
-          </div>
+
 
           <div className="flex items-center gap-2.5 relative z-10">
             <div className="w-8 h-8 rounded-xl bg-white/90 border border-blue-200 flex items-center justify-center text-blue-500 shrink-0 shadow-2xs">
@@ -261,11 +253,7 @@ export function DashboardSummary({ enrollments = [], demoSessions = [], learning
 
         {/* CARD 3: ACTIVE PROGRAMS */}
         <div className="bg-[#F0FDF4] border border-emerald-200/70 rounded-[26px] p-5 sm:p-6 shadow-[0_4px_20px_rgba(16,185,129,0.06)] hover:shadow-lg transition-all duration-300 flex flex-col justify-between min-h-47.5 relative overflow-hidden group">
-          {/* Background graphic elements */}
-          <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-emerald-200/40 rounded-full blur-2xl group-hover:scale-125 transition-all duration-500 pointer-events-none" />
-          <div className="absolute -right-2 -bottom-2 text-emerald-400/10 pointer-events-none transform rotate-45 scale-150 group-hover:rotate-12 transition-transform duration-500">
-            <HeartPulse size={100} />
-          </div>
+
 
           <div className="flex items-center gap-2.5 relative z-10">
             <div className="w-8 h-8 rounded-xl bg-white/90 border border-emerald-200 flex items-center justify-center text-emerald-600 shrink-0 shadow-2xs">
@@ -301,11 +289,7 @@ export function DashboardSummary({ enrollments = [], demoSessions = [], learning
 
         {/* CARD 4: MOOD INSIGHTS */}
         <div className="bg-[#FAF5FF] border border-purple-200/70 rounded-[26px] p-5 sm:p-6 shadow-[0_4px_20px_rgba(168,85,247,0.06)] hover:shadow-lg transition-all duration-300 flex flex-col justify-between min-h-47.5 relative overflow-hidden group">
-          {/* Background graphic elements */}
-          <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-purple-200/40 rounded-full blur-2xl group-hover:scale-125 transition-all duration-500 pointer-events-none" />
-          <div className="absolute -right-2 -bottom-2 text-purple-400/10 pointer-events-none transform -rotate-12 scale-150 group-hover:rotate-0 transition-transform duration-500">
-            <TrendingUp size={100} />
-          </div>
+
 
           <div className="flex items-center justify-between relative z-10">
             <div className="flex items-center gap-2.5">

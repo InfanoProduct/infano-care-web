@@ -168,10 +168,19 @@ const MenuBar = ({ editor, ctas = [] }: { editor: any, ctas?: any[] }) => {
                   key={cta.id}
                   type="button"
                   onClick={() => insertCta(cta)}
-                  className="w-full text-left p-2 hover:bg-primary/5 rounded-lg transition-all"
+                  className="w-full text-left p-2 hover:bg-primary/5 rounded-lg transition-all flex items-center gap-3"
                 >
-                  <p className="text-sm font-bold truncate">{cta.buttonText || 'No Button Text'}</p>
-                  <p className="text-[10px] text-muted-foreground truncate">{cta.buttonLink || 'No Destination URL'}</p>
+                  {cta.imageUrl ? (
+                    <img src={cta.imageUrl} className="w-10 h-10 object-cover rounded-lg border border-slate-100 shrink-0" alt="" />
+                  ) : (
+                    <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 shrink-0">
+                      <ImageIcon size={16} />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-slate-800 truncate">{cta.buttonLink || 'No Link'}</p>
+                    <p className="text-[9px] text-muted-foreground truncate">Image-Only CTA</p>
+                  </div>
                 </button>
               ))}
             </div>

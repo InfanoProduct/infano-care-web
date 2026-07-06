@@ -261,17 +261,11 @@ function PurchaseSuccessContent() {
               </div>
             </div>
             
-            {/* Double CTA Buttons */}
-            <div className="grid sm:grid-cols-2 gap-4 mt-4">
-              <button 
-                onClick={() => router.push('/dashboard/orders')} 
-                className="w-full py-4 bg-slate-900 hover:bg-slate-850 text-white rounded-2xl font-bold shadow-md hover:shadow-lg transition-all active:scale-[0.98] cursor-pointer text-center text-sm"
-              >
-                View My Orders
-              </button>
+            {/* Back to Home CTA Button */}
+            <div className="mt-6">
               <button 
                 onClick={() => router.push('/')} 
-                className="w-full py-4 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-2xl font-bold border border-slate-200 shadow-sm transition-all active:scale-[0.98] cursor-pointer text-center text-sm flex items-center justify-center gap-1.5"
+                className="w-full py-4 bg-slate-900 hover:bg-slate-850 text-white rounded-2xl font-bold shadow-md hover:shadow-lg transition-all active:scale-[0.98] cursor-pointer text-center text-sm flex items-center justify-center gap-1.5"
               >
                 Back to Home <ArrowRight size={14} />
               </button>

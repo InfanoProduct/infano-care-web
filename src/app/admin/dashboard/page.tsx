@@ -1,46 +1,54 @@
 import { DashboardStats } from "@/features/dashboard/components/DashboardStats";
+import { RevenueOverview } from "@/features/dashboard/components/RevenueOverview";
+import { DashboardCharts } from "@/features/dashboard/components/DashboardCharts";
+import { RecentActivity } from "@/features/dashboard/components/RecentActivity";
+import { DetailedFeeds } from "@/features/dashboard/components/DetailedFeeds";
+import { Calendar, ChevronDown } from "lucide-react";
 
 export default function AdminDashboard() {
+  const formatDate = () => {
+    const d = new Date();
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  };
+
   return (
-    <div className="space-y-8">
-      <div className="admin-header">
-        <h1 className="text-3xl font-bold tracking-tight">Admin Overview</h1>
-        <p className="text-muted-foreground mt-1">
-          Welcome back to the Infano Care admin panel.
-        </p>
+    <div className="space-y-8 bg-[#F8F9FC] p-2 min-h-screen">
+      {/* Overview Top Greetings & Date Selector */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-black tracking-tight text-[#0F172A]">Welcome back, Admin! 👋</h1>
+          <p className="text-xs font-bold text-[#64748B] mt-1">
+            Here's what's happening with Infano Care today.
+          </p>
+        </div>
+
+        {/* Date Selector Pill */}
+        <div className="flex items-center gap-2 px-4 py-2 bg-white border border-[#E2E8F0] rounded-2xl shadow-sm cursor-pointer hover:bg-slate-50 transition-colors shrink-0">
+          <Calendar size={15} className="text-[#64748B]" />
+          <span className="text-xs font-black text-[#334155]">{formatDate()}</span>
+          <ChevronDown size={14} className="text-[#94A3B8]" />
+        </div>
       </div>
 
+      {/* KPI Cards Grid */}
       <DashboardStats />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 glass-card rounded-2xl p-6 min-h-[400px]">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold">System Activity</h3>
-            <div className="flex gap-2">
-              <span className="w-3 h-3 bg-primary rounded-full" />
-              <span className="text-xs text-muted-foreground">User Growth</span>
-            </div>
-          </div>
-          <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-             Activity Chart Placeholder 
-          </div>
+      {/* Analytics: Revenue Donut & Growth Line Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        <div className="lg:col-span-3">
+          <RevenueOverview />
         </div>
-
-        <div className="glass-card rounded-2xl p-6">
-          <h3 className="text-lg font-semibold mb-6">Pending Tasks</h3>
-          <div className="space-y-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center gap-4 border-b border-border pb-4 last:border-0">
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Verify Expert Application</p>
-                  <p className="text-xs text-muted-foreground">Pending since 2 hours</p>
-                </div>
-                <button className="text-xs font-medium text-primary">Review</button>
-              </div>
-            ))}
-          </div>
+        <div className="lg:col-span-2">
+          <DashboardCharts />
         </div>
       </div>
+
+      {/* Middle section: Recent Activity & Shortcuts */}
+      <RecentActivity />
+
+      {/* Bottom section: Schools, Learning Programs, and Expert Bookings Detailed Feeds */}
+      <DetailedFeeds />
     </div>
   );
 }

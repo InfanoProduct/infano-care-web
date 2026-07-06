@@ -156,7 +156,7 @@ export default function CustomerDashboardLayout({
     { href: '/dashboard/profile', label: 'Profile', icon: User },
   ];
 
-  const isLinkActive = (item: typeof menuItems[0]) => {
+  const isLinkActive = (item: any) => {
     if (item.matchPrefix) {
       return pathname === item.href || pathname.startsWith(item.href + '/');
     }

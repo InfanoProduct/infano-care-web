@@ -16,7 +16,8 @@ export default function MarketingLayout({
   const isProgramDetail = pathname?.startsWith('/programs/') && pathname !== '/programs' && pathname !== '/programs/';
   const isLogin = pathname === '/login' || pathname === '/login/';
   const isPortal = isDashboard || isProgramDetail || isLogin;
-  const hideWidgets = pathname?.startsWith('/checkout') || pathname?.startsWith('/gigi-the-awkward-age-book');
+  const isPurchaseSuccess = pathname?.startsWith('/purchase-success');
+  const hideWidgets = pathname?.startsWith('/checkout') || pathname?.startsWith('/gigi-the-awkward-age-book') || isPurchaseSuccess;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -24,7 +25,7 @@ export default function MarketingLayout({
       <main className={`flex-1 w-full ${!isPortal ? 'pt-20' : ''}`}>
         {children}
       </main>
-      {!isPortal && <MarketingFooter />}
+      {!isPortal && !isPurchaseSuccess && <MarketingFooter />}
 
       {/* Floating WhatsApp Button */}
       {!hideWidgets && (

@@ -282,7 +282,12 @@ function CheckoutContent() {
                 quantity: quantity.toString(),
                 item_id: book.id,
                 item_name: book.title,
-                price: book.price.toString()
+                price: book.price.toString(),
+                discount: discountAmount.toString(),
+                delivery: delivery.toString(),
+                subtotal: subtotal.toString(),
+                payment_method: formData.paymentMethod,
+                image_url: book.imageUrl || '/Page-1.png'
               });
               router.push(`/purchase-success?${successParams.toString()}`);
             } catch (err) {
@@ -319,7 +324,12 @@ function CheckoutContent() {
           quantity: quantity.toString(),
           item_id: book.id,
           item_name: book.title,
-          price: book.price.toString()
+          price: book.price.toString(),
+          discount: discountAmount.toString(),
+          delivery: delivery.toString(),
+          subtotal: subtotal.toString(),
+          payment_method: formData.paymentMethod,
+          image_url: book.imageUrl || '/Page-1.png'
         });
         router.push(`/purchase-success?${successParams.toString()}`);
         setProcessing(false);

@@ -6,8 +6,13 @@ import {
 } from 'lucide-react';
 import { useDashboardStats } from '../hooks/use-dashboard-data';
 
-export function RecentActivity() {
-  const { data, isLoading } = useDashboardStats();
+interface RecentActivityProps {
+  startDate?: string;
+  endDate?: string;
+}
+
+export function RecentActivity({ startDate, endDate }: RecentActivityProps) {
+  const { data, isLoading } = useDashboardStats(startDate, endDate);
 
   if (isLoading || !data) {
     return (

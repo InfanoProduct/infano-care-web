@@ -91,6 +91,8 @@ export interface DashboardStats {
   trends: MonthlyTrend[];
 }
 
-export const fetchDashboardStats = async (): Promise<DashboardStats> => {
-  return apiClient.get<DashboardStats>('/admin/stats');
+export const fetchDashboardStats = async (startDate?: string, endDate?: string): Promise<DashboardStats> => {
+  return apiClient.get<DashboardStats>('/admin/stats', {
+    params: { startDate, endDate }
+  });
 };

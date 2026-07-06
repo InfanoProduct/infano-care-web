@@ -4,8 +4,13 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDashboardStats } from '../hooks/use-dashboard-data';
 
-export function DashboardCharts() {
-  const { data, isLoading } = useDashboardStats();
+interface DashboardChartsProps {
+  startDate?: string;
+  endDate?: string;
+}
+
+export function DashboardCharts({ startDate, endDate }: DashboardChartsProps) {
+  const { data, isLoading } = useDashboardStats(startDate, endDate);
   const [activeTab, setActiveTab] = useState<'users' | 'revenue'>('users');
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
@@ -16,9 +21,10 @@ export function DashboardCharts() {
   }
 
   const trends = data.trends || [];
-  const maxValue = activeTab === 'users' 
-    ? Math.max(...trends.map(t => t.users)) * 1.15
-    : Math.max(...trends.map(t => t.revenue)) * 1.15;
+  const maxVal = trends.length > 0 
+    ? Math.max(...trends.map((t: any) => activeTab === 'users' ? t.users : t.revenue))
+    : 10;
+  const maxValue = maxVal > 0 ? maxVal * 1.15 : 10;
 
   // Chart coordinate dimensions
   const width = 600;
@@ -29,8 +35,11 @@ export function DashboardCharts() {
   const paddingBottom = 40;
 
   const getCoordinates = () => {
-    return trends.map((t, i) => {
-      const x = paddingLeft + (i * (width - paddingLeft - paddingRight)) / (trends.length - 1);
+    if (trends.length === 0) return [];
+    return trends.map((t: any, i: number) => {
+      const x = trends.length > 1 
+        ? paddingLeft + (i * (width - paddingLeft - paddingRight)) / (trends.length - 1)
+        : paddingLeft + (width - paddingLeft - paddingRight) / 2;
       const val = activeTab === 'users' ? t.users : t.revenue;
       const y = height - paddingBottom - (val / maxValue) * (height - paddingTop - paddingBottom);
       return { x, y, label: t.month, val };
@@ -52,7 +61,9 @@ export function DashboardCharts() {
         <div>
           <h3 className="text-[#0F172A] text-lg font-black tracking-tight flex items-center gap-1">
             <span>Growth Analytics</span>
-            <span className="text-xs text-muted-foreground font-boldNormal"> (Last 6 Months)</span>
+            <span className="text-xs text-muted-foreground font-semibold">
+              {startDate || endDate ? ' (Filtered Range)' : ' (Last 6 Months)'}
+            </span>
           </h3>
         </div>
 

@@ -6,8 +6,13 @@ import {
 } from 'lucide-react';
 import { useDashboardStats } from '../hooks/use-dashboard-data';
 
-export function DetailedFeeds() {
-  const { data, isLoading } = useDashboardStats();
+interface DetailedFeedsProps {
+  startDate?: string;
+  endDate?: string;
+}
+
+export function DetailedFeeds({ startDate, endDate }: DetailedFeedsProps) {
+  const { data, isLoading } = useDashboardStats(startDate, endDate);
 
   if (isLoading || !data) {
     return (

@@ -2,11 +2,47 @@
 
 import { useUsers } from '../hooks/use-users';
 import { useState } from 'react';
-import { Search, MoreVertical, CheckCircle2, Clock } from 'lucide-react';
+import { Search, MoreVertical, CheckCircle2, Clock, Eye, Trash2 } from 'lucide-react';
+import { UserApiService } from '../services/user-api';
+import { toast } from 'react-hot-toast';
+import Link from 'next/link';
 
 export function UserList() {
   const [page, setPage] = useState(1);
-  const { data, isLoading, error } = useUsers(page);
+  const { data, isLoading, error, refetch } = useUsers(page);
+  const [activeMenuUserId, setActiveMenuUserId] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleUpdateStatus = async (userId: string, newStatus: 'ACTIVE' | 'SUSPENDED') => {
+    try {
+      setIsUpdating(true);
+      await UserApiService.updateUserStatus(userId, newStatus);
+      toast.success(`User status updated to ${newStatus}`);
+      setActiveMenuUserId(null);
+      refetch();
+    } catch (err) {
+      console.error('Failed to update user status', err);
+      toast.error('Failed to update user status');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this user? This will hide them from the admin panel.')) return;
+    try {
+      setIsUpdating(true);
+      await UserApiService.deleteUser(userId);
+      toast.success('User deleted successfully');
+      setActiveMenuUserId(null);
+      refetch();
+    } catch (err) {
+      console.error('Failed to delete user', err);
+      toast.error('Failed to delete user');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   if (isLoading) return <div className="p-8 text-center">Loading users...</div>;
   if (error) return <div className="p-8 text-center text-red-500">Error loading users</div>;
@@ -107,10 +143,55 @@ export function UserList() {
                       <span className="text-xs text-muted-foreground">-</span>
                     )}
                   </td>
-                  <td className="px-8 py-4 text-right">
-                    <button className="p-3 hover:bg-primary/10 hover:text-primary rounded-2xl transition-all text-muted-foreground/60">
-                      <MoreVertical size={20} />
-                    </button>
+                  <td className="px-8 py-4 text-right relative">
+                    <div className="flex items-center justify-end gap-2">
+                      <Link 
+                        href={`/admin/users/${user.id}`}
+                        title="View user details page"
+                        className="p-2.5 bg-slate-50 hover:bg-primary/10 hover:text-primary text-slate-500 rounded-xl transition-all border border-slate-200/50 shadow-sm"
+                      >
+                        <Eye size={16} />
+                      </Link>
+                      <button 
+                        onClick={() => setActiveMenuUserId(activeMenuUserId === user.id ? null : user.id)}
+                        className="p-2.5 bg-slate-50 hover:bg-slate-100 hover:text-slate-700 text-slate-500 rounded-xl transition-all border border-slate-200/50 shadow-sm"
+                      >
+                        <MoreVertical size={16} />
+                      </button>
+                    </div>
+
+                    {activeMenuUserId === user.id && (
+                      <>
+                        <div className="fixed inset-0 z-10" onClick={() => setActiveMenuUserId(null)} />
+                        <div className="absolute right-8 mt-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl z-20 py-2 text-left animate-in fade-in slide-in-from-top-1 duration-150">
+                          <button
+                            disabled={isUpdating}
+                            onClick={() => handleUpdateStatus(user.id, 'ACTIVE')}
+                            className="w-full px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2 disabled:opacity-50"
+                          >
+                            <CheckCircle2 size={14} className="text-emerald-500" />
+                            <span>Mark Active</span>
+                          </button>
+                          <button
+                            disabled={isUpdating}
+                            onClick={() => handleUpdateStatus(user.id, 'SUSPENDED')}
+                            className="w-full px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2 disabled:opacity-50"
+                          >
+                            <Clock size={14} className="text-amber-500" />
+                            <span>Mark Inactive</span>
+                          </button>
+                          <div className="border-t border-slate-100 my-1" />
+                          <button
+                            disabled={isUpdating}
+                            onClick={() => handleDeleteUser(user.id)}
+                            className="w-full px-4 py-2.5 text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center gap-2 disabled:opacity-50"
+                          >
+                            <Trash2 size={14} className="text-rose-500" />
+                            <span>Delete User</span>
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}

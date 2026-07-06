@@ -3,8 +3,13 @@
 import { Info, Sparkles } from 'lucide-react';
 import { useDashboardStats } from '../hooks/use-dashboard-data';
 
-export function RevenueOverview() {
-  const { data, isLoading } = useDashboardStats();
+interface RevenueOverviewProps {
+  startDate?: string;
+  endDate?: string;
+}
+
+export function RevenueOverview({ startDate, endDate }: RevenueOverviewProps) {
+  const { data, isLoading } = useDashboardStats(startDate, endDate);
 
   if (isLoading || !data) {
     return (

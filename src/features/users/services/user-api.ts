@@ -55,5 +55,17 @@ export const UserApiService = {
 
   async unapproveAssessment(userId: string) {
     return apiClient.patch(`/admin/users/${userId}/unapprove-assessment`);
+  },
+
+  async fetchUserOverview(userId: string): Promise<any> {
+    return apiClient.get<any>(`/admin/users/${userId}/overview`);
+  },
+
+  async updateUserStatus(userId: string, status: 'ACTIVE' | 'SUSPENDED') {
+    return apiClient.patch(`/admin/users/${userId}/status`, { status });
+  },
+
+  async deleteUser(userId: string) {
+    return apiClient.delete(`/admin/users/${userId}`);
   }
 };

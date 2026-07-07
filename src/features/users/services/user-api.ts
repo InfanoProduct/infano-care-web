@@ -3,6 +3,7 @@ import { apiClient } from "@/lib/api-client";
 export interface User {
   id: string;
   phone: string;
+  email?: string;
   role: string;
   accountStatus: string;
   createdAt: string;
@@ -32,12 +33,24 @@ export interface UserListResponse {
     limit: number;
     pages: number;
   };
+  counts?: {
+    active: number;
+    inactive: number;
+    peer: number;
+    pending: number;
+  };
 }
 
 export const UserApiService = {
-  async fetchUsers(page: number = 1, limit: number = 20, peerOnboarding?: boolean): Promise<UserListResponse> {
+  async fetchUsers(
+    page: number = 1, 
+    limit: number = 15, 
+    peerOnboarding?: boolean,
+    role?: string,
+    accountStatus?: string
+  ): Promise<UserListResponse> {
     return apiClient.get<UserListResponse>('/admin/users', {
-      params: { page, limit, peerOnboarding }
+      params: { page, limit, peerOnboarding, role, accountStatus }
     });
   },
 

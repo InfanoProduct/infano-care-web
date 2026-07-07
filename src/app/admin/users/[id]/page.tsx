@@ -113,30 +113,24 @@ export default function UserDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-xl border border-slate-100 animate-pulse">
-          <div className="w-12 h-12 bg-slate-100 rounded-full mx-auto" />
-          <div className="h-4 bg-slate-100 rounded w-2/3 mx-auto" />
-          <div className="h-3 bg-slate-100 rounded w-1/2 mx-auto" />
-        </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center space-y-4 shadow-xl border border-slate-100">
-          <ShieldAlert className="w-16 h-16 text-rose-500 mx-auto" />
-          <h3 className="text-xl font-extrabold text-slate-800">Error Loading User</h3>
-          <p className="text-muted-foreground font-medium">{error || 'Unable to retrieve user data.'}</p>
-          <Link 
-            href="/admin/users"
-            className="w-full py-3.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-2xl shadow-lg shadow-rose-500/25 transition-all inline-block"
-          >
-            Back to Users List
-          </Link>
-        </div>
+      <div className="p-8 text-center bg-white rounded-lg border border-slate-200">
+        <ShieldAlert className="w-16 h-16 text-rose-500 mx-auto mb-4" />
+        <h2 className="text-xl font-semibold" style={{ fontFamily: 'var(--font-inter)' }}>Error Loading User</h2>
+        <p className="text-muted-foreground font-medium mt-2">{error || 'Unable to retrieve user data.'}</p>
+        <Link 
+          href="/admin/users"
+          className="mt-4 text-primary font-medium hover:underline inline-block"
+        >
+          Back to Users List
+        </Link>
       </div>
     );
   }
@@ -148,83 +142,70 @@ export default function UserDetailPage() {
   } = data;
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-16">
+    <div className="max-w-6xl mx-auto space-y-6 pb-12">
       
       {/* Top header */}
-      <div className="bg-white border-b border-slate-200/80 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 border-b border-slate-200 pb-6">
+        <div className="flex items-start gap-4">
           <Link 
             href="/admin/users" 
-            className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-slate-600 uppercase tracking-wider mb-4 transition-colors"
+            className="p-3 border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 rounded-2xl transition-all shadow-sm active:scale-95 shrink-0 mt-1"
           >
             <ArrowLeft size={16} />
-            <span>Back to Users List</span>
           </Link>
-
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/10 to-primary-light/5 flex items-center justify-center text-primary font-extrabold text-3xl shadow-inner border border-primary/10 shrink-0">
-                {profile?.avatarUrl ? (
-                  <img src={profile.avatarUrl} alt="Avatar" className="w-full h-full rounded-2xl object-cover" />
-                ) : (
-                  profile?.displayName?.[0]?.toUpperCase() || user?.phone?.[0] || 'U'
-                )}
-              </div>
-              <div>
-                <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="text-2xl font-extrabold text-slate-800 leading-tight">
-                    {profile?.displayName || 'Community Member'}
-                  </h1>
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase border ${
-                    user.accountStatus === 'ACTIVE' 
-                      ? 'bg-green-50 text-green-600 border-green-200' 
-                      : 'bg-amber-50 text-amber-600 border-amber-200'
-                  }`}>
-                    {user.accountStatus}
-                  </span>
-                  <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-indigo-50 text-indigo-600 border border-indigo-200">
-                    {user.role}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-400 font-semibold mt-1">
-                  ID: {user.id} • Registered on {new Date(user.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
-                </p>
-              </div>
+          <div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-2xl font-bold text-slate-800 leading-tight" style={{ fontFamily: 'var(--font-inter)' }}>
+                {profile?.displayName || 'Community Member'}
+              </h1>
+              <span className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase border ${
+                user.accountStatus === 'ACTIVE' 
+                  ? 'bg-green-50 text-green-600 border-green-200' 
+                  : 'bg-amber-50 text-amber-600 border-amber-200'
+              }`}>
+                {user.accountStatus}
+              </span>
+              <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-indigo-50 text-indigo-600 border border-indigo-200">
+                {user.role}
+              </span>
             </div>
-
-            <div className="flex items-center gap-2">
-              {user.accountStatus === 'ACTIVE' ? (
-                <button
-                  disabled={isUpdating}
-                  onClick={() => handleUpdateStatus('SUSPENDED')}
-                  className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50"
-                >
-                  Suspend User
-                </button>
-              ) : (
-                <button
-                  disabled={isUpdating}
-                  onClick={() => handleUpdateStatus('ACTIVE')}
-                  className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50"
-                >
-                  Activate User
-                </button>
-              )}
-              <button
-                disabled={isUpdating}
-                onClick={handleDeleteUser}
-                className="px-4 py-2.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
-              >
-                <Trash2 size={13} />
-                <span>Delete User</span>
-              </button>
-            </div>
+            <p className="text-xs text-slate-400 font-semibold mt-1">
+              ID: {user.id} • Registered on {new Date(user.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </p>
           </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0 ml-10 md:ml-0">
+          {user.accountStatus === 'ACTIVE' ? (
+            <button
+              disabled={isUpdating}
+              onClick={() => handleUpdateStatus('SUSPENDED')}
+              className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50"
+            >
+              Suspend User
+            </button>
+          ) : (
+            <button
+              disabled={isUpdating}
+              onClick={() => handleUpdateStatus('ACTIVE')}
+              className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50"
+            >
+              Activate User
+            </button>
+          )}
+          <button
+            disabled={isUpdating}
+            onClick={handleDeleteUser}
+            className="px-4 py-2.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
+          >
+            <Trash2 size={13} />
+            <span>Delete User</span>
+          </button>
         </div>
       </div>
 
-      {/* Cards container matching header space alignment */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Cards container */}
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         
         {/* ROW 1: LINKED USER & PROGRAM PROGRESS (if linked) - full width */}
         {linkedUser && (
@@ -232,7 +213,7 @@ export default function UserDetailPage() {
             <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
               <Link2 size={22} className="text-indigo-600" />
               <div>
-                <h3 className="text-base font-extrabold text-slate-800">Linked Account Progress</h3>
+                <h3 className="text-base font-extrabold text-slate-800" style={{ fontFamily: 'var(--font-inter)' }}>Linked Account Progress</h3>
                 <p className="text-xs text-slate-400 font-semibold mt-0.5">
                   Linked to {linkedUser.role.toLowerCase()} user: <span className="text-indigo-600 font-semibold">{linkedUser.displayName}</span> ({linkedUser.phone})
                 </p>
@@ -251,7 +232,7 @@ export default function UserDetailPage() {
                     className="p-4 bg-slate-50 border border-slate-200/40 rounded-2xl flex items-center justify-between gap-4 hover:border-indigo-500/30 hover:bg-slate-100/50 transition-all group cursor-pointer"
                   >
                     <div className="flex-1 space-y-2">
-                      <h4 className="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">{enr.program.title}</h4>
+                      <h4 className="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors" style={{ fontFamily: 'var(--font-inter)' }}>{enr.program.title}</h4>
                       <div className="flex justify-between text-[10px] font-semibold text-slate-400">
                         <span>{enr.completedSessionsCount}/{enr.totalSessions} sessions completed</span>
                         <span>{enr.progressPercentage}%</span>
@@ -276,7 +257,7 @@ export default function UserDetailPage() {
               <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
                 <User size={22} className="text-primary" />
                 <div>
-                  <h3 className="text-base font-extrabold text-slate-800">Personal Information</h3>
+                  <h3 className="text-base font-extrabold text-slate-800" style={{ fontFamily: 'var(--font-inter)' }}>Personal Information</h3>
                   <p className="text-xs text-slate-400 font-semibold mt-0.5">Name, contact details, shipping addresses, and birth details</p>
                 </div>
               </div>
@@ -334,7 +315,7 @@ export default function UserDetailPage() {
               <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
                 <Award size={22} className="text-primary" />
                 <div>
-                  <h3 className="text-base font-extrabold text-slate-800">Profile & App Information</h3>
+                  <h3 className="text-base font-extrabold text-slate-800" style={{ fontFamily: 'var(--font-inter)' }}>Profile & App Information</h3>
                   <p className="text-xs text-slate-400 font-semibold mt-0.5">User classification, active statuses, and account metrics</p>
                 </div>
               </div>
@@ -351,7 +332,7 @@ export default function UserDetailPage() {
             {/* App Metrics and details */}
             <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 space-y-3 mt-4">
               <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider block">Account Metrics</span>
-              <div className="space-y-2.5 text-xs font-semibold text-slate-655">
+              <div className="space-y-2.5 text-xs font-semibold text-slate-600">
                 <div className="flex justify-between pb-1.5 border-b border-slate-200/40">
                   <span>Platform Role</span>
                   <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 border border-indigo-200 rounded-md text-[10px] uppercase font-bold">{user.role}</span>
@@ -390,7 +371,7 @@ export default function UserDetailPage() {
             <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
               <Award size={22} className="text-primary" />
               <div>
-                <h3 className="text-base font-extrabold text-slate-800">Learning Programs</h3>
+                <h3 className="text-base font-extrabold text-slate-800" style={{ fontFamily: 'var(--font-inter)' }}>Learning Programs</h3>
                 <p className="text-xs text-slate-400 font-semibold mt-0.5">High-level session completions in booked mentoring programs</p>
               </div>
             </div>
@@ -417,7 +398,7 @@ export default function UserDetailPage() {
                             <img src={enr.program.thumbnailUrl} alt={enr.program.title} className="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200" />
                           )}
                           <div>
-                            <h4 className="font-bold text-slate-800 text-sm group-hover:text-primary transition-colors">{enr.program.title}</h4>
+                            <h4 className="font-bold text-slate-800 text-sm group-hover:text-primary transition-colors" style={{ fontFamily: 'var(--font-inter)' }}>{enr.program.title}</h4>
                             <p className="text-[11px] text-slate-400 font-semibold">{enr.program.classRange} • {enr.program.duration}</p>
                           </div>
                         </div>
@@ -447,7 +428,7 @@ export default function UserDetailPage() {
             <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
               <BookOpen size={22} className="text-emerald-500" />
               <div>
-                <h3 className="text-base font-extrabold text-slate-800">Learning Journeys</h3>
+                <h3 className="text-base font-extrabold text-slate-800" style={{ fontFamily: 'var(--font-inter)' }}>Learning Journeys</h3>
                 <p className="text-xs text-slate-400 font-semibold mt-0.5">Chapters read and progress calculated across active journeys</p>
               </div>
             </div>
@@ -468,7 +449,7 @@ export default function UserDetailPage() {
                         <img src={j.thumbnailUrl} alt={j.title} className="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200" />
                       )}
                       <div>
-                        <h4 className="font-bold text-slate-800 text-sm group-hover:text-emerald-600 transition-colors">{j.title}</h4>
+                        <h4 className="font-bold text-slate-800 text-sm group-hover:text-emerald-600 transition-colors" style={{ fontFamily: 'var(--font-inter)' }}>{j.title}</h4>
                         <p className="text-[10px] text-slate-400 font-semibold line-clamp-1">{j.description}</p>
                       </div>
                     </div>
@@ -497,7 +478,7 @@ export default function UserDetailPage() {
             <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
               <Sparkles size={22} className="text-amber-500" />
               <div>
-                <h3 className="text-base font-extrabold text-slate-800">Demo Sessions</h3>
+                <h3 className="text-base font-extrabold text-slate-800" style={{ fontFamily: 'var(--font-inter)' }}>Demo Sessions</h3>
                 <p className="text-xs text-slate-400 font-semibold mt-0.5">Booked initial parent demo sessions and follow-up status</p>
               </div>
             </div>
@@ -537,7 +518,7 @@ export default function UserDetailPage() {
                         <span className="text-slate-800 font-bold">{demo.phone}</span>
                       </div>
                       {demo.slotDate && (
-                        <div className="flex justify-between text-indigo-655 font-bold">
+                        <div className="flex justify-between text-indigo-600 font-bold">
                           <span>Preferred Slot</span>
                           <span>{demo.slotDate} @ {demo.slotTime || '-'}</span>
                         </div>
@@ -566,7 +547,7 @@ export default function UserDetailPage() {
             <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
               <CalendarCheck size={22} className="text-amber-500" />
               <div>
-                <h3 className="text-base font-extrabold text-slate-800">Expert 1:1 Consultations</h3>
+                <h3 className="text-base font-extrabold text-slate-800" style={{ fontFamily: 'var(--font-inter)' }}>Expert 1:1 Consultations</h3>
                 <p className="text-xs text-slate-400 font-semibold mt-0.5">Scheduled paid consultations booked through parent/teen dashboard</p>
               </div>
             </div>
@@ -627,7 +608,7 @@ export default function UserDetailPage() {
             <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
               <Shield size={22} className="text-primary" />
               <div>
-                <h3 className="text-base font-extrabold text-slate-800">Peer Onboarding Status</h3>
+                <h3 className="text-base font-extrabold text-slate-800" style={{ fontFamily: 'var(--font-inter)' }}>Peer Onboarding Status</h3>
                 <p className="text-xs text-slate-400 font-semibold mt-0.5">Mentoring score, personal statement, and scenario responses</p>
               </div>
             </div>
@@ -666,7 +647,7 @@ export default function UserDetailPage() {
                   {peerApplication.scenarioResponses.map((resp: string, idx: number) => (
                     <div key={idx} className="p-4 bg-slate-50 border border-slate-200/30 rounded-2xl space-y-2">
                       <span className="text-[9px] font-bold text-primary uppercase">Scenario Case #{idx + 1}</span>
-                      <p className="text-xs font-semibold text-slate-655 leading-relaxed italic">"{resp}"</p>
+                      <p className="text-xs font-semibold text-slate-600 leading-relaxed italic">"{resp}"</p>
                     </div>
                   ))}
                 </div>
@@ -683,7 +664,7 @@ export default function UserDetailPage() {
             <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
               <ShoppingBag size={22} className="text-rose-500" />
               <div>
-                <h3 className="text-base font-extrabold text-slate-800">Shop Purchase History</h3>
+                <h3 className="text-base font-extrabold text-slate-800" style={{ fontFamily: 'var(--font-inter)' }}>Shop Purchase History</h3>
                 <p className="text-xs text-slate-400 font-semibold mt-0.5">Purchases, pricing, line items, and delivery details</p>
               </div>
             </div>
@@ -733,7 +714,7 @@ export default function UserDetailPage() {
                               <span className="text-[9px] text-slate-400 font-semibold">Quantity: {item.quantity}</span>
                             </div>
                           </div>
-                          <span className="text-xs font-bold text-slate-655">₹{(item.price || 0).toLocaleString('en-IN')}</span>
+                          <span className="text-xs font-bold text-slate-600">₹{(item.price || 0).toLocaleString('en-IN')}</span>
                         </div>
                       ))}
                     </div>
@@ -757,7 +738,7 @@ export default function UserDetailPage() {
             <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
               <FileText size={22} className="text-slate-500" />
               <div>
-                <h3 className="text-base font-extrabold text-slate-800">Submitted Enquiries</h3>
+                <h3 className="text-base font-extrabold text-slate-800" style={{ fontFamily: 'var(--font-inter)' }}>Submitted Enquiries</h3>
                 <p className="text-xs text-slate-400 font-semibold mt-0.5">School collaborations or NGO program enquiries filed</p>
               </div>
             </div>

@@ -29,7 +29,7 @@ const getStatusSteps = (currentStatus: string) => [
 
 const STATUS_TRANSITIONS: Record<string, string[]> = {
   PLACED: ['PROCESSING', 'ON_HOLD', 'CANCELLED'],
-  PROCESSING: ['SHIPPED', 'CANCELLED'],
+  PROCESSING: ['SHIPPED', 'ON_HOLD', 'CANCELLED'],
   ON_HOLD: ['PROCESSING', 'CANCELLED'],
   SHIPPED: ['DELIVERED', 'CANCELLED'],
   DELIVERED: [],

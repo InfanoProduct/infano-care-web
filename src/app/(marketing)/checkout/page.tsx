@@ -143,8 +143,18 @@ function CheckoutContent() {
           }]
         }
       });
+
+      // Meta Pixel InitiateCheckout
+      if (windowObj.fbq) {
+        windowObj.fbq('track', 'InitiateCheckout', {
+          value: book.price * quantity,
+          currency: 'INR',
+          content_ids: [book.id],
+          content_type: 'product'
+        });
+      }
     }
-  }, [book]);
+  }, [book, quantity]);
 
   useEffect(() => {
     if (formData.pincode.length === 6) {
@@ -633,6 +643,16 @@ function CheckoutContent() {
                               }]
                             }
                           });
+
+                          // Meta Pixel Custom AddShippingInfo
+                          if (windowObj.fbq) {
+                            windowObj.fbq('trackCustom', 'AddShippingInfo', {
+                              value: total,
+                              currency: 'INR',
+                              content_ids: [book?.id || '5e569d64-9678-4689-a594-ec9c0020f07b'],
+                              content_type: 'product'
+                            });
+                          }
                         }
                       }}
                       className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
@@ -705,6 +725,16 @@ function CheckoutContent() {
                             }]
                           }
                         });
+
+                        // Meta Pixel AddPaymentInfo
+                        if (windowObj.fbq) {
+                          windowObj.fbq('track', 'AddPaymentInfo', {
+                            value: total,
+                            currency: 'INR',
+                            content_ids: [book?.id || '5e569d64-9678-4689-a594-ec9c0020f07b'],
+                            content_type: 'product'
+                          });
+                        }
                       }
                     }}
                     className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'ONLINE' ? 'border-primary bg-primary/[0.03]' : 'border-slate-100 hover:border-slate-200 bg-white'
@@ -739,6 +769,16 @@ function CheckoutContent() {
                             }]
                           }
                         });
+
+                        // Meta Pixel AddPaymentInfo
+                        if (windowObj.fbq) {
+                          windowObj.fbq('track', 'AddPaymentInfo', {
+                            value: total,
+                            currency: 'INR',
+                            content_ids: [book?.id || '5e569d64-9678-4689-a594-ec9c0020f07b'],
+                            content_type: 'product'
+                          });
+                        }
                       }
                     }}
                     className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'COD' ? 'border-primary bg-primary/[0.03]' : 'border-slate-100 hover:border-slate-200 bg-white'

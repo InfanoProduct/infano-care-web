@@ -2,6 +2,23 @@
 
 import Script from "next/script";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
+
+// Initialize Facebook Pixel stub immediately on the client
+if (typeof window !== "undefined") {
+  const windowObj = window as any;
+  if (!windowObj.fbq) {
+    windowObj._fbq = windowObj.fbq = function () {
+      windowObj.fbq.callMethod ?
+        windowObj.fbq.callMethod.apply(windowObj.fbq, arguments) :
+        windowObj.fbq.queue.push(arguments);
+    };
+    windowObj.fbq.push = windowObj.fbq;
+    windowObj.fbq.loaded = true;
+    windowObj.fbq.version = '2.0';
+    windowObj.fbq.queue = [];
+  }
+}
 
 export function Analytics() {
   const pathname = usePathname();
@@ -10,6 +27,47 @@ export function Analytics() {
   
   // Do not track on admin or dashboard pages
   const isExcludedPath = pathname?.startsWith("/admin") || pathname?.includes("/dashboard");
+
+  // Trigger PageView on route changes
+  useEffect(() => {
+    if (!isProduction || isExcludedPath) return;
+    const windowObj = window as any;
+    if (windowObj.fbq) {
+      windowObj.fbq('track', 'PageView');
+    }
+  }, [pathname, isProduction, isExcludedPath]);
+
+  // Trigger AddToCart when clicking checkout buttons/links
+  useEffect(() => {
+    if (!isProduction || isExcludedPath) return;
+
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const anchor = target.closest("a");
+      if (anchor) {
+        const href = anchor.getAttribute("href");
+        if (href && href.includes("/checkout")) {
+          const url = new URL(href, window.location.origin);
+          const bookId = url.searchParams.get("bookId") || "5e569d64-9678-4689-a594-ec9c0020f07b";
+          
+          const windowObj = window as any;
+          if (windowObj.fbq) {
+            windowObj.fbq('track', 'AddToCart', {
+              value: 499,
+              currency: 'INR',
+              content_ids: [bookId],
+              content_type: 'product'
+            });
+          }
+        }
+      }
+    };
+
+    document.addEventListener("click", handleGlobalClick);
+    return () => {
+      document.removeEventListener("click", handleGlobalClick);
+    };
+  }, [isProduction, isExcludedPath]);
 
   if (!isProduction || isExcludedPath) {
     return null;
@@ -44,6 +102,22 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-TZ23QHHM');`,
         }}
       />
+      {/* Meta Pixel script */}
+      <Script
+        id="meta-pixel"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '870505078824287');`,
+        }}
+      />
     </>
   );
 }
@@ -61,13 +135,23 @@ export function AnalyticsNoScript() {
   }
 
   return (
-    <noscript>
-      <iframe
-        src="https://www.googletagmanager.com/ns.html?id=GTM-TZ23QHHM"
-        height="0"
-        width="0"
-        style={{ display: "none", visibility: "hidden" }}
-      />
-    </noscript>
+    <>
+      <noscript>
+        <iframe
+          src="https://www.googletagmanager.com/ns.html?id=GTM-TZ23QHHM"
+          height="0"
+          width="0"
+          style={{ display: "none", visibility: "hidden" }}
+        />
+      </noscript>
+      <noscript>
+        <img
+          height="1"
+          width="1"
+          style={{ display: "none" }}
+          src="https://www.facebook.com/tr?id=870505078824287&ev=PageView&noscript=1"
+        />
+      </noscript>
+    </>
   );
 }

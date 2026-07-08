@@ -204,6 +204,17 @@ function PurchaseSuccessContent() {
           }]
         }
       });
+
+      // Meta Pixel Purchase
+      if (windowObj.fbq) {
+        windowObj.fbq('track', 'Purchase', {
+          value: totalAmount,
+          currency: 'INR',
+          content_ids: [itemId],
+          content_type: 'product',
+          transaction_id: transactionId
+        });
+      }
     }
   }, [transactionId, totalAmount, qty, itemId, itemName, unitPrice]);
 

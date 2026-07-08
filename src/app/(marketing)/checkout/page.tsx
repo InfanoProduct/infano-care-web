@@ -442,7 +442,7 @@ function CheckoutContent() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500 text-sm font-medium">Unit price</span>
-                  <span className="font-bold text-slate-900 text-sm">₹{book?.price || 499}</span>
+                  <span className="font-bold text-slate-900 text-sm"><span>₹</span><span>{book?.price || 499}</span></span>
                 </div>
 
                 <div className="flex justify-between items-center pt-1">
@@ -453,7 +453,7 @@ function CheckoutContent() {
                 {formData.paymentMethod === 'COD' && (
                   <div className="flex justify-between items-center pt-1">
                     <span className="text-slate-500 text-sm font-medium">Cash on Delivery</span>
-                    <span className="font-bold text-slate-900 text-sm">₹40</span>
+                    <span className="font-bold text-slate-900 text-sm"><span>₹</span><span>40</span></span>
                   </div>
                 )}
 
@@ -483,7 +483,7 @@ function CheckoutContent() {
                     <span className="text-emerald-600 text-sm font-bold flex items-center gap-1.5">
                       <Tag size={14} /> Discount
                     </span>
-                    <span className="font-bold text-emerald-600 text-sm">-₹{discountAmount}</span>
+                    <span className="font-bold text-emerald-600 text-sm">-<span>₹</span><span>{discountAmount}</span></span>
                   </div>
                 )}
               </div>
@@ -493,7 +493,7 @@ function CheckoutContent() {
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total amount</span>
                   <p className="text-[10px] text-slate-400 font-medium">Incl. of all taxes</p>
                 </div>
-                <span className="text-3xl font-black text-primary tracking-tighter">₹{total}</span>
+                <span className="text-3xl font-black text-primary tracking-tighter"><span>₹</span><span>{total}</span></span>
               </div>
             </div>
           </div>

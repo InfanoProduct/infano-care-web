@@ -323,18 +323,18 @@ function PurchaseSuccessContent() {
               <div className="space-y-3.5 pt-4 border-t border-slate-100 text-xs font-bold">
                 <div className="flex justify-between items-center text-slate-500 font-medium">
                   <span>Unit Price</span>
-                  <span className="text-slate-800 font-extrabold">₹{unitPrice}</span>
+                  <span className="text-slate-800 font-extrabold"><span>₹</span><span>{unitPrice}</span></span>
                 </div>
                 
                 <div className="flex justify-between items-center text-slate-500 font-medium">
                   <span>Item Subtotal</span>
-                  <span className="text-slate-800 font-extrabold">₹{subtotal}</span>
+                  <span className="text-slate-800 font-extrabold"><span>₹</span><span>{subtotal}</span></span>
                 </div>
                 
                 {discount > 0 && (
                   <div className="flex justify-between items-center text-emerald-600">
                     <span>Discount</span>
-                    <span>-₹{discount}</span>
+                    <span>-<span>₹</span><span>{discount}</span></span>
                   </div>
                 )}
                 
@@ -346,7 +346,7 @@ function PurchaseSuccessContent() {
                 {delivery > 0 && (
                   <div className="flex justify-between items-center text-slate-550 font-medium">
                     <span>Cash on Delivery (COD)</span>
-                    <span className="text-slate-800 font-extrabold">₹{delivery}</span>
+                    <span className="text-slate-800 font-extrabold"><span>₹</span><span>{delivery}</span></span>
                   </div>
                 )}
               </div>
@@ -357,7 +357,7 @@ function PurchaseSuccessContent() {
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Total Paid</span>
                   <p className="text-[9px] text-slate-400 font-medium">All taxes included</p>
                 </div>
-                <span className="text-3xl font-black text-slate-900 tracking-tight">₹{totalAmount}</span>
+                <span className="text-3xl font-black text-slate-900 tracking-tight"><span>₹</span><span>{totalAmount}</span></span>
               </div>
             </div>
             

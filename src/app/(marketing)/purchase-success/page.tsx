@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle2 } from 'lucide-react';
+import { isAnalyticsEnabled } from '@/components/common/Analytics';
 
 function PurchaseSuccessContent() {
   const router = useRouter();
@@ -16,7 +17,7 @@ function PurchaseSuccessContent() {
   const priceStr = searchParams.get('price') || '499';
 
   useEffect(() => {
-    if (process.env.NODE_ENV === 'production') {
+    if (isAnalyticsEnabled()) {
       const windowObj = window as any;
       windowObj.dataLayer = windowObj.dataLayer || [];
       windowObj.dataLayer.push({ ecommerce: null });
@@ -34,6 +35,17 @@ function PurchaseSuccessContent() {
           }]
         }
       });
+      // Meta Pixel Event
+      if (windowObj.fbq) {
+        windowObj.fbq('track', 'Purchase', {
+          content_ids: [itemId],
+          content_name: itemName,
+          content_type: 'product',
+          value: parseFloat(valueStr),
+          currency: 'INR',
+          num_items: parseInt(qtyStr, 10)
+        });
+      }
     }
   }, [transactionId, valueStr, qtyStr, itemId, itemName, priceStr]);
 

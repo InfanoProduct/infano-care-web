@@ -12,6 +12,7 @@ import {
   Loader2, CreditCard, Truck, AlertCircle,
   Plus, Minus
 } from 'lucide-react';
+import { isAnalyticsEnabled } from '@/components/common/Analytics';
 
 const bookImages = [
   '/Page-1.png',
@@ -126,7 +127,7 @@ function CheckoutContent() {
   }, [bookId]);
 
   useEffect(() => {
-    if (process.env.NODE_ENV === 'production' && book) {
+    if (isAnalyticsEnabled() && book) {
       const windowObj = window as any;
       windowObj.dataLayer = windowObj.dataLayer || [];
       windowObj.dataLayer.push({ ecommerce: null });
@@ -143,8 +144,19 @@ function CheckoutContent() {
           }]
         }
       });
+      // Meta Pixel InitiateCheckout
+      if (windowObj.fbq) {
+        windowObj.fbq('track', 'InitiateCheckout', {
+          content_ids: [book.id],
+          content_name: book.title,
+          content_type: 'product',
+          value: book.price * quantity,
+          currency: 'INR',
+          num_items: quantity
+        });
+      }
     }
-  }, [book]);
+  }, [book, quantity]);
 
   useEffect(() => {
     if (formData.pincode.length === 6) {
@@ -430,20 +442,22 @@ function CheckoutContent() {
               </h3>
 
               <div className="space-y-4">
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center" itemScope itemType="https://schema.org/Offer">
                   <span className="text-slate-500 text-sm font-medium">Unit price</span>
-                  <span className="font-bold text-slate-900 text-sm">₹{book?.price || 499}</span>
+                  <span className="font-bold text-slate-900 text-sm" data-price={book?.price || 499} itemProp="price">₹{book?.price || 499}</span>
+                  <meta itemProp="priceCurrency" content="INR" />
                 </div>
 
                 <div className="flex justify-between items-center pt-1">
                   <span className="text-slate-500 text-sm font-medium">Shipping charge</span>
-                  <span className="font-bold text-emerald-600 text-sm">Free</span>
+                  <span className="font-bold text-emerald-600 text-sm" data-price="0">Free</span>
                 </div>
 
                 {formData.paymentMethod === 'COD' && (
-                  <div className="flex justify-between items-center pt-1">
+                  <div className="flex justify-between items-center pt-1" itemScope itemType="https://schema.org/Offer">
                     <span className="text-slate-500 text-sm font-medium">Cash on Delivery</span>
-                    <span className="font-bold text-slate-900 text-sm">₹40</span>
+                    <span className="font-bold text-slate-900 text-sm" data-price="40" itemProp="price">₹40</span>
+                    <meta itemProp="priceCurrency" content="INR" />
                   </div>
                 )}
 
@@ -473,17 +487,18 @@ function CheckoutContent() {
                     <span className="text-emerald-600 text-sm font-bold flex items-center gap-1.5">
                       <Tag size={14} /> Discount
                     </span>
-                    <span className="font-bold text-emerald-600 text-sm">-₹{discountAmount}</span>
+                    <span className="font-bold text-emerald-600 text-sm" data-price={discountAmount}>-₹{discountAmount}</span>
                   </div>
                 )}
               </div>
 
-              <div className="flex justify-between items-end pt-5 border-t border-slate-100">
+              <div className="flex justify-between items-end pt-5 border-t border-slate-100" itemScope itemType="https://schema.org/Offer">
                 <div className="space-y-0.5">
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total amount</span>
                   <p className="text-[10px] text-slate-400 font-medium">Incl. of all taxes</p>
                 </div>
-                <span className="text-3xl font-black text-primary tracking-tighter">₹{total}</span>
+                <span className="text-3xl font-black text-primary tracking-tighter" data-price={total} itemProp="price">₹{total}</span>
+                <meta itemProp="priceCurrency" content="INR" />
               </div>
             </div>
           </div>
@@ -605,24 +620,42 @@ function CheckoutContent() {
                       value={formData.state}
                       onChange={handleInputChange}
                       onBlur={(e) => {
-                        if (process.env.NODE_ENV === 'production' && e.target.value.trim() !== '') {
+                        if (isAnalyticsEnabled() && e.target.value.trim() !== '') {
                           const windowObj = window as any;
+                          const checkoutVal = total || 499;
+                          const itemId = book?.id || '5e569d64-9678-4689-a594-ec9c0020f07b';
+                          const itemName = book?.title || 'Gigi - The Awkward Age';
+                          const itemPrice = book?.price || 499;
+                          const itemQty = quantity || 1;
+
                           windowObj.dataLayer = windowObj.dataLayer || [];
                           windowObj.dataLayer.push({ ecommerce: null });
                           windowObj.dataLayer.push({
                             event: 'add_shipping_info',
                             ecommerce: {
                               currency: 'INR',
-                              value: 499,
+                              value: checkoutVal,
                               shipping_tier: 'Standard',
                               items: [{
-                                item_id: '5e569d64-9678-4689-a594-ec9c0020f07b',
-                                item_name: 'Gigi - The Awkward Age',
-                                price: 499,
-                                quantity: 1
+                                item_id: itemId,
+                                item_name: itemName,
+                                price: itemPrice,
+                                quantity: itemQty
                               }]
                             }
                           });
+
+                          // Meta Pixel Event
+                          if (windowObj.fbq) {
+                            windowObj.fbq('track', 'AddShippingInfo', {
+                              content_ids: [itemId],
+                              content_name: itemName,
+                              content_type: 'product',
+                              value: checkoutVal,
+                              currency: 'INR',
+                              num_items: itemQty
+                            });
+                          }
                         }
                       }}
                       className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
@@ -677,24 +710,42 @@ function CheckoutContent() {
                     id='payment-online'
                     onClick={() => {
                       setFormData(prev => ({ ...prev, paymentMethod: 'ONLINE' }));
-                      if (process.env.NODE_ENV === 'production') {
+                      if (isAnalyticsEnabled()) {
                         const windowObj = window as any;
+                        const checkoutVal = (book ? (book.price * quantity - discountAmount) : 499) + 0;
+                        const itemId = book?.id || '5e569d64-9678-4689-a594-ec9c0020f07b';
+                        const itemName = book?.title || 'Gigi - The Awkward Age';
+                        const itemPrice = book?.price || 499;
+                        const itemQty = quantity || 1;
+
                         windowObj.dataLayer = windowObj.dataLayer || [];
                         windowObj.dataLayer.push({ ecommerce: null });
                         windowObj.dataLayer.push({
                           event: 'add_payment_info',
                           ecommerce: {
                             currency: 'INR',
-                            value: 499,
+                            value: checkoutVal,
                             payment_type: 'Online Payment',
                             items: [{
-                              item_id: '5e569d64-9678-4689-a594-ec9c0020f07b',
-                              item_name: 'Gigi - The Awkward Age',
-                              price: 499,
-                              quantity: 1
+                              item_id: itemId,
+                              item_name: itemName,
+                              price: itemPrice,
+                              quantity: itemQty
                             }]
                           }
                         });
+
+                        // Meta Pixel Event
+                        if (windowObj.fbq) {
+                          windowObj.fbq('track', 'AddPaymentInfo', {
+                            content_ids: [itemId],
+                            content_name: itemName,
+                            content_type: 'product',
+                            value: checkoutVal,
+                            currency: 'INR',
+                            num_items: itemQty
+                          });
+                        }
                       }
                     }}
                     className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'ONLINE' ? 'border-primary bg-primary/[0.03]' : 'border-slate-100 hover:border-slate-200 bg-white'
@@ -711,24 +762,42 @@ function CheckoutContent() {
                     id='payment-cod'
                     onClick={() => {
                       setFormData(prev => ({ ...prev, paymentMethod: 'COD' }));
-                      if (process.env.NODE_ENV === 'production') {
+                      if (isAnalyticsEnabled()) {
                         const windowObj = window as any;
+                        const checkoutVal = (book ? (book.price * quantity - discountAmount) : 499) + 40;
+                        const itemId = book?.id || '5e569d64-9678-4689-a594-ec9c0020f07b';
+                        const itemName = book?.title || 'Gigi - The Awkward Age';
+                        const itemPrice = book?.price || 499;
+                        const itemQty = quantity || 1;
+
                         windowObj.dataLayer = windowObj.dataLayer || [];
                         windowObj.dataLayer.push({ ecommerce: null });
                         windowObj.dataLayer.push({
                           event: 'add_payment_info',
                           ecommerce: {
                             currency: 'INR',
-                            value: 499,
+                            value: checkoutVal,
                             payment_type: 'Cash on Delivery',
                             items: [{
-                              item_id: '5e569d64-9678-4689-a594-ec9c0020f07b',
-                              item_name: 'Gigi - The Awkward Age',
-                              price: 499,
-                              quantity: 1
+                              item_id: itemId,
+                              item_name: itemName,
+                              price: itemPrice,
+                              quantity: itemQty
                             }]
                           }
                         });
+
+                        // Meta Pixel Event
+                        if (windowObj.fbq) {
+                          windowObj.fbq('track', 'AddPaymentInfo', {
+                            content_ids: [itemId],
+                            content_name: itemName,
+                            content_type: 'product',
+                            value: checkoutVal,
+                            currency: 'INR',
+                            num_items: itemQty
+                          });
+                        }
                       }
                     }}
                     className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'COD' ? 'border-primary bg-primary/[0.03]' : 'border-slate-100 hover:border-slate-200 bg-white'

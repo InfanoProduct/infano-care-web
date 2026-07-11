@@ -129,21 +129,6 @@ function CheckoutContent() {
   useEffect(() => {
     if (isAnalyticsEnabled() && book) {
       const windowObj = window as any;
-      windowObj.dataLayer = windowObj.dataLayer || [];
-      windowObj.dataLayer.push({ ecommerce: null });
-      windowObj.dataLayer.push({
-        event: 'begin_checkout',
-        ecommerce: {
-          currency: 'INR',
-          value: book.price * quantity,
-          items: [{
-            item_id: book.id,
-            item_name: book.title,
-            price: book.price,
-            quantity: quantity
-          }]
-        }
-      });
       // Meta Pixel InitiateCheckout
       if (windowObj.fbq) {
         windowObj.fbq('track', 'InitiateCheckout', {
@@ -640,25 +625,7 @@ function CheckoutContent() {
                           const checkoutVal = total || 499;
                           const itemId = book?.id || '5e569d64-9678-4689-a594-ec9c0020f07b';
                           const itemName = book?.title || 'Gigi - The Awkward Age';
-                          const itemPrice = book?.price || 499;
                           const itemQty = quantity || 1;
-
-                          windowObj.dataLayer = windowObj.dataLayer || [];
-                          windowObj.dataLayer.push({ ecommerce: null });
-                          windowObj.dataLayer.push({
-                            event: 'add_shipping_info',
-                            ecommerce: {
-                              currency: 'INR',
-                              value: checkoutVal,
-                              shipping_tier: 'Standard',
-                              items: [{
-                                item_id: itemId,
-                                item_name: itemName,
-                                price: itemPrice,
-                                quantity: itemQty
-                              }]
-                            }
-                          });
 
                           // Meta Pixel Event
                           if (windowObj.fbq) {
@@ -730,25 +697,7 @@ function CheckoutContent() {
                         const checkoutVal = (book ? (book.price * quantity - discountAmount) : 499) + 0;
                         const itemId = book?.id || '5e569d64-9678-4689-a594-ec9c0020f07b';
                         const itemName = book?.title || 'Gigi - The Awkward Age';
-                        const itemPrice = book?.price || 499;
                         const itemQty = quantity || 1;
-
-                        windowObj.dataLayer = windowObj.dataLayer || [];
-                        windowObj.dataLayer.push({ ecommerce: null });
-                        windowObj.dataLayer.push({
-                          event: 'add_payment_info',
-                          ecommerce: {
-                            currency: 'INR',
-                            value: checkoutVal,
-                            payment_type: 'Online Payment',
-                            items: [{
-                              item_id: itemId,
-                              item_name: itemName,
-                              price: itemPrice,
-                              quantity: itemQty
-                            }]
-                          }
-                        });
 
                         // Meta Pixel Event
                         if (windowObj.fbq) {
@@ -782,25 +731,7 @@ function CheckoutContent() {
                         const checkoutVal = (book ? (book.price * quantity - discountAmount) : 499) + 40;
                         const itemId = book?.id || '5e569d64-9678-4689-a594-ec9c0020f07b';
                         const itemName = book?.title || 'Gigi - The Awkward Age';
-                        const itemPrice = book?.price || 499;
                         const itemQty = quantity || 1;
-
-                        windowObj.dataLayer = windowObj.dataLayer || [];
-                        windowObj.dataLayer.push({ ecommerce: null });
-                        windowObj.dataLayer.push({
-                          event: 'add_payment_info',
-                          ecommerce: {
-                            currency: 'INR',
-                            value: checkoutVal,
-                            payment_type: 'Cash on Delivery',
-                            items: [{
-                              item_id: itemId,
-                              item_name: itemName,
-                              price: itemPrice,
-                              quantity: itemQty
-                            }]
-                          }
-                        });
 
                         // Meta Pixel Event
                         if (windowObj.fbq) {

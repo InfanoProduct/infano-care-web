@@ -15,6 +15,7 @@ import { BookChapters } from '@/features/marketing/components/sections/the-book/
 import { BookTrust } from '@/features/marketing/components/sections/the-book/BookTrust';
 import { FloatingBuyWidget } from '@/features/marketing/components/sections/the-book/FloatingBuyWidget';
 import { LivePurchasePrompt } from '@/features/marketing/components/sections/the-book/LivePurchasePrompt';
+import { isAnalyticsEnabled } from '@/components/common/Analytics';
 
 export function TheBookClient() {
   const [book, setBook] = useState<Book | null>(null);
@@ -38,7 +39,7 @@ export function TheBookClient() {
   }, []);
 
   useEffect(() => {
-    if (process.env.NODE_ENV === 'production' && book) {
+    if (isAnalyticsEnabled() && book) {
       const windowObj = window as any;
       windowObj.dataLayer = windowObj.dataLayer || [];
       windowObj.dataLayer.push({ ecommerce: null });
@@ -55,6 +56,16 @@ export function TheBookClient() {
           }]
         }
       });
+      // Meta Pixel Event
+      if (windowObj.fbq) {
+        windowObj.fbq('track', 'ViewContent', {
+          content_ids: [book.id],
+          content_name: book.title,
+          content_type: 'product',
+          value: book.price,
+          currency: 'INR'
+        });
+      }
     }
   }, [book]);
 

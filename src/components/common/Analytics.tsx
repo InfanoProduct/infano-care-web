@@ -1,17 +1,32 @@
 "use client";
 
+import { useEffect } from "react";
 import Script from "next/script";
 import { usePathname } from "next/navigation";
+
+export function isAnalyticsEnabled() {
+  return process.env.NODE_ENV === "production" || process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === "true";
+}
 
 export function Analytics() {
   const pathname = usePathname();
 
-  const isProduction = process.env.NODE_ENV === "production";
+  const enabled = isAnalyticsEnabled();
   
   // Do not track on admin or dashboard pages
   const isExcludedPath = pathname?.startsWith("/admin") || pathname?.includes("/dashboard");
 
-  if (!isProduction || isExcludedPath) {
+  // Track PageView on pathname changes
+  useEffect(() => {
+    if (enabled && !isExcludedPath && typeof window !== "undefined") {
+      const windowObj = window as any;
+      if (windowObj.fbq) {
+        windowObj.fbq('track', 'PageView');
+      }
+    }
+  }, [pathname, enabled, isExcludedPath]);
+
+  if (!enabled || isExcludedPath) {
     return null;
   }
 
@@ -44,6 +59,22 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-TZ23QHHM');`,
         }}
       />
+      {/* Meta Pixel */}
+      <Script
+        id="meta-pixel"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '870505078824287');`,
+        }}
+      />
     </>
   );
 }
@@ -51,23 +82,33 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 export function AnalyticsNoScript() {
   const pathname = usePathname();
   
-  const isProduction = process.env.NODE_ENV === "production";
+  const enabled = isAnalyticsEnabled();
   
   // Do not track on admin or dashboard pages
   const isExcludedPath = pathname?.startsWith("/admin") || pathname?.includes("/dashboard");
 
-  if (!isProduction || isExcludedPath) {
+  if (!enabled || isExcludedPath) {
     return null;
   }
 
   return (
-    <noscript>
-      <iframe
-        src="https://www.googletagmanager.com/ns.html?id=GTM-TZ23QHHM"
-        height="0"
-        width="0"
-        style={{ display: "none", visibility: "hidden" }}
-      />
-    </noscript>
+    <>
+      <noscript>
+        <iframe
+          src="https://www.googletagmanager.com/ns.html?id=GTM-TZ23QHHM"
+          height="0"
+          width="0"
+          style={{ display: "none", visibility: "hidden" }}
+        />
+      </noscript>
+      <noscript>
+        <img
+          height="1"
+          width="1"
+          style={{ display: "none", visibility: "hidden" }}
+          src="https://www.facebook.com/tr?id=870505078824287&ev=PageView&noscript=1"
+        />
+      </noscript>
+    </>
   );
 }

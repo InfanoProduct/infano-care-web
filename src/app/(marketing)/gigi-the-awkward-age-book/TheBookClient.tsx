@@ -38,36 +38,7 @@ export function TheBookClient() {
     loadData();
   }, []);
 
-  useEffect(() => {
-    if (isAnalyticsEnabled() && book) {
-      const windowObj = window as any;
-      windowObj.dataLayer = windowObj.dataLayer || [];
-      windowObj.dataLayer.push({ ecommerce: null });
-      windowObj.dataLayer.push({
-        event: 'view_item',
-        ecommerce: {
-          currency: 'INR',
-          value: book.price,
-          items: [{
-            item_id: book.id,
-            item_name: book.title,
-            price: book.price,
-            quantity: 1
-          }]
-        }
-      });
-      // Meta Pixel Event
-      if (windowObj.fbq) {
-        windowObj.fbq('track', 'ViewContent', {
-          content_ids: [book.id],
-          content_name: book.title,
-          content_type: 'product',
-          value: book.price,
-          currency: 'INR'
-        });
-      }
-    }
-  }, [book]);
+
 
   if (loading || !book) {
     return (

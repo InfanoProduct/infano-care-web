@@ -35,17 +35,7 @@ function PurchaseSuccessContent() {
           }]
         }
       });
-      // Meta Pixel Event
-      if (windowObj.fbq) {
-        windowObj.fbq('track', 'Purchase', {
-          content_ids: [itemId],
-          content_name: itemName,
-          content_type: 'product',
-          value: parseFloat(valueStr),
-          currency: 'INR',
-          num_items: parseInt(qtyStr, 10)
-        });
-      }
+      // Meta Pixel Event removed as integrated via GTM
     }
   }, [transactionId, valueStr, qtyStr, itemId, itemName, priceStr]);
 

@@ -37,20 +37,7 @@ export function TheBookClient() {
     };
     loadData();
   }, []);
-  useEffect(() => {
-    if (isAnalyticsEnabled() && book) {
-      const windowObj = window as any;
-      if (windowObj.fbq) {
-        windowObj.fbq('track', 'ViewContent', {
-          content_ids: [book.id],
-          content_name: book.title,
-          content_type: 'product',
-          value: book.price,
-          currency: 'INR'
-        });
-      }
-    }
-  }, [book]);
+
 
 
   if (loading || !book) {

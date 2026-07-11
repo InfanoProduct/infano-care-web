@@ -127,23 +127,6 @@ function CheckoutContent() {
   }, [bookId]);
 
   useEffect(() => {
-    if (isAnalyticsEnabled() && book) {
-      const windowObj = window as any;
-      // Meta Pixel InitiateCheckout
-      if (windowObj.fbq) {
-        windowObj.fbq('track', 'InitiateCheckout', {
-          content_ids: [book.id],
-          content_name: book.title,
-          content_type: 'product',
-          value: book.price * quantity,
-          currency: 'INR',
-          num_items: quantity
-        });
-      }
-    }
-  }, [book, quantity]);
-
-  useEffect(() => {
     if (formData.pincode.length === 6) {
       const fetchPincodeData = async () => {
         setPincodeLoading(true);
@@ -619,27 +602,7 @@ function CheckoutContent() {
                       name="state"
                       value={formData.state}
                       onChange={handleInputChange}
-                      onBlur={(e) => {
-                        if (isAnalyticsEnabled() && e.target.value.trim() !== '') {
-                          const windowObj = window as any;
-                          const checkoutVal = total || 499;
-                          const itemId = book?.id || '5e569d64-9678-4689-a594-ec9c0020f07b';
-                          const itemName = book?.title || 'Gigi - The Awkward Age';
-                          const itemQty = quantity || 1;
 
-                          // Meta Pixel Event
-                          if (windowObj.fbq) {
-                            windowObj.fbq('track', 'AddShippingInfo', {
-                              content_ids: [itemId],
-                              content_name: itemName,
-                              content_type: 'product',
-                              value: checkoutVal,
-                              currency: 'INR',
-                              num_items: itemQty
-                            });
-                          }
-                        }
-                      }}
                       className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
                       placeholder="State"
                     />
@@ -690,28 +653,7 @@ function CheckoutContent() {
                   <button
                     type="button"
                     id='payment-online'
-                    onClick={() => {
-                      setFormData(prev => ({ ...prev, paymentMethod: 'ONLINE' }));
-                      if (isAnalyticsEnabled()) {
-                        const windowObj = window as any;
-                        const checkoutVal = (book ? (book.price * quantity - discountAmount) : 499) + 0;
-                        const itemId = book?.id || '5e569d64-9678-4689-a594-ec9c0020f07b';
-                        const itemName = book?.title || 'Gigi - The Awkward Age';
-                        const itemQty = quantity || 1;
-
-                        // Meta Pixel Event
-                        if (windowObj.fbq) {
-                          windowObj.fbq('track', 'AddPaymentInfo', {
-                            content_ids: [itemId],
-                            content_name: itemName,
-                            content_type: 'product',
-                            value: checkoutVal,
-                            currency: 'INR',
-                            num_items: itemQty
-                          });
-                        }
-                      }
-                    }}
+                    onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'ONLINE' }))}
                     className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'ONLINE' ? 'border-primary bg-primary/[0.03]' : 'border-slate-100 hover:border-slate-200 bg-white'
                       }`}
                   >
@@ -724,28 +666,7 @@ function CheckoutContent() {
                   <button
                     type="button"
                     id='payment-cod'
-                    onClick={() => {
-                      setFormData(prev => ({ ...prev, paymentMethod: 'COD' }));
-                      if (isAnalyticsEnabled()) {
-                        const windowObj = window as any;
-                        const checkoutVal = (book ? (book.price * quantity - discountAmount) : 499) + 40;
-                        const itemId = book?.id || '5e569d64-9678-4689-a594-ec9c0020f07b';
-                        const itemName = book?.title || 'Gigi - The Awkward Age';
-                        const itemQty = quantity || 1;
-
-                        // Meta Pixel Event
-                        if (windowObj.fbq) {
-                          windowObj.fbq('track', 'AddPaymentInfo', {
-                            content_ids: [itemId],
-                            content_name: itemName,
-                            content_type: 'product',
-                            value: checkoutVal,
-                            currency: 'INR',
-                            num_items: itemQty
-                          });
-                        }
-                      }
-                    }}
+                    onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'COD' }))}
                     className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'COD' ? 'border-primary bg-primary/[0.03]' : 'border-slate-100 hover:border-slate-200 bg-white'
                       }`}
                   >

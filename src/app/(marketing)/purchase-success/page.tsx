@@ -50,6 +50,25 @@ function PurchaseSuccessContent() {
           Thank you for ordering your book. Your order has been successfully placed, and we will get it delivered to you soon! Our team will connect with you shortly with further updates.
         </p>
 
+        <div className="bg-emerald-50/40 border border-emerald-100/60 rounded-xl p-5 mb-6 max-w-sm mx-auto text-left">
+          <h3 className="font-bold text-slate-800 mb-3 text-sm border-b border-emerald-100/40 pb-1.5">Order Summary</h3>
+          <div className="flex justify-between text-xs text-slate-600 font-medium mb-1.5">
+            <span>Item:</span>
+            <span className="font-bold text-slate-900 truncate max-w-[200px]">{itemName}</span>
+          </div>
+          <div className="flex justify-between text-xs text-slate-600 font-medium mb-1.5">
+            <span>Quantity:</span>
+            <span className="font-bold text-slate-900">{qtyStr}</span>
+          </div>
+          <div className="flex justify-between text-xs text-slate-600 font-semibold pt-2 border-t border-slate-200/60 items-center">
+            <span>Total Paid:</span>
+            <span className="text-lg font-black text-primary flex items-center gap-0.5">
+              <span>₹</span>
+              <span data-price={valueStr}>{valueStr}</span>
+            </span>
+          </div>
+        </div>
+
         <div className="bg-slate-50 border border-slate-100 rounded-xl p-6 text-left mb-8 max-w-sm mx-auto">
           <h3 className="font-bold text-slate-900 mb-4 text-center">Need help? We're here for you:</h3>
           <div className="space-y-3 font-medium text-slate-700">

@@ -127,6 +127,20 @@ function CheckoutContent() {
   }, [bookId]);
 
   useEffect(() => {
+    if (isAnalyticsEnabled() && book) {
+      const windowObj = window as any;
+      windowObj.dataLayer = windowObj.dataLayer || [];
+      windowObj.dataLayer.push({
+        event: "begin_checkout",
+        value: book.price * quantity,
+        currency: "INR",
+        content_ids: [book.id],
+        content_type: "product"
+      });
+    }
+  }, [book, quantity]);
+
+  useEffect(() => {
     if (formData.pincode.length === 6) {
       const fetchPincodeData = async () => {
         setPincodeLoading(true);

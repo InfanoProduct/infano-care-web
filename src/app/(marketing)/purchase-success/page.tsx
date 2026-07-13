@@ -20,24 +20,16 @@ function PurchaseSuccessContent() {
     if (isAnalyticsEnabled()) {
       const windowObj = window as any;
       windowObj.dataLayer = windowObj.dataLayer || [];
-      windowObj.dataLayer.push({ ecommerce: null });
       windowObj.dataLayer.push({
-        event: 'purchase',
-        ecommerce: {
-          transaction_id: transactionId,
-          currency: 'INR',
-          value: parseFloat(valueStr),
-          items: [{
-            item_id: itemId,
-            item_name: itemName,
-            price: parseFloat(priceStr),
-            quantity: parseInt(qtyStr, 10)
-          }]
-        }
+        event: "purchase",
+        value: parseFloat(valueStr),
+        currency: "INR",
+        transaction_id: transactionId,
+        content_ids: [itemId],
+        content_type: "product"
       });
-      // Meta Pixel Event removed as integrated via GTM
     }
-  }, [transactionId, valueStr, qtyStr, itemId, itemName, priceStr]);
+  }, [transactionId, valueStr, itemId]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">

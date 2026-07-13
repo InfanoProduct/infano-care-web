@@ -62,10 +62,7 @@ function PurchaseSuccessContent() {
           </div>
           <div className="flex justify-between text-xs text-slate-600 font-semibold pt-2 border-t border-slate-200/60 items-center">
             <span>Total Paid:</span>
-            <span className="text-lg font-black text-primary flex items-center gap-0.5">
-              <span>₹</span>
-              <span data-price={valueStr}>{valueStr}</span>
-            </span>
+            <span className="text-lg font-black text-primary" data-price={valueStr}>₹{valueStr}</span>
           </div>
         </div>
 

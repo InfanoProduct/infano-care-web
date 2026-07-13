@@ -412,10 +412,7 @@ function CheckoutContent() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center" itemScope itemType="https://schema.org/Offer">
                   <span className="text-slate-500 text-sm font-medium">Unit price</span>
-                  <span className="font-bold text-slate-900 text-sm flex items-center gap-0.5">
-                    <span>₹</span>
-                    <span data-price={book?.price || 499}>{book?.price || 499}</span>
-                  </span>
+                  <span className="font-bold text-slate-900 text-sm" data-price={book?.price || 499}>₹{book?.price || 499}</span>
                   <meta itemProp="price" content={(book?.price || 499).toString()} />
                   <meta itemProp="priceCurrency" content="INR" />
                 </div>
@@ -428,10 +425,7 @@ function CheckoutContent() {
                 {formData.paymentMethod === 'COD' && (
                   <div className="flex justify-between items-center pt-1" itemScope itemType="https://schema.org/Offer">
                     <span className="text-slate-500 text-sm font-medium">Cash on Delivery</span>
-                    <span className="font-bold text-slate-900 text-sm flex items-center gap-0.5">
-                      <span>₹</span>
-                      <span data-price="40">40</span>
-                    </span>
+                    <span className="font-bold text-slate-900 text-sm" data-price="40">₹40</span>
                     <meta itemProp="price" content="40" />
                     <meta itemProp="priceCurrency" content="INR" />
                   </div>
@@ -463,10 +457,7 @@ function CheckoutContent() {
                     <span className="text-emerald-600 text-sm font-bold flex items-center gap-1.5">
                       <Tag size={14} /> Discount
                     </span>
-                    <span className="font-bold text-emerald-600 text-sm flex items-center gap-0.5">
-                      <span>-₹</span>
-                      <span data-price={discountAmount}>{discountAmount}</span>
-                    </span>
+                    <span className="font-bold text-emerald-600 text-sm" data-price={discountAmount}>-₹{discountAmount}</span>
                   </div>
                 )}
               </div>
@@ -476,10 +467,7 @@ function CheckoutContent() {
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total amount</span>
                   <p className="text-[10px] text-slate-400 font-medium">Incl. of all taxes</p>
                 </div>
-                <span className="text-3xl font-black text-primary tracking-tighter flex items-center gap-0.5">
-                  <span className="text-2xl font-bold align-baseline mr-0.5">₹</span>
-                  <span data-price={total}>{total}</span>
-                </span>
+                <span className="text-3xl font-black text-primary tracking-tighter" data-price={total}>₹{total}</span>
                 <meta itemProp="price" content={total.toString()} />
                 <meta itemProp="priceCurrency" content="INR" />
               </div>

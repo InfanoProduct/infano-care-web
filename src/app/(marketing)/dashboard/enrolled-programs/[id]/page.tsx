@@ -220,6 +220,12 @@ export default function EnrolledProgramDetailsPage() {
                   key={index}
                   className="group relative p-5 bg-white border border-slate-200/80 rounded-2xl shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-start gap-4 overflow-hidden"
                 >
+                  {session.thumbnailUrl && (
+                    <div
+                      className="absolute inset-0 bg-cover bg-right pointer-events-none filter blur-[6px] opacity-15"
+                      style={{ backgroundImage: `url(${session.thumbnailUrl})` }}
+                    />
+                  )}
                   <div className="absolute top-0 left-0 bottom-0 w-1 bg-linear-to-b from-emerald-400 to-teal-500" />
                   
                   {/* Decorative success watermark icon */}
@@ -257,6 +263,12 @@ export default function EnrolledProgramDetailsPage() {
                   id="upcoming-session"
                   className="group/scheduled p-6 border border-purple-200 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col gap-5 relative overflow-hidden sm:col-span-2 bg-linear-to-br from-purple-50/80 via-indigo-50/30 to-white/90"
                 >
+                  {session.thumbnailUrl && (
+                    <div
+                      className="absolute inset-0 bg-cover bg-right pointer-events-none filter blur-[6px] opacity-20"
+                      style={{ backgroundImage: `url(${session.thumbnailUrl})` }}
+                    />
+                  )}
                   {/* Decorative live watermark icon */}
                   <div className="absolute -right-4 -bottom-4 text-purple-650/5 pointer-events-none transform -rotate-12 scale-160 group-hover/scheduled:scale-170 group-hover/scheduled:rotate-0 transition-all duration-750">
                     <Play size={110} className="fill-current" />
@@ -329,6 +341,12 @@ export default function EnrolledProgramDetailsPage() {
                   key={index}
                   className="group/locked relative p-5.5 bg-white border border-slate-205 rounded-2xl flex items-start gap-4.5 hover:border-slate-350 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
                 >
+                  {session.thumbnailUrl && (
+                    <div
+                      className="absolute inset-0 bg-cover bg-right pointer-events-none filter blur-[6px] opacity-10 grayscale"
+                      style={{ backgroundImage: `url(${session.thumbnailUrl})` }}
+                    />
+                  )}
                   {/* Decorative lock watermark icon */}
                   <div className="absolute -right-3 -bottom-3 text-slate-300/15 pointer-events-none transform rotate-12 scale-150 group-hover/locked:scale-155 group-hover/locked:rotate-6 transition-all duration-500">
                     <Lock size={80} />

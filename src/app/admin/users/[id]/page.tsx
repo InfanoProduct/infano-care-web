@@ -1,0 +1,812 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
+import { apiClient } from '@/lib/api-client';
+import { 
+  ArrowLeft, User, Phone, Mail, Award, BookOpen, Link2, 
+  CalendarCheck, Clock, ShieldAlert, Sparkles, Shield, Trash2, 
+  ShoppingBag, FileText 
+} from 'lucide-react';
+import Link from 'next/link';
+import { toast } from 'react-hot-toast';
+
+interface UserOverviewResponse {
+  user: {
+    id: string;
+    phone: string;
+    email?: string;
+    role: string;
+    accountStatus: string;
+    createdAt: string;
+    onboardingStep: number;
+    onboardingCompletedAt?: string;
+    birthMonth?: number;
+    birthYear?: number;
+    ageAtSignup?: number;
+  };
+  profile?: {
+    displayName: string;
+    pronouns?: string;
+    journeyName?: string;
+    totalPoints: number;
+    bloomLevel: number;
+    bio?: string;
+    avatarUrl?: string;
+  };
+  peerApplication?: {
+    status: string;
+    trainingScore: number | null;
+    personalStatement: string;
+    scenarioResponses: string[];
+  };
+  programEnrollments: any[];
+  scheduledSessions: any[];
+  expertSessions: any[];
+  orders: any[];
+  journeys: any[];
+  enquiries: any[];
+  linkedUser?: {
+    id: string;
+    displayName: string;
+    phone: string;
+    role: string;
+  };
+  linkedEnrollments: any[];
+  demoSessions: any[];
+}
+
+export default function UserDetailPage() {
+  const { id: userId } = useParams();
+  const [data, setData] = useState<UserOverviewResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  useEffect(() => {
+    fetchUserOverview();
+  }, [userId]);
+
+  const fetchUserOverview = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const res = await apiClient.get<UserOverviewResponse>(`/admin/users/${userId}/overview`);
+      setData(res);
+    } catch (err: any) {
+      console.error('Failed to load user overview details', err);
+      setError(err?.message || 'Failed to retrieve user overview statistics.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateStatus = async (newStatus: 'ACTIVE' | 'SUSPENDED') => {
+    try {
+      setIsUpdating(true);
+      await apiClient.put(`/admin/users/${userId}/status`, { accountStatus: newStatus });
+      toast.success(`User status changed to ${newStatus}`);
+      fetchUserOverview();
+    } catch (err: any) {
+      console.error('Failed to change status', err);
+      toast.error('Failed to change account status');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!confirm('Are you sure you want to delete this user? This will hide them from the admin panel.')) return;
+    try {
+      setIsUpdating(true);
+      await apiClient.delete(`/admin/users/${userId}`);
+      toast.success('User deleted successfully');
+      // Go back to list
+      window.location.href = '/admin/users';
+    } catch (err: any) {
+      console.error('Failed to delete user', err);
+      toast.error('Failed to delete user');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="p-8 text-center bg-white rounded-lg border border-slate-200">
+        <ShieldAlert className="w-16 h-16 text-rose-500 mx-auto mb-4" />
+        <h2 className="text-xl font-semibold" style={{ fontFamily: 'var(--font-inter)' }}>Error Loading User</h2>
+        <p className="text-muted-foreground font-medium mt-2">{error || 'Unable to retrieve user data.'}</p>
+        <Link 
+          href="/admin/users"
+          className="mt-4 text-primary font-medium hover:underline inline-block"
+        >
+          Back to Users List
+        </Link>
+      </div>
+    );
+  }
+
+  const { 
+    user, profile, peerApplication, programEnrollments, 
+    scheduledSessions, expertSessions, orders, journeys, enquiries, 
+    linkedUser, linkedEnrollments, demoSessions 
+  } = data;
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-6 pb-12">
+      
+      {/* Top header */}
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 border-b border-slate-200 pb-6">
+        <div className="flex items-start gap-4">
+          <Link 
+            href="/admin/users" 
+            className="p-3 border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 rounded-2xl transition-all shadow-sm active:scale-95 shrink-0 mt-1"
+          >
+            <ArrowLeft size={16} />
+          </Link>
+          <div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-2xl font-bold text-slate-800 leading-tight" style={{ fontFamily: 'var(--font-inter)' }}>
+                {profile?.displayName || 'Community Member'}
+              </h1>
+              <span className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase border ${
+                user.accountStatus === 'ACTIVE' 
+                  ? 'bg-green-50 text-green-600 border-green-200' 
+                  : 'bg-amber-50 text-amber-600 border-amber-200'
+              }`}>
+                {user.accountStatus}
+              </span>
+              <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-indigo-50 text-indigo-600 border border-indigo-200">
+                {user.role}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 font-semibold mt-1">
+              ID: {user.id} • Registered on {new Date(user.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0 ml-10 md:ml-0">
+          {user.accountStatus === 'ACTIVE' ? (
+            <button
+              disabled={isUpdating}
+              onClick={() => handleUpdateStatus('SUSPENDED')}
+              className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50"
+            >
+              Suspend User
+            </button>
+          ) : (
+            <button
+              disabled={isUpdating}
+              onClick={() => handleUpdateStatus('ACTIVE')}
+              className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50"
+            >
+              Activate User
+            </button>
+          )}
+          <button
+            disabled={isUpdating}
+            onClick={handleDeleteUser}
+            className="px-4 py-2.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
+          >
+            <Trash2 size={13} />
+            <span>Delete User</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Cards container */}
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        
+        {/* ROW 1: LINKED USER & PROGRAM PROGRESS (if linked) - full width */}
+        {linkedUser && (
+          <div className="bg-white border border-slate-200/80 p-8 rounded-[2rem] shadow-sm space-y-6">
+            <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
+              <Link2 size={22} className="text-indigo-600" />
+              <div>
+                <h3 className="text-base font-extrabold text-slate-800" style={{ fontFamily: 'var(--font-inter)' }}>Linked Account Progress</h3>
+                <p className="text-xs text-slate-400 font-semibold mt-0.5">
+                  Linked to {linkedUser.role.toLowerCase()} user: <span className="text-indigo-600 font-semibold">{linkedUser.displayName}</span> ({linkedUser.phone})
+                </p>
+              </div>
+            </div>
+
+            {linkedEnrollments.length === 0 ? (
+              <p className="text-xs font-semibold text-slate-400">Linked user is not enrolled in any programs yet.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {linkedEnrollments.map((enr: any) => (
+                  <Link 
+                    key={enr.id} 
+                    href={`/admin/programs/enrollments/${enr.id}`}
+                    title="View linked program enrollment details"
+                    className="p-4 bg-slate-50 border border-slate-200/40 rounded-2xl flex items-center justify-between gap-4 hover:border-indigo-500/30 hover:bg-slate-100/50 transition-all group cursor-pointer"
+                  >
+                    <div className="flex-1 space-y-2">
+                      <h4 className="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors" style={{ fontFamily: 'var(--font-inter)' }}>{enr.program.title}</h4>
+                      <div className="flex justify-between text-[10px] font-semibold text-slate-400">
+                        <span>{enr.completedSessionsCount}/{enr.totalSessions} sessions completed</span>
+                        <span>{enr.progressPercentage}%</span>
+                      </div>
+                      <div className="h-2 bg-slate-200/70 rounded-full overflow-hidden">
+                        <div className="h-full bg-indigo-600 rounded-full transition-all duration-500" style={{ width: `${enr.progressPercentage}%` }} />
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ROW 2: PERSONAL IDENTITY & PROFILE DETAILS - Split side-by-side in grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          {/* Card 2A: Personal Information */}
+          <div className="bg-white border border-slate-200/80 p-8 rounded-[2rem] shadow-sm space-y-6 flex flex-col justify-between">
+            <div className="space-y-6">
+              <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
+                <User size={22} className="text-primary" />
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-800" style={{ fontFamily: 'var(--font-inter)' }}>Personal Information</h3>
+                  <p className="text-xs text-slate-400 font-semibold mt-0.5">Name, contact details, shipping addresses, and birth details</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                  <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Display Name</span>
+                  <span className="text-sm font-semibold text-slate-800 block">{profile?.displayName || '-'}</span>
+                </div>
+                
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                  <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Phone Number</span>
+                  <span className="text-sm font-semibold text-slate-800 block">{user?.phone || '-'}</span>
+                </div>
+
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                  <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Email Address</span>
+                  <span className="text-sm font-semibold text-slate-800 block truncate" title={user?.email || ''}>{user?.email || '-'}</span>
+                </div>
+
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                  <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Date of Birth / Age Info</span>
+                  <span className="text-sm font-semibold text-slate-800 block">
+                    {user?.birthMonth && user?.birthYear 
+                      ? `${user.birthMonth}/${user.birthYear}` 
+                      : user?.ageAtSignup 
+                        ? `Age: ${user.ageAtSignup} years` 
+                        : 'Not provided'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Book order shipping address if ordered */}
+            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 space-y-2 mt-4">
+              <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider block">Book Store Shipping Address</span>
+              {orders && orders.length > 0 ? (
+                <div>
+                  <p className="text-sm font-semibold text-slate-700 leading-snug">
+                    {orders[0].shippingAddress}, {orders[0].city}, {orders[0].state} - {orders[0].pincode}
+                  </p>
+                  <p className="text-[10px] font-semibold text-slate-400 mt-1">
+                    Registered from order: <span className="text-primary font-bold">#{orders[0].id.slice(0, 8)}</span> ({new Date(orders[0].createdAt).toLocaleDateString('en-IN')})
+                  </p>
+                </div>
+              ) : (
+                <p className="text-xs font-semibold text-slate-400 italic">No book store orders or shipping addresses registered for this user.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Card 2B: Profile & App Information */}
+          <div className="bg-white border border-slate-200/80 p-8 rounded-[2rem] shadow-sm space-y-6 flex flex-col justify-between">
+            <div className="space-y-6">
+              <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
+                <Award size={22} className="text-primary" />
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-800" style={{ fontFamily: 'var(--font-inter)' }}>Profile & App Information</h3>
+                  <p className="text-xs text-slate-400 font-semibold mt-0.5">User classification, active statuses, and account metrics</p>
+                </div>
+              </div>
+
+              {/* Bio info */}
+              <div className="space-y-2">
+                <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider block">Bio Statement</span>
+                <p className="text-sm font-medium text-slate-600 leading-relaxed italic bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                  "{profile?.bio || 'No bio or profile description has been written yet.'}"
+                </p>
+              </div>
+            </div>
+
+            {/* App Metrics and details */}
+            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 space-y-3 mt-4">
+              <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider block">Account Metrics</span>
+              <div className="space-y-2.5 text-xs font-semibold text-slate-600">
+                <div className="flex justify-between pb-1.5 border-b border-slate-200/40">
+                  <span>Platform Role</span>
+                  <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 border border-indigo-200 rounded-md text-[10px] uppercase font-bold">{user.role}</span>
+                </div>
+                <div className="flex justify-between pb-1.5 border-b border-slate-200/40">
+                  <span>Account Status</span>
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border ${
+                    user.accountStatus === 'ACTIVE' 
+                      ? 'bg-green-50 text-green-600 border-green-200' 
+                      : 'bg-amber-50 text-amber-600 border-amber-200'
+                  }`}>{user.accountStatus}</span>
+                </div>
+                <div className="flex justify-between pb-1.5 border-b border-slate-200/40">
+                  <span>Bloom Level</span>
+                  <span className="text-slate-800 font-bold">{profile?.bloomLevel || 1}</span>
+                </div>
+                <div className="flex justify-between pb-1.5 border-b border-slate-200/40">
+                  <span>Experience XP</span>
+                  <span className="text-slate-800 font-bold">{profile?.totalPoints || 0} XP</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Onboarding Step</span>
+                  <span className="text-slate-800 font-bold">Step {user.onboardingStep || 0}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* ROW 3: LEARNING PROGRAMS & LEARNING JOURNEYS - Split side-by-side in grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          {/* BOX 3: LEARNING PROGRAMS PROGRESS */}
+          <div className="bg-white border border-slate-200/80 p-8 rounded-[2rem] shadow-sm space-y-6">
+            <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
+              <Award size={22} className="text-primary" />
+              <div>
+                <h3 className="text-base font-extrabold text-slate-800" style={{ fontFamily: 'var(--font-inter)' }}>Learning Programs</h3>
+                <p className="text-xs text-slate-400 font-semibold mt-0.5">High-level session completions in booked mentoring programs</p>
+              </div>
+            </div>
+
+            {programEnrollments.length === 0 ? (
+              <p className="text-xs font-semibold text-slate-400 text-center py-10">Not enrolled in any mentoring programs yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {programEnrollments.map((enr: any) => {
+                  const total = enr.totalSessions || 8;
+                  const completed = enr.completedSessionsCount || 0;
+                  const pct = enr.progressPercentage || 0;
+
+                  return (
+                    <Link 
+                      key={enr.id} 
+                      href={`/admin/programs/enrollments/${enr.id}`}
+                      title="Open enrollment details page"
+                      className="p-5 bg-slate-50 border border-slate-200/40 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:border-primary/30 hover:bg-slate-100/50 transition-all group cursor-pointer block"
+                    >
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-center gap-3">
+                          {enr.program.thumbnailUrl && (
+                            <img src={enr.program.thumbnailUrl} alt={enr.program.title} className="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200" />
+                          )}
+                          <div>
+                            <h4 className="font-bold text-slate-800 text-sm group-hover:text-primary transition-colors" style={{ fontFamily: 'var(--font-inter)' }}>{enr.program.title}</h4>
+                            <p className="text-[11px] text-slate-400 font-semibold">{enr.program.classRange} • {enr.program.duration}</p>
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between text-[11px] font-semibold text-slate-500">
+                            <span>{completed} of {total} curriculum sessions completed</span>
+                            <span>{pct}%</span>
+                          </div>
+                          <div className="h-2 bg-slate-200/50 rounded-full overflow-hidden">
+                            <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="p-3 bg-white border border-slate-200/20 rounded-xl text-left sm:text-right shrink-0 min-w-32">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Cost Paid</span>
+                        <span className="text-sm font-bold text-slate-800">₹{enr.pricePaid.toLocaleString('en-IN')}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* BOX 5: LEARNING JOURNEYS PROGRESS */}
+          <div className="bg-white border border-slate-200/80 p-8 rounded-[2rem] shadow-sm space-y-6">
+            <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
+              <BookOpen size={22} className="text-emerald-500" />
+              <div>
+                <h3 className="text-base font-extrabold text-slate-800" style={{ fontFamily: 'var(--font-inter)' }}>Learning Journeys</h3>
+                <p className="text-xs text-slate-400 font-semibold mt-0.5">Chapters read and progress calculated across active journeys</p>
+              </div>
+            </div>
+
+            {journeys.length === 0 ? (
+              <p className="text-xs font-semibold text-slate-400 text-center py-10">No journeys started or active.</p>
+            ) : (
+              <div className="space-y-4">
+                {journeys.map((j: any) => (
+                  <Link 
+                    key={j.id} 
+                    href="/admin/learning"
+                    title="Open Learning Journeys management tab"
+                    className="p-5 bg-slate-50 border border-slate-200/40 rounded-2xl space-y-3 hover:border-emerald-500/30 hover:bg-slate-100/50 transition-all group cursor-pointer block"
+                  >
+                    <div className="flex items-center gap-3">
+                      {j.thumbnailUrl && (
+                        <img src={j.thumbnailUrl} alt={j.title} className="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200" />
+                      )}
+                      <div>
+                        <h4 className="font-bold text-slate-800 text-sm group-hover:text-emerald-600 transition-colors" style={{ fontFamily: 'var(--font-inter)' }}>{j.title}</h4>
+                        <p className="text-[10px] text-slate-400 font-semibold line-clamp-1">{j.description}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[11px] font-semibold text-slate-500">
+                        <span>{j.completedEpisodesCount}/{j.totalEpisodes} chapters completed</span>
+                        <span>{j.progressPercentage}%</span>
+                      </div>
+                      <div className="h-2 bg-slate-200/50 rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${j.progressPercentage}%` }} />
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+        </div>
+
+        {/* ROW 4: DEMO SESSIONS & EXPERT CONSULTATIONS - Split side-by-side in grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          {/* BOX 4: DEMO SESSIONS BOOKED */}
+          <div className="bg-white border border-slate-200/80 p-8 rounded-[2rem] shadow-sm space-y-6">
+            <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
+              <Sparkles size={22} className="text-amber-500" />
+              <div>
+                <h3 className="text-base font-extrabold text-slate-800" style={{ fontFamily: 'var(--font-inter)' }}>Demo Sessions</h3>
+                <p className="text-xs text-slate-400 font-semibold mt-0.5">Booked initial parent demo sessions and follow-up status</p>
+              </div>
+            </div>
+
+            {!demoSessions || demoSessions.length === 0 ? (
+              <p className="text-xs font-semibold text-slate-400 text-center py-10">No demo sessions scheduled.</p>
+            ) : (
+              <div className="space-y-4">
+                {demoSessions.map((demo: any) => (
+                  <Link 
+                    key={demo.id} 
+                    href={`/admin/programs/demos/${demo.id}`}
+                    title="Open demo session detail page"
+                    className="p-5 bg-slate-50 border border-slate-200/40 rounded-2xl space-y-4 hover:border-amber-500/35 hover:bg-slate-100/50 transition-all group cursor-pointer block text-left"
+                  >
+                    <div className="flex justify-between items-center border-b border-slate-200/30 pb-2.5">
+                      <div>
+                        <span className="text-xs font-bold text-slate-700 block group-hover:text-amber-500 transition-colors">Demo Session Request</span>
+                        <span className="text-[9px] font-semibold text-slate-400">Class: {demo.classRange}</span>
+                      </div>
+                      <span className={`px-2.5 py-0.5 rounded-lg text-[9px] font-bold tracking-wider uppercase border ${
+                        demo.status === 'COMPLETED' ? 'bg-green-50 text-green-600 border-green-200' :
+                        demo.status === 'PENDING' ? 'bg-amber-50 text-amber-600 border-amber-200' :
+                        'bg-blue-50 text-blue-600 border-blue-200'
+                      }`}>
+                        {demo.status}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 text-xs text-slate-600 font-semibold">
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Parent Name</span>
+                        <span className="text-slate-800 font-bold">{demo.parentName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Contact Phone</span>
+                        <span className="text-slate-800 font-bold">{demo.phone}</span>
+                      </div>
+                      {demo.slotDate && (
+                        <div className="flex justify-between text-indigo-600 font-bold">
+                          <span>Preferred Slot</span>
+                          <span>{demo.slotDate} @ {demo.slotTime || '-'}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {demo.comment && (
+                      <div className="bg-white p-2.5 rounded-xl border border-slate-200/20 text-[11px] text-slate-500 font-semibold italic">
+                        "{demo.comment}"
+                      </div>
+                    )}
+
+                    {demo.isReadyToEnroll && (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-lg text-[9px] font-bold uppercase">
+                        Ready to enroll
+                      </span>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* BOX 7: EXPERT 1:1 CONSULTATIONS */}
+          <div className="bg-white border border-slate-200/80 p-8 rounded-[2rem] shadow-sm space-y-6">
+            <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
+              <CalendarCheck size={22} className="text-amber-500" />
+              <div>
+                <h3 className="text-base font-extrabold text-slate-800" style={{ fontFamily: 'var(--font-inter)' }}>Expert 1:1 Consultations</h3>
+                <p className="text-xs text-slate-400 font-semibold mt-0.5">Scheduled paid consultations booked through parent/teen dashboard</p>
+              </div>
+            </div>
+
+            {!expertSessions || expertSessions.length === 0 ? (
+              <p className="text-xs font-semibold text-slate-400 text-center py-10">No paid 1:1 session consultations booked.</p>
+            ) : (
+              <div className="space-y-4">
+                {expertSessions.map((session: any) => (
+                  <Link 
+                    key={session.id} 
+                    href="/admin/expert-consultations"
+                    title="Open Consultations tab calendar"
+                    className="p-4 bg-slate-50 border border-slate-200/40 rounded-2xl flex justify-between items-center gap-4 hover:border-amber-500/30 hover:bg-slate-100/50 transition-all group cursor-pointer block"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-bold text-slate-800 group-hover:text-amber-600 transition-colors">
+                          {session.expert?.profile?.displayName || session.expert?.username || 'Expert'}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase border ${
+                          session.status === 'COMPLETED' ? 'bg-green-50 text-green-600 border border-green-200' :
+                          session.status === 'SCHEDULED' ? 'bg-blue-50 text-blue-600 border border-blue-200' :
+                          'bg-rose-50 text-rose-600 border border-rose-200'
+                        }`}>
+                          {session.status}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
+                        <Clock size={12} />
+                        {new Date(session.scheduledAt).toLocaleString('en-IN', {
+                          day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                    <div className="text-right flex items-center gap-3">
+                      {session.meetingLink && session.status === 'SCHEDULED' && (
+                        <span className="px-3.5 py-1.5 bg-primary text-white text-[10px] font-bold rounded-lg shadow-sm hover:scale-105 active:scale-95 transition-all">
+                          Join Meeting
+                        </span>
+                      )}
+                      <div className="p-2 bg-white border border-slate-200/10 rounded-lg">
+                        <span className="text-[9px] font-bold text-slate-400 block">Paid</span>
+                        <span className="text-xs font-bold text-slate-800">₹{session.amount}</span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+        </div>
+
+        {/* ROW 5: PEER APPLICATION (Only shows if present) - full width */}
+        {peerApplication && (
+          <div className="bg-white border border-slate-200/80 p-8 rounded-[2rem] shadow-sm space-y-6">
+            <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
+              <Shield size={22} className="text-primary" />
+              <div>
+                <h3 className="text-base font-extrabold text-slate-800" style={{ fontFamily: 'var(--font-inter)' }}>Peer Onboarding Status</h3>
+                <p className="text-xs text-slate-400 font-semibold mt-0.5">Mentoring score, personal statement, and scenario responses</p>
+              </div>
+            </div>
+
+            <Link 
+              href={`/admin/connect/peers/${userId}/application`}
+              title="Open peer application details screen"
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4 cursor-pointer block group"
+            >
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/40 hover:border-primary/45 hover:bg-slate-100/50 transition-all">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Application Status</span>
+                <span className="text-sm font-bold text-slate-800 mt-1 uppercase flex items-center gap-1 group-hover:text-primary transition-colors">
+                  {peerApplication.status}
+                  <span className="text-[9px] text-slate-400 lowercase font-medium">(click to view details)</span>
+                </span>
+              </div>
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/40 hover:border-primary/45 hover:bg-slate-100/50 transition-all">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Assessment Score</span>
+                <span className="text-sm font-bold text-primary mt-1">
+                  {peerApplication.trainingScore !== null ? `${peerApplication.trainingScore} / 10` : 'Pending assessment'}
+                </span>
+              </div>
+            </Link>
+
+            <div className="space-y-2">
+              <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Personal Statement</span>
+              <p className="text-xs font-semibold text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100 italic">
+                "{peerApplication.personalStatement}"
+              </p>
+            </div>
+
+            {peerApplication.scenarioResponses && peerApplication.scenarioResponses.length > 0 && (
+              <div className="space-y-4">
+                <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Scenario Test Cases</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {peerApplication.scenarioResponses.map((resp: string, idx: number) => (
+                    <div key={idx} className="p-4 bg-slate-50 border border-slate-200/30 rounded-2xl space-y-2">
+                      <span className="text-[9px] font-bold text-primary uppercase">Scenario Case #{idx + 1}</span>
+                      <p className="text-xs font-semibold text-slate-600 leading-relaxed italic">"{resp}"</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ROW 6: SHOP ORDERS & SUBMITTED NGO/SCHOOL ENQUIRIES - Split side-by-side in grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          {/* BOX 8: SHOP ORDERS */}
+          <div className="bg-white border border-slate-200/80 p-8 rounded-[2rem] shadow-sm space-y-6">
+            <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
+              <ShoppingBag size={22} className="text-rose-500" />
+              <div>
+                <h3 className="text-base font-extrabold text-slate-800" style={{ fontFamily: 'var(--font-inter)' }}>Shop Purchase History</h3>
+                <p className="text-xs text-slate-400 font-semibold mt-0.5">Purchases, pricing, line items, and delivery details</p>
+              </div>
+            </div>
+
+            {orders.length === 0 ? (
+              <p className="text-xs font-semibold text-slate-400 text-center py-10">No store orders found.</p>
+            ) : (
+              <div className="space-y-4">
+                {orders.map((order: any) => (
+                  <Link 
+                    key={order.id} 
+                    href={`/admin/orders/${order.id}`}
+                    title="Open purchase order invoice details"
+                    className="p-5 bg-slate-50 border border-slate-200/40 rounded-2xl space-y-4 hover:border-rose-500/30 hover:bg-slate-100/50 transition-all group cursor-pointer block text-left"
+                  >
+                    <div className="flex justify-between items-center border-b border-slate-200/30 pb-2.5 flex-wrap gap-2">
+                      <div>
+                        <span className="text-xs font-bold text-slate-700 block group-hover:text-rose-500 transition-colors">Order ID: {order.id.slice(0, 8)}</span>
+                        <span className="text-[9px] font-semibold text-slate-400">{new Date(order.createdAt).toLocaleDateString('en-IN')}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded-lg text-[9px] font-bold tracking-wider uppercase border ${
+                          order.orderStatus === 'DELIVERED' ? 'bg-green-50 text-green-600 border-green-200' :
+                          order.orderStatus === 'SHIPPED' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                          'bg-amber-50 text-amber-600 border-amber-200'
+                        }`}>
+                          {order.orderStatus}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-lg text-[9px] font-bold tracking-wider uppercase border ${
+                          order.paymentStatus === 'PAID' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                          'bg-rose-50 text-rose-600 border-rose-200'
+                        }`}>
+                          {order.paymentStatus}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      {order.items?.map((item: any) => (
+                        <div key={item.id} className="flex items-center gap-3 justify-between bg-white p-3 rounded-xl border border-slate-200/30">
+                          <div className="flex items-center gap-2.5">
+                            {item.book?.thumbnailUrl && (
+                              <img src={item.book.thumbnailUrl} alt={item.book.title} className="w-8 h-8 rounded-lg object-cover shrink-0 border border-slate-100" />
+                            )}
+                            <div>
+                              <span className="font-extrabold text-[11px] text-slate-700 block line-clamp-1">{item.book?.title || 'Book Item'}</span>
+                              <span className="text-[9px] text-slate-400 font-semibold">Quantity: {item.quantity}</span>
+                            </div>
+                          </div>
+                          <span className="text-xs font-bold text-slate-600">₹{(item.price || 0).toLocaleString('en-IN')}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="pt-2 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 text-xs font-semibold">
+                      <span className="text-[10px] text-slate-400 leading-snug">
+                        Address: {order.shippingAddress}, {order.city}, {order.state} - {order.pincode}
+                      </span>
+                      <span className="font-bold text-slate-800">
+                        Total: ₹{order.totalAmount.toLocaleString('en-IN')}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* BOX 9: SUBMITTED NGO/SCHOOL ENQUIRIES */}
+          <div className="bg-white border border-slate-200/80 p-8 rounded-[2rem] shadow-sm space-y-6">
+            <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
+              <FileText size={22} className="text-slate-500" />
+              <div>
+                <h3 className="text-base font-extrabold text-slate-800" style={{ fontFamily: 'var(--font-inter)' }}>Submitted Enquiries</h3>
+                <p className="text-xs text-slate-400 font-semibold mt-0.5">School collaborations or NGO program enquiries filed</p>
+              </div>
+            </div>
+
+            {enquiries.length === 0 ? (
+              <p className="text-xs font-semibold text-slate-400 text-center py-10">No submitted inquiries found.</p>
+            ) : (
+              <div className="space-y-4">
+                {enquiries.map((enq: any) => (
+                  <Link 
+                    key={enq.id} 
+                    href={`/admin/enquiries/${enq.id}`}
+                    title="Open enquiry form details page"
+                    className="p-5 bg-slate-50 border border-slate-200/40 rounded-2xl space-y-4 hover:border-indigo-500/30 hover:bg-slate-100/50 transition-all group cursor-pointer block text-left"
+                  >
+                    <div className="flex justify-between items-center border-b border-slate-200/30 pb-2.5">
+                      <div>
+                        <span className="text-xs font-bold text-slate-800 block group-hover:text-indigo-600 transition-colors">
+                          {enq.type === 'ngo' ? 'NGO Enquiry' : 'School Collaboration'}
+                        </span>
+                        <span className="text-[10px] font-semibold text-slate-400">{new Date(enq.createdAt).toLocaleDateString('en-IN')}</span>
+                      </div>
+                      <span className="px-2.5 py-0.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-600 text-[10px] font-bold uppercase tracking-wider">
+                        {enq.schoolType || 'Enquiry'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 text-xs font-semibold">
+                      {enq.schoolName && (
+                        <div>
+                          <span className="text-[9px] text-slate-400 block uppercase">Institution</span>
+                          <span className="font-bold text-slate-700 block mt-0.5">{enq.schoolName}</span>
+                        </div>
+                      )}
+                      {enq.cityState && (
+                        <div>
+                          <span className="text-[9px] text-slate-400 block uppercase">Location</span>
+                          <span className="font-bold text-slate-700 block mt-0.5">{enq.cityState}</span>
+                        </div>
+                      )}
+                      {enq.totalGirls && (
+                        <div>
+                          <span className="text-[9px] text-slate-400 block uppercase">Girls Count</span>
+                          <span className="font-bold text-slate-700 block mt-0.5">{enq.totalGirls}</span>
+                        </div>
+                      )}
+                      {enq.contactName && (
+                        <div>
+                          <span className="text-[9px] text-slate-400 block uppercase">Representative</span>
+                          <span className="font-bold text-slate-700 block mt-0.5">{enq.contactName}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {enq.details && (
+                      <div className="bg-white p-3 rounded-xl border border-slate-200/20 text-xs text-slate-500 font-semibold leading-relaxed">
+                        "{enq.details}"
+                      </div>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  );
+}

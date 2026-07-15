@@ -29,7 +29,9 @@ export default function MarketingLayout({
         </Suspense>
       )}
       <main className={`flex-1 w-full ${!isPortal ? 'pt-20' : ''}`}>
-        {children}
+        <Suspense fallback={null}>
+          {children}
+        </Suspense>
       </main>
       {!isPortal && !isPurchaseSuccess && <MarketingFooter />}
 

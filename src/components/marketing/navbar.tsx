@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 import { useRegion } from '@/hooks/use-region';
 
@@ -23,21 +23,10 @@ const navLinks = [
 export function MarketingNavbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const { region, getLocalizedLink } = useRegion();
-  const desktopDropdownRef = useRef<HTMLDivElement>(null);
-  const mobileDropdownRef = useRef<HTMLDivElement>(null);
-
-  const countries = [
-    { code: 'IN', name: 'India', flag: '🇮🇳', iso: 'in' },
-    { code: 'US', name: 'United States', flag: '🇺🇸', iso: 'us' },
-    { code: 'UK', name: 'United Kingdom', flag: '🇬🇧', iso: 'gb' }
-  ] as const;
-
-  const activeCountry = countries.find(c => c.code === region) || countries[0];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -46,52 +35,6 @@ export function MarketingNavbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  // Close dropdown on click outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      const clickedOutsideDesktop = desktopDropdownRef.current && !desktopDropdownRef.current.contains(target);
-      const clickedOutsideMobile = mobileDropdownRef.current && !mobileDropdownRef.current.contains(target);
-      
-      if (clickedOutsideDesktop && clickedOutsideMobile) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const handleCountryChange = (code: 'IN' | 'US' | 'UK') => {
-    setDropdownOpen(false);
-    
-    // Get actual path from browser to bypass any rewritten state
-    let currentPath = pathname;
-    if (typeof window !== 'undefined') {
-      currentPath = window.location.pathname;
-    }
-
-    // Extract base pathname without existing locale prefixes
-    let base = currentPath;
-    if (currentPath.startsWith('/en-us')) {
-      base = currentPath.substring(6) || '/';
-    } else if (currentPath.startsWith('/en-uk')) {
-      base = currentPath.substring(6) || '/';
-    }
-
-    if (!base.startsWith('/')) {
-      base = '/' + base;
-    }
-
-    let target = base;
-    if (code === 'US') {
-      target = `/en-us${base === '/' ? '' : base}`;
-    } else if (code === 'UK') {
-      target = `/en-uk${base === '/' ? '' : base}`;
-    }
-
-    window.location.href = target;
-  };
 
   // Clean pathname for matching active state correctly in subpaths
   const cleanPath = pathname.replace(/^\/en-(us|uk)/, '') || '/';
@@ -137,41 +80,6 @@ export function MarketingNavbar() {
 
           {/* Desktop CTAs */}
           <div className="hidden xl:flex items-center gap-3 xl:gap-6 shrink-0">
-            {/* Custom Country Selector */}
-            <div className="relative" ref={desktopDropdownRef}>
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 transition-colors text-xs font-bold text-slate-700 shadow-sm cursor-pointer"
-              >
-                <img
-                  src={`https://flagcdn.com/w40/${activeCountry.iso}.png`}
-                  className="w-4 h-3 object-cover rounded-sm border border-slate-200/50 shrink-0"
-                  alt={activeCountry.name}
-                />
-                <span>{activeCountry.code}</span>
-                <ChevronDown size={12} className={`text-slate-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-              
-              {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-40 bg-white border border-slate-100 rounded-xl shadow-xl py-1 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-                  {countries.map((country) => (
-                    <button
-                      key={country.code}
-                      onClick={() => handleCountryChange(country.code)}
-                      className={`w-full flex items-center gap-2.5 px-4 py-2 text-left text-xs font-medium transition-colors hover:bg-slate-50 ${region === country.code ? 'text-primary font-bold bg-primary/5' : 'text-slate-600'}`}
-                    >
-                      <img
-                        src={`https://flagcdn.com/w40/${country.iso}.png`}
-                        className="w-4.5 h-3.5 object-cover rounded-sm border border-slate-200/50 shrink-0"
-                        alt={country.name}
-                      />
-                      <span>{country.name}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
             {isAuthenticated ? (
               <Link href={getLocalizedLink('/dashboard')} className="text-[13px] font-bold text-primary hover:text-primary-dark transition-colors whitespace-nowrap hidden 2xl:block">
                 Go to Workspace &rarr;
@@ -188,39 +96,6 @@ export function MarketingNavbar() {
 
           {/* Mobile Menu Toggle */}
           <div className="xl:hidden flex items-center gap-3">
-            {/* Mobile Country Selector (Compact) */}
-            <div className="relative" ref={mobileDropdownRef}>
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-700"
-              >
-                <img
-                  src={`https://flagcdn.com/w40/${activeCountry.iso}.png`}
-                  className="w-4 h-3 object-cover rounded-sm border border-slate-200/50 shrink-0"
-                  alt={activeCountry.name}
-                />
-                <ChevronDown size={10} className="text-slate-400" />
-              </button>
-              {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-36 bg-white border border-slate-100 rounded-xl shadow-xl py-1 z-50">
-                  {countries.map((country) => (
-                    <button
-                      key={country.code}
-                      onClick={() => handleCountryChange(country.code)}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs font-medium hover:bg-slate-50 text-slate-600"
-                    >
-                      <img
-                        src={`https://flagcdn.com/w40/${country.iso}.png`}
-                        className="w-4 h-3 object-cover rounded-sm border border-slate-200/50 shrink-0"
-                        alt={country.name}
-                      />
-                      <span>{country.name}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
             <button
               className="xl:hidden p-2 text-foreground z-50"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

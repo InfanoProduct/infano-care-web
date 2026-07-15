@@ -352,7 +352,7 @@ function CheckoutContent() {
   };
 
   const calculateTotal = () => {
-    if (!book) return { subtotal: 0, gst: 0, delivery: 0, total: 0 };
+    if (!book) return { subtotal: 0, gst: 0, delivery: 0, codCharge: 0, total: 0 };
     const price = getBookPrice(book, region);
     const baseSubtotal = price * quantity;
     const appliedDiscount = region === 'IN' ? discountAmount : 0; // Coupons disabled for US/UK
@@ -364,15 +364,15 @@ function CheckoutContent() {
       const gst = Math.round((priceAfterDiscount - taxableValue) * 100) / 100;
       const codSurcharge = formData.paymentMethod === 'COD' ? (book.codChargeIN ?? 40) : 0;
       const total = priceAfterDiscount + deliveryCharge + codSurcharge;
-      return { subtotal: baseSubtotal, gst, delivery: deliveryCharge, total };
+      return { subtotal: baseSubtotal, gst, delivery: deliveryCharge, codCharge: codSurcharge, total };
     } else {
       const deliveryCharge = getShippingCharge(book, region);
       const total = priceAfterDiscount + deliveryCharge;
-      return { subtotal: baseSubtotal, gst: 0, delivery: deliveryCharge, total };
+      return { subtotal: baseSubtotal, gst: 0, delivery: deliveryCharge, codCharge: 0, total };
     }
   };
 
-  const { subtotal, gst, delivery, total } = calculateTotal();
+  const { subtotal, gst, delivery, codCharge, total } = calculateTotal();
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -515,7 +515,8 @@ function CheckoutContent() {
           item_name: book.title,
           price: getBookPrice(book, region).toString(),
           discount: '0',
-          delivery: '0',
+          delivery: delivery.toString(),
+          cod_charge: codCharge.toString(),
           subtotal: (getBookPrice(book, region) * quantity).toString(),
           payment_method: 'ONLINE',
           image_url: book.imageUrl || '/Page-1.png'
@@ -556,6 +557,7 @@ function CheckoutContent() {
                 price: book.price.toString(),
                 discount: discountAmount.toString(),
                 delivery: delivery.toString(),
+                cod_charge: codCharge.toString(),
                 subtotal: subtotal.toString(),
                 payment_method: formData.paymentMethod,
                 image_url: book.imageUrl || '/Page-1.png'
@@ -598,6 +600,7 @@ function CheckoutContent() {
           price: book.price.toString(),
           discount: discountAmount.toString(),
           delivery: delivery.toString(),
+          cod_charge: codCharge.toString(),
           subtotal: subtotal.toString(),
           payment_method: formData.paymentMethod,
           image_url: book.imageUrl || '/Page-1.png'

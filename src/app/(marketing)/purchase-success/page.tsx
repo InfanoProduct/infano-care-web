@@ -171,19 +171,25 @@ function PurchaseSuccessContent() {
   
   const discount = parseFloat(searchParams.get('discount') || '0');
   const deliveryParam = searchParams.get('delivery');
+  const codChargeParam = searchParams.get('cod_charge');
   
   const calculatedSubtotal = unitPrice * qty;
+  const paymentMethodParam = searchParams.get('payment_method');
+  
+  const paymentMethod = paymentMethodParam 
+    ? paymentMethodParam 
+    : (totalAmount > calculatedSubtotal ? 'COD' : 'ONLINE');
+
   const delivery = deliveryParam 
     ? parseFloat(deliveryParam) 
-    : (totalAmount > calculatedSubtotal ? totalAmount - calculatedSubtotal : 0);
+    : 0;
+
+  const codCharge = codChargeParam 
+    ? parseFloat(codChargeParam) 
+    : (paymentMethod === 'COD' ? Math.max(0, totalAmount - (calculatedSubtotal + delivery - discount)) : 0);
     
   const subtotalStr = searchParams.get('subtotal');
   const subtotal = subtotalStr ? parseFloat(subtotalStr) : calculatedSubtotal;
-  
-  const paymentMethodParam = searchParams.get('payment_method');
-  const paymentMethod = paymentMethodParam 
-    ? paymentMethodParam 
-    : (delivery > 0 ? 'COD' : 'ONLINE');
 
   const formattedOrderId = transactionId ? formatOrderId(transactionId) : 'Loading...';
 
@@ -347,17 +353,17 @@ function PurchaseSuccessContent() {
                 
                 <div className="flex justify-between items-center text-slate-500 font-medium">
                   <span>Shipping</span>
-                  {delivery > 0 && paymentMethod !== 'COD' ? (
+                  {delivery > 0 ? (
                     <span className="text-slate-800 font-extrabold"><span>{currencySymbol}</span><span>{delivery}</span></span>
                   ) : (
                     <span className="text-emerald-600 font-extrabold">Free</span>
                   )}
                 </div>
                 
-                {delivery > 0 && paymentMethod === 'COD' && (
+                {paymentMethod === 'COD' && codCharge > 0 && (
                   <div className="flex justify-between items-center text-slate-500 font-medium">
                     <span>Cash on Delivery (COD)</span>
-                    <span className="text-slate-800 font-extrabold"><span>{currencySymbol}</span><span>{delivery}</span></span>
+                    <span className="text-slate-800 font-extrabold"><span>{currencySymbol}</span><span>{codCharge}</span></span>
                   </div>
                 )}
               </div>

@@ -215,7 +215,7 @@ function PurchaseSuccessContent() {
   }, [transactionId, totalAmount, qty, itemId, itemName, unitPrice, currencyCode]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#FAF5FF] via-[#FDF8F6] to-[#EFF6FF] p-4 sm:p-6 md:p-8 font-sans relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#FAF5FF] via-[#FDF8F6] to-[#EFF6FF] p-4 sm:p-6 md:p-8 font-sans relative overflow-hidden">
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes bounceSlow {
           0%, 100% { transform: translateY(0); }
@@ -237,7 +237,7 @@ function PurchaseSuccessContent() {
           {/* Left Column: Success Message & Support */}
           <div className="md:col-span-7 p-6 sm:p-10 md:p-12 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-100">
             <div>
-              <div className="w-20 h-20 bg-gradient-to-tr from-emerald-400 to-teal-500 text-white rounded-3xl flex items-center justify-center mb-8 shadow-lg shadow-emerald-450/20 border border-emerald-300/20 animate-bounce-slow">
+              <div className="w-20 h-20 bg-linear-to-tr from-emerald-400 to-teal-500 text-white rounded-3xl flex items-center justify-center mb-8 shadow-lg shadow-emerald-450/20 border border-emerald-300/20 animate-bounce-slow">
                 <CheckCircle2 size={44} className="stroke-[2.5]" />
               </div>
               
@@ -288,7 +288,7 @@ function PurchaseSuccessContent() {
             
             {/* Receipt Card */}
             <div className="bg-white rounded-2xl border border-slate-200/60 p-5 sm:p-6 shadow-xl shadow-slate-100/50 space-y-5 relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-indigo-500 to-purple-600" />
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r from-primary via-indigo-500 to-purple-600" />
               
               {/* Order ID: Shortened display */}
               <div className="flex justify-between items-center text-xs">
@@ -313,7 +313,7 @@ function PurchaseSuccessContent() {
               
               {/* Item Info */}
               <div className="flex gap-3.5 pt-4 border-t border-slate-100">
-                <div className="w-12 h-16 relative rounded-lg overflow-hidden bg-slate-50 flex-shrink-0 border border-slate-100 shadow-3xs">
+                <div className="w-12 h-16 relative rounded-lg overflow-hidden bg-slate-50 shrink-0 border border-slate-100 shadow-3xs">
                   <img
                     src={imageUrl}
                     alt={itemName}

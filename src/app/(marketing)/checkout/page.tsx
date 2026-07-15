@@ -666,7 +666,7 @@ function CheckoutContent() {
 
           {/* Left: Product Gallery & Summary */}
           <div className="lg:col-span-5 space-y-8 lg:sticky lg:top-32 w-full max-w-full">
-            <div className="space-y-2 max-w-[400px] mx-auto lg:mx-0 text-center lg:text-left">
+            <div className="space-y-2 max-w-100 mx-auto lg:mx-0 text-center lg:text-left">
               <h1 className="text-3xl font-black tracking-tight text-slate-900 leading-tight">
                 {book?.title || 'The Awkward Age'}
               </h1>
@@ -676,7 +676,7 @@ function CheckoutContent() {
             </div>
 
             <div className="space-y-6">
-              <div className="relative aspect-[3/4] rounded-xl overflow-hidden shadow-2xl bg-white border border-slate-100 w-full max-w-[400px] mx-auto lg:mx-0">
+              <div className="relative aspect-3/4 rounded-xl overflow-hidden shadow-2xl bg-white border border-slate-100 w-full max-w-100 mx-auto lg:mx-0">
                 <Image
                   src={selectedImage}
                   alt="Book preview"
@@ -687,12 +687,12 @@ function CheckoutContent() {
                 />
               </div>
 
-              <div className="flex gap-2 flex-wrap max-w-[400px] mx-auto lg:mx-0 justify-center lg:justify-start">
+              <div className="flex gap-2 flex-wrap max-w-100 mx-auto lg:mx-0 justify-center lg:justify-start">
                 {bookImages.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setSelectedImage(img)}
-                    className={`relative w-11 aspect-[3/4] rounded-md overflow-hidden flex-shrink-0 transition-all border-2 ${selectedImage === img ? 'border-primary ring-1 ring-primary/20' : 'border-transparent opacity-50 hover:opacity-100'
+                    className={`relative w-11 aspect-3/4 rounded-md overflow-hidden shrink-0 transition-all border-2 ${selectedImage === img ? 'border-primary ring-1 ring-primary/20' : 'border-transparent opacity-50 hover:opacity-100'
                       }`}
                   >
                     <Image src={img} alt={`Thumbnail ${idx}`} fill sizes="44px" className="object-cover" />
@@ -701,7 +701,7 @@ function CheckoutContent() {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xl shadow-slate-200/30 space-y-6 max-w-[400px] w-full mx-auto lg:mx-0">
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xl shadow-slate-200/30 space-y-6 max-w-100 w-full mx-auto lg:mx-0">
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <ShoppingBag size={16} className="text-primary" />
                 Order summary
@@ -741,7 +741,7 @@ function CheckoutContent() {
                     >
                       -
                     </button>
-                    <span className="text-slate-900 font-extrabold min-w-[12px] text-center">{quantity}</span>
+                    <span className="text-slate-900 font-extrabold min-w-3 text-center">{quantity}</span>
                     <button
                       type="button"
                       onClick={() => setQuantity(Math.min(book?.stock || 10, quantity + 1))}
@@ -1052,7 +1052,7 @@ function CheckoutContent() {
                           });
                         }
                       }}
-                      className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'ONLINE' ? 'border-primary bg-primary/[0.03]' : 'border-slate-100 hover:border-slate-200 bg-white'
+                      className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'ONLINE' ? 'border-primary bg-primary/3' : 'border-slate-100 hover:border-slate-200 bg-white'
                         }`}
                     >
                       <CreditCard size={20} className={formData.paymentMethod === 'ONLINE' ? 'text-primary' : 'text-slate-400'} />
@@ -1086,7 +1086,7 @@ function CheckoutContent() {
                           });
                         }
                       }}
-                      className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'COD' ? 'border-primary bg-primary/[0.03]' : 'border-slate-100 hover:border-slate-200 bg-white'
+                      className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'COD' ? 'border-primary bg-primary/3' : 'border-slate-100 hover:border-slate-200 bg-white'
                         }`}
                     >
                       <Truck size={20} className={formData.paymentMethod === 'COD' ? 'text-primary' : 'text-slate-400'} />
@@ -1098,7 +1098,7 @@ function CheckoutContent() {
                   </div>
                 ) : (
                   <div className="w-full space-y-6">
-                    <div className="relative p-5 rounded-xl border-2 border-primary bg-primary/[0.03] flex flex-col items-center gap-2.5">
+                    <div className="relative p-5 rounded-xl border-2 border-primary bg-primary/3 flex flex-col items-center gap-2.5">
                       <CreditCard size={20} className="text-primary" />
                       <div className="space-y-1 text-center">
                         <div className="text-base font-bold text-primary">Pay online</div>

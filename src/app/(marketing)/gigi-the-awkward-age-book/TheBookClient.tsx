@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { ShopService, Book } from '@/services/shop.service';
+import { useRegion } from '@/hooks/use-region';
 import { BookHero } from '@/features/marketing/components/sections/the-book/BookHero';
 import { BookAbout } from '@/features/marketing/components/sections/the-book/BookAbout';
 import { BookPreview } from '@/features/marketing/components/sections/the-book/BookPreview';
@@ -19,6 +20,7 @@ import { LivePurchasePrompt } from '@/features/marketing/components/sections/the
 export function TheBookClient() {
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
+  const { region, currencyCode, bookPrice } = useRegion();
 
   useEffect(() => {
     const loadData = async () => {
@@ -45,18 +47,18 @@ export function TheBookClient() {
       windowObj.dataLayer.push({
         event: 'view_item',
         ecommerce: {
-          currency: 'INR',
-          value: book.price,
+          currency: currencyCode,
+          value: region === 'IN' ? book.price : bookPrice,
           items: [{
             item_id: book.id,
             item_name: book.title,
-            price: book.price,
+            price: region === 'IN' ? book.price : bookPrice,
             quantity: 1
           }]
         }
       });
     }
-  }, [book]);
+  }, [book, region, currencyCode, bookPrice]);
 
   if (loading || !book) {
     return (

@@ -7,10 +7,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
 import { ShopService, Book } from '@/services/shop.service';
+import { useRegion, getBookPrice, getShippingCharge } from '@/hooks/use-region';
 import {
   ArrowLeft, CheckCircle2, ShoppingBag, Tag,
   Loader2, CreditCard, Truck, AlertCircle,
-  Plus, Minus
+  Plus, Minus, Lock
 } from 'lucide-react';
 
 const bookImages = [
@@ -23,6 +24,59 @@ const bookImages = [
   '/Page-7.png'
 ];
 
+const US_STATES = [
+  { code: 'AL', name: 'Alabama' },
+  { code: 'AK', name: 'Alaska' },
+  { code: 'AZ', name: 'Arizona' },
+  { code: 'AR', name: 'Arkansas' },
+  { code: 'CA', name: 'California' },
+  { code: 'CO', name: 'Colorado' },
+  { code: 'CT', name: 'Connecticut' },
+  { code: 'DE', name: 'Delaware' },
+  { code: 'FL', name: 'Florida' },
+  { code: 'GA', name: 'Georgia' },
+  { code: 'HI', name: 'Hawaii' },
+  { code: 'ID', name: 'Idaho' },
+  { code: 'IL', name: 'Illinois' },
+  { code: 'IN', name: 'Indiana' },
+  { code: 'IA', name: 'Iowa' },
+  { code: 'KS', name: 'Kansas' },
+  { code: 'KY', name: 'Kentucky' },
+  { code: 'LA', name: 'Louisiana' },
+  { code: 'ME', name: 'Maine' },
+  { code: 'MD', name: 'Maryland' },
+  { code: 'MA', name: 'Massachusetts' },
+  { code: 'MI', name: 'Michigan' },
+  { code: 'MN', name: 'Minnesota' },
+  { code: 'MS', name: 'Mississippi' },
+  { code: 'MO', name: 'Missouri' },
+  { code: 'MT', name: 'Montana' },
+  { code: 'NE', name: 'Nebraska' },
+  { code: 'NV', name: 'Nevada' },
+  { code: 'NH', name: 'New Hampshire' },
+  { code: 'NJ', name: 'New Jersey' },
+  { code: 'NM', name: 'New Mexico' },
+  { code: 'NY', name: 'New York' },
+  { code: 'NC', name: 'North Carolina' },
+  { code: 'ND', name: 'North Dakota' },
+  { code: 'OH', name: 'Ohio' },
+  { code: 'OK', name: 'Oklahoma' },
+  { code: 'OR', name: 'Oregon' },
+  { code: 'PA', name: 'Pennsylvania' },
+  { code: 'RI', name: 'Rhode Island' },
+  { code: 'SC', name: 'South Carolina' },
+  { code: 'SD', name: 'South Dakota' },
+  { code: 'TN', name: 'Tennessee' },
+  { code: 'TX', name: 'Texas' },
+  { code: 'UT', name: 'Utah' },
+  { code: 'VT', name: 'Vermont' },
+  { code: 'VA', name: 'Virginia' },
+  { code: 'WA', name: 'Washington' },
+  { code: 'WV', name: 'West Virginia' },
+  { code: 'WI', name: 'Wisconsin' },
+  { code: 'WY', name: 'Wyoming' }
+];
+
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -31,6 +85,17 @@ function CheckoutContent() {
   const phoneParam = searchParams.get('phone') || '';
   const emailParam = searchParams.get('email') || '';
   const { user, isAuthenticated } = useAuthStore();
+  const {
+    region,
+    currencySymbol,
+    currencyCode,
+    countryName,
+    dialCode,
+    flagEmoji,
+    isoCode,
+    getLocalizedLink,
+    formatPrice
+  } = useRegion();
 
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,19 +128,70 @@ function CheckoutContent() {
     gstNumber: '',
   });
 
+  // Credit Card Simulated Form State
+  const [cardData, setCardData] = useState({
+    cardName: '',
+    cardNumber: '',
+    cardExpiry: '',
+    cardCvc: ''
+  });
+
   useEffect(() => {
     if (nameParam || phoneParam || emailParam || user) {
       const fallbackName = user?.profile?.displayName || (user?.username?.includes('@') ? '' : user?.username) || '';
-      setFormData(prev => ({
-        ...prev,
-        guestName: nameParam || prev.guestName || fallbackName,
-        guestPhone: phoneParam || prev.guestPhone || user?.phone || '',
-        guestEmail: emailParam || prev.guestEmail || user?.email || ''
-      }));
+      const targetName = nameParam || fallbackName;
+      let targetPhone = phoneParam || user?.phone || '';
+      const targetEmail = emailParam || user?.email || '';
+
+      if (targetPhone) {
+        const cleaned = targetPhone.replace(/[\s\-()]/g, '');
+        if (region === 'IN') {
+          if (cleaned.startsWith('+91') && cleaned.length === 13) {
+            targetPhone = cleaned.substring(3);
+          } else if (cleaned.startsWith('91') && cleaned.length === 12) {
+            targetPhone = cleaned.substring(2);
+          }
+        } else if (region === 'US') {
+          if (cleaned.startsWith('+1') && cleaned.length === 12) {
+            targetPhone = cleaned.substring(2);
+          } else if (cleaned.startsWith('1') && cleaned.length === 11) {
+            targetPhone = cleaned.substring(1);
+          }
+        } else if (region === 'UK') {
+          if (cleaned.startsWith('+44') && cleaned.length === 13) {
+            targetPhone = cleaned.substring(3);
+          } else if (cleaned.startsWith('44') && cleaned.length === 12) {
+            targetPhone = cleaned.substring(2);
+          }
+        }
+      }
+
+      setFormData(prev => {
+        const updates: Partial<typeof prev> = {};
+        if (targetName && !prev.guestName) updates.guestName = targetName;
+        if (targetPhone && !prev.guestPhone) updates.guestPhone = targetPhone;
+        if (targetEmail && !prev.guestEmail) updates.guestEmail = targetEmail;
+
+        if (Object.keys(updates).length === 0) {
+          return prev;
+        }
+        return {
+          ...prev,
+          ...updates
+        };
+      });
     }
-  }, [nameParam, phoneParam, emailParam, user]);
+  }, [nameParam, phoneParam, emailParam, user, region]);
 
-
+  // If region is US or UK, force online payment method
+  useEffect(() => {
+    if (region !== 'IN') {
+      setFormData(prev => {
+        if (prev.paymentMethod === 'ONLINE') return prev;
+        return { ...prev, paymentMethod: 'ONLINE' };
+      });
+    }
+  }, [region]);
 
   useEffect(() => {
     setCachedOrder(null);
@@ -97,7 +213,6 @@ function CheckoutContent() {
             const targetBook = books.find(b => b.id === '7e248707-c9e8-462c-a716-99f3852ef8c0') || books[0];
             setBook(targetBook);
           } else {
-            // Fallback if no books are active or found
             setBook({
               id: 'default',
               title: 'The Awkward Age',
@@ -133,54 +248,87 @@ function CheckoutContent() {
       windowObj.dataLayer.push({
         event: 'begin_checkout',
         ecommerce: {
-          currency: 'INR',
-          value: book.price * quantity,
+          currency: currencyCode,
+          value: getBookPrice(book, region) * quantity,
           items: [{
             item_id: book.id,
             item_name: book.title,
-            price: book.price,
+            price: getBookPrice(book, region),
             quantity: quantity
           }]
         }
       });
     }
-  }, [book]);
+  }, [book, region, currencyCode, quantity]);
 
   useEffect(() => {
-    if (formData.pincode.length === 6) {
+    let shouldFetch = false;
+    let codeToFetch = formData.pincode.trim();
+
+    if (region === 'IN' && codeToFetch.length === 6 && /^\d{6}$/.test(codeToFetch)) {
+      shouldFetch = true;
+    } else if (region === 'US' && codeToFetch.length === 5 && /^\d{5}$/.test(codeToFetch)) {
+      shouldFetch = true;
+    } else if (region === 'UK') {
+      const cleanCode = codeToFetch.replace(/\s+/g, '');
+      const ukRegex = /^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$/i;
+      if (ukRegex.test(codeToFetch)) {
+        shouldFetch = true;
+        codeToFetch = cleanCode;
+      }
+    }
+
+    if (shouldFetch) {
       const fetchPincodeData = async () => {
         setPincodeLoading(true);
         try {
-          const res = await fetch(`/api/pincode?code=${formData.pincode}`);
+          const res = await fetch(`/api/pincode?code=${codeToFetch}&region=${region}`);
           if (!res.ok) {
-            console.warn('Pincode auto-fill unavailable at the moment');
+            console.warn('Postal code auto-fill unavailable at the moment');
             return;
           }
           const data = await res.json();
-          if (data && data[0] && data[0].Status === 'Success' && data[0].PostOffice && data[0].PostOffice[0]) {
-            const postOffice = data[0].PostOffice[0];
+          if (data && data.success) {
             setFormData(prev => ({
               ...prev,
-              city: postOffice.District,
-              state: postOffice.State
+              city: data.city,
+              state: data.state
             }));
-            // Clear errors for auto-filled fields
             setFormErrors(prev => ({ ...prev, pincode: '', city: '', state: '' }));
           }
         } catch (err) {
-          console.warn('Pincode lookup failed (network issue or timeout)');
+          console.warn('Postal code lookup failed (network issue or timeout)');
         } finally {
           setPincodeLoading(false);
         }
       };
       fetchPincodeData();
     }
-  }, [formData.pincode]);
+  }, [formData.pincode, region]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error for this field
+    if (formErrors[name]) {
+      setFormErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleCardInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    let formattedValue = value;
+    if (name === 'cardNumber') {
+      formattedValue = value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim().substring(0, 19);
+    } else if (name === 'cardExpiry') {
+      formattedValue = value.replace(/\D/g, '');
+      if (formattedValue.length > 2) {
+        formattedValue = `${formattedValue.substring(0, 2)} / ${formattedValue.substring(2, 4)}`;
+      }
+      formattedValue = formattedValue.substring(0, 7);
+    } else if (name === 'cardCvc') {
+      formattedValue = value.replace(/\D/g, '').substring(0, 4);
+    }
+    setCardData(prev => ({ ...prev, [name]: formattedValue }));
     if (formErrors[name]) {
       setFormErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -205,13 +353,23 @@ function CheckoutContent() {
 
   const calculateTotal = () => {
     if (!book) return { subtotal: 0, gst: 0, delivery: 0, total: 0 };
-    const baseSubtotal = book.price * quantity;
-    const priceAfterDiscount = baseSubtotal - discountAmount;
-    const delivery = formData.paymentMethod === 'COD' ? 40 : 0;
-    const taxableValue = Math.round((priceAfterDiscount / 1.05) * 100) / 100;
-    const gst = Math.round((priceAfterDiscount - taxableValue) * 100) / 100;
-    const total = priceAfterDiscount + delivery;
-    return { subtotal: baseSubtotal, gst, delivery, total };
+    const price = getBookPrice(book, region);
+    const baseSubtotal = price * quantity;
+    const appliedDiscount = region === 'IN' ? discountAmount : 0; // Coupons disabled for US/UK
+    const priceAfterDiscount = baseSubtotal - appliedDiscount;
+    
+    if (region === 'IN') {
+      const deliveryCharge = getShippingCharge(book, region);
+      const taxableValue = Math.round((priceAfterDiscount / 1.05) * 100) / 100;
+      const gst = Math.round((priceAfterDiscount - taxableValue) * 100) / 100;
+      const codSurcharge = formData.paymentMethod === 'COD' ? (book.codChargeIN ?? 40) : 0;
+      const total = priceAfterDiscount + deliveryCharge + codSurcharge;
+      return { subtotal: baseSubtotal, gst, delivery: deliveryCharge, total };
+    } else {
+      const deliveryCharge = getShippingCharge(book, region);
+      const total = priceAfterDiscount + deliveryCharge;
+      return { subtotal: baseSubtotal, gst: 0, delivery: deliveryCharge, total };
+    }
   };
 
   const { subtotal, gst, delivery, total } = calculateTotal();
@@ -219,11 +377,58 @@ function CheckoutContent() {
   const validateForm = () => {
     const errors: Record<string, string> = {};
     if (!formData.guestName.trim()) errors.guestName = 'Full name is required';
-    if (!formData.guestPhone.trim() || !/^\d{10}$/.test(formData.guestPhone)) errors.guestPhone = 'Valid 10-digit mobile number is required';
-    if (!formData.pincode.trim() || formData.pincode.length !== 6) errors.pincode = 'Valid 6-digit pincode is required';
+    
+    // Phone Validation
+    const digits = formData.guestPhone.replace(/\D/g, '');
+    if (region === 'IN') {
+      if (!formData.guestPhone.trim() || !/^\d{10}$/.test(formData.guestPhone)) {
+        errors.guestPhone = 'Valid 10-digit mobile number is required';
+      }
+    } else if (region === 'US') {
+      if (!formData.guestPhone.trim() || !/^\d{10}$/.test(digits)) {
+        errors.guestPhone = 'Valid 10-digit mobile number is required';
+      }
+    } else if (region === 'UK') {
+      const isValidUK = (digits.length === 10 && !digits.startsWith('0')) || (digits.length === 11 && digits.startsWith('0'));
+      if (!formData.guestPhone.trim() || !isValidUK) {
+        errors.guestPhone = 'Valid UK phone number is required (10 or 11 digits)';
+      }
+    } else {
+      const cleanPhone = formData.guestPhone.replace(/[\s\-()]/g, '');
+      if (!formData.guestPhone.trim() || !/^\d{7,15}$/.test(cleanPhone)) {
+        errors.guestPhone = 'Valid phone number is required (7-15 digits)';
+      }
+    }
+
+    // Email validation (mandatory for US/UK)
+    if (region !== 'IN') {
+      if (!formData.guestEmail.trim()) {
+        errors.guestEmail = 'Email address is required for international orders';
+      } else if (!/\S+@\S+\.\S+/.test(formData.guestEmail)) {
+        errors.guestEmail = 'Please enter a valid email address';
+      }
+    } else if (formData.guestEmail.trim() && !/\S+@\S+\.\S+/.test(formData.guestEmail)) {
+      errors.guestEmail = 'Please enter a valid email address';
+    }
+
+    // Pincode/Zip validation
+    if (region === 'IN') {
+      if (!formData.pincode.trim() || formData.pincode.length !== 6) {
+        errors.pincode = 'Valid 6-digit pincode is required';
+      }
+    } else if (region === 'US') {
+      if (!formData.pincode.trim() || !/^\d{5}$/.test(formData.pincode)) {
+        errors.pincode = 'Valid 5-digit ZIP code is required';
+      }
+    } else if (region === 'UK') {
+      if (!formData.pincode.trim() || formData.pincode.length < 3 || formData.pincode.length > 10) {
+        errors.pincode = 'Valid postal code is required';
+      }
+    }
+
     if (!formData.shippingAddress.trim()) errors.shippingAddress = 'Street address is required';
     if (!formData.city.trim()) errors.city = 'City is required';
-    if (!formData.state.trim()) errors.state = 'State is required';
+    if (!formData.state.trim()) errors.state = 'State / Region is required';
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -244,18 +449,84 @@ function CheckoutContent() {
       let order = cachedOrder;
 
       if (!order) {
+        let finalPhone = formData.guestPhone.trim();
+        const phoneDigits = finalPhone.replace(/\D/g, '');
+        if (region === 'IN') {
+          if (phoneDigits.length === 10) {
+            finalPhone = `+91${phoneDigits}`;
+          } else if (phoneDigits.length === 12 && phoneDigits.startsWith('91')) {
+            finalPhone = `+${phoneDigits}`;
+          }
+        } else if (region === 'US') {
+          if (phoneDigits.length === 10) {
+            finalPhone = `+1${phoneDigits}`;
+          } else if (phoneDigits.length === 11 && phoneDigits.startsWith('1')) {
+            finalPhone = `+${phoneDigits}`;
+          }
+        } else if (region === 'UK') {
+          if (phoneDigits.length === 10 && !phoneDigits.startsWith('0')) {
+            finalPhone = `+44${phoneDigits}`;
+          } else if (phoneDigits.length === 11 && phoneDigits.startsWith('0')) {
+            finalPhone = `+44${phoneDigits.substring(1)}`;
+          } else if (phoneDigits.length === 12 && phoneDigits.startsWith('44')) {
+            finalPhone = `+${phoneDigits}`;
+          } else if (phoneDigits.length === 13 && phoneDigits.startsWith('440')) {
+            finalPhone = `+44${phoneDigits.substring(3)}`;
+          }
+        }
+
         const orderData = {
           ...formData,
+          guestPhone: finalPhone,
           userId: user?.id,
           items: [{ bookId: book.id, quantity }],
-          couponCode: appliedCoupon?.code,
+          couponCode: region === 'IN' ? appliedCoupon?.code : undefined,
+          comments: JSON.stringify({ country: region }), // pass selected country in comments
         };
         order = await ShopService.createOrder(orderData);
-        if (formData.paymentMethod === 'ONLINE') {
+        if (formData.paymentMethod === 'ONLINE' && region === 'IN') {
           setCachedOrder(order);
         }
       }
 
+      // 1. If backend returned Stripe checkout session URL, redirect to Stripe
+      if (order.stripeSessionUrl) {
+        window.location.href = order.stripeSessionUrl;
+        return;
+      }
+
+      // 2. International flow with simulated card payment
+      if (region !== 'IN') {
+        // Simulated Stripe payment delay
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Verify simulated order
+        await ShopService.verifyPayment({
+          razorpayOrderId: order.razorpayOrderId || `INT_MOCK_${order.id}`,
+          razorpayPaymentId: 'pay_mock_stripe',
+          razorpaySignature: 'sig_mock_stripe',
+        });
+
+        const successParams = new URLSearchParams({
+          transaction_id: order.id,
+          value: order.totalAmount.toString(),
+          quantity: quantity.toString(),
+          item_id: book.id,
+          item_name: book.title,
+          price: getBookPrice(book, region).toString(),
+          discount: '0',
+          delivery: '0',
+          subtotal: (getBookPrice(book, region) * quantity).toString(),
+          payment_method: 'ONLINE',
+          image_url: book.imageUrl || '/Page-1.png'
+        });
+
+        router.push(getLocalizedLink(`/purchase-success?${successParams.toString()}`));
+        setProcessing(false);
+        return;
+      }
+
+      // 3. Indian payment gateway (Razorpay)
       if (formData.paymentMethod === 'ONLINE' && order.razorpayOrderId) {
         if (typeof (window as any).Razorpay === 'undefined') {
           setError('Payment gateway is still loading. Please wait a few seconds and try again.');
@@ -348,8 +619,6 @@ function CheckoutContent() {
     );
   }
 
-
-
   return (
     <div className="min-h-screen bg-[#FDFCFB] selection:bg-primary/20 pt-20 md:pt-28 pb-16 font-sans">
 
@@ -384,10 +653,10 @@ function CheckoutContent() {
         </div>
       )}
 
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" />
+      {region === 'IN' && <Script src="https://checkout.razorpay.com/v1/checkout.js" />}
       <div className="max-w-6xl mx-auto px-6 relative z-10">
         <Link
-          href="/gigi-the-awkward-age-book"
+          href={getLocalizedLink("/gigi-the-awkward-age-book")}
           className="inline-flex items-center text-slate-500 hover:text-primary mb-8 md:mb-12 transition-colors text-sm font-medium group"
         >
           <ArrowLeft size={16} className="mr-2 group-hover:-translate-x-1 transition-transform" /> Back to product
@@ -397,7 +666,6 @@ function CheckoutContent() {
 
           {/* Left: Product Gallery & Summary */}
           <div className="lg:col-span-5 space-y-8 lg:sticky lg:top-32 w-full max-w-full">
-            {/* Title & Tagline at the very top of left column */}
             <div className="space-y-2 max-w-[400px] mx-auto lg:mx-0 text-center lg:text-left">
               <h1 className="text-3xl font-black tracking-tight text-slate-900 leading-tight">
                 {book?.title || 'The Awkward Age'}
@@ -442,18 +710,20 @@ function CheckoutContent() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500 text-sm font-medium">Unit price</span>
-                  <span className="font-bold text-slate-900 text-sm"><span>₹</span><span>{book?.price || 499}</span></span>
+                  <span className="font-bold text-slate-900 text-sm">{formatPrice(getBookPrice(book, region), false)}</span>
                 </div>
 
                 <div className="flex justify-between items-center pt-1">
                   <span className="text-slate-500 text-sm font-medium">Shipping charge</span>
-                  <span className="font-bold text-emerald-600 text-sm">Free</span>
+                  <span className={`text-sm font-bold ${delivery === 0 ? 'text-emerald-600' : 'text-slate-900'}`}>
+                    {delivery === 0 ? 'Free' : formatPrice(delivery, false)}
+                  </span>
                 </div>
 
-                {formData.paymentMethod === 'COD' && (
+                {region === 'IN' && formData.paymentMethod === 'COD' && (
                   <div className="flex justify-between items-center pt-1">
                     <span className="text-slate-500 text-sm font-medium">Cash on Delivery</span>
-                    <span className="font-bold text-slate-900 text-sm"><span>₹</span><span>40</span></span>
+                    <span className="font-bold text-slate-900 text-sm">₹{book?.codChargeIN ?? 40}</span>
                   </div>
                 )}
 
@@ -478,12 +748,12 @@ function CheckoutContent() {
                   </div>
                 </div>
 
-                {discountAmount > 0 && (
+                {region === 'IN' && discountAmount > 0 && (
                   <div className="flex justify-between items-center pt-2">
                     <span className="text-emerald-600 text-sm font-bold flex items-center gap-1.5">
                       <Tag size={14} /> Discount
                     </span>
-                    <span className="font-bold text-emerald-600 text-sm">-<span>₹</span><span>{discountAmount}</span></span>
+                    <span className="font-bold text-emerald-600 text-sm">-₹{discountAmount}</span>
                   </div>
                 )}
               </div>
@@ -493,7 +763,9 @@ function CheckoutContent() {
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total amount</span>
                   <p className="text-[10px] text-slate-400 font-medium">Incl. of all taxes</p>
                 </div>
-                <span className="text-3xl font-black text-primary tracking-tighter"><span>₹</span><span>{total}</span></span>
+                <span className="text-3xl font-black text-primary tracking-tighter">
+                  {formatPrice(total, false)}
+                </span>
               </div>
             </div>
           </div>
@@ -525,27 +797,46 @@ function CheckoutContent() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-bold text-slate-600 ml-0.5">Phone number <span className="text-rose-500">*</span></label>
-                    <input
-                      name="guestPhone"
-                      value={formData.guestPhone}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.guestPhone ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                      placeholder="10-digit mobile number"
-                    />
+                    
+                    <div className="relative flex items-center">
+                      <div className="absolute left-3 flex items-center gap-2 text-slate-500 font-bold text-sm pointer-events-none border-r border-slate-200 pr-2.5">
+                        <img
+                          src={`https://flagcdn.com/w40/${isoCode}.png`}
+                          className="w-5 h-3.5 object-cover rounded-sm border border-slate-200/50 shrink-0"
+                          alt={countryName}
+                        />
+                        <span>{dialCode}</span>
+                      </div>
+                      <input
+                        name="guestPhone"
+                        value={formData.guestPhone}
+                        onChange={handleInputChange}
+                        className={`w-full pl-22 pr-4 py-3 rounded-lg bg-white border ${formErrors.guestPhone ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                        placeholder={
+                          region === 'IN' ? '10-digit mobile number' :
+                          region === 'US' ? '10-digit mobile number' :
+                          region === 'UK' ? 'Mobile number (10 or 11 digits)' :
+                          'Mobile number'
+                        }
+                      />
+                    </div>
                     {formErrors.guestPhone && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.guestPhone}</p>}
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-600 ml-0.5">Email address (optional)</label>
+                  <label className="text-[11px] font-bold text-slate-600 ml-0.5">
+                    Email address {region !== 'IN' ? <span className="text-rose-500">*</span> : '(optional)'}
+                  </label>
                   <input
                     type="email"
                     name="guestEmail"
                     value={formData.guestEmail}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 rounded-lg bg-white border border-slate-200 focus:border-primary/60 focus:ring-4 focus:ring-primary/5 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
+                    className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.guestEmail ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
                     placeholder="your@email.com"
                   />
+                  {formErrors.guestEmail && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.guestEmail}</p>}
                 </div>
               </div>
 
@@ -560,15 +851,17 @@ function CheckoutContent() {
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">Pincode <span className="text-rose-500">*</span></label>
+                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">
+                      {region === 'US' ? 'ZIP Code' : region === 'UK' ? 'Postal Code' : 'Pincode'} <span className="text-rose-500">*</span>
+                    </label>
                     <div className="relative">
                       <input
                         name="pincode"
                         value={formData.pincode}
                         onChange={handleInputChange}
-                        maxLength={6}
+                        maxLength={region === 'IN' ? 6 : region === 'US' ? 5 : 10}
                         className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.pincode ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                        placeholder="6-digit pincode"
+                        placeholder={region === 'US' ? '5-digit ZIP' : region === 'UK' ? 'Postal code' : '6-digit pincode'}
                       />
                       {pincodeLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-primary" size={16} />}
                     </div>
@@ -579,98 +872,140 @@ function CheckoutContent() {
                     <input
                       readOnly
                       className="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 font-medium text-slate-500 cursor-not-allowed text-sm"
-                      value="India"
+                      value={countryName}
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-600 ml-0.5">Full Address <span className="text-rose-500">*</span></label>
+                  <label className="text-[11px] font-bold text-slate-600 ml-0.5">
+                    {region === 'US' ? 'Street Address' : region === 'UK' ? 'Address Line 1' : 'Full Address'} <span className="text-rose-500">*</span>
+                  </label>
                   <input
                     name="shippingAddress"
                     value={formData.shippingAddress}
                     onChange={handleInputChange}
                     className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.shippingAddress ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                    placeholder="Flat / House No / Street"
+                    placeholder={region === 'US' ? 'e.g. 123 Main Street, Apt 4B' : region === 'UK' ? 'House name/number & street' : 'Flat / House No / Street'}
                   />
                   {formErrors.shippingAddress && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.shippingAddress}</p>}
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">City <span className="text-rose-500">*</span></label>
+                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">
+                      {region === 'UK' ? 'Town / City' : 'City'} <span className="text-rose-500">*</span>
+                    </label>
                     <input
                       name="city"
                       value={formData.city}
                       onChange={handleInputChange}
                       className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.city ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                      placeholder="City"
+                      placeholder={region === 'UK' ? 'e.g. London' : 'City'}
                     />
                     {formErrors.city && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.city}</p>}
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">State <span className="text-rose-500">*</span></label>
-                    <input
-                      name="state"
-                      value={formData.state}
-                      onChange={handleInputChange}
-                      onBlur={(e) => {
-                        if (process.env.NODE_ENV === 'production' && e.target.value.trim() !== '') {
-                          const windowObj = window as any;
-                          windowObj.dataLayer = windowObj.dataLayer || [];
-                          windowObj.dataLayer.push({ ecommerce: null });
-                          windowObj.dataLayer.push({
-                            event: 'add_shipping_info',
-                            ecommerce: {
-                              currency: 'INR',
-                              value: 499,
-                              shipping_tier: 'Standard',
-                              items: [{
-                                item_id: '5e569d64-9678-4689-a594-ec9c0020f07b',
-                                item_name: 'Gigi - The Awkward Age',
-                                price: 499,
-                                quantity: 1
-                              }]
-                            }
-                          });
-                        }
-                      }}
-                      className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                      placeholder="State"
-                    />
+                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">
+                      {region === 'US' ? 'State' : region === 'UK' ? 'County' : 'State / Region'} <span className="text-rose-500">*</span>
+                    </label>
+                    {region === 'US' ? (
+                      <select
+                        name="state"
+                        value={formData.state}
+                        onChange={handleInputChange}
+                        onBlur={(e) => {
+                          if (region === 'US' && process.env.NODE_ENV === 'production' && e.target.value.trim() !== '') {
+                            const windowObj = window as any;
+                            windowObj.dataLayer = windowObj.dataLayer || [];
+                            windowObj.dataLayer.push({ ecommerce: null });
+                            windowObj.dataLayer.push({
+                              event: 'add_shipping_info',
+                              ecommerce: {
+                                currency: 'INR',
+                                value: 499,
+                                shipping_tier: 'Standard',
+                                items: [{
+                                  item_id: '5e569d64-9678-4689-a594-ec9c0020f07b',
+                                  item_name: 'Gigi - The Awkward Age',
+                                  price: 499,
+                                  quantity: 1
+                                }]
+                              }
+                            });
+                          }
+                        }}
+                        className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-semibold text-slate-800 text-sm shadow-sm bg-white`}
+                      >
+                        <option value="">Select State</option>
+                        {US_STATES.map((st) => (
+                          <option key={st.code} value={st.name}>{st.name} ({st.code})</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        name="state"
+                        value={formData.state}
+                        onChange={handleInputChange}
+                        onBlur={(e) => {
+                          if (region === 'IN' && process.env.NODE_ENV === 'production' && e.target.value.trim() !== '') {
+                            const windowObj = window as any;
+                            windowObj.dataLayer = windowObj.dataLayer || [];
+                            windowObj.dataLayer.push({ ecommerce: null });
+                            windowObj.dataLayer.push({
+                              event: 'add_shipping_info',
+                              ecommerce: {
+                                currency: 'INR',
+                                value: 499,
+                                shipping_tier: 'Standard',
+                                items: [{
+                                  item_id: '5e569d64-9678-4689-a594-ec9c0020f07b',
+                                  item_name: 'Gigi - The Awkward Age',
+                                  price: 499,
+                                  quantity: 1
+                                }]
+                              }
+                            });
+                          }
+                        }}
+                        className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                        placeholder={region === 'UK' ? 'e.g. Surrey' : 'State / Region'}
+                      />
+                    )}
                     {formErrors.state && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.state}</p>}
                   </div>
                 </div>
               </div>
 
-              {/* Promo Code Section */}
-              <div className="space-y-3 pt-2">
-                <label className="text-[11px] font-bold text-slate-600 ml-0.5">Promo code</label>
-                <div className="flex gap-2">
-                  <input
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                    placeholder="Enter code e.g. PROMO15"
-                    className="flex-1 min-w-0 px-4 py-2.5 rounded-lg bg-white border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
-                  />
-                  <button
-                    type="button"
-                    onClick={applyCoupon}
-                    disabled={!couponCode || validatingCoupon}
-                    className="px-5 py-2.5 bg-slate-900 text-white rounded-lg font-bold text-xs hover:bg-black transition-colors disabled:opacity-50"
-                  >
-                    {validatingCoupon ? <Loader2 className="animate-spin" size={14} /> : 'Apply'}
-                  </button>
-                </div>
-                {appliedCoupon && (
-                  <div className="flex items-center gap-2 px-3.5 py-2.5 bg-emerald-50 border border-emerald-200 rounded-lg">
-                    <Tag size={13} className="text-emerald-600" />
-                    <p className="text-emerald-700 text-[11px] font-bold">
-                      🎉 Code <span className="font-black">{appliedCoupon.code}</span> applied — you save ₹{discountAmount}!
-                    </p>
+              {region === 'IN' && (
+                <div className="space-y-3 pt-2">
+                  <label className="text-[11px] font-bold text-slate-600 ml-0.5">Promo code</label>
+                  <div className="flex gap-2">
+                    <input
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      placeholder="Enter code e.g. PROMO15"
+                      className="flex-1 min-w-0 px-4 py-2.5 rounded-lg bg-white border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={applyCoupon}
+                      disabled={!couponCode || validatingCoupon}
+                      className="px-5 py-2.5 bg-slate-900 text-white rounded-lg font-bold text-xs hover:bg-black transition-colors disabled:opacity-50"
+                    >
+                      {validatingCoupon ? <Loader2 className="animate-spin" size={14} /> : 'Apply'}
+                    </button>
                   </div>
-                )}
-              </div>
+                  {appliedCoupon && (
+                    <div className="flex items-center gap-2 px-3.5 py-2.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+                      <Tag size={13} className="text-emerald-600" />
+                      <p className="text-emerald-700 text-[11px] font-bold">
+                        🎉 Code <span className="font-black">{appliedCoupon.code}</span> applied — you save ₹{discountAmount}!
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Step 3: Payment Selection */}
               <div className="space-y-4">
@@ -681,77 +1016,88 @@ function CheckoutContent() {
                   <h2 className="text-base font-bold text-slate-800 tracking-tight">Payment method</h2>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <button
-                    type="button"
-                    id='payment-online'
-                    onClick={() => {
-                      setFormData(prev => ({ ...prev, paymentMethod: 'ONLINE' }));
-                      if (process.env.NODE_ENV === 'production') {
-                        const windowObj = window as any;
-                        windowObj.dataLayer = windowObj.dataLayer || [];
-                        windowObj.dataLayer.push({ ecommerce: null });
-                        windowObj.dataLayer.push({
-                          event: 'add_payment_info',
-                          ecommerce: {
-                            currency: 'INR',
-                            value: 499,
-                            payment_type: 'Online Payment',
-                            items: [{
-                              item_id: '5e569d64-9678-4689-a594-ec9c0020f07b',
-                              item_name: 'Gigi - The Awkward Age',
-                              price: 499,
-                              quantity: 1
-                            }]
-                          }
-                        });
-                      }
-                    }}
-                    className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'ONLINE' ? 'border-primary bg-primary/[0.03]' : 'border-slate-100 hover:border-slate-200 bg-white'
-                      }`}
-                  >
-                    <CreditCard size={20} className={formData.paymentMethod === 'ONLINE' ? 'text-primary' : 'text-slate-400'} />
-                    <div className="space-y-1 text-center">
-                      <div className={`text-base font-bold ${formData.paymentMethod === 'ONLINE' ? 'text-primary' : 'text-slate-800'}`}>Pay online</div>
-                      <div className="text-xs font-medium text-slate-500">Cards, UPI, NetBanking</div>
+                {region === 'IN' ? (
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <button
+                      type="button"
+                      id='payment-online'
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, paymentMethod: 'ONLINE' }));
+                        if (process.env.NODE_ENV === 'production') {
+                          const windowObj = window as any;
+                          windowObj.dataLayer = windowObj.dataLayer || [];
+                          windowObj.dataLayer.push({ ecommerce: null });
+                          windowObj.dataLayer.push({
+                            event: 'add_payment_info',
+                            ecommerce: {
+                              currency: 'INR',
+                              value: 499,
+                              payment_type: 'Online Payment',
+                              items: [{
+                                item_id: '5e569d64-9678-4689-a594-ec9c0020f07b',
+                                item_name: 'Gigi - The Awkward Age',
+                                price: 499,
+                                quantity: 1
+                              }]
+                            }
+                          });
+                        }
+                      }}
+                      className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'ONLINE' ? 'border-primary bg-primary/[0.03]' : 'border-slate-100 hover:border-slate-200 bg-white'
+                        }`}
+                    >
+                      <CreditCard size={20} className={formData.paymentMethod === 'ONLINE' ? 'text-primary' : 'text-slate-400'} />
+                      <div className="space-y-1 text-center">
+                        <div className={`text-base font-bold ${formData.paymentMethod === 'ONLINE' ? 'text-primary' : 'text-slate-800'}`}>Pay online</div>
+                        <div className="text-xs font-medium text-slate-500">Cards, UPI, NetBanking</div>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      id='payment-cod'
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, paymentMethod: 'COD' }));
+                        if (process.env.NODE_ENV === 'production') {
+                          const windowObj = window as any;
+                          windowObj.dataLayer = windowObj.dataLayer || [];
+                          windowObj.dataLayer.push({ ecommerce: null });
+                          windowObj.dataLayer.push({
+                            event: 'add_payment_info',
+                            ecommerce: {
+                              currency: 'INR',
+                              value: 499,
+                              payment_type: 'Cash on Delivery',
+                              items: [{
+                                item_id: '5e569d64-9678-4689-a594-ec9c0020f07b',
+                                item_name: 'Gigi - The Awkward Age',
+                                price: 499,
+                                quantity: 1
+                              }]
+                            }
+                          });
+                        }
+                      }}
+                      className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'COD' ? 'border-primary bg-primary/[0.03]' : 'border-slate-100 hover:border-slate-200 bg-white'
+                        }`}
+                    >
+                      <Truck size={20} className={formData.paymentMethod === 'COD' ? 'text-primary' : 'text-slate-400'} />
+                      <div className="space-y-1 text-center">
+                        <div className={`text-base font-bold ${formData.paymentMethod === 'COD' ? 'text-primary' : 'text-slate-800'}`}>Cash on delivery</div>
+                        <div className="text-xs font-medium text-slate-500">Pay at door, just a little more!</div>
+                      </div>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-full space-y-6">
+                    <div className="relative p-5 rounded-xl border-2 border-primary bg-primary/[0.03] flex flex-col items-center gap-2.5">
+                      <CreditCard size={20} className="text-primary" />
+                      <div className="space-y-1 text-center">
+                        <div className="text-base font-bold text-primary">Pay online</div>
+                        <div className="text-xs font-medium text-slate-500">Secure checkout with major credit cards</div>
+                      </div>
                     </div>
-                  </button>
-                  <button
-                    type="button"
-                    id='payment-cod'
-                    onClick={() => {
-                      setFormData(prev => ({ ...prev, paymentMethod: 'COD' }));
-                      if (process.env.NODE_ENV === 'production') {
-                        const windowObj = window as any;
-                        windowObj.dataLayer = windowObj.dataLayer || [];
-                        windowObj.dataLayer.push({ ecommerce: null });
-                        windowObj.dataLayer.push({
-                          event: 'add_payment_info',
-                          ecommerce: {
-                            currency: 'INR',
-                            value: 499,
-                            payment_type: 'Cash on Delivery',
-                            items: [{
-                              item_id: '5e569d64-9678-4689-a594-ec9c0020f07b',
-                              item_name: 'Gigi - The Awkward Age',
-                              price: 499,
-                              quantity: 1
-                            }]
-                          }
-                        });
-                      }
-                    }}
-                    className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'COD' ? 'border-primary bg-primary/[0.03]' : 'border-slate-100 hover:border-slate-200 bg-white'
-                      }`}
-                  >
-                    <Truck size={20} className={formData.paymentMethod === 'COD' ? 'text-primary' : 'text-slate-400'} />
-                    <div className="space-y-1 text-center">
-                      <div className={`text-base font-bold ${formData.paymentMethod === 'COD' ? 'text-primary' : 'text-slate-800'}`}>Cash on delivery</div>
-                      <div className="text-xs font-medium text-slate-500">Pay at door, just a little more!</div>
-
-                    </div>
-                  </button>
-                </div>
+                  </div>
+                )}
               </div>
 
               {error && (
@@ -769,17 +1115,20 @@ function CheckoutContent() {
                   {processing ? (
                     <>
                       <Loader2 className="animate-spin" size={20} />
-                      Processing...
+                      Processing securely...
                     </>
                   ) : (
                     <>
                       <ShoppingBag size={20} />
-                      {formData.paymentMethod === 'ONLINE' ? `Pay ₹${total} & place order` : 'Place order via COD'}
+                      {formData.paymentMethod === 'ONLINE' 
+                        ? `Pay ${formatPrice(total, false)} & place order`
+                        : `Place order via COD (${formatPrice(total, false)})`
+                      }
                     </>
                   )}
                 </button>
                 <p className="text-center text-slate-500 text-[10px] font-medium mt-6">
-                  By placing order, you agree to our <Link href="/legal/terms" className="underline underline-offset-2 hover:text-primary transition-colors">Terms</Link> and <Link href="/legal/privacy" className="underline underline-offset-2 hover:text-primary transition-colors">Privacy Policy</Link>.
+                  By placing order, you agree to our <Link href={getLocalizedLink("/legal/terms")} className="underline underline-offset-2 hover:text-primary transition-colors">Terms</Link> and <Link href={getLocalizedLink("/legal/privacy")} className="underline underline-offset-2 hover:text-primary transition-colors">Privacy Policy</Link>.
                 </p>
               </div>
             </form>

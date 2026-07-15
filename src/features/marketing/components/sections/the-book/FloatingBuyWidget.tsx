@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, X, Sparkles, Star } from 'lucide-react';
 import { Book } from '@/services/shop.service';
+import { useRegion, getBookPrice } from '@/hooks/use-region';
 
 interface FloatingBuyWidgetProps {
   book?: Book | null;
@@ -12,10 +13,10 @@ interface FloatingBuyWidgetProps {
 export function FloatingBuyWidget({ book }: FloatingBuyWidgetProps) {
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const { region, bookPrice, formatPrice, getLocalizedLink } = useRegion();
 
   useEffect(() => {
     const handleScroll = () => {
-      // Show after scrolling 400px (past the hero section)
       if (window.scrollY > 400) {
         setVisible(true);
       } else {
@@ -27,8 +28,7 @@ export function FloatingBuyWidget({ book }: FloatingBuyWidgetProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const checkoutHref = book ? `/checkout?bookId=${book.id}` : '/checkout';
-  const price = book?.price ?? 499;
+  const checkoutHref = getLocalizedLink(book ? `/checkout?bookId=${book.id}` : '/checkout');
 
   return (
     <AnimatePresence>
@@ -64,10 +64,10 @@ export function FloatingBuyWidget({ book }: FloatingBuyWidgetProps) {
                   </div>
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-xl font-extrabold text-slate-900 leading-none">
-                      ₹{price}
+                      {formatPrice(getBookPrice(book, region), false)}
                     </span>
                     <span className="text-xs text-slate-400 line-through leading-none">
-                      ₹{price * 2}
+                      {formatPrice(getBookPrice(book, region) * 2, false)}
                     </span>
                     <span className="flex items-center gap-0.5 text-amber-500 text-[9px] font-bold">
                       <Star className="w-2.5 h-2.5 fill-amber-500" />
@@ -117,10 +117,10 @@ export function FloatingBuyWidget({ book }: FloatingBuyWidgetProps) {
 
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-extrabold text-slate-900 leading-none">
-                    ₹{price}
+                    {formatPrice(getBookPrice(book, region), false)}
                   </span>
                   <span className="text-sm text-slate-400 line-through leading-none">
-                    ₹{price * 2}
+                    {formatPrice(getBookPrice(book, region) * 2, false)}
                   </span>
                   <span className="flex items-center gap-0.5 text-amber-500 text-[10px] font-bold">
                     <Star className="w-3 h-3 fill-amber-500" />

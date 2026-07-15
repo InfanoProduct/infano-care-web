@@ -1,17 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Mail, MapPin, Phone, Building2, UserCircle, Handshake, CheckCircle2, Loader2 } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import toast from 'react-hot-toast';
+import { useRegion } from '@/hooks/use-region';
 
 export function ContactClient() {
+  const { region } = useRegion();
   const [selectedCard, setSelectedCard] = useState('school');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     schoolName: '',
-    schoolType: 'CBSE',
+    schoolType: region === 'IN' ? 'CBSE' : 'US School District',
     cityState: '',
     totalGirls: '',
     contactName: '',
@@ -22,6 +24,13 @@ export function ContactClient() {
     details: '',
     ngoDetail: ''
   });
+
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      schoolType: region === 'IN' ? 'CBSE' : 'US School District'
+    }));
+  }, [region]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -174,11 +183,12 @@ export function ContactClient() {
                         onChange={handleInputChange}
                         className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/50"
                       >
-                        <option>CBSE</option>
-                        <option>ICSE</option>
-                        <option>IB</option>
-                        <option>State Board</option>
-                        <option>Other</option>
+                        {(region === 'IN' 
+                          ? ['CBSE', 'ICSE', 'IB', 'State Board', 'Other']
+                          : ['US School District', 'Private Prep School', 'Charter School', 'IB', 'Other']
+                        ).map(board => (
+                          <option key={board}>{board}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -361,16 +371,25 @@ export function ContactClient() {
               <div className="flex items-start gap-4">
                 <MapPin className="text-primary mt-1 shrink-0" />
                 <div>
-                  <h4 className="font-bold text-slate-800">Address 1</h4>
-                  <p className="text-muted-foreground mt-1">Naya Raipur, Chhattisgarh</p>
+                  <h4 className="font-bold text-slate-800">Global Head Office</h4>
+                  <p className="text-muted-foreground mt-1">Naya Raipur, Chhattisgarh, India</p>
                 </div>
               </div>
               
               <div className="flex items-start gap-4">
                 <MapPin className="text-primary mt-1 shrink-0" />
                 <div>
-                  <h4 className="font-bold text-slate-800">Address 2</h4>
-                  <p className="text-muted-foreground mt-1">Sarjapur, Bangalore</p>
+                  <h4 className="font-bold text-slate-800">
+                    {region === 'US' ? 'US Support Office' : region === 'UK' ? 'UK Support Office' : 'Bangalore Office'}
+                  </h4>
+                  <p className="text-muted-foreground mt-1">
+                    {region === 'US' 
+                      ? 'New York, NY, United States' 
+                      : region === 'UK' 
+                        ? 'London, Greater London, UK' 
+                        : 'Sarjapur, Bangalore, Karnataka, India'
+                    }
+                  </p>
                 </div>
               </div>
             </div>

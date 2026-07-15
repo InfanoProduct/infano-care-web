@@ -19,7 +19,13 @@ export interface Book {
   id: string;
   title: string;
   description: string;
-  price: number;
+  price: number;           // India price (INR)
+  priceUS?: number | null; // USA price (USD)
+  priceUK?: number | null; // UK price (GBP)
+  shippingIN?: number;     // India shipping (INR)
+  shippingUS?: number;       // USA shipping (USD)
+  shippingUK?: number;       // UK shipping (GBP)
+  codChargeIN?: number;    // India COD Surcharge (INR)
   imageUrl?: string;
   stock: number;
   isActive: boolean;
@@ -45,6 +51,7 @@ export interface CreateOrderRequest {
   pincode: string;
   paymentMethod: 'ONLINE' | 'COD';
   items: OrderItem[];
+  comments?: string;
 }
 
 export interface OrderResponse {
@@ -52,6 +59,7 @@ export interface OrderResponse {
   totalAmount: number;
   razorpayOrderId?: string;
   paymentMethod: string;
+  stripeSessionUrl?: string;
 }
 
 export const ShopService = {

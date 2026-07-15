@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { BookOpen, Users, Star, ChevronRight } from 'lucide-react';
 import { SliderCourse } from '../../types';
+import { useRegion } from '@/hooks/use-region';
 
 interface SliderCardProps {
   card: SliderCourse;
@@ -20,6 +21,7 @@ const bgColors: Record<number, string> = {
 };
 
 export function SliderCard({ card, index, isFirst, onDragEnd, onClick }: SliderCardProps) {
+  const { formatPrice } = useRegion();
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-15, 15]);
   const opacity = useTransform(x, [-200, -120, 0, 120, 200], [0, 1, 1, 1, 0]);
@@ -104,7 +106,7 @@ export function SliderCard({ card, index, isFirst, onDragEnd, onClick }: SliderC
                 <span className="text-[9px] font-bold text-slate-400 ml-1">({card.reviews})</span>
               </div>
               <div className="text-lg font-bold text-slate-900"> Free
-                <span className="text-xs text-slate-400 line-through font-normal ml-1">₹ {card.price} /-</span>
+                <span className="text-xs text-slate-400 line-through font-normal ml-1">{formatPrice(card.price)} /-</span>
               </div>
             </div>
             <div className="flex items-center gap-1 text-xs font-black text-primary hover:gap-2 transition-all cursor-pointer">

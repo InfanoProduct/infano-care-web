@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { ShoppingBag, Search, Filter, Eye, Clock, CheckCircle, Truck, XCircle, Package, CreditCard, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
-import { formatIndianDate, formatOrderId } from '@/lib/utils';
+import { formatIndianDate, formatOrderId, getOrderCountry, getCurrencySymbol } from '@/lib/utils';
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -17,6 +17,7 @@ export default function AdminOrdersPage() {
   const [paymentMethodFilter, setPaymentMethodFilter] = useState('ALL');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('ALL');
   const [isActiveFilter, setIsActiveFilter] = useState(true);
+  const [countryFilter, setCountryFilter] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -41,6 +42,7 @@ export default function AdminOrdersPage() {
       const savedPaymentMethodFilter = localStorage.getItem('orders_paymentMethodFilter') || 'ALL';
       const savedPaymentStatusFilter = localStorage.getItem('orders_paymentStatusFilter') || 'ALL';
       const savedIsActiveFilter = localStorage.getItem('orders_isActiveFilter') !== 'false';
+      const savedCountryFilter = localStorage.getItem('orders_countryFilter') || 'ALL';
       const savedCurrentPage = localStorage.getItem('orders_currentPage')
         ? parseInt(localStorage.getItem('orders_currentPage')!, 10)
         : 1;
@@ -52,6 +54,7 @@ export default function AdminOrdersPage() {
       setPaymentMethodFilter(savedPaymentMethodFilter);
       setPaymentStatusFilter(savedPaymentStatusFilter);
       setIsActiveFilter(savedIsActiveFilter);
+      setCountryFilter(savedCountryFilter);
       setCurrentPage(savedCurrentPage);
       setIsInitialized(true);
     }
@@ -67,8 +70,9 @@ export default function AdminOrdersPage() {
     localStorage.setItem('orders_paymentMethodFilter', paymentMethodFilter);
     localStorage.setItem('orders_paymentStatusFilter', paymentStatusFilter);
     localStorage.setItem('orders_isActiveFilter', isActiveFilter.toString());
+    localStorage.setItem('orders_countryFilter', countryFilter);
     localStorage.setItem('orders_currentPage', currentPage.toString());
-  }, [isInitialized, searchTerm, dateFrom, dateTo, statusFilter, paymentMethodFilter, paymentStatusFilter, isActiveFilter, currentPage]);
+  }, [isInitialized, searchTerm, dateFrom, dateTo, statusFilter, paymentMethodFilter, paymentStatusFilter, isActiveFilter, countryFilter, currentPage]);
 
   // Click outside to close filters
   useEffect(() => {
@@ -87,7 +91,7 @@ export default function AdminOrdersPage() {
       fetchOrders();
     }, 300);
     return () => clearTimeout(delayDebounceFn);
-  }, [isInitialized, currentPage, searchTerm, dateFrom, dateTo, statusFilter, paymentMethodFilter, paymentStatusFilter, isActiveFilter]);
+  }, [isInitialized, currentPage, searchTerm, dateFrom, dateTo, statusFilter, paymentMethodFilter, paymentStatusFilter, isActiveFilter, countryFilter]);
 
   const fetchOrders = async () => {
     try {
@@ -102,6 +106,7 @@ export default function AdminOrdersPage() {
       if (statusFilter !== 'ALL') queryParams.append('status', statusFilter);
       if (paymentMethodFilter !== 'ALL') queryParams.append('paymentMethod', paymentMethodFilter);
       if (paymentStatusFilter !== 'ALL') queryParams.append('paymentStatus', paymentStatusFilter);
+      if (countryFilter !== 'ALL') queryParams.append('country', countryFilter);
 
       const response = await apiClient.get<any>(`/admin/orders?${queryParams.toString()}`);
 
@@ -387,11 +392,25 @@ export default function AdminOrdersPage() {
                 <div className="flex items-center justify-between">
                   <h3 className="font-bold text-sm">Filter Orders</h3>
                   <button
-                    onClick={() => { setStatusFilter('ALL'); setPaymentMethodFilter('ALL'); setPaymentStatusFilter('ALL'); setIsActiveFilter(true); setCurrentPage(1); }}
+                    onClick={() => { setStatusFilter('ALL'); setPaymentMethodFilter('ALL'); setPaymentStatusFilter('ALL'); setIsActiveFilter(true); setCountryFilter('ALL'); setCurrentPage(1); }}
                     className="text-xs text-primary font-bold hover:underline"
                   >
                     Clear All
                   </button>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Country</label>
+                  <select
+                    value={countryFilter}
+                    onChange={(e) => { setCountryFilter(e.target.value); setCurrentPage(1); }}
+                    className="w-full border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary bg-white"
+                  >
+                    <option value="ALL">All Countries</option>
+                    <option value="IN">India (IND)</option>
+                    <option value="US">United States (US)</option>
+                    <option value="UK">United Kingdom (UK)</option>
+                  </select>
                 </div>
 
                 <div className="flex flex-col gap-1.5">
@@ -495,7 +514,7 @@ export default function AdminOrdersPage() {
                       <div className="text-xs text-muted-foreground">{order.guestPhone || order.user?.phone || 'No Phone'}</div>
                     </td>
                     <td className="px-6 py-5">
-                      <div className="font-bold text-sm text-foreground">₹{order.totalAmount}</div>
+                      <div className="font-bold text-sm text-foreground">{getCurrencySymbol(getOrderCountry(order))}{order.totalAmount}</div>
                     </td>
                     <td className="px-6 py-5">
                       <div className="flex flex-col gap-1">

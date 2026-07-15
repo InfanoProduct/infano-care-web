@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle2, Copy, Check, BookOpen, FileText, HelpCircle, ArrowRight } from 'lucide-react';
 import { formatOrderId } from '@/lib/utils';
+import { useRegion } from '@/hooks/use-region';
 
 // Pure React Canvas Confetti effect
 function CanvasConfetti() {
@@ -146,9 +147,15 @@ function CanvasConfetti() {
 function PurchaseSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { currencySymbol } = useRegion();
   const [copied, setCopied] = useState(false);
+  const [transactionId, setTransactionId] = useState<string>('');
 
-  const transactionId = searchParams.get('transaction_id') || 'ORDER_' + Math.floor(Math.random() * 1000000);
+  useEffect(() => {
+    const idFromParams = searchParams.get('transaction_id');
+    setTransactionId(idFromParams || 'ORDER_' + Math.floor(Math.random() * 1000000));
+  }, [searchParams]);
+
   const valueStr = searchParams.get('value') || '499';
   const qtyStr = searchParams.get('quantity') || '1';
   const itemId = searchParams.get('item_id') || '5e569d64-9678-4689-a594-ec9c0020f07b';
@@ -177,7 +184,7 @@ function PurchaseSuccessContent() {
     ? paymentMethodParam 
     : (delivery > 0 ? 'COD' : 'ONLINE');
 
-  const formattedOrderId = formatOrderId(transactionId);
+  const formattedOrderId = transactionId ? formatOrderId(transactionId) : 'Loading...';
 
   const handleCopy = () => {
     navigator.clipboard.writeText(formattedOrderId);
@@ -323,30 +330,34 @@ function PurchaseSuccessContent() {
               <div className="space-y-3.5 pt-4 border-t border-slate-100 text-xs font-bold">
                 <div className="flex justify-between items-center text-slate-500 font-medium">
                   <span>Unit Price</span>
-                  <span className="text-slate-800 font-extrabold"><span>₹</span><span>{unitPrice}</span></span>
+                  <span className="text-slate-800 font-extrabold"><span>{currencySymbol}</span><span>{unitPrice}</span></span>
                 </div>
                 
                 <div className="flex justify-between items-center text-slate-500 font-medium">
                   <span>Item Subtotal</span>
-                  <span className="text-slate-800 font-extrabold"><span>₹</span><span>{subtotal}</span></span>
+                  <span className="text-slate-800 font-extrabold"><span>{currencySymbol}</span><span>{subtotal}</span></span>
                 </div>
                 
                 {discount > 0 && (
                   <div className="flex justify-between items-center text-emerald-600">
                     <span>Discount</span>
-                    <span>-<span>₹</span><span>{discount}</span></span>
+                    <span>-<span>{currencySymbol}</span><span>{discount}</span></span>
                   </div>
                 )}
                 
                 <div className="flex justify-between items-center text-slate-500 font-medium">
                   <span>Shipping</span>
-                  <span className="text-emerald-600 font-extrabold">Free</span>
+                  {delivery > 0 && paymentMethod !== 'COD' ? (
+                    <span className="text-slate-800 font-extrabold"><span>{currencySymbol}</span><span>{delivery}</span></span>
+                  ) : (
+                    <span className="text-emerald-600 font-extrabold">Free</span>
+                  )}
                 </div>
                 
-                {delivery > 0 && (
-                  <div className="flex justify-between items-center text-slate-550 font-medium">
+                {delivery > 0 && paymentMethod === 'COD' && (
+                  <div className="flex justify-between items-center text-slate-500 font-medium">
                     <span>Cash on Delivery (COD)</span>
-                    <span className="text-slate-800 font-extrabold"><span>₹</span><span>{delivery}</span></span>
+                    <span className="text-slate-800 font-extrabold"><span>{currencySymbol}</span><span>{delivery}</span></span>
                   </div>
                 )}
               </div>
@@ -357,7 +368,7 @@ function PurchaseSuccessContent() {
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Total Paid</span>
                   <p className="text-[9px] text-slate-400 font-medium">All taxes included</p>
                 </div>
-                <span className="text-3xl font-black text-slate-900 tracking-tight"><span>₹</span><span>{totalAmount}</span></span>
+                <span className="text-3xl font-black text-slate-900 tracking-tight"><span>{currencySymbol}</span><span>{totalAmount}</span></span>
               </div>
             </div>
             

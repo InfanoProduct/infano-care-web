@@ -6,9 +6,11 @@ import { motion } from 'framer-motion';
 import { ArrowRight, CheckCircle2, Shield, Users, BookOpen } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { ShopService, Book } from '@/services/shop.service';
+import { useRegion, getBookPrice } from '@/hooks/use-region';
 
 export function BookSection() {
   const [book, setBook] = useState<Book | null>(null);
+  const { region, formatPrice, getLocalizedLink } = useRegion();
 
   useEffect(() => {
     async function loadBook() {
@@ -179,8 +181,12 @@ export function BookSection() {
             <div className="flex flex-col sm:flex-row items-center gap-8 pt-8 border-t border-slate-100">
               <div className="flex flex-col">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold text-slate-900 tracking-tighter">₹499</span>
-                  <span className="text-slate-400 line-through text-lg font-bold">₹999</span>
+                  <span className="text-3xl font-bold text-slate-900 tracking-tighter">
+                    {formatPrice(getBookPrice(book, region), false)}
+                  </span>
+                  <span className="text-slate-400 line-through text-lg font-bold">
+                    {formatPrice(getBookPrice(book, region) * 2, false)}
+                  </span>
                 </div>
                 <span className="text-emerald-500 font-bold text-[9px] uppercase tracking-widest mt-1">
                   Special 50% Launch Offer
@@ -188,10 +194,10 @@ export function BookSection() {
               </div>
 
               <div className="flex gap-4 w-full sm:w-auto">
-                <Link href={book ? `/checkout?bookId=${book.id}` : '/checkout'} className="flex-1 sm:flex-none inline-flex items-center justify-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-full font-bold text-base hover:bg-primary transition-all shadow-lg shadow-slate-900/5 active:scale-95 group">
+                <Link href={getLocalizedLink(book ? `/checkout?bookId=${book.id}` : '/checkout')} className="flex-1 sm:flex-none inline-flex items-center justify-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-full font-bold text-base hover:bg-primary transition-all shadow-lg shadow-slate-900/5 active:scale-95 group">
                   Buy Now <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                 </Link>
-                <Link href="/gigi-the-awkward-age-book#read" className="flex-1 sm:flex-none inline-flex items-center justify-center gap-3 px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-full font-bold text-sm hover:bg-slate-50 transition-all active:scale-95">
+                <Link href={getLocalizedLink("/gigi-the-awkward-age-book#read")} className="flex-1 sm:flex-none inline-flex items-center justify-center gap-3 px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-full font-bold text-sm hover:bg-slate-50 transition-all active:scale-95">
                   <BookOpen size={18} className="text-primary" /> Read Sample
                 </Link>
               </div>

@@ -12,11 +12,13 @@ export default function MarketingLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isDashboard = pathname?.startsWith('/peerline/dashboard') || pathname?.startsWith('/dashboard');
-  const isProgramDetail = pathname?.startsWith('/programs/') && pathname !== '/programs' && pathname !== '/programs/';
-  const isLogin = pathname === '/login' || pathname === '/login/';
+  const cleanPathname = pathname ? pathname.replace(/^\/en-(us|uk)/, '') : '';
+  const isDashboard = cleanPathname.startsWith('/peerline/dashboard') || cleanPathname.startsWith('/dashboard');
+  const isProgramDetail = cleanPathname.startsWith('/programs/') && cleanPathname !== '/programs' && cleanPathname !== '/programs/';
+  const isLogin = cleanPathname === '/login' || cleanPathname === '/login/';
   const isPortal = isDashboard || isProgramDetail || isLogin;
-  const hideWidgets = pathname?.startsWith('/checkout') || pathname?.startsWith('/gigi-the-awkward-age-book');
+  const isPurchaseSuccess = cleanPathname.startsWith('/purchase-success');
+  const hideWidgets = cleanPathname.startsWith('/checkout') || cleanPathname.startsWith('/gigi-the-awkward-age-book') || isPurchaseSuccess;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -24,7 +26,7 @@ export default function MarketingLayout({
       <main className={`flex-1 w-full ${!isPortal ? 'pt-20' : ''}`}>
         {children}
       </main>
-      {!isPortal && <MarketingFooter />}
+      {!isPortal && !isPurchaseSuccess && <MarketingFooter />}
 
       {/* Floating WhatsApp Button */}
       {!hideWidgets && (

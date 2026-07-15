@@ -108,3 +108,30 @@ export function formatOrderId(id: string | undefined | null): string {
   if (!id) return '';
   return `ORD-${id.slice(0, 8).toUpperCase()}`;
 }
+
+export function getOrderCountry(order: any): string {
+  if (!order) return 'IN';
+  if (order.comments) {
+    try {
+      const commentsObj = typeof order.comments === 'string'
+        ? JSON.parse(order.comments)
+        : order.comments;
+      if (commentsObj && typeof commentsObj === 'object') {
+        if (commentsObj.country) {
+          return String(commentsObj.country).toUpperCase();
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+  return 'IN';
+}
+
+export function getCurrencySymbol(country: string): string {
+  switch (country) {
+    case 'US': return '$';
+    case 'UK': return '£';
+    default: return '₹';
+  }
+}

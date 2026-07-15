@@ -6,7 +6,8 @@ import {
   Save, X, Package, DollarSign,
   Type, AlignLeft, Loader2, CheckCircle2,
   Ticket, Calendar, ToggleLeft, ToggleRight,
-  Trash2, Percent, Hash, Plus, Tag,
+  Trash2, Percent, Hash, Plus, Tag, Truck, Globe,
+  IndianRupee, PoundSterling,
 } from 'lucide-react';
 import { ShopService, Book } from '@/services/shop.service';
 import ImageUploader from '@/components/upload/ImageUploader';
@@ -27,14 +28,34 @@ const emptyPromo = {
   isActive: true,
 };
 
+/** Returns fallback when value is null, undefined, or NaN (NaN !== null so ?? doesn't catch it) */
+const safeNum = (v: number | null | undefined, fallback: number | '' = 0): number | string => {
+  if (v === null || v === undefined || Number.isNaN(v)) return fallback;
+  return v;
+};
+
+/** Parse float input, returning fallback on empty/NaN */
+const parseNum = (raw: string, fallback: number | null = 0): number | null => {
+  if (raw === '' || raw === undefined) return fallback;
+  const n = parseFloat(raw);
+  return Number.isNaN(n) ? fallback : n;
+};
+
 export default function BookForm({ bookId }: BookFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(!!bookId);
+  const [pricingTab, setPricingTab] = useState<'IN' | 'US' | 'UK'>('IN');
   const [formData, setFormData] = useState<Partial<Book>>({
     title: '',
     description: '',
     price: 0,
+    priceUS: undefined,
+    priceUK: undefined,
+    shippingIN: 0,
+    shippingUS: 0,
+    shippingUK: 0,
+    codChargeIN: 40,
     stock: 0,
     imageUrl: '',
     isActive: true,
@@ -140,11 +161,16 @@ export default function BookForm({ bookId }: BookFormProps) {
     setLoading(true);
 
     try {
-      // Create a clean payload with only standard writeable fields
       const payload = {
         title: formData.title,
         description: formData.description,
         price: Number(formData.price),
+        priceUS: formData.priceUS !== undefined && formData.priceUS !== null && String(formData.priceUS) !== '' ? Number(formData.priceUS) : null,
+        priceUK: formData.priceUK !== undefined && formData.priceUK !== null && String(formData.priceUK) !== '' ? Number(formData.priceUK) : null,
+        shippingIN: Number(formData.shippingIN ?? 0),
+        shippingUS: Number(formData.shippingUS ?? 0),
+        shippingUK: Number(formData.shippingUK ?? 0),
+        codChargeIN: Number(formData.codChargeIN ?? 40),
         stock: Number(formData.stock),
         imageUrl: formData.imageUrl,
         isActive: formData.isActive,
@@ -245,25 +271,197 @@ export default function BookForm({ bookId }: BookFormProps) {
             </div>
           </div>
 
-          {/* Price and stock */}
-          <div className="glass-card p-8 rounded-[2.5rem] border-primary/5 shadow-2xl grid grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Unit Price (₹)</label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                  <DollarSign size={18} />
+          {/* Regional Pricing & Shipping */}
+          <div className="glass-card rounded-[2.5rem] border-blue-500/10 shadow-2xl overflow-hidden">
+            {/* Card Header */}
+            <div className="p-8 pb-6 border-b border-border/20 flex items-center justify-between bg-blue-500/5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-blue-100 flex items-center justify-center">
+                  <Globe size={20} className="text-blue-600" />
                 </div>
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
-                  className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
-                />
+                <div>
+                  <h3 className="text-lg font-black text-slate-900 tracking-tight">Regional Pricing &amp; Shipping</h3>
+                  <p className="text-xs text-muted-foreground font-semibold mt-0.5">
+                    Set unit price and shipping charges per country
+                  </p>
+                </div>
               </div>
             </div>
 
+            {/* Country Tabs */}
+            <div className="flex border-b border-border/20">
+              {([['IN', '🇮🇳', 'India (₹)'], ['US', '🇺🇸', 'USA ($)'], ['UK', '🇬🇧', 'UK (£)']] as const).map(([code, flag, label]) => (
+                <button
+                  key={code}
+                  type="button"
+                  onClick={() => setPricingTab(code)}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-black uppercase tracking-widest transition-all ${
+                    pricingTab === code
+                      ? 'bg-white border-b-2 border-blue-500 text-blue-600'
+                      : 'text-muted-foreground hover:bg-slate-50'
+                  }`}
+                >
+                  <span className="text-lg">{flag}</span>
+                  <span className="hidden sm:inline">{label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* India Tab */}
+            {pricingTab === 'IN' && (
+              <div className="p-8 space-y-6 animate-in fade-in duration-200">
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Unit Price (₹) — India</label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                      <IndianRupee size={18} />
+                    </div>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      step="0.01"
+                      value={safeNum(formData.price, '')}
+                      onChange={(e) => setFormData({ ...formData, price: parseNum(e.target.value, null) as number })}
+                      placeholder="e.g. 499"
+                      className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-1.5">
+                    <Truck size={12} /> Shipping Charge (₹)
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                      <Truck size={16} />
+                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={safeNum(formData.shippingIN, '')}
+                      onChange={(e) => setFormData({ ...formData, shippingIN: parseNum(e.target.value, null) as number })}
+                      className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
+                    />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground ml-1">Configured shipping charge for both Online and COD payments in India</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-1.5">
+                    <Truck size={12} /> COD Surcharge (₹)
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                      <IndianRupee size={16} />
+                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={safeNum(formData.codChargeIN, '')}
+                      onChange={(e) => setFormData({ ...formData, codChargeIN: parseNum(e.target.value, null) as number })}
+                      className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
+                    />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground ml-1">Configured Cash on Delivery (COD) charge for orders in India (defaults to 40)</p>
+                </div>
+              </div>
+            )}
+
+            {/* USA Tab */}
+            {pricingTab === 'US' && (
+              <div className="p-8 space-y-6 animate-in fade-in duration-200">
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Unit Price ($) — USA</label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                      <DollarSign size={18} />
+                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={safeNum(formData.priceUS, '')}
+                      onChange={(e) => setFormData({ ...formData, priceUS: parseNum(e.target.value, null) })}
+                      placeholder="e.g. 19.99 (leave blank to auto-convert from ₹)"
+                      className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
+                    />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground ml-1">Leave blank to auto-calculate from India price using exchange rate</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-1.5">
+                    <Truck size={12} /> Shipping ($) — Online only
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                      <Truck size={16} />
+                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={safeNum(formData.shippingUS, '')}
+                      onChange={(e) => setFormData({ ...formData, shippingUS: parseNum(e.target.value, null) as number })}
+                      className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
+                    />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground ml-1">Only online payment is available for US customers</p>
+                </div>
+              </div>
+            )}
+
+            {/* UK Tab */}
+            {pricingTab === 'UK' && (
+              <div className="p-8 space-y-6 animate-in fade-in duration-200">
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Unit Price (£) — UK</label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                      <PoundSterling size={18} />
+                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={safeNum(formData.priceUK, '')}
+                      onChange={(e) => setFormData({ ...formData, priceUK: parseNum(e.target.value, null) })}
+                      placeholder="e.g. 14.99 (leave blank to auto-convert from ₹)"
+                      className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
+                    />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground ml-1">Leave blank to auto-calculate from India price using exchange rate</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-1.5">
+                    <Truck size={12} /> Shipping (£) — Online only
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                      <Truck size={16} />
+                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={safeNum(formData.shippingUK, '')}
+                      onChange={(e) => setFormData({ ...formData, shippingUK: parseNum(e.target.value, null) as number })}
+                      className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
+                    />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground ml-1">Only online payment is available for UK customers</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Stock */}
+          <div className="glass-card p-8 rounded-[2.5rem] border-primary/5 shadow-2xl">
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Inventory Level</label>
               <div className="relative group">
@@ -274,8 +472,8 @@ export default function BookForm({ bookId }: BookFormProps) {
                   type="number"
                   required
                   min="0"
-                  value={formData.stock}
-                  onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) })}
+                  value={safeNum(formData.stock, '')}
+                  onChange={(e) => setFormData({ ...formData, stock: parseNum(e.target.value, null) as number })}
                   className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
                 />
               </div>
@@ -560,7 +758,9 @@ export default function BookForm({ bookId }: BookFormProps) {
             </h4>
             <ul className="space-y-3">
               {[
-                { label: 'Accurate pricing', checked: formData.price! > 0 },
+                { label: 'India price set', checked: formData.price! > 0 },
+                { label: 'US price configured', checked: formData.priceUS != null && formData.priceUS! > 0 },
+                { label: 'UK price configured', checked: formData.priceUK != null && formData.priceUK! > 0 },
                 { label: 'Cover image linked', checked: !!formData.imageUrl },
                 { label: 'Stock level updated', checked: formData.stock! >= 0 },
                 { label: 'Catchy description', checked: formData.description!.length > 20 },

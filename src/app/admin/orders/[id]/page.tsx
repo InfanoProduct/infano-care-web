@@ -8,7 +8,7 @@ import {
   Clock, Truck, CheckCircle, XCircle, Package, Phone, Mail,
   AlertCircle, ChevronRight, Receipt, Tag, Info, ShieldCheck, MessageSquare
 } from 'lucide-react';
-import { formatIndianDate, formatOrderId } from '@/lib/utils';
+import { formatIndianDate, formatOrderId, getOrderCountry, getCurrencySymbol } from '@/lib/utils';
 
 const ALL_STATUS_OPTIONS = [
   { id: 'PLACED', label: 'Order Placed' },
@@ -29,7 +29,7 @@ const getStatusSteps = (currentStatus: string) => [
 
 const STATUS_TRANSITIONS: Record<string, string[]> = {
   PLACED: ['PROCESSING', 'ON_HOLD', 'CANCELLED'],
-  PROCESSING: ['SHIPPED', 'CANCELLED'],
+  PROCESSING: ['SHIPPED', 'ON_HOLD', 'CANCELLED'],
   ON_HOLD: ['PROCESSING', 'CANCELLED'],
   SHIPPED: ['DELIVERED', 'CANCELLED'],
   DELIVERED: [],
@@ -193,6 +193,9 @@ export default function OrderDetailPage() {
   const isCancelled = displayOrderStatus === 'CANCELLED';
   const isPendingCod = order ? (order.paymentMethod === 'COD' && order.paymentStatus === 'PENDING' && !isCancelled && displayOrderStatus !== 'DELIVERED') : false;
   const showManualPaymentInput = isFailed || isPendingCod;
+
+  const country = order ? getOrderCountry(order) : 'IN';
+  const currencySymbol = getCurrencySymbol(country);
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-12">
@@ -390,11 +393,11 @@ export default function OrderDetailPage() {
                           <span>Enrollment Item</span>
                         )}
                         <span>•</span>
-                        <span>₹{unitPrice} each</span>
+                        <span>{currencySymbol}{unitPrice} each</span>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-slate-900">₹{unitPrice * item.quantity}</p>
+                      <p className="font-semibold text-slate-900">{currencySymbol}{unitPrice * item.quantity}</p>
                     </div>
                   </div>
                 );
@@ -405,33 +408,37 @@ export default function OrderDetailPage() {
             <div className="p-5 bg-slate-50 border-t border-slate-200 space-y-3 text-sm">
               <div className="flex justify-between text-slate-600">
                 <span>Subtotal</span>
-                <span>₹{order.subtotal}</span>
+                <span>{currencySymbol}{order.subtotal}</span>
               </div>
               {order.discountAmount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span className="flex items-center gap-1"><Tag size={14} /> Discount ({order.coupon?.code})</span>
-                  <span>-₹{order.discountAmount}</span>
+                  <span>-{currencySymbol}{order.discountAmount}</span>
                 </div>
               )}
-              <div className="flex justify-between text-slate-600">
-                <span>Taxable Amount</span>
-                <span>₹{order.taxableAmount || (order.subtotal - order.discountAmount)}</span>
-              </div>
-              <div className="flex justify-between text-slate-600 text-xs pl-4">
-                <span>CGST (2.5%)</span>
-                <span>₹{order.cgstAmount}</span>
-              </div>
-              <div className="flex justify-between text-slate-600 text-xs pl-4 pb-2 border-b border-slate-200 border-dashed">
-                <span>SGST (2.5%)</span>
-                <span>₹{order.sgstAmount}</span>
-              </div>
+              {country === 'IN' && (
+                <>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Taxable Amount</span>
+                    <span>{currencySymbol}{order.taxableAmount || (order.subtotal - order.discountAmount)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-600 text-xs pl-4">
+                    <span>CGST (2.5%)</span>
+                    <span>{currencySymbol}{order.cgstAmount}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-600 text-xs pl-4 pb-2 border-b border-slate-200 border-dashed">
+                    <span>SGST (2.5%)</span>
+                    <span>{currencySymbol}{order.sgstAmount}</span>
+                  </div>
+                </>
+              )}
               <div className="flex justify-between text-slate-600 pt-2">
                 <span>Delivery Charge</span>
-                <span>{order.deliveryCharge > 0 ? `₹${order.deliveryCharge}` : 'FREE'}</span>
+                <span>{order.deliveryCharge > 0 ? `${currencySymbol}${order.deliveryCharge}` : 'FREE'}</span>
               </div>
               <div className="flex justify-between items-center pt-3 mt-3 border-t border-slate-200">
                 <span className="font-semibold text-slate-900">Total</span>
-                <span className="font-bold text-lg text-slate-900">₹{order.totalAmount}</span>
+                <span className="font-bold text-lg text-slate-900">{currencySymbol}{order.totalAmount}</span>
               </div>
             </div>
 
@@ -714,24 +721,54 @@ export default function OrderDetailPage() {
             </div>
             <div className="p-5 space-y-6">
               <div className="space-y-4">
-                <div>
-                  <p className="text-xs text-slate-500 mb-1">Street Address</p>
-                  <p className="font-medium text-slate-900 text-sm">{order.shippingAddress}</p>
-                </div>
-                <div className="flex gap-6">
-                  <div>
-                    <p className="text-xs text-slate-500 mb-1">City</p>
-                    <p className="font-medium text-slate-900 text-sm">{order.city}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-500 mb-1">State</p>
-                    <p className="font-medium text-slate-900 text-sm">{order.state}</p>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 mb-1">Pincode</p>
-                  <p className="font-medium text-slate-900 text-sm">{order.pincode}</p>
-                </div>
+                {(() => {
+                  let streetAddressLabel = "Full Address";
+                  let cityLabel = "City";
+                  let stateLabel = "State / Region";
+                  let pincodeLabel = "Pincode";
+                  let countryName = "India";
+
+                  if (country === 'US') {
+                    streetAddressLabel = "Street Address";
+                    cityLabel = "City";
+                    stateLabel = "State";
+                    pincodeLabel = "ZIP Code";
+                    countryName = "United States";
+                  } else if (country === 'UK') {
+                    streetAddressLabel = "Address Line 1";
+                    cityLabel = "Town / City";
+                    stateLabel = "County";
+                    pincodeLabel = "Postal Code";
+                    countryName = "United Kingdom";
+                  }
+
+                  return (
+                    <>
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Country</p>
+                        <p className="font-medium text-slate-900 text-sm">{countryName}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">{streetAddressLabel}</p>
+                        <p className="font-medium text-slate-900 text-sm">{order.shippingAddress}</p>
+                      </div>
+                      <div className="flex gap-6">
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">{cityLabel}</p>
+                          <p className="font-medium text-slate-900 text-sm">{order.city}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">{stateLabel}</p>
+                          <p className="font-medium text-slate-900 text-sm">{order.state}</p>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">{pincodeLabel}</p>
+                        <p className="font-medium text-slate-900 text-sm">{order.pincode}</p>
+                      </div>
+                    </>
+                  );
+                })()}
 
                 {/* AWB Number display */}
                 {order.awbNumber && (

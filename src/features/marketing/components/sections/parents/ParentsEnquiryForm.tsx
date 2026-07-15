@@ -13,6 +13,7 @@ import { ProgramsService, Program } from '@/services/programs.service';
 import { AuthService } from '@/services/auth.service';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'react-hot-toast';
+import { useRegion } from '@/hooks/use-region';
 
 // PROGRAMS_METADATA removed to ensure all program curriculum data is backend driven.
 const GRADIENTS_MAP: Record<string, string> = {
@@ -121,6 +122,7 @@ interface ParentsEnquiryFormProps {
 export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsEnquiryFormProps) {
   const router = useRouter();
   const [internalPhase, setInternalPhase] = useState<'role-check' | 'questions' | 'recommendation' | 'success'>('questions');
+  const { formatPrice } = useRegion();
   
   const phase = propPhase !== undefined ? propPhase : internalPhase;
   const setPhase = (newPhase: 'role-check' | 'questions' | 'recommendation' | 'success') => {
@@ -794,7 +796,7 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                           <div>
                             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Price:</span>
                             <p className="text-xs font-bold text-slate-600 mt-0.5">
-                              ₹{prog.price?.toLocaleString() || 0} <span className="text-[10px] font-normal text-slate-400">/mo</span>
+                              {formatPrice(prog.price || 0)} <span className="text-[10px] font-normal text-slate-400">/mo</span>
                             </p>
                           </div>
                         </div>

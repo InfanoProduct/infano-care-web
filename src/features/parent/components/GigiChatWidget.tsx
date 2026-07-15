@@ -265,12 +265,13 @@ export function GigiChatWidget() {
     }
   };
 
+  const cleanPathname = pathname ? pathname.replace(/^\/en-(us|uk)/, '') : '';
   const isExcludedPage = 
-    pathname?.startsWith('/admin') || 
-    pathname?.startsWith('/peerline') || 
-    pathname?.startsWith('/peerline-onboarding') ||
-    pathname?.startsWith('/checkout') ||
-    pathname?.startsWith('/gigi-the-awkward-age-book');
+    cleanPathname.startsWith('/admin') || 
+    cleanPathname.startsWith('/peerline') || 
+    cleanPathname.startsWith('/peerline-onboarding') ||
+    cleanPathname.startsWith('/checkout') ||
+    cleanPathname.startsWith('/gigi-the-awkward-age-book');
 
   if (!mounted || isExcludedPage) return null;
 

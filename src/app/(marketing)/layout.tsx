@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { usePathname } from "next/navigation";
 import { MarketingNavbar } from "@/components/marketing/navbar";
 import { BlogNavbar } from "@/components/blog/BlogNavbar";
@@ -22,7 +23,11 @@ export default function MarketingLayout({
 
   return (
     <div className="flex flex-col min-h-screen">
-      {!isPortal && <MarketingNavbar />}
+      {!isPortal && (
+        <Suspense fallback={null}>
+          <MarketingNavbar />
+        </Suspense>
+      )}
       <main className={`flex-1 w-full ${!isPortal ? 'pt-20' : ''}`}>
         {children}
       </main>

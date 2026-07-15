@@ -18,7 +18,7 @@ jobs:
     - name: Login to Docker registry
       uses: docker/login-action@v3
       with:
-        registry: registry.pocapi.in
+        registry: registry.infano.care
         username: ${{ secrets.REGISTRY_UNAME }}
         password: ${{ secrets.REGISTRY_PWD }}
         
@@ -27,11 +27,11 @@ jobs:
       with:
         context: .
         push: true
-        tags: registry.pocapi.in/infano.web:dev-latest
+        tags: registry.infano.care/infano.web:dev-latest
         build-args: |
-          NEXT_PUBLIC_API_URL=http://109.199.120.104:8084/api
-          NEXT_PUBLIC_APP_URL=http://109.199.120.104:8086/
-          NEXT_PUBLIC_UPLOAD_API_URL=http://109.199.120.104:8084/api
+          NEXT_PUBLIC_API_URL=https://api-dev.infano.care/api
+          NEXT_PUBLIC_APP_URL=https://dev.infano.care/
+          NEXT_PUBLIC_UPLOAD_API_URL=https://api-dev.infano.care/api
           NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_test_jvNqNOEPY5sMuf
         cache-from: type=gha
         cache-to: type=gha,mode=max
@@ -55,8 +55,8 @@ jobs:
         password: ${{ secrets.SSH_SERVER_PWD }}
         port: 22
         script: |
-          docker login registry.pocapi.in -u "${{ secrets.REGISTRY_UNAME }}" -p "${{ secrets.REGISTRY_PWD }}"
-          docker pull registry.pocapi.in/infano.web:dev-latest
+          docker login registry.infano.care -u "${{ secrets.REGISTRY_UNAME }}" -p "${{ secrets.REGISTRY_PWD }}"
+          docker pull registry.infano.care/infano.web:dev-latest
           mkdir -p /data/docker/infano-web-dev
           cd /data/docker/infano-web-dev
           

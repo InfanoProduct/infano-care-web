@@ -5,12 +5,15 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ArrowRight, BookOpen } from 'lucide-react';
 import { Book } from '@/services/shop.service';
+import { useRegion, getBookPrice } from '@/hooks/use-region';
 
 interface BookHeroProps {
   book: Book | null;
 }
 
 export function BookHero({ book }: BookHeroProps) {
+  const { region, formatPrice, getLocalizedLink } = useRegion();
+
   return (
     <section className="pt-10 pb-0 bg-[#F5F3FF] relative overflow-hidden">
       {/* Decorative Elements */}
@@ -87,7 +90,7 @@ export function BookHero({ book }: BookHeroProps) {
             >
               <div className="h-px w-6 bg-primary/20" />
               <span className="text-primary font-black uppercase tracking-[0.2em] text-[10px]">
-                India's first book on Adolescent Girls
+                {region === 'IN' ? "India's first book on Adolescent Girls" : "The premier guidebook on female puberty"}
               </span>
             </div>
 
@@ -109,8 +112,8 @@ export function BookHero({ book }: BookHeroProps) {
               className="flex flex-wrap gap-4 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
               style={{ animationDelay: '300ms' }}
             >
-              <Link href={book ? `/checkout?bookId=${book.id}` : '/checkout'} className="px-10 py-4 bg-primary text-white rounded-full font-bold text-base hover:bg-primary transition-all shadow-xl shadow-slate-900/10 active:scale-95 group flex items-center gap-2">
-                Buy Now <span className="opacity-50">₹499</span> <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+              <Link href={getLocalizedLink(book ? `/checkout?bookId=${book.id}` : '/checkout')} className="px-10 py-4 bg-primary text-white rounded-full font-bold text-base hover:bg-primary transition-all shadow-xl shadow-slate-900/10 active:scale-95 group flex items-center gap-2">
+                Buy Now <span className="opacity-50">{formatPrice(getBookPrice(book, region), false)}</span> <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
               </Link>
               <button
                 onClick={() => document.getElementById('read')?.scrollIntoView({ behavior: 'smooth' })}

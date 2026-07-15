@@ -5,12 +5,14 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { CheckCircle2, ShoppingCart, BookOpen, Quote, ArrowRight, Users } from 'lucide-react';
 import { Book } from '@/services/shop.service';
+import { useRegion, getBookPrice } from '@/hooks/use-region';
 
 interface BookDetailedSectionProps {
   book: Book | null;
 }
 
 export function BookDetailedSection({ book }: BookDetailedSectionProps) {
+  const { region, bookPrice, formatPrice, getLocalizedLink } = useRegion();
   return (
     <section className="py-20 bg-white relative overflow-hidden">
       {/* Background Decorative Blur */}
@@ -116,15 +118,17 @@ export function BookDetailedSection({ book }: BookDetailedSectionProps) {
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-8">
                   <div>
                     <div className="flex items-baseline gap-2 mb-1">
-                      <span className="text-3xl font-bold text-slate-900">₹499</span>
-                      <span className="text-lg text-slate-400 line-through">₹999</span>
+                      <span className="text-3xl font-bold text-slate-900">{formatPrice(getBookPrice(book, region), false)}</span>
+                      <span className="text-lg text-slate-400 line-through">
+                        {formatPrice(getBookPrice(book, region) * 2, false)}
+                      </span>
                     </div>
                     <span className="text-emerald-500 font-bold text-[10px] uppercase tracking-widest">50% off launch offer</span>
                   </div>
 
                   <div className="flex flex-wrap gap-4 justify-center">
                     <Link
-                      href={book ? `/checkout?bookId=${book.id}` : '/checkout'}
+                      href={getLocalizedLink(book ? `/checkout?bookId=${book.id}` : '/checkout')}
                       className="px-8 py-4 bg-primary text-white rounded-full font-bold text-sm hover:bg-primary transition-all shadow-lg active:scale-95 flex items-center gap-2"
                     >
                       Buy Now <ArrowRight size={16} />

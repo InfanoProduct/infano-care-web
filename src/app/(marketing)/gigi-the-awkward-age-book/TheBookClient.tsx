@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { ShopService, Book } from '@/services/shop.service';
+import { useRegion } from '@/hooks/use-region';
 import { BookHero } from '@/features/marketing/components/sections/the-book/BookHero';
 import { BookAbout } from '@/features/marketing/components/sections/the-book/BookAbout';
 import { BookPreview } from '@/features/marketing/components/sections/the-book/BookPreview';
@@ -20,6 +21,7 @@ import { isAnalyticsEnabled } from '@/components/common/Analytics';
 export function TheBookClient() {
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
+  const { region, currencyCode, bookPrice } = useRegion();
 
   useEffect(() => {
     const loadData = async () => {
@@ -38,7 +40,26 @@ export function TheBookClient() {
     loadData();
   }, []);
 
-
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production' && book) {
+      const windowObj = window as any;
+      windowObj.dataLayer = windowObj.dataLayer || [];
+      windowObj.dataLayer.push({ ecommerce: null });
+      windowObj.dataLayer.push({
+        event: 'view_item',
+        ecommerce: {
+          currency: currencyCode,
+          value: region === 'IN' ? book.price : bookPrice,
+          items: [{
+            item_id: book.id,
+            item_name: book.title,
+            price: region === 'IN' ? book.price : bookPrice,
+            quantity: 1
+          }]
+        }
+      });
+    }
+  }, [book, region, currencyCode, bookPrice]);
 
   if (loading || !book) {
     return (

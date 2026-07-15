@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { ProgramsService, Program, ProgramSession } from '@/services/programs.service';
 import { AuthService } from '@/services/auth.service';
+import { useAuthStore } from '@/store/auth-store';
 
 // Standard themes map matching parent program display
 const THEMES_MAP: Record<string, {
@@ -131,6 +132,7 @@ export default function ProgramDetailsPage() {
   const { slug } = useParams() as { slug: string };
   const id = slug;
   const router = useRouter();
+  const { user } = useAuthStore();
 
   const [program, setProgram] = useState<Program | null>(null);
   const [programIndex, setProgramIndex] = useState<number>(0);
@@ -197,6 +199,25 @@ export default function ProgramDetailsPage() {
     const timer = setTimeout(checkUserExists, 500);
     return () => clearTimeout(timer);
   }, [phone, selectedCountryCode]);
+
+  // Prefill logged-in user profile details
+  useEffect(() => {
+    if (user) {
+      setParentName(user.profile?.displayName || user.username || '');
+      setEmail(user.email || '');
+      
+      let userPhone = user.phone || '';
+      for (const country of COUNTRIES) {
+        if (userPhone.startsWith(country.code)) {
+          setSelectedCountry(country);
+          setSelectedCountryCode(country.code);
+          userPhone = userPhone.substring(country.code.length);
+          break;
+        }
+      }
+      setPhone(userPhone);
+    }
+  }, [user]);
 
   useEffect(() => {
     async function fetchProgramDetail() {

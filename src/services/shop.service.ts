@@ -97,8 +97,8 @@ export const ShopService = {
 
 
   // Admin Methods
-  async adminGetBooks(): Promise<Book[]> {
-    return apiClient.get<Book[]>('/admin/books'); 
+  async adminGetBooks(isWebinar: boolean = false): Promise<Book[]> {
+    return apiClient.get<Book[]>('/admin/books', { params: { isWebinar } }); 
   },
 
   async adminCreateBook(data: Partial<Book>): Promise<Book> {

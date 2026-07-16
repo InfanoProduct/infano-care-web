@@ -19,6 +19,7 @@ export default function WebinarSuccessPage() {
   const amount = searchParams.get('amount') || '99';
   const title = searchParams.get('title') || 'Decoding Her Silence: Parent Webinar';
   const mode = searchParams.get('mode') || 'ONLINE';
+  const zoomLink = searchParams.get('zoomLink') || '';
   const dateParam = searchParams.get('date');
 
   const targetDate = dateParam ? new Date(dateParam).getTime() : new Date('2026-07-25T17:00:00+05:30').getTime();
@@ -133,6 +134,12 @@ export default function WebinarSuccessPage() {
               <CheckCircle2 size={16} className="text-slate-400 shrink-0" />
               <span>Platform: {mode === 'ONLINE' ? 'Live Zoom Call' : 'Offline Session'}</span>
             </div>
+            {mode === 'OFFLINE' && zoomLink && (
+              <div className="flex items-start gap-2 sm:col-span-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <span className="text-slate-400 shrink-0">Venue:</span>
+                <span className="text-slate-800 font-extrabold">{zoomLink}</span>
+              </div>
+            )}
           </div>
 
           <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-left text-[11px] text-amber-800 font-semibold flex gap-2">

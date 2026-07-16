@@ -70,6 +70,7 @@ export default function WebinarForm({ webinarId }: WebinarFormProps) {
         mode: formData.mode || 'ONLINE',
         instructor: formData.instructor || null,
         slug: formData.slug || undefined,
+        link: formData.mode === 'OFFLINE' ? formData.zoomLink : null,
       };
 
       if (webinarId) {
@@ -245,12 +246,14 @@ export default function WebinarForm({ webinarId }: WebinarFormProps) {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Zoom Meeting Link</label>
+                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+                  {formData.mode === 'OFFLINE' ? 'Venue Details' : 'Zoom Meeting Link'}
+                </label>
                 <input
-                  type="url"
+                  type={formData.mode === 'OFFLINE' ? 'text' : 'url'}
                   value={formData.zoomLink || ''}
                   onChange={(e) => setFormData({ ...formData, zoomLink: e.target.value })}
-                  placeholder="https://zoom.us/j/..."
+                  placeholder={formData.mode === 'OFFLINE' ? 'e.g. 5th Floor Auditorium, New Delhi' : 'https://zoom.us/j/...'}
                   className="w-full px-5 py-4 bg-secondary/30 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none rounded-2xl transition-all text-sm font-bold"
                 />
               </div>

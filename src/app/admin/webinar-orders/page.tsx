@@ -106,16 +106,6 @@ export default function AdminWebinarRegistrationsPage() {
             Monitor parent ticket passes, verify billing status, and dispatch Zoom credentials.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/webinar"
-            target="_blank"
-            className="flex items-center gap-2 px-5 py-3 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 font-bold text-xs uppercase tracking-widest text-slate-700 shadow-sm transition-all active:scale-95"
-          >
-            <span>Webinar Page</span>
-            <ExternalLink size={14} />
-          </Link>
-        </div>
       </div>
 
       {/* Metrics Cards */}

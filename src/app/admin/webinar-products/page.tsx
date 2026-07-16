@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Ticket, Eye, Plus, Loader2, ArrowUpRight, CheckCircle2, 
-  Trash2, Edit, Calendar, Clock, Users, DollarSign, ExternalLink
+  Trash2, Edit, Calendar, Clock, Users, DollarSign, ExternalLink,
+  MoreVertical
 } from 'lucide-react';
 import { ShopService, Webinar } from '@/services/shop.service';
 import { toast } from 'react-hot-toast';
@@ -12,9 +13,20 @@ import { toast } from 'react-hot-toast';
 export default function WebinarManagementPage() {
   const [webinars, setWebinars] = useState<Webinar[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
 
   useEffect(() => { 
     loadWebinars(); 
+
+    const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('.actions-dropdown-btn') || target.closest('.actions-dropdown-menu')) {
+        return;
+      }
+      setActiveDropdownId(null);
+    };
+    document.addEventListener('click', handleOutsideClick);
+    return () => document.removeEventListener('click', handleOutsideClick);
   }, []);
 
   const loadWebinars = async () => {
@@ -145,9 +157,15 @@ export default function WebinarManagementPage() {
                         </span>
                         {webinar.zoomLink && (
                           <div className="mt-1.5 flex items-center gap-1">
-                            <a href={webinar.zoomLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-bold truncate max-w-[150px] flex items-center gap-0.5">
-                              Zoom Link <ExternalLink size={10} />
-                            </a>
+                            {webinar.mode === 'OFFLINE' ? (
+                              <span className="text-slate-500 font-bold truncate max-w-[150px] block" title={webinar.zoomLink}>
+                                Venue: {webinar.zoomLink}
+                              </span>
+                            ) : (
+                              <a href={webinar.zoomLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-bold truncate max-w-[150px] flex items-center gap-0.5">
+                                Zoom Link <ExternalLink size={10} />
+                              </a>
+                            )}
                           </div>
                         )}
                       </td>
@@ -155,33 +173,16 @@ export default function WebinarManagementPage() {
                         ₹{webinar.price}
                       </td>
                       <td className="px-6 py-5">
-                        <button
-                          onClick={() => toggleWebinarStatus(webinar)}
-                          className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border backdrop-blur-sm ${
-                            webinar.isActive 
-                              ? 'bg-emerald-100 border-emerald-250 text-emerald-700' 
-                              : 'bg-slate-100 border-slate-250 text-slate-500'
-                          }`}
-                        >
+                        <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                          webinar.isActive 
+                            ? 'bg-emerald-50 border-emerald-250 text-emerald-700' 
+                            : 'bg-slate-100 border-slate-200 text-slate-500'
+                        }`}>
                           {webinar.isActive ? 'Active' : 'Inactive'}
-                        </button>
+                        </span>
                       </td>
                       <td className="px-6 py-5 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Link
-                            href={`/admin/webinar-products/${webinar.id}/edit`}
-                            className="p-2 border border-slate-200 bg-white hover:bg-slate-50 rounded-xl text-slate-700 hover:text-slate-800 transition-colors shadow-sm"
-                            title="Edit Settings"
-                          >
-                            <Edit size={14} />
-                          </Link>
-                          <button
-                            onClick={() => handleDeleteWebinar(webinar.id)}
-                            className="p-2 bg-rose-50 hover:bg-rose-100 rounded-xl text-rose-600 hover:text-rose-700 transition-colors"
-                            title="Delete Webinar"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                        <div className="flex items-center justify-end gap-2 relative">
                           <Link
                             href="/admin/webinar-orders"
                             className="flex items-center gap-1 px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-[10px] uppercase tracking-wider transition-all"
@@ -189,6 +190,51 @@ export default function WebinarManagementPage() {
                             <span>Attendees</span>
                             <ArrowUpRight size={12} />
                           </Link>
+
+                          <Link
+                            href={`/admin/webinar-products/${webinar.id}`}
+                            className="p-2 border border-slate-200 bg-white hover:bg-slate-50 rounded-xl text-slate-700 hover:text-slate-800 transition-colors shadow-sm"
+                            title="View Details"
+                          >
+                            <Eye size={14} />
+                          </Link>
+
+                          {/* 3-dot Actions Dropdown Container */}
+                          <div className="relative">
+                            <button
+                              onClick={() => {
+                                setActiveDropdownId(activeDropdownId === webinar.id ? null : webinar.id);
+                              }}
+                              className="actions-dropdown-btn p-2 border border-slate-200 bg-white hover:bg-slate-50 rounded-xl text-slate-700 hover:text-slate-800 transition-colors shadow-sm"
+                              title="Actions"
+                            >
+                              <MoreVertical size={14} />
+                            </button>
+
+                            {activeDropdownId === webinar.id && (
+                              <div className="actions-dropdown-menu absolute right-0 bottom-full mb-2 w-40 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 py-1 overflow-hidden animate-in fade-in slide-in-from-bottom-1 duration-150 text-left">
+                                <button
+                                  onClick={() => {
+                                    toggleWebinarStatus(webinar);
+                                    setActiveDropdownId(null);
+                                  }}
+                                  className="w-full px-4 py-2.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                                >
+                                  {webinar.isActive ? 'Deactivate' : 'Activate'}
+                                </button>
+                                <hr className="border-slate-100" />
+                                <button
+                                  onClick={() => {
+                                    handleDeleteWebinar(webinar.id);
+                                    setActiveDropdownId(null);
+                                  }}
+                                  className="w-full px-4 py-2.5 text-left text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </td>
                     </tr>

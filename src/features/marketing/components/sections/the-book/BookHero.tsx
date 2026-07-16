@@ -81,7 +81,7 @@ export function BookHero({ book }: BookHeroProps) {
               </span>
 
               <span className="font-semibold text-[9.5px] sm:text-xs tracking-wide select-none whitespace-nowrap flex items-center">
-                <span className="text-pink-600 font-extrabold tracking-wider  drop-shadow-[0_1px_3px_rgba(219,39,119,0.15)] mr-1">400 COPIES</span> ordered in the past 10 days! <span className="bg-primary text-white px-1.5 sm:px-2 py-0.5 rounded-full text-[7.5px] sm:text-[10px] uppercase font-bold tracking-widest ml-1 sm:ml-1.5 shadow-sm group-hover:bg-primary-dark transition-colors inline-block">Join the family</span>
+                <span className="text-pink-600 font-extrabold tracking-wider  drop-shadow-[0_1px_3px_rgba(219,39,119,0.15)] mr-1">700 COPIES</span> ordered in the past 15 days! <span className="bg-primary text-white px-1.5 sm:px-2 py-0.5 rounded-full text-[7.5px] sm:text-[10px] uppercase font-bold tracking-widest ml-1 sm:ml-1.5 shadow-sm group-hover:bg-primary-dark transition-colors inline-block">Join the family</span>
               </span>
             </motion.div>
 

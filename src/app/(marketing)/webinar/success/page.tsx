@@ -17,10 +17,23 @@ export default function WebinarSuccessPage() {
   const email = searchParams.get('email') || '';
   const orderId = searchParams.get('orderId') || 'MOCK_REF';
   const amount = searchParams.get('amount') || '99';
+  const title = searchParams.get('title') || 'Decoding Her Silence: Parent Webinar';
+  const mode = searchParams.get('mode') || 'ONLINE';
+  const dateParam = searchParams.get('date');
 
-  // Target Date: July 25, 2026 17:00:00 IST
-  const targetDate = new Date('2026-07-25T17:00:00+05:30').getTime();
+  const targetDate = dateParam ? new Date(dateParam).getTime() : new Date('2026-07-25T17:00:00+05:30').getTime();
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  const formattedDate = dateParam
+    ? new Date(dateParam).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : 'Saturday, July 25, 2026 at 05:00 PM';
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -29,6 +42,7 @@ export default function WebinarSuccessPage() {
 
       if (difference <= 0) {
         clearInterval(interval);
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
       } else {
         const days = Math.floor(difference / (1000 * 60 * 60 * 24));
         const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -61,6 +75,9 @@ export default function WebinarSuccessPage() {
           </h1>
           <p className="mt-2 text-xs text-slate-500 font-semibold leading-relaxed">
             Thank you, <strong className="text-slate-800">{name}</strong>. Your payment of <strong className="text-slate-800">₹{amount}</strong> was verified successfully.
+          </p>
+          <p className="mt-1 text-sm font-extrabold text-purple-650 tracking-tight">
+            Topic: {title}
           </p>
         </div>
 
@@ -110,17 +127,17 @@ export default function WebinarSuccessPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left text-xs font-bold text-slate-700">
             <div className="flex items-center gap-2">
               <Clock size={16} className="text-slate-400 shrink-0" />
-              <span>Saturday, July 25, 2026 at 05:00 PM</span>
+              <span>{formattedDate}</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 size={16} className="text-slate-400 shrink-0" />
-              <span>Platform: Live Zoom Call</span>
+              <span>Platform: {mode === 'ONLINE' ? 'Live Zoom Call' : 'Offline Session'}</span>
             </div>
           </div>
 
           <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-left text-[11px] text-amber-800 font-semibold flex gap-2">
             <AlertCircle size={16} className="shrink-0 mt-0.5" />
-            <span>Check your email! We have sent you the official entry Zoom meeting link and receipt details. Reminders will follow.</span>
+            <span>Check your email! We have sent you the official entry meeting details and receipt details. Reminders will follow.</span>
           </div>
         </div>
 

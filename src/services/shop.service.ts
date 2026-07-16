@@ -62,6 +62,23 @@ export interface OrderResponse {
   stripeSessionUrl?: string;
 }
 
+export interface Webinar {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  price: number;
+  date: string;
+  zoomLink?: string | null;
+  isActive: boolean;
+  altform?: string | null;
+  mode: 'ONLINE' | 'OFFLINE';
+  link?: string | null;
+  instructor?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export const ShopService = {
   async getBooks(): Promise<Book[]> {
     return apiClient.get<Book[]>('/shop/books');
@@ -93,6 +110,30 @@ export const ShopService = {
 
   async getRecentPurchases(): Promise<{ name: string; bookTitle: string; createdAt: string }[]> {
     return apiClient.get('/shop/recent-purchases');
+  },
+
+  async getWebinarBySlug(slug: string): Promise<Webinar> {
+    return apiClient.get<Webinar>(`/shop/webinars/${slug}`);
+  },
+
+  async adminGetWebinars(): Promise<Webinar[]> {
+    return apiClient.get<Webinar[]>('/admin/webinars');
+  },
+
+  async adminGetWebinar(idOrSlug: string): Promise<Webinar> {
+    return apiClient.get<Webinar>(`/admin/webinars/${idOrSlug}`);
+  },
+
+  async adminCreateWebinar(data: Partial<Webinar>): Promise<Webinar> {
+    return apiClient.post<Webinar>('/admin/webinars', data);
+  },
+
+  async adminUpdateWebinar(idOrSlug: string, data: Partial<Webinar>): Promise<Webinar> {
+    return apiClient.patch<Webinar>(`/admin/webinars/${idOrSlug}`, data);
+  },
+
+  async adminDeleteWebinar(idOrSlug: string): Promise<void> {
+    return apiClient.delete(`/admin/webinars/${idOrSlug}`);
   },
 
 

@@ -10,6 +10,7 @@ import { Loader2, X, ShieldCheck, AlertCircle, Sparkles, CheckCircle2, User, Mai
 interface WebinarCheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
+  webinar: any;
 }
 
 const COUNTRIES = [
@@ -21,7 +22,7 @@ const COUNTRIES = [
   { code: '+61', iso: 'au', name: 'Australia', digits: 9 }
 ];
 
-export function WebinarCheckoutModal({ isOpen, onClose }: WebinarCheckoutModalProps) {
+export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarCheckoutModalProps) {
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
 
@@ -112,7 +113,7 @@ export function WebinarCheckoutModal({ isOpen, onClose }: WebinarCheckoutModalPr
         pincode: '000000',
         paymentMethod: 'ONLINE' as const,
         userId: user?.id,
-        items: [{ bookId: 'webinar-decoding-silence', quantity: 1 }]
+        items: [{ bookId: webinar ? webinar.id : 'webinar-decoding-silence', quantity: 1 }]
       };
 
       const order = await ShopService.createOrder(orderData);
@@ -129,7 +130,7 @@ export function WebinarCheckoutModal({ isOpen, onClose }: WebinarCheckoutModalPr
           amount: order.totalAmount * 100,
           currency: 'INR',
           name: 'Infano.care',
-          description: 'Decoding Her Silence: Parent Webinar Registration',
+          description: webinar ? `${webinar.title} Registration` : 'Decoding Her Silence: Parent Webinar Registration',
           order_id: order.razorpayOrderId,
           handler: async function (response: any) {
             try {
@@ -144,7 +145,11 @@ export function WebinarCheckoutModal({ isOpen, onClose }: WebinarCheckoutModalPr
                 name: parentName,
                 email: email,
                 orderId: order.id,
-                amount: order.totalAmount.toString()
+                amount: order.totalAmount.toString(),
+                title: webinar?.title || '',
+                date: webinar?.date ? new Date(webinar.date).toISOString() : '',
+                mode: webinar?.mode || 'ONLINE',
+                zoomLink: webinar?.zoomLink || ''
               });
 
               onClose();
@@ -208,7 +213,19 @@ export function WebinarCheckoutModal({ isOpen, onClose }: WebinarCheckoutModalPr
 
             {/* Title & Subtitle */}
             <h3 className="text-3xl font-black text-slate-950 font-heading leading-tight flex items-center gap-1 flex-wrap">
-              <span>Decoding</span> <span className="text-[#E05397]">Her Silence</span>
+              {webinar?.title
+                ? (() => {
+                    const words = webinar.title.split(' ');
+                    const first = words[0];
+                    const rest = words.slice(1).join(' ');
+                    return (
+                      <>
+                        <span>{first}</span>{rest && <><span> </span><span className="text-[#E05397]">{rest}</span></>}
+                      </>
+                    );
+                  })()
+                : <span>Reserve Your Seat</span>
+              }
               <svg className="w-7 h-7 text-primary/30 inline-block animate-pulse ml-1 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
               </svg>
@@ -345,7 +362,7 @@ export function WebinarCheckoutModal({ isOpen, onClose }: WebinarCheckoutModalPr
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Access to live session + bonus resources</p>
                   </div>
                 </div>
-                <span className="text-primary text-xl font-black shrink-0 pr-2">₹99</span>
+                <span className="text-primary text-xl font-black shrink-0 pr-2">₹{webinar ? webinar.price : 99}</span>
               </div>
 
               {/* Submit Button */}
@@ -361,7 +378,7 @@ export function WebinarCheckoutModal({ isOpen, onClose }: WebinarCheckoutModalPr
                   </>
                 ) : (
                   <>
-                    <span>RESERVE MY SEAT FOR ₹99</span>
+                    <span>RESERVE MY SEAT FOR ₹{webinar ? webinar.price : 99}</span>
                     <span className="text-xs font-bold font-mono">&gt;</span>
                   </>
                 )}

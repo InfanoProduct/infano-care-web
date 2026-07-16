@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import BookForm from '../../../books/components/BookForm';
+import WebinarForm from '../../components/WebinarForm';
 
 export default function EditWebinarPage() {
   const params = useParams();
@@ -9,7 +9,7 @@ export default function EditWebinarPage() {
 
   return (
     <div className="pb-20">
-      <BookForm bookId={id} isWebinar={true} />
+      <WebinarForm webinarId={id} />
     </div>
   );
 }

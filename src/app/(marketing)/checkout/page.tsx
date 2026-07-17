@@ -1144,7 +1144,7 @@ function CheckoutContent() {
                   )}
                 </button>
                 <p className="text-center text-slate-500 text-[10px] font-medium mt-6">
-                  By placing order, you agree to our <Link href={getLocalizedLink("/legal/terms")} className="underline underline-offset-2 hover:text-primary transition-colors">Terms</Link> and <Link href={getLocalizedLink("/legal/privacy")} className="underline underline-offset-2 hover:text-primary transition-colors">Privacy Policy</Link>.
+                  By placing order, you agree to our <Link href={getLocalizedLink("/legal#terms")} className="underline underline-offset-2 hover:text-primary transition-colors">Terms</Link> and <Link href={getLocalizedLink("/legal#privacy")} className="underline underline-offset-2 hover:text-primary transition-colors">Privacy Policy</Link>.
                 </p>
               </div>
             </form>

@@ -138,7 +138,7 @@ export default function WebinarManagementPage() {
                         <div className="font-extrabold text-sm text-slate-900 leading-tight">
                           {webinar.title}
                         </div>
-                        <div className="text-[10px] text-muted-foreground mt-1 truncate max-w-[250px]">
+                        <div className="text-[10px] text-muted-foreground mt-1 truncate max-w-62.5">
                           {webinar.description || 'No description provided.'}
                         </div>
                       </td>
@@ -158,11 +158,11 @@ export default function WebinarManagementPage() {
                         {webinar.zoomLink && (
                           <div className="mt-1.5 flex items-center gap-1">
                             {webinar.mode === 'OFFLINE' ? (
-                              <span className="text-slate-500 font-bold truncate max-w-[150px] block" title={webinar.zoomLink}>
+                              <span className="text-slate-500 font-bold truncate max-w-37.5 block" title={webinar.zoomLink}>
                                 Venue: {webinar.zoomLink}
                               </span>
                             ) : (
-                              <a href={webinar.zoomLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-bold truncate max-w-[150px] flex items-center gap-0.5">
+                              <a href={webinar.zoomLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-bold truncate max-w-37.5 flex items-center gap-0.5">
                                 Zoom Link <ExternalLink size={10} />
                               </a>
                             )}

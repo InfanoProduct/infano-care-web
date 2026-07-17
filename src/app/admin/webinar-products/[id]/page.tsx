@@ -106,7 +106,7 @@ export default function WebinarDetailsPage() {
       {/* Main visual glass-card */}
       <div className="glass-card rounded-[2.5rem] border-primary/5 shadow-2xl overflow-hidden bg-white">
         {/* Banner with gradient overlay */}
-        <div className="h-44 bg-gradient-to-r from-purple-750 via-purple-650 to-indigo-650 relative p-8 flex flex-col justify-end">
+        <div className="h-44 bg-linear-to-r from-purple-750 via-purple-650 to-indigo-650 relative p-8 flex flex-col justify-end">
           <div className="absolute top-6 right-8">
             <span className={`inline-block px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border shadow-sm ${
               webinar.isActive 

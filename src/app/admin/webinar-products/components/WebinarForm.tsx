@@ -216,7 +216,7 @@ export default function WebinarForm({ webinarId }: WebinarFormProps) {
                   required
                   value={formData.date || ''}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full px-5 py-4 bg-secondary/30 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none rounded-2xl transition-all text-sm font-bold bg-white"
+                  className="w-full px-5 py-4 bg-secondary/30 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none rounded-2xl transition-all text-sm font-bold"
                 />
               </div>
 
@@ -238,7 +238,7 @@ export default function WebinarForm({ webinarId }: WebinarFormProps) {
                 <select
                   value={formData.mode || 'ONLINE'}
                   onChange={(e) => setFormData({ ...formData, mode: e.target.value as any })}
-                  className="w-full px-5 py-4 bg-secondary/30 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none rounded-2xl transition-all text-sm font-bold bg-white"
+                  className="w-full px-5 py-4 bg-secondary/30 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none rounded-2xl transition-all text-sm font-bold"
                 >
                   <option value="ONLINE">Online</option>
                   <option value="OFFLINE">Offline</option>
@@ -312,7 +312,7 @@ export default function WebinarForm({ webinarId }: WebinarFormProps) {
             </div>
           </div>
 
-          <div className="glass-card p-8 rounded-[2.5rem] bg-gradient-to-br from-primary/5 to-transparent border-primary/10 border space-y-4">
+          <div className="glass-card p-8 rounded-[2.5rem] bg-linear-to-br from-primary/5 to-transparent border-primary/10 border space-y-4">
             <h4 className="text-sm font-black flex items-center gap-2">
               <CheckCircle2 size={16} className="text-primary" />
               Publishing Checklist

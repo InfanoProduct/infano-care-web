@@ -239,7 +239,7 @@ export default function AdminWebinarRegistrationsPage() {
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
-                          <span className="font-bold text-sm text-foreground leading-tight max-w-[200px] truncate">{bookTitle}</span>
+                          <span className="font-bold text-sm text-foreground leading-tight max-w-50 truncate">{bookTitle}</span>
                         </div>
                       </td>
                       <td className="px-6 py-5">

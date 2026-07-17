@@ -247,6 +247,10 @@ function CheckoutContent() {
       windowObj.dataLayer = windowObj.dataLayer || [];
       windowObj.dataLayer.push({
         event: 'begin_checkout',
+        value: getBookPrice(book, region) * quantity,
+        currency: currencyCode,
+        content_ids: [book.id],
+        content_type: 'product',
         ecommerce: {
           currency: currencyCode,
           value: getBookPrice(book, region) * quantity,

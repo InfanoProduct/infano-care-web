@@ -6,6 +6,8 @@
   --font-sans: var(--font-geist-sans), system-ui;
   --font-heading: var(--font-outfit), var(--font-geist-sans), system-ui;
   --font-mono: var(--font-geist-mono);
+  --font-playfair: var(--font-playfair-display), Georgia, serif;
+  --font-caveat: var(--font-caveat), cursive;
   
   /* Infano.care Brand Colors */
   --color-background: #FFFCFA; /* Warm off-white */

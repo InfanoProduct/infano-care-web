@@ -15,6 +15,7 @@ import { toast } from 'react-hot-toast';
 
 interface BookFormProps {
   bookId?: string;
+  isWebinar?: boolean;
 }
 
 const emptyPromo = {
@@ -41,8 +42,9 @@ const parseNum = (raw: string, fallback: number | null = 0): number | null => {
   return Number.isNaN(n) ? fallback : n;
 };
 
-export default function BookForm({ bookId }: BookFormProps) {
+export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
   const router = useRouter();
+  const isWebinarMode = isWebinar || bookId?.startsWith('webinar-');
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(!!bookId);
   const [pricingTab, setPricingTab] = useState<'IN' | 'US' | 'UK'>('IN');
@@ -84,7 +86,7 @@ export default function BookForm({ bookId }: BookFormProps) {
     } catch (error) {
       console.error('Failed to load book:', error);
       toast.error('Failed to load book details');
-      router.push('/admin/books');
+      router.push(isWebinar || bookId?.startsWith('webinar-') ? '/admin/webinar-products' : '/admin/books');
     } finally {
       setInitialLoading(false);
     }
@@ -161,29 +163,33 @@ export default function BookForm({ bookId }: BookFormProps) {
     setLoading(true);
 
     try {
-      const payload = {
+      const payload: any = {
         title: formData.title,
         description: formData.description,
         price: Number(formData.price),
-        priceUS: formData.priceUS !== undefined && formData.priceUS !== null && String(formData.priceUS) !== '' ? Number(formData.priceUS) : null,
-        priceUK: formData.priceUK !== undefined && formData.priceUK !== null && String(formData.priceUK) !== '' ? Number(formData.priceUK) : null,
-        shippingIN: Number(formData.shippingIN ?? 0),
-        shippingUS: Number(formData.shippingUS ?? 0),
-        shippingUK: Number(formData.shippingUK ?? 0),
-        codChargeIN: Number(formData.codChargeIN ?? 40),
-        stock: Number(formData.stock),
+        priceUS: isWebinarMode ? null : (formData.priceUS !== undefined && formData.priceUS !== null && String(formData.priceUS) !== '' ? Number(formData.priceUS) : null),
+        priceUK: isWebinarMode ? null : (formData.priceUK !== undefined && formData.priceUK !== null && String(formData.priceUK) !== '' ? Number(formData.priceUK) : null),
+        shippingIN: isWebinarMode ? 0 : Number(formData.shippingIN ?? 0),
+        shippingUS: isWebinarMode ? 0 : Number(formData.shippingUS ?? 0),
+        shippingUK: isWebinarMode ? 0 : Number(formData.shippingUK ?? 0),
+        codChargeIN: isWebinarMode ? 0 : Number(formData.codChargeIN ?? 40),
+        stock: isWebinarMode ? 999999 : Number(formData.stock),
         imageUrl: formData.imageUrl,
         isActive: formData.isActive,
       };
 
       if (bookId) {
         await ShopService.adminUpdateBook(bookId, payload);
-        toast.success('Book updated successfully');
+        toast.success(isWebinarMode ? 'Webinar updated successfully' : 'Book updated successfully');
       } else {
+        if (isWebinarMode) {
+          const cleanTitle = formData.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'temp';
+          payload.id = `webinar-${cleanTitle}-${Math.random().toString(36).substring(2, 6)}`;
+        }
         await ShopService.adminCreateBook(payload);
-        toast.success('Book created successfully');
+        toast.success(isWebinarMode ? 'Webinar created successfully' : 'Book created successfully');
       }
-      router.push('/admin/books');
+      router.push(isWebinarMode ? '/admin/webinar-products' : '/admin/books');
     } catch (error) {
       console.error('Failed to save book:', error);
       toast.error('Failed to save book');
@@ -208,9 +214,13 @@ export default function BookForm({ bookId }: BookFormProps) {
       <div className="admin-header flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-black tracking-tight">
-            {bookId ? 'Edit' : 'Add New'} <span className="text-primary">Product</span>
+            {bookId ? 'Edit' : 'Add New'} <span className="text-primary">{isWebinarMode ? 'Webinar' : 'Product'}</span>
           </h1>
-          <p className="text-muted-foreground mt-1">Configure your book details, inventory, and promo code</p>
+          <p className="text-muted-foreground mt-1">
+            {isWebinarMode 
+              ? 'Configure parent masterclass topic and pricing ticket pass details' 
+              : 'Configure your book details, inventory, and promo code'}
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -226,7 +236,7 @@ export default function BookForm({ bookId }: BookFormProps) {
             className="btn-primary flex items-center gap-2 px-8 py-4 rounded-2xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
           >
             {loading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-            <span className="font-bold">Save Product</span>
+            <span className="font-bold">{isWebinarMode ? 'Save Webinar' : 'Save Product'}</span>
           </button>
         </div>
       </div>
@@ -237,7 +247,9 @@ export default function BookForm({ bookId }: BookFormProps) {
           {/* Basic details card */}
           <div className="glass-card p-8 rounded-[2.5rem] border-primary/5 shadow-2xl space-y-6">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Product Title</label>
+              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+                {isWebinarMode ? 'Webinar Title' : 'Product Title'}
+              </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
                   <Type size={18} />
@@ -247,7 +259,7 @@ export default function BookForm({ bookId }: BookFormProps) {
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="e.g. Growing Up Honest"
+                  placeholder={isWebinarMode ? "e.g. Decoding Her Silence" : "e.g. Growing Up Honest"}
                   className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
                 />
               </div>
@@ -264,7 +276,7 @@ export default function BookForm({ bookId }: BookFormProps) {
                   rows={6}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Tell the readers what this book is about..."
+                  placeholder={isWebinarMode ? "Tell parents what this webinar masterclass is about..." : "Tell the readers what this book is about..."}
                   className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
                 />
               </div>
@@ -280,38 +292,44 @@ export default function BookForm({ bookId }: BookFormProps) {
                   <Globe size={20} className="text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-slate-900 tracking-tight">Regional Pricing &amp; Shipping</h3>
+                  <h3 className="text-lg font-black text-slate-900 tracking-tight">
+                    {isWebinarMode ? 'Webinar Ticket Pricing' : 'Regional Pricing & Shipping'}
+                  </h3>
                   <p className="text-xs text-muted-foreground font-semibold mt-0.5">
-                    Set unit price and shipping charges per country
+                    {isWebinarMode ? 'Configure entry fee for the parent masterclass ticket pass' : 'Set unit price and shipping charges per country'}
                   </p>
                 </div>
               </div>
             </div>
 
             {/* Country Tabs */}
-            <div className="flex border-b border-border/20">
-              {([['IN', '🇮🇳', 'India (₹)'], ['US', '🇺🇸', 'USA ($)'], ['UK', '🇬🇧', 'UK (£)']] as const).map(([code, flag, label]) => (
-                <button
-                  key={code}
-                  type="button"
-                  onClick={() => setPricingTab(code)}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-black uppercase tracking-widest transition-all ${
-                    pricingTab === code
-                      ? 'bg-white border-b-2 border-blue-500 text-blue-600'
-                      : 'text-muted-foreground hover:bg-slate-50'
-                  }`}
-                >
-                  <span className="text-lg">{flag}</span>
-                  <span className="hidden sm:inline">{label}</span>
-                </button>
-              ))}
-            </div>
+            {!isWebinarMode && (
+              <div className="flex border-b border-border/20">
+                {([['IN', '🇮🇳', 'India (₹)'], ['US', '🇺🇸', 'USA ($)'], ['UK', '🇬🇧', 'UK (£)']] as const).map(([code, flag, label]) => (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => setPricingTab(code)}
+                    className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-black uppercase tracking-widest transition-all ${
+                      pricingTab === code
+                        ? 'bg-white border-b-2 border-blue-500 text-blue-600'
+                        : 'text-muted-foreground hover:bg-slate-50'
+                    }`}
+                  >
+                    <span className="text-lg">{flag}</span>
+                    <span className="hidden sm:inline">{label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
 
-            {/* India Tab */}
-            {pricingTab === 'IN' && (
+            {/* India Tab / Webinar Pricing */}
+            {(pricingTab === 'IN' || isWebinarMode) && (
               <div className="p-8 space-y-6 animate-in fade-in duration-200">
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Unit Price (₹) — India</label>
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+                    {isWebinarMode ? 'Webinar Ticket Price (₹)' : 'Unit Price (₹) — India'}
+                  </label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
                       <IndianRupee size={18} />
@@ -323,56 +341,60 @@ export default function BookForm({ bookId }: BookFormProps) {
                       step="0.01"
                       value={safeNum(formData.price, '')}
                       onChange={(e) => setFormData({ ...formData, price: parseNum(e.target.value, null) as number })}
-                      placeholder="e.g. 499"
+                      placeholder="e.g. 99"
                       className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-1.5">
-                    <Truck size={12} /> Shipping Charge (₹)
-                  </label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                      <Truck size={16} />
+                {!isWebinarMode && (
+                  <>
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-1.5">
+                        <Truck size={12} /> Shipping Charge (₹)
+                      </label>
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                          <Truck size={16} />
+                        </div>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={safeNum(formData.shippingIN, '')}
+                          onChange={(e) => setFormData({ ...formData, shippingIN: parseNum(e.target.value, null) as number })}
+                          className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
+                        />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground ml-1">Configured shipping charge for both Online and COD payments in India</p>
                     </div>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={safeNum(formData.shippingIN, '')}
-                      onChange={(e) => setFormData({ ...formData, shippingIN: parseNum(e.target.value, null) as number })}
-                      className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
-                    />
-                  </div>
-                  <p className="text-[10px] text-muted-foreground ml-1">Configured shipping charge for both Online and COD payments in India</p>
-                </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-1.5">
-                    <Truck size={12} /> COD Surcharge (₹)
-                  </label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                      <IndianRupee size={16} />
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-1.5">
+                        <Truck size={12} /> COD Surcharge (₹)
+                      </label>
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                          <IndianRupee size={16} />
+                        </div>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={safeNum(formData.codChargeIN, '')}
+                          onChange={(e) => setFormData({ ...formData, codChargeIN: parseNum(e.target.value, null) as number })}
+                          className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
+                        />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground ml-1">Configured Cash on Delivery (COD) charge for orders in India (defaults to 40)</p>
                     </div>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={safeNum(formData.codChargeIN, '')}
-                      onChange={(e) => setFormData({ ...formData, codChargeIN: parseNum(e.target.value, null) as number })}
-                      className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
-                    />
-                  </div>
-                  <p className="text-[10px] text-muted-foreground ml-1">Configured Cash on Delivery (COD) charge for orders in India (defaults to 40)</p>
-                </div>
+                  </>
+                )}
               </div>
             )}
 
             {/* USA Tab */}
-            {pricingTab === 'US' && (
+            {pricingTab === 'US' && !isWebinarMode && (
               <div className="p-8 space-y-6 animate-in fade-in duration-200">
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Unit Price ($) — USA</label>
@@ -416,7 +438,7 @@ export default function BookForm({ bookId }: BookFormProps) {
             )}
 
             {/* UK Tab */}
-            {pricingTab === 'UK' && (
+            {pricingTab === 'UK' && !isWebinarMode && (
               <div className="p-8 space-y-6 animate-in fade-in duration-200">
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Unit Price (£) — UK</label>
@@ -460,25 +482,27 @@ export default function BookForm({ bookId }: BookFormProps) {
             )}
           </div>
 
-          {/* Stock */}
-          <div className="glass-card p-8 rounded-[2.5rem] border-primary/5 shadow-2xl">
-            <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Inventory Level</label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                  <Package size={18} />
+          {/* Stock / Inventory */}
+          {!isWebinarMode && (
+            <div className="glass-card p-8 rounded-[2.5rem] border-primary/5 shadow-2xl">
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Inventory Level</label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                    <Package size={18} />
+                  </div>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    value={safeNum(formData.stock, '')}
+                    onChange={(e) => setFormData({ ...formData, stock: parseNum(e.target.value, null) as number })}
+                    className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
+                  />
                 </div>
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  value={safeNum(formData.stock, '')}
-                  onChange={(e) => setFormData({ ...formData, stock: parseNum(e.target.value, null) as number })}
-                  className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
-                />
               </div>
             </div>
-          </div>
+          )}
 
           {/* ─── Promo Code Management Section ─── */}
           <div className="glass-card rounded-[2.5rem] border-emerald-500/10 shadow-2xl overflow-hidden">

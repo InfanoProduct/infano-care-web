@@ -20,7 +20,7 @@ export function BookHero({ book }: BookHeroProps) {
       <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-white/40 blur-[120px] rounded-full translate-x-1/3 -translate-y-1/3" />
       <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-primary/5 blur-[100px] rounded-full -translate-x-1/3 translate-y-1/3" />
 
-      <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
+      <div className="max-w-360 mx-auto px-6 md:px-12 lg:px-24 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Left: Book Bundle Image */}
           <div
@@ -70,7 +70,7 @@ export function BookHero({ book }: BookHeroProps) {
               `}} />
               {/* Shimmer Sweep Effect */}
               <div
-                className="absolute top-0 bottom-0 w-1/2 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12"
+                className="absolute top-0 bottom-0 w-1/2 bg-linear-to-r from-transparent via-white/40 to-transparent -skew-x-12"
                 style={{ animation: 'shimmerSweep 4s infinite ease-in-out' }}
               />
 

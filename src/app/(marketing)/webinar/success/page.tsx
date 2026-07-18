@@ -1,13 +1,151 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
-  CheckCircle2, Calendar, Clock, MessageSquare, Download, 
+  CheckCircle2, Calendar, Clock, MessageSquare, PartyPopper, 
   ArrowRight, ShieldCheck, Heart, AlertCircle 
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+
+// Pure React Canvas Confetti effect
+function CanvasConfetti() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const handleResize = () => {
+      if (!canvas) return;
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+    window.addEventListener('resize', handleResize);
+
+    const colors = [
+      '#FF007F', '#FF1493', '#D946EF', '#A855F7', '#8B5CF6', 
+      '#6366F1', '#3B82F6', '#0EA5E9', '#00F2FE', '#4FACFE',
+      '#10B981', '#22C55E', '#FFB800', '#F97316', '#FF4B4B'
+    ];
+    
+    const particleCount = 180;
+    const particles: Array<{
+      x: number;
+      y: number;
+      size: number;
+      color: string;
+      speedX: number;
+      speedY: number;
+      rotation: number;
+      rotationSpeed: number;
+      wobble: number;
+      wobbleSpeed: number;
+      shape: 'rect' | 'circle' | 'triangle' | 'line';
+    }> = [];
+
+    const shapes: Array<'rect' | 'circle' | 'triangle' | 'line'> = ['rect', 'circle', 'triangle', 'line'];
+
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * -height - 40,
+        size: Math.random() * 8 + 6,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        speedX: Math.random() * 2 - 1,
+        speedY: Math.random() * 4 + 3,
+        rotation: Math.random() * 360,
+        rotationSpeed: Math.random() * 8 - 4,
+        wobble: Math.random() * 10,
+        wobbleSpeed: Math.random() * 0.05 + 0.02,
+        shape: shapes[Math.floor(Math.random() * shapes.length)],
+      });
+    }
+
+    const animate = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      let active = false;
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.y += p.speedY;
+        p.x += p.speedX + Math.sin(p.wobble) * 0.5; // Wind drift simulation
+        p.wobble += p.wobbleSpeed;
+        p.rotation += p.rotationSpeed;
+
+        if (p.y < height) {
+          active = true;
+        }
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 2;
+
+        if (p.shape === 'rect') {
+          ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+        } else if (p.shape === 'circle') {
+          ctx.beginPath();
+          ctx.arc(0, 0, p.size / 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (p.shape === 'triangle') {
+          ctx.beginPath();
+          ctx.moveTo(0, -p.size / 2);
+          ctx.lineTo(p.size / 2, p.size / 2);
+          ctx.lineTo(-p.size / 2, p.size / 2);
+          ctx.closePath();
+          ctx.fill();
+        } else if (p.shape === 'line') {
+          ctx.beginPath();
+          ctx.moveTo(-p.size / 2, 0);
+          ctx.lineTo(p.size / 2, 0);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+
+        // Recycle particle when it falls past the screen
+        if (p.y > height + 20) {
+          p.y = -40;
+          p.x = Math.random() * width;
+          p.speedY = Math.random() * 4 + 3;
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    // Stop animation loop after 8 seconds
+    const timeoutId = setTimeout(() => {
+      cancelAnimationFrame(animationFrameId);
+      ctx.clearRect(0, 0, width, height);
+    }, 8000);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationFrameId);
+      clearTimeout(timeoutId);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 pointer-events-none z-50 w-full h-full"
+    />
+  );
+}
 
 export default function WebinarSuccessPage() {
   const searchParams = useSearchParams();
@@ -22,9 +160,6 @@ export default function WebinarSuccessPage() {
   const zoomLink = searchParams.get('zoomLink') || '';
   const dateParam = searchParams.get('date');
 
-  const targetDate = dateParam ? new Date(dateParam).getTime() : new Date('2026-07-25T17:00:00+05:30').getTime();
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-
   const formattedDate = dateParam
     ? new Date(dateParam).toLocaleDateString('en-US', {
         weekday: 'long',
@@ -36,28 +171,10 @@ export default function WebinarSuccessPage() {
       })
     : 'Saturday, July 25, 2026 at 05:00 PM';
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date().getTime();
-      const difference = targetDate - now;
-
-      if (difference <= 0) {
-        clearInterval(interval);
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-      } else {
-        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-        setTimeLeft({ days, hours, minutes, seconds });
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [targetDate]);
-
   return (
     <div className="min-h-screen bg-slate-50/50 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      <CanvasConfetti />
+      
       {/* Background Orbs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
         <div className="absolute top-[10%] left-[-15%] w-[50%] h-[50%] bg-purple-200/40 rounded-full blur-[120px]" />
@@ -66,10 +183,10 @@ export default function WebinarSuccessPage() {
 
       <div className="w-full max-w-2xl bg-white border border-slate-100 rounded-3xl shadow-xl shadow-slate-200/50 p-6 sm:p-10 relative z-10 text-center space-y-8">
         
-        {/* Confetti / Success GIF Placeholder */}
+        {/* Party Popper visual */}
         <div className="relative">
-          <div className="w-20 h-20 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto text-emerald-500 shadow-md">
-            <CheckCircle2 size={44} strokeWidth={1.5} className="animate-bounce" />
+          <div className="w-20 h-20 rounded-full bg-purple-50 border border-purple-100 flex items-center justify-center mx-auto text-purple-600 shadow-md">
+            <PartyPopper size={44} strokeWidth={1.5} className="animate-bounce" />
           </div>
           <h1 className="mt-5 text-2xl sm:text-3xl font-black font-heading text-slate-900 tracking-tight">
             Seat Confirmed!
@@ -94,29 +211,6 @@ export default function WebinarSuccessPage() {
               <span className="text-slate-800 font-bold">{email}</span>
             </div>
           )}
-        </div>
-
-        {/* Countdown Timer */}
-        <div className="space-y-3">
-          <span className="text-[10px] font-black text-slate-450 uppercase tracking-widest block">Webinar Countdown</span>
-          <div className="flex items-center justify-center gap-4">
-            <div className="bg-slate-50 border border-slate-100/80 px-4 py-3 rounded-2xl min-w-16 shadow-sm">
-              <span className="block text-xl font-black font-heading text-slate-900 leading-tight">{timeLeft.days}</span>
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Days</span>
-            </div>
-            <div className="bg-slate-50 border border-slate-100/80 px-4 py-3 rounded-2xl min-w-16 shadow-sm">
-              <span className="block text-xl font-black font-heading text-slate-900 leading-tight">{timeLeft.hours}</span>
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Hours</span>
-            </div>
-            <div className="bg-slate-50 border border-slate-100/80 px-4 py-3 rounded-2xl min-w-16 shadow-sm">
-              <span className="block text-xl font-black font-heading text-slate-900 leading-tight">{timeLeft.minutes}</span>
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Mins</span>
-            </div>
-            <div className="bg-slate-50 border border-slate-100/80 px-4 py-3 rounded-2xl min-w-16 shadow-sm">
-              <span className="block text-xl font-black font-heading text-slate-900 leading-tight">{timeLeft.seconds}</span>
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Secs</span>
-            </div>
-          </div>
         </div>
 
         {/* Schedule & Meeting Details */}
@@ -149,7 +243,7 @@ export default function WebinarSuccessPage() {
         </div>
 
         {/* Action / Bonus Download Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="max-w-md mx-auto w-full">
           {/* WhatsApp bonus card */}
           <div className="p-6 bg-emerald-50/20 border border-emerald-100 rounded-3xl text-center flex flex-col justify-between shadow-sm">
             <div>
@@ -166,25 +260,6 @@ export default function WebinarSuccessPage() {
             >
               <MessageSquare size={14} />
               <span>Join Group Chat</span>
-            </Link>
-          </div>
-
-          {/* Download PDF card */}
-          <div className="p-6 bg-purple-50/20 border border-purple-100 rounded-3xl text-center flex flex-col justify-between shadow-sm">
-            <div>
-              <span className="text-purple-650 font-bold text-xs uppercase tracking-wider block mb-1">Webinar Bonus</span>
-              <h4 className="text-sm font-black text-slate-800 mb-2">🎁 Download 3 Signals PDF Card</h4>
-              <p className="text-[11px] text-slate-500 leading-relaxed font-semibold mb-4">
-                Printable laminated decision card summarizing the body, mirror, and mood signals.
-              </p>
-            </div>
-            <Link
-              href="https://api.infano.care/uploads/assets/3_Signals_Decision_Card.pdf"
-              target="_blank"
-              className="py-3 px-4 bg-purple-600 hover:bg-purple-700 active:scale-98 text-white font-bold text-xs uppercase tracking-widest rounded-2xl shadow-md transition-all flex items-center justify-center gap-2"
-            >
-              <Download size={14} />
-              <span>Download PDF</span>
             </Link>
           </div>
         </div>

@@ -7,7 +7,8 @@ import { ShopService, Webinar } from '@/services/shop.service';
 import { 
   Sparkles, Calendar, Clock, Video, CheckCircle2, ChevronDown, 
   Users, MessageCircle, AlertCircle, Quote, ShieldCheck,
-  Brain, Heart, ArrowRight, Award, DoorClosed, Smartphone, Loader2
+  Brain, Heart, ArrowRight, Award, DoorClosed, Smartphone, Loader2,
+  Globe, FileText, CalendarCheck, MessageSquareX, Plus, Minus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -71,6 +72,97 @@ const TIMELINE_POINTS = [
   { time: "1:15 - 1:30", title: "Offer Bridge & Q&A Session", desc: "Introducing the full Grade curriculum, giving cohort bonuses, and addressing parental questions live." }
 ];
 
+const AGENDA_LIST = [
+  // Left side (right-aligned)
+  {
+    time: "0:00 - 0:15",
+    title: "Welcome & Check-In",
+    desc: "Setting expectations, statistics on modern parent-daughter disconnects, and a quick live poll.",
+    icon: <Users size={20} strokeWidth={2.5} />,
+    color: "rgba(74, 30, 127, 0.08)",
+    textColor: "text-primary"
+  },
+  {
+    time: "0:15 - 0:50",
+    title: "Hormones vs Attitude",
+    desc: "A scientific dive into adolescent neurobiology, puberty transitions, and hormonal changes.",
+    icon: <Brain size={20} strokeWidth={2.5} />,
+    color: "rgba(224, 83, 151, 0.08)",
+    textColor: "text-rose-500"
+  },
+  {
+    time: "0:50 - 1:15",
+    title: "The 2-Week Warning Rule",
+    desc: "A clinical diagnostic checklist to track persistent mood patterns versus routine mood swings.",
+    icon: <CalendarCheck size={20} strokeWidth={2.5} />,
+    color: "rgba(37, 99, 235, 0.08)",
+    textColor: "text-blue-500"
+  },
+  // Right side (left-aligned)
+  {
+    time: "1:15 - 1:30",
+    title: "Live Role-Play & Script Demo",
+    desc: "Hands-on walkthrough of exact phrases to react when she shuts you out or slams her door.",
+    icon: <MessageCircle size={20} strokeWidth={2.5} />,
+    color: "rgba(224, 83, 151, 0.08)",
+    textColor: "text-rose-500"
+  },
+  {
+    time: "1:30 - 1:40",
+    title: "What NOT to Say Checklist",
+    desc: "Common conversational errors (dismissiveness, over-advising) that accidentally sever trust.",
+    icon: <MessageSquareX size={20} strokeWidth={2.5} />,
+    color: "rgba(16, 185, 129, 0.08)",
+    textColor: "text-emerald-500"
+  },
+  {
+    time: "1:40 - 1:45",
+    title: "Live Q&A & Case Audits",
+    desc: "Ask the child psychologists anything about your specific daughter's challenges.",
+    icon: <Quote size={20} strokeWidth={2.5} />,
+    color: "rgba(37, 99, 235, 0.08)",
+    textColor: "text-blue-500"
+  }
+];
+
+const EXPERT_MENTORS = [
+  {
+    name: "Bhumika Asrani",
+    role: "Lead Child Psychologist",
+    desc: "Over 8+ years of core experience in adolescent emotional regulation, helping girls bridge the communication gap with parents.",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Bhumika",
+    seed: "bhumika"
+  },
+  {
+    name: "Suman Sikdar",
+    role: "Puberty Educator",
+    desc: "Specializes in puberty transition biology and hormonal health. Passionate about empowering parents with correct biological frameworks.",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Suman",
+    seed: "suman"
+  },
+  {
+    name: "Dr. Neha Sharma",
+    role: "Adolescent Psychiatrist",
+    desc: "MD in Psychiatry with 10+ years specializing in teen mood dynamics, clinical anxiety management, and parent mediation.",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Neha",
+    seed: "neha"
+  },
+  {
+    name: "Priya Nair",
+    role: "Teen Life Coach & Counselor",
+    desc: "Certified Life Coach with 7+ years of experience helping girls build self-esteem, body positivity, and digital boundaries.",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Priya",
+    seed: "priya"
+  },
+  {
+    name: "Dr. Amit Kapoor",
+    role: "Pediatric Endocrinologist",
+    desc: "Expert in hormonal growth and endocrine health, guiding parents through biological transitions with scientific clarity.",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Amit",
+    seed: "amit"
+  }
+];
+
 export default function WebinarLandingPage() {
   const params = useParams();
   const router = useRouter();
@@ -80,48 +172,157 @@ export default function WebinarLandingPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const [showStickyCta, setShowStickyCta] = useState(false);
+  const formatTotalTimeLeft = () => {
+    if (!timeLeft) return '00h : 00m';
+    const { days, hours, minutes } = timeLeft;
+    const totalHours = days * 24 + hours;
+    return `${totalHours}h : ${String(minutes).padStart(2, '0')}m`;
+  };
+
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
+
+  useEffect(() => {
+    if (!webinar?.date) return;
+    
+    const calculateTimeLeft = () => {
+      let targetDate: Date;
+      if (webinar.date.endsWith('Z') || webinar.date.includes('+')) {
+        targetDate = new Date(webinar.date);
+      } else {
+        targetDate = new Date(`${webinar.date.replace(' ', 'T')}+05:30`);
+      }
+      const difference = +targetDate - +new Date();
+      if (difference <= 0) {
+        return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+      }
+      return {
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60)
+      };
+    };
+
+    setTimeLeft(calculateTimeLeft());
+
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [webinar?.date]);
 
   useEffect(() => {
     if (!slug) return;
     setLoading(true);
     ShopService.getWebinarBySlug(slug)
       .then((data) => {
+        if (slug === 'active' && data && data.slug) {
+          router.replace(`/webinar/${data.slug}`);
+          return;
+        }
         setWebinar(data);
         setLoading(false);
       })
       .catch((err) => {
-        console.error(err);
+        if (err.message === 'Webinar not found') {
+          console.warn(`Webinar not found for slug: ${slug}`);
+        } else {
+          console.error(err);
+        }
         setError('Webinar not found or scheduled details are unavailable.');
         setLoading(false);
       });
-  }, [slug]);
+  }, [slug, router]);
+
+  useEffect(() => {
+    const handleOpen = () => setModalOpen(true);
+    window.addEventListener('open-webinar-registration', handleOpen);
+    return () => window.removeEventListener('open-webinar-registration', handleOpen);
+  }, []);
+
+
+  useEffect(() => {
+    if (loading || typeof window === 'undefined') return;
+
+    const handleScroll = () => {
+      setShowStickyCta(window.scrollY > 400);
+
+      if (window.innerWidth < 1024) return;
+
+      const cards = document.querySelectorAll('[data-section-2-card]');
+      if (!cards.length) return;
+
+      const viewportCenter = window.innerHeight / 2;
+      let closestIndex = 0;
+      let closestDistance = Infinity;
+
+      cards.forEach((card, idx) => {
+        const rect = card.getBoundingClientRect();
+        const cardCenter = rect.top + rect.height / 2;
+        const distance = Math.abs(cardCenter - viewportCenter);
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = idx;
+        }
+      });
+
+      setActiveIndex(closestIndex);
+    };
+
+    handleScroll();
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [loading]);
 
   const toggleFaq = (index: number) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
   };
 
+  const getOrdinalSuffix = (day: number) => {
+    if (day > 3 && day < 21) return 'th';
+    switch (day % 10) {
+      case 1:  return "st";
+      case 2:  return "nd";
+      case 3:  return "rd";
+      default: return "th";
+    }
+  };
+
   const formatWebinarDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-      timeZone: 'Asia/Kolkata'
-    });
-    return formatter.format(date);
+    const weekday = date.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'Asia/Kolkata' });
+    const day = parseInt(date.toLocaleDateString('en-US', { day: 'numeric', timeZone: 'Asia/Kolkata' }));
+    const month = date.toLocaleDateString('en-US', { month: 'short', timeZone: 'Asia/Kolkata' });
+    return `${weekday}, ${day}${getOrdinalSuffix(day)} ${month}`;
   };
 
   const formatWebinarTime = (dateStr: string) => {
     const date = new Date(dateStr);
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
+    const timeParts = date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: 'numeric',
       hour12: true,
       timeZone: 'Asia/Kolkata'
     });
-    return `${formatter.format(date)} (IST)`;
+    const [time, ampm] = timeParts.split(' ');
+    const [hour, minute] = time.split(':');
+    const formattedAmpm = ampm.toLowerCase();
+    
+    if (minute === '00') {
+      return `${hour} ${formattedAmpm} (IST)`;
+    }
+    return `${hour}:${minute} ${formattedAmpm} (IST)`;
   };
 
   if (loading) {
@@ -152,7 +353,7 @@ export default function WebinarLandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-slate-900 overflow-x-hidden relative">
+    <div className="min-h-screen bg-background text-slate-900 overflow-x-clip relative">
       {/* Background radial glow */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-[-5%] left-[-10%] w-[60%] h-[50%] bg-purple-200/30 rounded-full blur-[130px]" />
@@ -166,72 +367,136 @@ export default function WebinarLandingPage() {
           
           {/* Left Column: Copy & Badges */}
           <div className="lg:col-span-7 space-y-6 text-left">
-            <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary/5 border border-primary/10 text-primary text-xs font-bold uppercase tracking-wider animate-fade-in">
-              <Sparkles size={12} className="text-primary animate-pulse" />
+            <div 
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-full animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '50ms' }}
+            >
+              <Sparkles size={11} className="text-primary animate-pulse" />
               <span>Exclusive Live Parent Masterclass</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] lg:leading-[1.12] font-bold font-heading text-slate-900 tracking-tight">
-              {webinar.title}
+            <h1 
+              className="text-4xl sm:text-5xl lg:text-[3.5rem] lg:leading-[1.12] font-bold font-heading text-slate-900 tracking-tight animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '150ms' }}
+            >
+              {webinar.title
+                ? (() => {
+                    const target = "Her Silence";
+                    const idx = webinar.title.toLowerCase().indexOf(target.toLowerCase());
+                    if (idx !== -1) {
+                      const before = webinar.title.substring(0, idx);
+                      const matched = webinar.title.substring(idx, idx + target.length);
+                      const after = webinar.title.substring(idx + target.length);
+                      return (
+                        <>
+                          <span>{before}</span>
+                          <span className="text-[#E05397]">{matched}</span>
+                          <span>{after}</span>
+                        </>
+                      );
+                    }
+                    return <span>{webinar.title}</span>;
+                  })()
+                : webinar.title
+              }
             </h1>
 
-            <p className="text-slate-600 text-sm sm:text-base font-semibold leading-relaxed max-w-xl">
+            <p 
+              className="text-slate-500 text-sm sm:text-base font-medium leading-relaxed max-w-xl animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '250ms' }}
+            >
               {webinar.description}
             </p>
 
             {/* Sub-features list */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+            <div 
+              className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '350ms' }}
+            >
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary shrink-0">
                   <Brain size={14} />
                 </div>
-                <span className="text-[11px] font-bold text-slate-700 leading-tight">Understand the unspoken emotions</span>
+                <span className="text-[11px] font-semibold text-slate-600 leading-tight">Understand the unspoken emotions</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary shrink-0">
                   <Heart size={14} />
                 </div>
-                <span className="text-[11px] font-bold text-slate-700 leading-tight">Build trust & stronger connection</span>
+                <span className="text-[11px] font-semibold text-slate-600 leading-tight">Build trust & stronger connection</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary shrink-0">
                   <ShieldCheck size={14} />
                 </div>
-                <span className="text-[11px] font-bold text-slate-700 leading-tight">Practical strategies you can start today</span>
+                <span className="text-[11px] font-semibold text-slate-600 leading-tight">Practical strategies you can start today</span>
               </div>
             </div>
 
             {/* Quick Info Capsule block */}
-            <div className="bg-white rounded-[2rem] border border-slate-100 shadow-premium py-4 px-6 grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 gap-4 sm:gap-0 max-w-2xl items-center">
+            <div 
+              className="bg-white rounded-[2rem] border border-slate-100 shadow-premium py-4 px-6 grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 gap-4 sm:gap-0 max-w-2xl items-center animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '450ms' }}
+            >
               <div className="flex items-center gap-3 sm:justify-center py-2 sm:py-0">
                 <Calendar size={16} className="text-primary shrink-0" />
-                <span className="text-xs font-extrabold text-slate-800 tracking-tight">{formatWebinarDate(webinar.date)}</span>
+                <span className="text-xs font-bold text-slate-700 tracking-tight">{formatWebinarDate(webinar.date)}</span>
               </div>
               <div className="flex items-center gap-3 sm:justify-center py-2 sm:py-0 sm:px-2">
                 <Clock size={16} className="text-primary shrink-0" />
-                <span className="text-xs font-extrabold text-slate-800 tracking-tight">{formatWebinarTime(webinar.date)}</span>
+                <span className="text-xs font-bold text-slate-700 tracking-tight">{formatWebinarTime(webinar.date)}</span>
               </div>
               <div className="flex items-center gap-3 sm:justify-center py-2 sm:py-0 sm:px-2">
                 <Video size={16} className="text-primary shrink-0" />
-                <span className="text-xs font-extrabold text-slate-800 tracking-tight">
+                <span className="text-xs font-bold text-slate-700 tracking-tight">
                   {webinar.mode === 'ONLINE' ? 'Live on Zoom' : (webinar.link || 'In-Person Venue')}
                 </span>
               </div>
             </div>
 
-            {/* CTA Action button */}
-            <div className="flex flex-col items-start gap-2.5 pt-4">
-              <button
-                onClick={() => setModalOpen(true)}
-                className="btn-primary w-full sm:w-auto px-10 py-4 shadow-xl shadow-primary/25 text-sm uppercase tracking-wider font-extrabold transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center gap-2 group"
-              >
-                <span>Reserve My Seat for ₹{webinar.price}</span>
-                <ArrowRight className="transition-transform group-hover:translate-x-1" size={16} />
-              </button>
-              <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1.5 ml-1">
-                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                <span>Limited Seats Remaining for this Cohort</span>
+            {/* CTA Action button & Countdown */}
+            <div 
+              className="flex flex-col sm:flex-row sm:items-center gap-6 pt-4 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '550ms' }}
+            >
+              <div className="flex flex-col items-start gap-2.5">
+                <button
+                  onClick={() => setModalOpen(true)}
+                  className="w-full sm:w-auto px-10 py-4 bg-primary text-white rounded-full font-bold text-sm hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 flex items-center justify-center gap-2 group cursor-pointer border-none"
+                >
+                  <span>Reserve My Seat — ₹{webinar.price}/-</span>
+                  <ArrowRight className="transition-transform group-hover:translate-x-1" size={16} />
+                </button>
+                <div className="flex items-center gap-2 text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-1.5 ml-1">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                  <span>Limited Seats Remaining for this Cohort</span>
+                </div>
               </div>
+
+              {/* Countdown Timer */}
+              {timeLeft && (timeLeft.days > 0 || timeLeft.hours > 0 || timeLeft.minutes > 0 || timeLeft.seconds > 0) && (
+                <div className="bg-primary/[0.03] border border-primary/10 rounded-[2rem] py-3.5 px-6 flex items-center gap-4 shrink-0 shadow-sm">
+                  <div className="text-left">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-primary">Webinar Starts In</span>
+                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Seats filling fast!</p>
+                  </div>
+                  <div className="flex gap-2">
+                    {[
+                      { label: "d", value: timeLeft.days },
+                      { label: "h", value: timeLeft.hours },
+                      { label: "m", value: timeLeft.minutes },
+                      { label: "s", value: timeLeft.seconds }
+                    ].map((unit, idx) => (
+                      <div key={idx} className="flex flex-col items-center">
+                        <div className="w-9 h-9 rounded-xl bg-white border border-slate-100 shadow-sm flex items-center justify-center font-bold text-slate-800 text-xs">
+                          {String(unit.value).padStart(2, '0')}
+                        </div>
+                        <span className="text-[8px] font-black text-slate-400 mt-1 uppercase tracking-wider">{unit.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
           </div>
@@ -285,7 +550,7 @@ export default function WebinarLandingPage() {
               <ShieldCheck size={20} />
             </div>
             <div>
-              <h4 className="text-xs font-extrabold text-slate-800">Secure & Private</h4>
+              <h4 className="text-xs font-bold text-slate-800">Secure & Private</h4>
               <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Your stories are safe</p>
             </div>
           </div>
@@ -294,7 +559,7 @@ export default function WebinarLandingPage() {
               <Users size={20} />
             </div>
             <div>
-              <h4 className="text-xs font-extrabold text-slate-800">For Parents Like You</h4>
+              <h4 className="text-xs font-bold text-slate-800">For Parents Like You</h4>
               <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Grades 5 to 9</p>
             </div>
           </div>
@@ -303,7 +568,7 @@ export default function WebinarLandingPage() {
               <Award size={20} />
             </div>
             <div>
-              <h4 className="text-xs font-extrabold text-slate-800">Bonus Resources</h4>
+              <h4 className="text-xs font-bold text-slate-800">Bonus Resources</h4>
               <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Included guides & PDFs</p>
             </div>
           </div>
@@ -312,14 +577,20 @@ export default function WebinarLandingPage() {
               <MessageCircle size={20} />
             </div>
             <div>
-              <h4 className="text-xs font-extrabold text-slate-800">Live Q&A Session</h4>
+              <h4 className="text-xs font-bold text-slate-800">Live Q&A Session</h4>
               <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Direct interact live</p>
             </div>
           </div>
         </div>
 
         {/* SECTION 2: THE PROBLEM (AGITATION) */}
-        <div className="bg-white rounded-[2.5rem] border border-slate-100/80 shadow-2xl p-8 md:p-12 mb-16 md:mb-24 relative overflow-hidden bg-gradient-to-b from-white to-[#FFFCFA]">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="relative pt-12 pb-0 md:pt-16 md:pb-0 mb-0"
+        >
           <div className="absolute top-0 right-0 w-24 h-24 bg-rose-50 rounded-full blur-3xl -z-10" />
           
           {/* Centered Heart Icon */}
@@ -331,14 +602,111 @@ export default function WebinarLandingPage() {
 
           <div className="max-w-3xl mx-auto text-center space-y-4 mb-10">
             <h2 className="text-3xl sm:text-4xl font-bold font-heading text-slate-900 tracking-tight">
-              <span>Does this sound </span><span className="text-[#E05397]">familiar?</span>
+              <span>Does this sound </span><span className="text-primary">familiar?</span>
             </h2>
             <p className="text-slate-500 text-xs sm:text-sm font-medium">
               Adolescence isn't just hard on girls—it's incredibly tough for parents trying to navigate it.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+          {/* Desktop view (lg and above): Sticky split-screen scroll */}
+          <div className="hidden lg:flex gap-12 items-start relative z-10 min-h-[80vh] py-4">
+            {/* Left Content Scroll Column */}
+            <div className="w-1/2 flex flex-col gap-24 pb-[30vh]">
+              {PROBLEM_POINTS.map((point, idx) => {
+                const config = [
+                  {
+                    iconBg: 'bg-primary/5 text-primary',
+                    badgeBg: 'bg-primary text-white',
+                    icon: <DoorClosed size={18} />
+                  },
+                  {
+                    iconBg: 'bg-accent/5 text-accent',
+                    badgeBg: 'bg-accent text-white',
+                    icon: <Brain size={18} />
+                  },
+                  {
+                    iconBg: 'bg-primary-light/5 text-primary-light',
+                    badgeBg: 'bg-primary-light text-white',
+                    icon: <Smartphone size={18} />
+                  }
+                ][idx];
+
+                const isActive = activeIndex === idx;
+
+                return (
+                  <div
+                    key={idx}
+                    data-section-2-card
+                    data-index={idx}
+                    className={`p-8 rounded-[2.5rem] border transition-all duration-500 flex flex-col items-start text-left min-h-[280px] justify-center relative group
+                      ${isActive 
+                        ? 'bg-white border-primary/20 shadow-xl ring-1 ring-primary/5 translate-x-2 opacity-100 scale-100' 
+                        : 'bg-white/40 border-slate-100 shadow-sm opacity-40 scale-95 hover:opacity-60'
+                      }`}
+                  >
+                    {/* Top row with icon & numbered badge */}
+                    <div className="flex items-center justify-between w-full mb-5">
+                      <div className={`w-12 h-12 rounded-full ${config.iconBg} flex items-center justify-center shrink-0`}>
+                        {config.icon}
+                      </div>
+                      <div className={`w-6 h-6 rounded-full ${config.badgeBg} flex items-center justify-center text-xs font-bold`}>
+                        {idx + 1}
+                      </div>
+                    </div>
+                    {/* Title, Bar & Description */}
+                    <div className="mt-2 space-y-3">
+                      <h4 className={`text-xl font-bold text-slate-800 tracking-tight transition-colors ${isActive ? 'text-primary' : ''}`}>
+                        {point.title}
+                      </h4>
+                      <div className={`w-10 h-[2px] ${idx === 0 ? 'bg-primary' : idx === 1 ? 'bg-accent' : 'bg-primary-light'} rounded-full`} />
+                      <p className="text-slate-500 text-sm leading-relaxed font-medium">
+                        {point.desc}
+                      </p>
+                    </div>
+                    <div className="absolute -bottom-6 -right-6 w-14 h-14 rounded-full bg-slate-50 group-hover:bg-primary/5 transition-colors -z-10" />
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Right Sticky Visual Column */}
+            <div className="w-1/2 sticky top-[calc(50vh-230px)] h-[460px] rounded-[2.5rem] bg-slate-50 border border-slate-100/80 overflow-hidden shadow-premium z-20 flex items-center justify-center">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeIndex}
+                  initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 1.05, y: -15 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className="absolute inset-0 w-full h-full flex flex-col justify-end"
+                >
+                  <img
+                    src={[`/problem-1-gen.png`, `/problem-2-gen.png`, `/problem-3-gen.png`][activeIndex]}
+                    alt={PROBLEM_POINTS[activeIndex].title}
+                    className="w-full h-full object-cover absolute inset-0 z-0"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent z-10" />
+                  
+                  {/* Changing Title Overlay */}
+                  <div className="p-8 relative z-20 text-left">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-pink-400 bg-pink-500/10 border border-pink-500/20 px-3 py-1 rounded-full mb-3 inline-block">
+                      Problem Signal 0{activeIndex + 1}
+                    </span>
+                    <h3 className="text-2xl font-black font-heading text-white tracking-tight leading-tight">
+                      {PROBLEM_POINTS[activeIndex].title}
+                    </h3>
+                    <p className="text-slate-200 text-xs font-bold leading-normal mt-1.5 max-w-sm">
+                      {PROBLEM_POINTS[activeIndex].desc}
+                    </p>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Mobile and Tablet View (under lg): Standard responsive cards with inline images */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:hidden relative z-10">
             {PROBLEM_POINTS.map((point, idx) => {
               const config = [
                 {
@@ -359,220 +727,538 @@ export default function WebinarLandingPage() {
               ][idx];
 
               return (
-                <div key={idx} className="p-6 rounded-[2rem] bg-white border border-slate-100 shadow-md hover:shadow-xl transition-all duration-300 relative overflow-hidden group flex flex-col items-start text-left min-h-[220px]">
-                  {/* Top row with icon & numbered badge */}
-                  <div className="flex items-center justify-between w-full mb-5">
-                    <div className={`w-12 h-12 rounded-full ${config.iconBg} flex items-center justify-center shrink-0`}>
-                      {config.icon}
-                    </div>
-                    <div className={`w-6 h-6 rounded-full ${config.badgeBg} flex items-center justify-center text-xs font-bold`}>
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: idx * 0.1 }}
+                  className="p-6 rounded-[2rem] bg-white border border-slate-100 shadow-md hover:shadow-xl transition-all duration-300 relative overflow-hidden group flex flex-col items-start text-left min-h-[360px]"
+                >
+                  {/* Inline Image for Mobile */}
+                  <div className="w-full h-40 rounded-2xl overflow-hidden mb-5 border border-slate-100 shadow-sm relative">
+                    <img 
+                      src={[`/problem-1-gen.png`, `/problem-2-gen.png`, `/problem-3-gen.png`][idx]} 
+                      alt={point.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-3 left-3 w-6 h-6 rounded-full bg-slate-900/60 backdrop-blur-sm flex items-center justify-center text-white text-[10px] font-bold">
                       {idx + 1}
                     </div>
                   </div>
-                  {/* Title, Bar & Description */}
-                  <div className="mt-2 space-y-3">
+
+                  {/* Icon & Title Row */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`w-8 h-8 rounded-full ${config.iconBg} flex items-center justify-center shrink-0`}>
+                      {config.icon}
+                    </div>
                     <h4 className="text-base sm:text-lg font-bold text-slate-800 tracking-tight group-hover:text-primary transition-colors">
                       {point.title}
                     </h4>
-                    {/* Horizontal Indicator Line */}
-                    <div className={`w-10 h-[2px] ${idx === 0 ? 'bg-primary' : idx === 1 ? 'bg-accent' : 'bg-primary-light'} rounded-full`} />
-                    <p className="text-slate-650 text-xs sm:text-sm leading-relaxed font-medium">
-                      {point.desc}
-                    </p>
                   </div>
-                  {/* Subtle decorative circles */}
+
+                  <div className={`w-10 h-[2px] ${idx === 0 ? 'bg-primary' : idx === 1 ? 'bg-accent' : 'bg-primary-light'} rounded-full mb-3`} />
+                  <p className="text-slate-500 text-xs sm:text-sm leading-relaxed font-medium">
+                    {point.desc}
+                  </p>
                   <div className="absolute -bottom-6 -right-6 w-14 h-14 rounded-full bg-slate-50 group-hover:bg-primary/5 transition-colors -z-10" />
-                </div>
+                </motion.div>
               );
             })}
           </div>
 
           {/* Redesigned bottom rose banner */}
-          <div className="rounded-2xl bg-rose-50 border border-rose-100 p-4 flex items-center justify-center gap-3 mt-10">
+          <div className="rounded-2xl bg-rose-50 border border-rose-100 p-4 flex items-center justify-center gap-3 mt-4">
             <Heart className="text-rose-500 shrink-0 fill-rose-500 animate-pulse" size={16} />
-            <p className="text-rose-700 font-extrabold text-xs sm:text-sm text-center leading-relaxed">
+            <p className="text-rose-700 font-bold text-xs sm:text-sm text-center leading-relaxed">
               "Is it just a phase, or is something deeper wrong? Most parents don't find out until months later."
             </p>
           </div>
+        </motion.div>
+
+      </div>
+
+      {/* REASSURANCE & PROMISE BANNER - Light Blue full-width background */}
+      <section className="w-full bg-[#F0F7FF] border-y border-blue-100/50 pt-6 pb-12 md:pt-8 md:pb-16 relative overflow-hidden">
+        {/* Soft background blurs */}
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[60%] bg-purple-200/20 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[60%] bg-blue-200/25 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="relative z-10 max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center"
+          >
+            
+            {/* Expert image on right on desktop, top on mobile */}
+            <div className="lg:col-span-5 order-1 lg:order-2 flex flex-col items-center">
+              <div className="relative w-full max-w-[320px] aspect-square rounded-[2rem] overflow-hidden border-4 border-white shadow-xl bg-white">
+                <img 
+                  src="/webinar-expert-guides.png" 
+                  alt="Meet Your Guides: Bhumika Asrani & Suman Sikdar" 
+                  className="w-full h-full object-cover animate-in zoom-in-95 duration-500"
+                />
+              </div>
+              <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mt-4 text-center">
+                Meet Your Guides: Bhumika Asrani & Suman Sikdar
+              </span>
+            </div>
+
+            {/* Copy column on left on desktop, bottom on mobile */}
+            <div className="lg:col-span-7 order-2 lg:order-1 text-left space-y-6">
+              <h3 className="text-2xl md:text-3xl lg:text-4xl font-heading font-extrabold text-slate-800 leading-tight">
+                You&apos;re not failing at this. No one ever taught you how to read what&apos;s underneath.
+              </h3>
+              <p className="text-slate-655 text-sm md:text-base font-semibold leading-relaxed">
+                Our Promise: Learn the <strong className="text-slate-900 font-extrabold">3 Silent Signals</strong> every daughter sends — and the <strong className="text-slate-900 font-extrabold">exact words to say back</strong> — before a phase becomes a crisis.
+              </p>
+              <div className="pt-2">
+                <button
+                  onClick={() => setModalOpen(true)}
+                  className="w-full sm:w-auto px-10 py-4 bg-primary text-white font-extrabold text-xs md:text-sm rounded-full shadow-lg hover:shadow-xl hover:scale-102 active:scale-98 transition-all flex items-center justify-center gap-2 border-none cursor-pointer"
+                >
+                  <span>Secure Your Spot</span>
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            </div>
+
+          </motion.div>
         </div>
+      </section>
+
+      {/* Remaining sections container */}
+      <div className="relative z-10 max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 py-12 md:py-20">
 
         {/* SECTION 3: WHAT YOU WILL LEARN */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-16 md:mb-24">
-          <div className="lg:col-span-6 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/5 border border-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest rounded-full">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-16 md:mb-24"
+        >
+          
+          {/* Left Column */}
+          <div className="lg:col-span-5 space-y-6 text-left">
+            <div className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
               <span>Course Roadmap</span>
             </div>
-            <h2 className="text-3xl font-bold font-heading text-slate-900 tracking-tight leading-tight">
-              What You Will Learn in this 90-Minute Masterclass
+            
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold font-heading text-slate-900 tracking-tight leading-tight">
+              <span>What You Will Learn in this </span><span className="text-primary">90-Minute Masterclass</span>
             </h2>
-            <p className="text-slate-500 text-sm font-semibold leading-relaxed">
+            
+            <p className="text-slate-500 text-sm md:text-base font-medium leading-relaxed max-w-lg">
               We sell hope, not just raw biology information. You will leave with a clear, decodable framework to handle your relationship with your daughter.
             </p>
 
-            <div className="pt-2 flex flex-col gap-3">
+            <div className="pt-2 flex flex-col gap-4">
               <div className="flex items-center gap-3">
-                <CheckCircle2 className="text-emerald-500 shrink-0" size={18} />
-                <span className="text-slate-700 text-xs font-bold">1:1 Free Consultation Call included</span>
+                <div className="w-6 h-6 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 shrink-0 shadow-sm">
+                  <CheckCircle2 size={14} className="stroke-[2.5]" />
+                </div>
+                <span className="text-slate-655 text-sm font-bold">1:1 Free Consultation Call included</span>
               </div>
               <div className="flex items-center gap-3">
-                <CheckCircle2 className="text-emerald-500 shrink-0" size={18} />
-                <span className="text-slate-700 text-xs font-bold">Printable PDF Decision Card</span>
+                <div className="w-6 h-6 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 shrink-0 shadow-sm">
+                  <CheckCircle2 size={14} className="stroke-[2.5]" />
+                </div>
+                <span className="text-slate-655 text-sm font-bold">Printable PDF Decision Card</span>
               </div>
             </div>
           </div>
 
-          <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {LEARN_POINTS.map((point, idx) => (
-              <div key={idx} className="p-6 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                <h4 className="text-sm font-bold text-slate-850 mb-2 flex items-center gap-2">
-                  <span className="w-1.5 h-3 bg-primary rounded-full block" />
-                  {point.title}
-                </h4>
-                <p className="text-slate-500 text-[11px] leading-relaxed font-semibold">{point.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+          {/* Right Column: Cards Grid */}
+          <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {LEARN_POINTS.map((point, idx) => {
+              const cardConfig = [
+                {
+                  bgColor: 'bg-[#FAF8FD]',
+                  borderColor: 'border-purple-100/50 hover:border-purple-300/80',
+                  hoverShadow: 'hover:shadow-[0_15px_30px_-5px_rgba(74,30,127,0.12)]',
+                  iconBg: 'bg-purple-50 border border-purple-100/40 text-purple-600',
+                  pillBarColor: 'bg-purple-600',
+                  icon: <Globe size={20} strokeWidth={1.5} />
+                },
+                {
+                  bgColor: 'bg-[#FFF9F9]',
+                  borderColor: 'border-rose-100/50 hover:border-rose-300/80',
+                  hoverShadow: 'hover:shadow-[0_15px_30px_-5px_rgba(224,83,151,0.12)]',
+                  iconBg: 'bg-rose-50 border border-rose-100/40 text-rose-500',
+                  pillBarColor: 'bg-[#E05397]',
+                  icon: <FileText size={20} strokeWidth={1.5} />
+                },
+                {
+                  bgColor: 'bg-[#F7FAFC]',
+                  borderColor: 'border-blue-100/50 hover:border-blue-300/80',
+                  hoverShadow: 'hover:shadow-[0_15px_30px_-5px_rgba(37,99,235,0.12)]',
+                  iconBg: 'bg-blue-50 border border-blue-100/40 text-blue-600',
+                  pillBarColor: 'bg-blue-600',
+                  icon: <CalendarCheck size={20} strokeWidth={1.5} />
+                },
+                {
+                  bgColor: 'bg-[#F8FDF9]',
+                  borderColor: 'border-emerald-100/50 hover:border-emerald-300/80',
+                  hoverShadow: 'hover:shadow-[0_15px_30px_-5px_rgba(16,185,129,0.12)]',
+                  iconBg: 'bg-emerald-50 border border-emerald-100/40 text-emerald-600',
+                  pillBarColor: 'bg-emerald-600',
+                  icon: <MessageSquareX size={20} strokeWidth={1.5} />
+                }
+              ][idx];
 
-        {/* SECTION 6: AGENDA AT A GLANCE */}
-        <div className="bg-slate-900 text-white rounded-[2.5rem] p-8 md:p-12 mb-16 md:mb-24 relative overflow-hidden">
-          <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary-light/10 rounded-full blur-[100px]" />
+              return (
+                <motion.div 
+                  key={idx} 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: idx * 0.12 + 0.15 }}
+                  className={`p-6 md:p-7 ${cardConfig.bgColor} border ${cardConfig.borderColor} ${cardConfig.hoverShadow} rounded-[2rem] shadow-sm hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-start text-left gap-4 group`}
+                >
+                  {/* Icon */}
+                  <div className={`w-12 h-12 rounded-2xl ${cardConfig.iconBg} flex items-center justify-center shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105`}>
+                    {cardConfig.icon}
+                  </div>
+
+                  {/* Header Title with vertical pill bar */}
+                  <div className="flex items-start gap-2.5">
+                    <span className={`w-1.5 h-5 ${cardConfig.pillBarColor} rounded-full shrink-0 mt-0.5`} />
+                    <h4 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight leading-tight font-heading">
+                      {point.title}
+                    </h4>
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-slate-500 text-xs leading-relaxed font-semibold">
+                    {point.desc}
+                  </p>
+                </motion.div>
+              );
+            })}
+          </div>
+
+        </motion.div>
+
+        {/* SECTION 4: AGENDA AT A GLANCE */}
+        <div className="mb-16 md:mb-24 relative overflow-hidden">
           
-          <div className="text-center max-w-2xl mx-auto space-y-3 mb-12">
-            <span className="text-primary-light text-[10px] font-bold uppercase tracking-widest">Run of Show</span>
-            <h2 className="text-2xl sm:text-3xl font-bold font-heading tracking-tight">Agenda at a Glance</h2>
-            <p className="text-slate-400 text-xs font-semibold">90 minutes designed to give you maximum clarity and actionable steps.</p>
+          <div className="text-center max-w-2xl mx-auto space-y-4 mb-14 relative z-10">
+            <div className="inline-block px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-full">
+              <span>Run of Show</span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold font-heading tracking-tight text-slate-900 leading-tight">
+              <span>Agenda </span><span className="text-primary">at a Glance</span>
+            </h2>
+            <p className="text-slate-500 text-sm md:text-base font-medium max-w-md mx-auto leading-relaxed">
+              90 minutes designed to give you maximum clarity and actionable steps.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10">
-            {TIMELINE_POINTS.map((point, idx) => (
-              <div key={idx} className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-                <div className="text-primary-light text-[10px] font-black uppercase tracking-wider mb-2">{point.time}</div>
-                <h4 className="text-sm font-bold mb-2">{point.title}</h4>
-                <p className="text-slate-400 text-[11px] leading-relaxed font-semibold">{point.desc}</p>
+          {/* Desktop 3-column view */}
+          <div className="hidden lg:grid grid-cols-12 gap-8 items-center relative z-10 max-w-7xl mx-auto px-4">
+            
+            {/* Left Column - 3 points (right-aligned) */}
+            <div className="col-span-4 flex flex-col gap-6">
+              {AGENDA_LIST.slice(0, 3).map((item, idx) => (
+                <motion.div 
+                  key={idx}
+                  initial={{ opacity: 0, x: -30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: idx * 0.15 + 0.1 }}
+                  className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(74,30,127,0.03)] hover:shadow-[0_15px_30px_-5px_rgba(74,30,127,0.06)] rounded-3xl p-6 flex items-center justify-end transition-all duration-300 hover:-translate-y-0.5 group text-right"
+                >
+                  <div className="mr-5">
+                    <h4 className="text-sm sm:text-base md:text-lg font-bold text-slate-800 tracking-tight font-heading group-hover:text-primary transition-colors">
+                      {item.title}
+                    </h4>
+                    <p className="text-[11px] sm:text-xs text-slate-400 font-extrabold uppercase tracking-wide mt-0.5">
+                      {item.time}
+                    </p>
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed mt-1.5 max-w-[320px]">
+                      {item.desc}
+                    </p>
+                  </div>
+                  <div 
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105 ${item.textColor}`}
+                    style={{ backgroundColor: item.color }}
+                  >
+                    {item.icon}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Center Column - Image illustration */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.55 }}
+              className="col-span-4 flex justify-center"
+            >
+              <div className="relative w-full max-w-[340px] aspect-[3/4] rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-xl bg-gradient-to-b from-purple-50 to-rose-50">
+                <img 
+                  src="/agenda-center-gen.png" 
+                  alt="Agenda Insights" 
+                  className="w-full h-full object-cover" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-purple-950/20 to-transparent pointer-events-none" />
               </div>
-            ))}
+            </motion.div>
+
+            {/* Right Column - 3 points (left-aligned) */}
+            <div className="col-span-4 flex flex-col gap-6">
+              {AGENDA_LIST.slice(3, 6).map((item, idx) => (
+                <motion.div 
+                  key={idx}
+                  initial={{ opacity: 0, x: 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: idx * 0.15 + 0.7 }}
+                  className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(74,30,127,0.03)] hover:shadow-[0_15px_30px_-5px_rgba(74,30,127,0.06)] rounded-3xl p-6 flex items-center justify-start transition-all duration-300 hover:-translate-y-0.5 group text-left"
+                >
+                  <div 
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105 mr-5 ${item.textColor}`}
+                    style={{ backgroundColor: item.color }}
+                  >
+                    {item.icon}
+                  </div>
+                  <div>
+                    <h4 className="text-sm sm:text-base md:text-lg font-bold text-slate-800 tracking-tight font-heading group-hover:text-primary transition-colors">
+                      {item.title}
+                    </h4>
+                    <p className="text-[11px] sm:text-xs text-slate-400 font-extrabold uppercase tracking-wide mt-0.5">
+                      {item.time}
+                    </p>
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed mt-1.5 max-w-[320px]">
+                      {item.desc}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
           </div>
+
+          {/* Mobile responsive view (below lg) */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="flex lg:hidden flex-col gap-8 px-6"
+          >
+            {/* Center Image */}
+            <div className="flex justify-center">
+              <div className="relative w-full max-w-[280px] aspect-[4/5] rounded-3xl overflow-hidden border border-slate-100 shadow-md">
+                <img 
+                  src="/agenda-center-gen.png" 
+                  alt="Agenda Insights" 
+                  className="w-full h-full object-cover" 
+                />
+              </div>
+            </div>
+
+            {/* List of all points stacked */}
+            <div className="flex flex-col gap-4">
+              {AGENDA_LIST.map((item, idx) => (
+                <motion.div 
+                  key={idx}
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: idx * 0.05 }}
+                  className="bg-white border border-slate-100 shadow-sm rounded-2xl p-5 flex items-center gap-4 text-left"
+                >
+                  <div 
+                    className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${item.textColor}`}
+                    style={{ backgroundColor: item.color }}
+                  >
+                    {item.icon}
+                  </div>
+                  <div>
+                    <h4 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight font-heading">
+                      {item.title}
+                    </h4>
+                    <p className="text-xs text-slate-400 font-bold uppercase mt-0.5">
+                      {item.time}
+                    </p>
+                    <p className="text-xs sm:text-sm text-slate-550 leading-relaxed font-semibold mt-1">
+                      {item.desc}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
         </div>
 
         {/* SECTION 5: MEET YOUR TRAINERS */}
-        <div className="text-center max-w-4xl mx-auto mb-16 md:mb-24">
-          <div className="space-y-3 mb-10">
-            <span className="text-primary text-[10px] font-bold uppercase tracking-widest">Your Guides</span>
-            <h2 className="text-2xl sm:text-3xl font-bold font-heading text-slate-900 tracking-tight">Meet Your Expert Mentors</h2>
-            <p className="text-slate-500 text-xs font-semibold">Lived experts specializing in adolescent psychology and girls' developmental health.</p>
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="text-center max-w-[1440px] mx-auto mb-16 md:mb-24 relative"
+        >
+          <div className="space-y-3 mb-10 max-w-4xl mx-auto px-6">
+            <div className="inline-block px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-full">
+              <span>Your Guides</span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold font-heading text-slate-900 tracking-tight leading-tight">
+              <span>Meet Your </span><span className="text-primary">Expert Mentors</span>
+            </h2>
+            <p className="text-slate-500 text-sm md:text-base font-medium leading-relaxed">Lived experts specializing in adolescent psychology and girls' developmental health.</p>
             {webinar.instructor && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-extrabold mt-2 uppercase tracking-wide">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold mt-2 uppercase tracking-wide">
                 <span>Featured Host: {webinar.instructor}</span>
               </div>
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
-            {/* Trainer 1 */}
-            <div className="bg-white border border-slate-100 shadow-sm rounded-3xl p-6 hover:shadow-md transition-shadow">
-                <div className="w-24 h-24 rounded-2xl bg-primary/10 mx-auto mb-4 overflow-hidden border border-slate-200">
-                  <img src="/avatar-bhumika.png" alt="Bhumika Asrani" className="w-full h-full object-cover fallback-image" onError={(e) => {
-                    (e.target as HTMLImageElement).src = "https://api.dicebear.com/7.x/adventurer/svg?seed=bhumika";
-                  }} />
+          {/* Grid of exactly 3 expert cards, non-scrolling */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto px-6">
+            {EXPERT_MENTORS.slice(0, 3).map((expert, idx) => (
+              <div 
+                key={idx} 
+                className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(74,30,127,0.03)] hover:shadow-[0_15px_30px_-5px_rgba(74,30,127,0.06)] hover:-translate-y-1.5 transition-all duration-300 rounded-3xl p-6 text-left flex flex-col justify-between"
+              >
+                <div>
+                  <div className="w-20 h-20 rounded-2xl bg-primary/10 mb-4 overflow-hidden border border-slate-200">
+                    <img 
+                      src={expert.avatar} 
+                      alt={expert.name} 
+                      className="w-full h-full object-cover fallback-image" 
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${expert.seed}`;
+                      }} 
+                    />
+                  </div>
+                  <h4 className="text-base font-bold text-slate-800">{expert.name}</h4>
+                  <p className="text-primary text-[10px] font-bold uppercase tracking-widest mt-1">{expert.role}</p>
+                  <p className="text-slate-500 text-xs leading-relaxed font-medium mt-3">
+                    {expert.desc}
+                  </p>
                 </div>
-                <h4 className="text-base font-bold text-slate-800">Bhumika Asrani</h4>
-                <p className="text-primary text-[10px] font-bold uppercase tracking-widest mt-1">Lead Child Psychologist</p>
-              <p className="text-slate-500 text-xs leading-relaxed font-semibold mt-3">
-                Over 8+ years of core experience in adolescent emotional regulation, helping girls bridge the communication gap with parents.
-              </p>
-            </div>
-
-            {/* Trainer 2 */}
-            <div className="bg-white border border-slate-100 shadow-sm rounded-3xl p-6 hover:shadow-md transition-shadow">
-                <div className="w-24 h-24 rounded-2xl bg-primary/10 mx-auto mb-4 overflow-hidden border border-slate-200">
-                  <img src="/avatar-suman.png" alt="Suman Sikdar" className="w-full h-full object-cover fallback-image" onError={(e) => {
-                    (e.target as HTMLImageElement).src = "https://api.dicebear.com/7.x/adventurer/svg?seed=suman";
-                  }} />
-                </div>
-                <h4 className="text-base font-bold text-slate-800">Suman Sikdar</h4>
-                <p className="text-primary text-[10px] font-bold uppercase tracking-widest mt-1">Puberty Educator</p>
-              <p className="text-slate-500 text-xs leading-relaxed font-semibold mt-3">
-                Specializes in puberty transition biology and hormonal health. Passionate about empowering parents with correct biological frameworks.
-              </p>
-            </div>
+              </div>
+            ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* SECTION 7: SOCIAL PROOF / TESTIMONIAL */}
-        <div className="max-w-3xl mx-auto mb-16 md:mb-24">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="max-w-3xl mx-auto mb-16 md:mb-24"
+        >
           <div className="p-8 md:p-10 rounded-[2rem] bg-primary/5 border border-primary/10 text-center relative">
             <Quote className="absolute top-6 left-6 text-primary/10" size={44} />
             <div className="flex items-center justify-center gap-1 text-amber-500 text-xs font-bold mb-4">
               <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-              <span className="text-slate-650 font-bold ml-1">5.0 (500+ parents attended)</span>
+              <span className="text-slate-500 font-bold ml-1">5.0 (500+ parents attended)</span>
             </div>
-            <p className="text-slate-700 text-sm md:text-base font-semibold leading-relaxed italic mb-6">
+            <p className="text-slate-700 text-sm md:text-base font-medium leading-relaxed italic mb-6">
               "My daughter was pulling away in Class 6. This webinar gave me the exact vocabulary to react when she slams the door. Using their scripts, she actually opened up to me the very next day. Highly recommended!"
             </p>
             <h5 className="text-xs font-bold text-slate-800 uppercase tracking-widest">— Ritu S., Mother of a 12-Year-Old</h5>
           </div>
-        </div>
+        </motion.div>
 
         {/* SECTION 8: FAQ ACCORDION */}
-        <div className="max-w-2xl mx-auto mb-16 md:mb-24">
-          <h2 className="text-2xl font-bold font-heading text-slate-900 tracking-tight text-center mb-8">Frequently Asked Questions</h2>
+        <div className="max-w-3xl mx-auto mb-16 md:mb-24 relative z-10">
+          <div className="text-center mb-12">
+            <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-4">FAQ</span>
+            <h2 className="text-3xl md:text-4xl font-bold font-heading text-slate-900 tracking-tight">
+              Frequently Asked Questions
+            </h2>
+          </div>
+
           <div className="space-y-4">
-            {FAQ_ITEMS.map((faq, idx) => {
-              const isOpen = openFaqIndex === idx;
+            {FAQ_ITEMS.map((faq, i) => {
+              const isOpen = openFaqIndex === i;
               return (
-                <div key={idx} className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: i * 0.1 }}
+                  className={`border rounded-[2rem] transition duration-300 overflow-hidden ${
+                    isOpen ? 'border-primary bg-primary/[0.02] shadow-xl shadow-primary/5' : 'border-slate-100 bg-white hover:border-slate-200'
+                  }`}
+                >
                   <button
-                    onClick={() => toggleFaq(idx)}
-                    className="w-full flex items-center justify-between p-5 text-left font-bold text-sm text-slate-800 hover:bg-slate-50/50 transition-colors"
+                    onClick={() => toggleFaq(i)}
+                    className="w-full px-8 py-6 flex items-center justify-between text-left group"
                   >
-                    <span>{faq.question}</span>
-                    <ChevronDown size={16} className={`text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                    <span className={`text-base sm:text-lg font-bold tracking-tight transition-colors duration-300 ${isOpen ? 'text-primary' : 'text-slate-900'}`}>
+                      {faq.question}
+                    </span>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center transition duration-300 ${
+                      isOpen ? 'bg-primary text-white rotate-180 shadow-lg shadow-primary/30' : 'bg-slate-50 text-slate-400 group-hover:bg-slate-100'
+                    }`}>
+                      {isOpen ? <Minus size={18} /> : <Plus size={18} />}
+                    </div>
                   </button>
-                  <AnimatePresence initial={false}>
+                  
+                  <AnimatePresence>
                     {isOpen && (
                       <motion.div
-                        initial={{ height: 0 }}
-                        animate={{ height: 'auto' }}
-                        exit={{ height: 0 }}
-                        transition={{ duration: 0.25 }}
-                        className="overflow-hidden"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25, ease: 'easeOut' }}
                       >
-                        <div className="p-5 pt-0 border-t border-slate-100 text-slate-500 text-xs leading-relaxed font-semibold">
+                        <div className="px-8 pb-8 text-slate-500 font-medium leading-relaxed border-t border-primary/5 pt-6 mx-8">
                           {faq.answer}
                         </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </div>
+                </motion.div>
               );
             })}
           </div>
         </div>
 
         {/* SECTION 9: FINAL CTA */}
-        <div className="text-center max-w-xl mx-auto p-8 rounded-[2rem] bg-white border border-slate-100 shadow-xl relative overflow-hidden">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="text-center max-w-xl mx-auto p-8 rounded-[2rem] bg-white border border-slate-100 shadow-xl relative overflow-hidden"
+        >
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-primary-light to-accent" />
           
           <h3 className="text-lg md:text-xl font-bold font-heading text-slate-900 mb-2">Reserve Your Webinar Pass</h3>
-          <p className="text-slate-500 text-xs leading-relaxed font-semibold mb-6">
+          <p className="text-slate-500 text-xs leading-relaxed font-medium mb-6">
             Get the decodable signals framework + 1:1 call bonus + private parents community access.
           </p>
 
           <div className="flex flex-col items-center gap-3">
             <button
               onClick={() => setModalOpen(true)}
-              className="btn-primary w-full py-4 shadow-xl shadow-primary/20 text-sm uppercase tracking-wider font-bold transition-all duration-300 hover:scale-105 active:scale-95"
+              className="w-full py-4 bg-primary text-white rounded-full font-bold text-sm hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 flex items-center justify-center gap-2 group cursor-pointer border-none"
             >
-              Reserve Seat for ₹{webinar.price}
+              <span>Reserve My Seat — ₹{webinar.price}/-</span>
+              <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
             </button>
             <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-semibold pt-1">
               <ShieldCheck size={14} className="text-emerald-500" />
               <span>Passes are backed by a satisfaction refund policy.</span>
             </div>
           </div>
-        </div>
-
+        </motion.div>
       </div>
 
       {/* RENDER RESERVATION CHECKOUT MODAL */}
@@ -581,6 +1267,50 @@ export default function WebinarLandingPage() {
         onClose={() => setModalOpen(false)}
         webinar={webinar}
       />
+
+      {/* FLOATING STICKY CTA */}
+      <AnimatePresence>
+        {showStickyCta && (
+          <motion.div
+            initial={{ opacity: 0, y: 100, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: 100, x: '-50%' }}
+            transition={{ duration: 0.3 }}
+            className="fixed bottom-6 left-1/2 z-40 w-[92%] max-w-3xl bg-white/95 backdrop-blur-xl border border-rose-100 shadow-premium rounded-2xl md:rounded-full py-4 px-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 pointer-events-auto"
+          >
+            {/* Left: Countdown Timer */}
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="flex items-center gap-1.5 bg-rose-50 border border-rose-100/50 rounded-full px-4 py-1.5 text-rose-600 font-mono font-bold text-sm md:text-base">
+                <Clock size={16} className="animate-pulse text-rose-500" />
+                <span>{formatTotalTimeLeft()}</span>
+              </div>
+              <span className="text-xs md:text-sm font-extrabold text-rose-500 tracking-tight">Ending soon!</span>
+            </div>
+
+            {/* Middle: Scarcity Text */}
+            <div className="flex items-center gap-2.5 shrink-0">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+              </span>
+              <span className="text-sm md:text-base font-extrabold text-slate-700">
+                Only 9 seats left!
+              </span>
+            </div>
+
+            {/* Right: CTA Button */}
+            <div className="w-full md:w-auto shrink-0">
+              <button
+                onClick={() => setModalOpen(true)}
+                className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-primary to-[#E05397] text-white font-extrabold text-sm md:text-base rounded-full shadow-lg hover:shadow-xl hover:scale-102 active:scale-98 transition-all flex items-center justify-center gap-2 border-none cursor-pointer"
+              >
+                <span>Reserve Your Seat Now</span>
+                <ArrowRight size={15} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

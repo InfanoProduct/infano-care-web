@@ -38,6 +38,11 @@ export function MarketingNavbar() {
 
   // Clean pathname for matching active state correctly in subpaths
   const cleanPath = pathname.replace(/^\/en-(us|uk)/, '') || '/';
+  const isWebinarPage = cleanPath.startsWith('/webinar');
+
+  const handleRegisterClick = () => {
+    window.dispatchEvent(new CustomEvent('open-webinar-registration'));
+  };
 
   return (
     <>
@@ -57,52 +62,65 @@ export function MarketingNavbar() {
             />
           </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden xl:flex items-center gap-1 bg-white/70 p-1 rounded-full border border-white/80 shadow-lg shadow-slate-200/50 backdrop-blur-md">
-            {navLinks.map((link) => {
-              const isActive = link.href === '/'
-                ? cleanPath === '/'
-                : cleanPath.startsWith(link.href);
-              return (
-                <Link
-                  key={link.name}
-                  href={getLocalizedLink(link.href)}
-                  className={`text-xs xl:text-[13px] px-3 xl:px-4 py-2 rounded-full transition-all duration-200 whitespace-nowrap ${isActive
-                    ? 'bg-primary text-white font-semibold shadow-sm'
-                    : 'text-slate-600 hover:text-primary font-medium hover:bg-white/60'
-                    }`}
-                >
-                  {link.name}
+          {isWebinarPage ? (
+            <div className="flex items-center shrink-0">
+              <button
+                onClick={handleRegisterClick}
+                className="btn-primary text-xs md:text-[13px] px-5 md:px-7 py-2 md:py-2.5 whitespace-nowrap shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer border-none font-bold"
+              >
+                Register Now
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Nav */}
+              <nav className="hidden xl:flex items-center gap-1 bg-white/70 p-1 rounded-full border border-white/80 shadow-lg shadow-slate-200/50 backdrop-blur-md">
+                {navLinks.map((link) => {
+                  const isActive = link.href === '/'
+                    ? cleanPath === '/'
+                    : cleanPath.startsWith(link.href);
+                  return (
+                    <Link
+                      key={link.name}
+                      href={getLocalizedLink(link.href)}
+                      className={`text-xs xl:text-[13px] px-3 xl:px-4 py-2 rounded-full transition-all duration-200 whitespace-nowrap ${isActive
+                        ? 'bg-primary text-white font-semibold shadow-sm'
+                        : 'text-slate-600 hover:text-primary font-medium hover:bg-white/60'
+                        }`}
+                    >
+                      {link.name}
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              {/* Desktop CTAs */}
+              <div className="hidden xl:flex items-center gap-3 xl:gap-6 shrink-0">
+                {isAuthenticated ? (
+                  <Link href={getLocalizedLink('/dashboard')} className="text-[13px] font-bold text-primary hover:text-primary-dark transition-colors whitespace-nowrap hidden 2xl:block">
+                    Go to Workspace &rarr;
+                  </Link>
+                ) : (
+                  <Link href={getLocalizedLink('/login')} className="text-[13px] font-bold text-slate-700 hover:text-primary transition-colors whitespace-nowrap hidden 2xl:block">
+                    Sign In
+                  </Link>
+                )}
+                <Link href={getLocalizedLink('/contact')} className="btn-primary text-xs xl:text-[13px] px-4 xl:px-6 py-2 xl:py-2.5 whitespace-nowrap shadow-md hover:shadow-lg transition-all active:scale-95">
+                  Enrol Your School &rarr;
                 </Link>
-              );
-            })}
-          </nav>
+              </div>
 
-          {/* Desktop CTAs */}
-          <div className="hidden xl:flex items-center gap-3 xl:gap-6 shrink-0">
-            {isAuthenticated ? (
-              <Link href={getLocalizedLink('/dashboard')} className="text-[13px] font-bold text-primary hover:text-primary-dark transition-colors whitespace-nowrap hidden 2xl:block">
-                Go to Workspace &rarr;
-              </Link>
-            ) : (
-              <Link href={getLocalizedLink('/login')} className="text-[13px] font-bold text-slate-700 hover:text-primary transition-colors whitespace-nowrap hidden 2xl:block">
-                Sign In
-              </Link>
-            )}
-            <Link href={getLocalizedLink('/contact')} className="btn-primary text-xs xl:text-[13px] px-4 xl:px-6 py-2 xl:py-2.5 whitespace-nowrap shadow-md hover:shadow-lg transition-all active:scale-95">
-              Enrol Your School &rarr;
-            </Link>
-          </div>
-
-          {/* Mobile Menu Toggle */}
-          <div className="xl:hidden flex items-center gap-3">
-            <button
-              className="xl:hidden p-2 text-foreground z-50"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
+              {/* Mobile Menu Toggle */}
+              <div className="xl:hidden flex items-center gap-3">
+                <button
+                  className="xl:hidden p-2 text-foreground z-50"
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                >
+                  {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </header>
 

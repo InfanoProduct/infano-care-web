@@ -19,7 +19,7 @@ export default function MarketingLayout({
   const isLogin = cleanPathname === '/login' || cleanPathname === '/login/';
   const isPortal = isDashboard || isProgramDetail || isLogin;
   const isPurchaseSuccess = cleanPathname.startsWith('/purchase-success');
-  const hideWidgets = cleanPathname.startsWith('/checkout') || cleanPathname.startsWith('/gigi-the-awkward-age-book') || isPurchaseSuccess;
+  const hideWidgets = cleanPathname.startsWith('/checkout') || cleanPathname.startsWith('/gigi-the-awkward-age-book') || isPurchaseSuccess || cleanPathname.startsWith('/webinar');
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -33,7 +33,7 @@ export default function MarketingLayout({
           {children}
         </Suspense>
       </main>
-      {!isPortal && !isPurchaseSuccess && <MarketingFooter />}
+      {!isPortal && !isPurchaseSuccess && !cleanPathname.startsWith('/webinar') && <MarketingFooter />}
 
       {/* Floating WhatsApp Button */}
       {!hideWidgets && (

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Script from 'next/script';
 import { ShopService } from '@/services/shop.service';
 import { useAuthStore } from '@/store/auth-store';
-import { Loader2, X, ShieldCheck, AlertCircle, Sparkles, CheckCircle2, User, Mail, Phone, Ticket, Heart } from 'lucide-react';
+import { Loader2, X, ShieldCheck, AlertCircle, Sparkles, CheckCircle2, User, Mail, Phone, Ticket, Heart, ArrowRight } from 'lucide-react';
 
 interface WebinarCheckoutModalProps {
   isOpen: boolean;
@@ -369,7 +369,7 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
               <button
                 type="submit"
                 disabled={processing}
-                className="w-full py-4 px-4 bg-gradient-to-r from-primary via-primary-light to-pink-500 hover:opacity-90 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 cursor-pointer border-none"
+                className="w-full py-4 px-4 bg-gradient-to-r from-primary via-primary-light to-pink-500 hover:opacity-95 active:scale-95 text-white font-bold text-sm rounded-full shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 cursor-pointer border-none"
               >
                 {processing ? (
                   <>
@@ -378,8 +378,8 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
                   </>
                 ) : (
                   <>
-                    <span>RESERVE MY SEAT FOR ₹{webinar ? webinar.price : 99}</span>
-                    <span className="text-xs font-bold font-mono">&gt;</span>
+                    <span>Reserve My Seat for ₹{webinar ? webinar.price : 99}</span>
+                    <ArrowRight size={16} />
                   </>
                 )}
               </button>

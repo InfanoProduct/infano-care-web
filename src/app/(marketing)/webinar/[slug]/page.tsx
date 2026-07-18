@@ -78,7 +78,7 @@ const AGENDA_LIST = [
     time: "0:00 - 0:15",
     title: "Welcome & Check-In",
     desc: "Setting expectations, statistics on modern parent-daughter disconnects, and a quick live poll.",
-    icon: <Users size={16} strokeWidth={2.5} />,
+    icon: <Users size={20} strokeWidth={2.5} />,
     color: "rgba(74, 30, 127, 0.08)",
     textColor: "text-primary"
   },
@@ -86,7 +86,7 @@ const AGENDA_LIST = [
     time: "0:15 - 0:50",
     title: "Hormones vs Attitude",
     desc: "A scientific dive into adolescent neurobiology, puberty transitions, and hormonal changes.",
-    icon: <Brain size={16} strokeWidth={2.5} />,
+    icon: <Brain size={20} strokeWidth={2.5} />,
     color: "rgba(224, 83, 151, 0.08)",
     textColor: "text-rose-500"
   },
@@ -94,7 +94,7 @@ const AGENDA_LIST = [
     time: "0:50 - 1:15",
     title: "The 2-Week Warning Rule",
     desc: "A clinical diagnostic checklist to track persistent mood patterns versus routine mood swings.",
-    icon: <CalendarCheck size={16} strokeWidth={2.5} />,
+    icon: <CalendarCheck size={20} strokeWidth={2.5} />,
     color: "rgba(37, 99, 235, 0.08)",
     textColor: "text-blue-500"
   },
@@ -103,7 +103,7 @@ const AGENDA_LIST = [
     time: "1:15 - 1:30",
     title: "Live Role-Play & Script Demo",
     desc: "Hands-on walkthrough of exact phrases to react when she shuts you out or slams her door.",
-    icon: <MessageCircle size={16} strokeWidth={2.5} />,
+    icon: <MessageCircle size={20} strokeWidth={2.5} />,
     color: "rgba(224, 83, 151, 0.08)",
     textColor: "text-rose-500"
   },
@@ -111,7 +111,7 @@ const AGENDA_LIST = [
     time: "1:30 - 1:40",
     title: "What NOT to Say Checklist",
     desc: "Common conversational errors (dismissiveness, over-advising) that accidentally sever trust.",
-    icon: <MessageSquareX size={16} strokeWidth={2.5} />,
+    icon: <MessageSquareX size={20} strokeWidth={2.5} />,
     color: "rgba(16, 185, 129, 0.08)",
     textColor: "text-emerald-500"
   },
@@ -119,7 +119,7 @@ const AGENDA_LIST = [
     time: "1:40 - 1:45",
     title: "Live Q&A & Case Audits",
     desc: "Ask the child psychologists anything about your specific daughter's challenges.",
-    icon: <Quote size={16} strokeWidth={2.5} />,
+    icon: <Quote size={20} strokeWidth={2.5} />,
     color: "rgba(37, 99, 235, 0.08)",
     textColor: "text-blue-500"
   }
@@ -172,6 +172,14 @@ export default function WebinarLandingPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [showStickyCta, setShowStickyCta] = useState(false);
+  const formatTotalTimeLeft = () => {
+    if (!timeLeft) return '00h : 00m';
+    const { days, hours, minutes } = timeLeft;
+    const totalHours = days * 24 + hours;
+    return `${totalHours}h : ${String(minutes).padStart(2, '0')}m`;
+  };
+
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
@@ -180,7 +188,13 @@ export default function WebinarLandingPage() {
     if (!webinar?.date) return;
     
     const calculateTimeLeft = () => {
-      const difference = +new Date(webinar.date) - +new Date();
+      let targetDate: Date;
+      if (webinar.date.endsWith('Z') || webinar.date.includes('+')) {
+        targetDate = new Date(webinar.date);
+      } else {
+        targetDate = new Date(`${webinar.date.replace(' ', 'T')}+05:30`);
+      }
+      const difference = +targetDate - +new Date();
       if (difference <= 0) {
         return { days: 0, hours: 0, minutes: 0, seconds: 0 };
       }
@@ -214,16 +228,29 @@ export default function WebinarLandingPage() {
         setLoading(false);
       })
       .catch((err) => {
-        console.error(err);
+        if (err.message === 'Webinar not found') {
+          console.warn(`Webinar not found for slug: ${slug}`);
+        } else {
+          console.error(err);
+        }
         setError('Webinar not found or scheduled details are unavailable.');
         setLoading(false);
       });
   }, [slug, router]);
 
   useEffect(() => {
+    const handleOpen = () => setModalOpen(true);
+    window.addEventListener('open-webinar-registration', handleOpen);
+    return () => window.removeEventListener('open-webinar-registration', handleOpen);
+  }, []);
+
+
+  useEffect(() => {
     if (loading || typeof window === 'undefined') return;
 
     const handleScroll = () => {
+      setShowStickyCta(window.scrollY > 400);
+
       if (window.innerWidth < 1024) return;
 
       const cards = document.querySelectorAll('[data-section-2-card]');
@@ -262,27 +289,40 @@ export default function WebinarLandingPage() {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
   };
 
+  const getOrdinalSuffix = (day: number) => {
+    if (day > 3 && day < 21) return 'th';
+    switch (day % 10) {
+      case 1:  return "st";
+      case 2:  return "nd";
+      case 3:  return "rd";
+      default: return "th";
+    }
+  };
+
   const formatWebinarDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-      timeZone: 'Asia/Kolkata'
-    });
-    return formatter.format(date);
+    const weekday = date.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'Asia/Kolkata' });
+    const day = parseInt(date.toLocaleDateString('en-US', { day: 'numeric', timeZone: 'Asia/Kolkata' }));
+    const month = date.toLocaleDateString('en-US', { month: 'short', timeZone: 'Asia/Kolkata' });
+    return `${weekday}, ${day}${getOrdinalSuffix(day)} ${month}`;
   };
 
   const formatWebinarTime = (dateStr: string) => {
     const date = new Date(dateStr);
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
+    const timeParts = date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: 'numeric',
       hour12: true,
       timeZone: 'Asia/Kolkata'
     });
-    return `${formatter.format(date)} (IST)`;
+    const [time, ampm] = timeParts.split(' ');
+    const [hour, minute] = time.split(':');
+    const formattedAmpm = ampm.toLowerCase();
+    
+    if (minute === '00') {
+      return `${hour} ${formattedAmpm} (IST)`;
+    }
+    return `${hour}:${minute} ${formattedAmpm} (IST)`;
   };
 
   if (loading) {
@@ -424,7 +464,7 @@ export default function WebinarLandingPage() {
                   onClick={() => setModalOpen(true)}
                   className="w-full sm:w-auto px-10 py-4 bg-primary text-white rounded-full font-bold text-sm hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 flex items-center justify-center gap-2 group cursor-pointer border-none"
                 >
-                  <span>Reserve My Seat for ₹{webinar.price}</span>
+                  <span>Reserve My Seat — ₹{webinar.price}/-</span>
                   <ArrowRight className="transition-transform group-hover:translate-x-1" size={16} />
                 </button>
                 <div className="flex items-center gap-2 text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-1.5 ml-1">
@@ -549,7 +589,7 @@ export default function WebinarLandingPage() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative py-12 md:py-16 mb-16 md:mb-24"
+          className="relative pt-12 pb-0 md:pt-16 md:pb-0 mb-0"
         >
           <div className="absolute top-0 right-0 w-24 h-24 bg-rose-50 rounded-full blur-3xl -z-10" />
           
@@ -728,13 +768,70 @@ export default function WebinarLandingPage() {
           </div>
 
           {/* Redesigned bottom rose banner */}
-          <div className="rounded-2xl bg-rose-50 border border-rose-100 p-4 flex items-center justify-center gap-3 mt-10">
+          <div className="rounded-2xl bg-rose-50 border border-rose-100 p-4 flex items-center justify-center gap-3 mt-4">
             <Heart className="text-rose-500 shrink-0 fill-rose-500 animate-pulse" size={16} />
             <p className="text-rose-700 font-bold text-xs sm:text-sm text-center leading-relaxed">
               "Is it just a phase, or is something deeper wrong? Most parents don't find out until months later."
             </p>
           </div>
         </motion.div>
+
+      </div>
+
+      {/* REASSURANCE & PROMISE BANNER - Light Blue full-width background */}
+      <section className="w-full bg-[#F0F7FF] border-y border-blue-100/50 pt-6 pb-12 md:pt-8 md:pb-16 relative overflow-hidden">
+        {/* Soft background blurs */}
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[60%] bg-purple-200/20 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[60%] bg-blue-200/25 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="relative z-10 max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center"
+          >
+            
+            {/* Expert image on right on desktop, top on mobile */}
+            <div className="lg:col-span-5 order-1 lg:order-2 flex flex-col items-center">
+              <div className="relative w-full max-w-[320px] aspect-square rounded-[2rem] overflow-hidden border-4 border-white shadow-xl bg-white">
+                <img 
+                  src="/webinar-expert-guides.png" 
+                  alt="Meet Your Guides: Bhumika Asrani & Suman Sikdar" 
+                  className="w-full h-full object-cover animate-in zoom-in-95 duration-500"
+                />
+              </div>
+              <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mt-4 text-center">
+                Meet Your Guides: Bhumika Asrani & Suman Sikdar
+              </span>
+            </div>
+
+            {/* Copy column on left on desktop, bottom on mobile */}
+            <div className="lg:col-span-7 order-2 lg:order-1 text-left space-y-6">
+              <h3 className="text-2xl md:text-3xl lg:text-4xl font-heading font-extrabold text-slate-800 leading-tight">
+                You&apos;re not failing at this. No one ever taught you how to read what&apos;s underneath.
+              </h3>
+              <p className="text-slate-655 text-sm md:text-base font-semibold leading-relaxed">
+                Our Promise: Learn the <strong className="text-slate-900 font-extrabold">3 Silent Signals</strong> every daughter sends — and the <strong className="text-slate-900 font-extrabold">exact words to say back</strong> — before a phase becomes a crisis.
+              </p>
+              <div className="pt-2">
+                <button
+                  onClick={() => setModalOpen(true)}
+                  className="w-full sm:w-auto px-10 py-4 bg-primary text-white font-extrabold text-xs md:text-sm rounded-full shadow-lg hover:shadow-xl hover:scale-102 active:scale-98 transition-all flex items-center justify-center gap-2 border-none cursor-pointer"
+                >
+                  <span>Secure Your Spot</span>
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            </div>
+
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Remaining sections container */}
+      <div className="relative z-10 max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 py-12 md:py-20">
 
         {/* SECTION 3: WHAT YOU WILL LEARN */}
         <motion.div 
@@ -863,7 +960,7 @@ export default function WebinarLandingPage() {
           </div>
 
           {/* Desktop 3-column view */}
-          <div className="hidden lg:grid grid-cols-12 gap-6 items-center relative z-10 max-w-6xl mx-auto">
+          <div className="hidden lg:grid grid-cols-12 gap-8 items-center relative z-10 max-w-7xl mx-auto px-4">
             
             {/* Left Column - 3 points (right-aligned) */}
             <div className="col-span-4 flex flex-col gap-6">
@@ -874,21 +971,21 @@ export default function WebinarLandingPage() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: idx * 0.15 + 0.1 }}
-                  className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(74,30,127,0.03)] hover:shadow-[0_15px_30px_-5px_rgba(74,30,127,0.06)] rounded-2xl py-3.5 px-5 flex items-center justify-end transition-all duration-300 hover:-translate-y-0.5 group text-right"
+                  className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(74,30,127,0.03)] hover:shadow-[0_15px_30px_-5px_rgba(74,30,127,0.06)] rounded-3xl p-6 flex items-center justify-end transition-all duration-300 hover:-translate-y-0.5 group text-right"
                 >
-                  <div className="mr-4">
-                    <h4 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight font-heading group-hover:text-primary transition-colors">
+                  <div className="mr-5">
+                    <h4 className="text-sm sm:text-base md:text-lg font-bold text-slate-800 tracking-tight font-heading group-hover:text-primary transition-colors">
                       {item.title}
                     </h4>
-                    <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wide mt-0.5">
+                    <p className="text-[11px] sm:text-xs text-slate-400 font-extrabold uppercase tracking-wide mt-0.5">
                       {item.time}
                     </p>
-                    <p className="text-[10px] text-slate-550 font-medium leading-relaxed mt-1 max-w-[240px]">
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed mt-1.5 max-w-[320px]">
                       {item.desc}
                     </p>
                   </div>
                   <div 
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105 ${item.textColor}`}
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105 ${item.textColor}`}
                     style={{ backgroundColor: item.color }}
                   >
                     {item.icon}
@@ -905,7 +1002,7 @@ export default function WebinarLandingPage() {
               transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.55 }}
               className="col-span-4 flex justify-center"
             >
-              <div className="relative w-full max-w-[280px] aspect-[3/4] rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-xl bg-gradient-to-b from-purple-50 to-rose-50">
+              <div className="relative w-full max-w-[340px] aspect-[3/4] rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-xl bg-gradient-to-b from-purple-50 to-rose-50">
                 <img 
                   src="/agenda-center-gen.png" 
                   alt="Agenda Insights" 
@@ -924,22 +1021,22 @@ export default function WebinarLandingPage() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: idx * 0.15 + 0.7 }}
-                  className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(74,30,127,0.03)] hover:shadow-[0_15px_30px_-5px_rgba(74,30,127,0.06)] rounded-2xl py-3.5 px-5 flex items-center justify-start transition-all duration-300 hover:-translate-y-0.5 group text-left"
+                  className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(74,30,127,0.03)] hover:shadow-[0_15px_30px_-5px_rgba(74,30,127,0.06)] rounded-3xl p-6 flex items-center justify-start transition-all duration-300 hover:-translate-y-0.5 group text-left"
                 >
                   <div 
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105 mr-4 ${item.textColor}`}
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105 mr-5 ${item.textColor}`}
                     style={{ backgroundColor: item.color }}
                   >
                     {item.icon}
                   </div>
                   <div>
-                    <h4 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight font-heading group-hover:text-primary transition-colors">
+                    <h4 className="text-sm sm:text-base md:text-lg font-bold text-slate-800 tracking-tight font-heading group-hover:text-primary transition-colors">
                       {item.title}
                     </h4>
-                    <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wide mt-0.5">
+                    <p className="text-[11px] sm:text-xs text-slate-400 font-extrabold uppercase tracking-wide mt-0.5">
                       {item.time}
                     </p>
-                    <p className="text-[10px] text-slate-550 font-medium leading-relaxed mt-1 max-w-[240px]">
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed mt-1.5 max-w-[320px]">
                       {item.desc}
                     </p>
                   </div>
@@ -959,7 +1056,7 @@ export default function WebinarLandingPage() {
           >
             {/* Center Image */}
             <div className="flex justify-center">
-              <div className="relative w-full max-w-[220px] aspect-[4/5] rounded-3xl overflow-hidden border border-slate-100 shadow-md">
+              <div className="relative w-full max-w-[280px] aspect-[4/5] rounded-3xl overflow-hidden border border-slate-100 shadow-md">
                 <img 
                   src="/agenda-center-gen.png" 
                   alt="Agenda Insights" 
@@ -977,22 +1074,22 @@ export default function WebinarLandingPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: idx * 0.05 }}
-                  className="bg-white border border-slate-100 shadow-sm rounded-2xl p-4 flex items-center gap-4 text-left"
+                  className="bg-white border border-slate-100 shadow-sm rounded-2xl p-5 flex items-center gap-4 text-left"
                 >
                   <div 
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${item.textColor}`}
+                    className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${item.textColor}`}
                     style={{ backgroundColor: item.color }}
                   >
                     {item.icon}
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-slate-800 tracking-tight font-heading">
+                    <h4 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight font-heading">
                       {item.title}
                     </h4>
-                    <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">
+                    <p className="text-xs text-slate-400 font-bold uppercase mt-0.5">
                       {item.time}
                     </p>
-                    <p className="text-[10px] text-slate-550 leading-relaxed font-semibold mt-1">
+                    <p className="text-xs sm:text-sm text-slate-550 leading-relaxed font-semibold mt-1">
                       {item.desc}
                     </p>
                   </div>
@@ -1009,7 +1106,7 @@ export default function WebinarLandingPage() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="text-center max-w-[100vw] mx-auto mb-16 md:mb-24 overflow-hidden relative"
+          className="text-center max-w-[1440px] mx-auto mb-16 md:mb-24 relative"
         >
           <div className="space-y-3 mb-10 max-w-4xl mx-auto px-6">
             <div className="inline-block px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-full">
@@ -1026,51 +1123,32 @@ export default function WebinarLandingPage() {
             )}
           </div>
 
-          {/* Infinite Marquee Slider */}
-          <div className="relative w-full overflow-hidden py-4">
-            <style>{`
-              @keyframes marquee {
-                0% { transform: translateX(0%); }
-                100% { transform: translateX(-50%); }
-              }
-              .animate-marquee-loop {
-                animation: marquee 35s linear infinite;
-              }
-              .animate-marquee-loop:hover {
-                animation-play-state: paused;
-              }
-            `}</style>
-            
-            {/* Fade overlays on edges */}
-            <div className="absolute top-0 left-0 bottom-0 w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-            <div className="absolute top-0 right-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
-
-            <div className="flex gap-6 w-max animate-marquee-loop px-4">
-              {[...EXPERT_MENTORS, ...EXPERT_MENTORS].map((expert, idx) => (
-                <div 
-                  key={idx} 
-                  className="w-[320px] sm:w-[350px] shrink-0 bg-white border border-slate-100 shadow-sm rounded-3xl p-6 hover:shadow-[0_15px_30px_-5px_rgba(74,30,127,0.06)] hover:-translate-y-1.5 transition-all duration-300 text-left flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="w-20 h-20 rounded-2xl bg-primary/10 mb-4 overflow-hidden border border-slate-200">
-                      <img 
-                        src={expert.avatar} 
-                        alt={expert.name} 
-                        className="w-full h-full object-cover fallback-image" 
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${expert.seed}`;
-                        }} 
-                      />
-                    </div>
-                    <h4 className="text-base font-bold text-slate-800">{expert.name}</h4>
-                    <p className="text-primary text-[10px] font-bold uppercase tracking-widest mt-1">{expert.role}</p>
-                    <p className="text-slate-500 text-xs leading-relaxed font-medium mt-3">
-                      {expert.desc}
-                    </p>
+          {/* Grid of exactly 3 expert cards, non-scrolling */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto px-6">
+            {EXPERT_MENTORS.slice(0, 3).map((expert, idx) => (
+              <div 
+                key={idx} 
+                className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(74,30,127,0.03)] hover:shadow-[0_15px_30px_-5px_rgba(74,30,127,0.06)] hover:-translate-y-1.5 transition-all duration-300 rounded-3xl p-6 text-left flex flex-col justify-between"
+              >
+                <div>
+                  <div className="w-20 h-20 rounded-2xl bg-primary/10 mb-4 overflow-hidden border border-slate-200">
+                    <img 
+                      src={expert.avatar} 
+                      alt={expert.name} 
+                      className="w-full h-full object-cover fallback-image" 
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${expert.seed}`;
+                      }} 
+                    />
                   </div>
+                  <h4 className="text-base font-bold text-slate-800">{expert.name}</h4>
+                  <p className="text-primary text-[10px] font-bold uppercase tracking-widest mt-1">{expert.role}</p>
+                  <p className="text-slate-500 text-xs leading-relaxed font-medium mt-3">
+                    {expert.desc}
+                  </p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </motion.div>
 
@@ -1172,7 +1250,7 @@ export default function WebinarLandingPage() {
               onClick={() => setModalOpen(true)}
               className="w-full py-4 bg-primary text-white rounded-full font-bold text-sm hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 flex items-center justify-center gap-2 group cursor-pointer border-none"
             >
-              <span>Reserve Seat for ₹{webinar.price}</span>
+              <span>Reserve My Seat — ₹{webinar.price}/-</span>
               <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
             </button>
             <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-semibold pt-1">
@@ -1189,6 +1267,50 @@ export default function WebinarLandingPage() {
         onClose={() => setModalOpen(false)}
         webinar={webinar}
       />
+
+      {/* FLOATING STICKY CTA */}
+      <AnimatePresence>
+        {showStickyCta && (
+          <motion.div
+            initial={{ opacity: 0, y: 100, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: 100, x: '-50%' }}
+            transition={{ duration: 0.3 }}
+            className="fixed bottom-6 left-1/2 z-40 w-[92%] max-w-3xl bg-white/95 backdrop-blur-xl border border-rose-100 shadow-premium rounded-2xl md:rounded-full py-4 px-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 pointer-events-auto"
+          >
+            {/* Left: Countdown Timer */}
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="flex items-center gap-1.5 bg-rose-50 border border-rose-100/50 rounded-full px-4 py-1.5 text-rose-600 font-mono font-bold text-sm md:text-base">
+                <Clock size={16} className="animate-pulse text-rose-500" />
+                <span>{formatTotalTimeLeft()}</span>
+              </div>
+              <span className="text-xs md:text-sm font-extrabold text-rose-500 tracking-tight">Ending soon!</span>
+            </div>
+
+            {/* Middle: Scarcity Text */}
+            <div className="flex items-center gap-2.5 shrink-0">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+              </span>
+              <span className="text-sm md:text-base font-extrabold text-slate-700">
+                Only 9 seats left!
+              </span>
+            </div>
+
+            {/* Right: CTA Button */}
+            <div className="w-full md:w-auto shrink-0">
+              <button
+                onClick={() => setModalOpen(true)}
+                className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-primary to-[#E05397] text-white font-extrabold text-sm md:text-base rounded-full shadow-lg hover:shadow-xl hover:scale-102 active:scale-98 transition-all flex items-center justify-center gap-2 border-none cursor-pointer"
+              >
+                <span>Reserve Your Seat Now</span>
+                <ArrowRight size={15} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

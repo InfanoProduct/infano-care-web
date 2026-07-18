@@ -19,7 +19,11 @@ export default function WebinarRedirectPage() {
         }
       })
       .catch((err) => {
-        console.error(err);
+        if (err.message === 'Webinar not found') {
+          console.warn('No active webinar found in database.');
+        } else {
+          console.error(err);
+        }
         setError('Failed to load webinar details. Please try again later.');
       });
   }, [router]);

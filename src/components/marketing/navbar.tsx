@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 import { useRegion } from '@/hooks/use-region';
+import { ShopService } from '@/services/shop.service';
 
 const navLinks = [
   { name: 'Home', href: '/' },
@@ -44,6 +45,57 @@ export function MarketingNavbar() {
     window.dispatchEvent(new CustomEvent('open-webinar-registration'));
   };
 
+  const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
+  const [webinarDate, setWebinarDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isWebinarPage) return;
+    
+    const parts = cleanPath.split('/');
+    const slug = parts[2] || 'active';
+    
+    ShopService.getWebinarBySlug(slug)
+      .then((data) => {
+        if (data && data.date) {
+          setWebinarDate(data.date);
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching webinar details in Navbar:", err);
+      });
+  }, [cleanPath, isWebinarPage]);
+
+  useEffect(() => {
+    if (!webinarDate) return;
+
+    const calculateTimeLeft = () => {
+      let targetDate: Date;
+      if (webinarDate.endsWith('Z') || webinarDate.includes('+')) {
+        targetDate = new Date(webinarDate);
+      } else {
+        targetDate = new Date(`${webinarDate.replace(' ', 'T')}+05:30`);
+      }
+      const difference = +targetDate - +new Date();
+      if (difference <= 0) {
+        return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+      }
+      return {
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60)
+      };
+    };
+
+    setTimeLeft(calculateTimeLeft());
+
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [webinarDate]);
+
   return (
     <>
       <header
@@ -63,7 +115,23 @@ export function MarketingNavbar() {
           </Link>
 
           {isWebinarPage ? (
-            <div className="flex items-center shrink-0">
+            <div className="flex items-center gap-4 md:gap-6 ml-auto">
+              {/* Countdown Timer */}
+              {timeLeft && (timeLeft.days > 0 || timeLeft.hours > 0 || timeLeft.minutes > 0 || timeLeft.seconds > 0) && (
+                <div className="hidden sm:flex items-center gap-3 shrink-0 bg-slate-50 px-4.5 py-2 rounded-full border border-slate-100">
+                  <span className="text-xs font-extrabold uppercase tracking-widest text-slate-500">Starts in</span>
+                  <div className="flex items-center gap-1.5 font-mono text-sm font-bold text-slate-800">
+                    <span>{String(timeLeft.days).padStart(2, '0')}d</span>
+                    <span className="text-slate-300 font-normal">:</span>
+                    <span>{String(timeLeft.hours).padStart(2, '0')}h</span>
+                    <span className="text-slate-300 font-normal">:</span>
+                    <span>{String(timeLeft.minutes).padStart(2, '0')}m</span>
+                    <span className="text-slate-300 font-normal">:</span>
+                    <span className="text-primary">{String(timeLeft.seconds).padStart(2, '0')}s</span>
+                  </div>
+                </div>
+              )}
+
               <button
                 onClick={handleRegisterClick}
                 className="btn-primary text-xs md:text-[13px] px-5 md:px-7 py-2 md:py-2.5 whitespace-nowrap shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer border-none font-bold"

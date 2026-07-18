@@ -134,7 +134,7 @@ export default function CustomerDashboardOverview() {
     }
   }, [user]);
 
-  const isTeen = user?.role === 'TEEN';
+  const isTeen = user?.role === 'TEEN' || (user?.role === 'PEER' && user?.contentTier && user?.contentTier !== 'ADULT');
 
   const loadDashboardData = useCallback(async () => {
     try {

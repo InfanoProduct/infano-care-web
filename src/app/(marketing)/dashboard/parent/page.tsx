@@ -6,7 +6,7 @@ import { useAuthStore } from "@/store/auth-store";
 
 export default function ParentDashboardPage() {
   const { user } = useAuthStore();
-  const isTeen = user?.role === 'TEEN';
+  const isTeen = user?.role === 'TEEN' || (user?.role === 'PEER' && user?.contentTier && user?.contentTier !== 'ADULT');
   const targetLabel = isTeen ? "parent's" : "daughter's";
 
   return (

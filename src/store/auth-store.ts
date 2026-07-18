@@ -13,6 +13,11 @@ interface AuthState {
     role: string;
     schoolId?: string;
     peerApplicationStatus?: string;
+    contentTier?: string;
+    ageAtSignup?: number;
+    onboardingStep?: number;
+    onboardingCompletedAt?: string | null;
+    isOnboardingCompleted?: boolean;
     profile?: {
       displayName?: string;
       [key: string]: any;

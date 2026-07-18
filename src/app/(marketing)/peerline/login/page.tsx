@@ -64,7 +64,7 @@ export default function PeerLineLoginPage() {
       const isAuthorized = data.role === 'PEER' ||
                            data.role === 'ADMIN' ||
                            data.role === 'EXPERT' ||
-                           (data.role === 'TEEN' && data.peerApplicationStatus === 'approved');
+                           ((data.role === 'TEEN' || data.role === 'PARENT') && data.peerApplicationStatus === 'approved');
 
       if (!isAuthorized) {
         throw new Error('Access denied. You must be an approved peer mentor to access this dashboard.');

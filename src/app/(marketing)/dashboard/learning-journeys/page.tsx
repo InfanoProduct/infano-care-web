@@ -51,7 +51,7 @@ export default function LearningJourneysPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const isTeen = user?.role === 'TEEN';
+  const isTeen = user?.role === 'TEEN' || (user?.role === 'PEER' && user?.contentTier && user?.contentTier !== 'ADULT');
 
   const loadData = useCallback(async () => {
     try {

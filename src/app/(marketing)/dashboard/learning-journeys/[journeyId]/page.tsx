@@ -62,7 +62,7 @@ export default function JourneyDetailPage() {
   const [selectedEpisodeId, setSelectedEpisodeId] = useState<string | null>(null);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
 
-  const isTeen = user?.role === 'TEEN';
+  const isTeen = user?.role === 'TEEN' || (user?.role === 'PEER' && user?.contentTier && user?.contentTier !== 'ADULT');
 
   const loadData = useCallback(async () => {
     try {

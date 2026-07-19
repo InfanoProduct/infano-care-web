@@ -89,8 +89,13 @@ export default function CustomerLoginPage() {
 
   const handleSendOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!phone || phone.length < 7) {
+    if (!phone) {
       setError('Please enter a valid phone number');
+      return;
+    }
+    if (phone.length !== selectedCountry.digits) {
+      const errorMsg = `Please enter a valid ${selectedCountry.digits}-digit phone number`;
+      setError(errorMsg);
       return;
     }
 
@@ -147,7 +152,8 @@ export default function CustomerLoginPage() {
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!otp || otp.length < 4) {
-      setError('Please enter a valid 4-digit verification code');
+      const errorMsg = 'Please enter a valid 4-digit verification code';
+      setError(errorMsg);
       return;
     }
 
@@ -283,15 +289,15 @@ export default function CustomerLoginPage() {
       />
 
       {/* Unified Login Box */}
-      <div className="w-full max-w-md bg-white border border-slate-100 p-8 sm:p-10 rounded-2xl shadow-xl shadow-slate-200/30 backdrop-blur-md relative z-10 animate-in fade-in slide-in-from-right-8 duration-500 my-auto">
+      <div className="w-full max-w-md bg-white border border-slate-100 p-8 sm:p-10 rounded-lg shadow-xl shadow-slate-200/30 backdrop-blur-md relative z-10 animate-in fade-in slide-in-from-right-8 duration-500 my-auto">
         <div className="text-center space-y-2.5 mb-6">
-          <div className="w-40 h-10 flex items-center justify-center mx-auto mb-3">
+          <div className="w-32 h-8 flex items-center justify-center mx-auto mb-3">
             <Image src="/logo/infano-logo-for-light-bg.png" alt="Infano Logo" width={500} height={500} className="text-primary" />
           </div>
-          <h2 className="text-3xl font-black tracking-tight text-slate-800">
+          <h2 className="text-3xl font-bold tracking-tight text-slate-800">
             Welcome to <span className="text-primary">Infano.care</span>
           </h2>
-          <p className="text-xs font-bold text-slate-500 max-w-xs mx-auto">
+          <p className="text-xs font-normal text-slate-500 max-w-xs mx-auto">
             Securely sign in to access your learning dashboards and active sessions
           </p>
         </div>
@@ -303,13 +309,17 @@ export default function CustomerLoginPage() {
           )}
 
           {step === 'PHONE' && (
-            <form onSubmit={handleSendOtp} className="space-y-5">
+            <form onSubmit={handleSendOtp} className="space-y-5" noValidate>
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-500 pl-0.5">
                   Phone Number
                 </label>
 
-                <div className="flex bg-slate-50 border border-slate-200 rounded-lg focus-within:border-slate-400 focus-within:ring-4 focus-within:ring-primary/5 transition-colors overflow-visible relative shadow-sm">
+                <div className={`flex bg-slate-50 border rounded-lg focus-within:ring-4 transition-colors overflow-visible relative shadow-sm ${
+                  error && (error.toLowerCase().includes('phone') || error.toLowerCase().includes('mobile'))
+                    ? 'border-rose-300 focus-within:border-rose-400 focus-within:ring-rose-500/10'
+                    : 'border-slate-200 focus-within:border-slate-400 focus-within:ring-primary/5'
+                }`}>
                   {/* Dropdown Container */}
                   <div className="relative">
                     <button
@@ -357,7 +367,10 @@ export default function CustomerLoginPage() {
                     type="tel"
                     required
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
+                    onChange={(e) => {
+                      setPhone(e.target.value.replace(/[^0-9]/g, ''));
+                      if (error) setError('');
+                    }}
                     placeholder={`Enter ${selectedCountry.digits}-digit number`}
                     maxLength={selectedCountry.digits}
                     className="w-full px-4 py-3 outline-none text-slate-800 text-sm font-semibold bg-transparent"
@@ -367,7 +380,7 @@ export default function CustomerLoginPage() {
 
               <button
                 type="submit"
-                disabled={isLoading || phone.length !== selectedCountry.digits}
+                disabled={isLoading}
                 className="w-full py-3 bg-primary hover:bg-primary-dark text-white font-bold rounded-lg flex items-center justify-center gap-2 group hover:shadow-md transition-all active:scale-95 disabled:opacity-50 duration-200 cursor-pointer"
               >
                 {isLoading ? (
@@ -382,7 +395,7 @@ export default function CustomerLoginPage() {
           )}
 
           {step === 'OTP' && (
-            <form onSubmit={handleVerifyOtp} className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+            <form onSubmit={handleVerifyOtp} className="space-y-6 animate-in slide-in-from-right-4 duration-300" noValidate>
               <div className="max-w-60 mx-auto w-full space-y-4">
                 <div className="flex justify-between items-center">
                   <label className="text-xs font-bold text-slate-500 pl-0.5">
@@ -410,6 +423,7 @@ export default function CustomerLoginPage() {
                       value={otp[index] || ''}
                       onChange={(e) => {
                         const val = e.target.value.replace(/[^0-9]/g, '');
+                        if (error) setError('');
                         if (!val) {
                           const newOtp = otp.split('');
                           newOtp[index] = '';
@@ -432,7 +446,11 @@ export default function CustomerLoginPage() {
                           document.getElementById(`otp-box-${index - 1}`)?.focus();
                         }
                       }}
-                      className="w-12 h-14 text-xl font-bold text-center bg-slate-50 border border-slate-200 rounded-lg focus:ring-4 focus:ring-primary/10 focus:border-primary/40 outline-none transition-all text-slate-800"
+                      className={`w-12 h-14 text-xl font-bold text-center bg-slate-50 border rounded-lg focus:ring-4 outline-none transition-all text-slate-800 ${
+                        error && (error.toLowerCase().includes('verification') || error.toLowerCase().includes('code') || error.toLowerCase().includes('otp'))
+                          ? 'border-rose-300 focus:ring-rose-500/10 focus:border-rose-400'
+                          : 'border-slate-200 focus:ring-primary/10 focus:border-primary/40'
+                      }`}
                       maxLength={1}
                       required
                     />
@@ -463,7 +481,7 @@ export default function CustomerLoginPage() {
 
               <button
                 type="submit"
-                disabled={isLoading || otp.length < 4}
+                disabled={isLoading}
                 className="w-full py-3.5 bg-primary hover:bg-primary-dark text-white font-bold rounded-lg flex items-center justify-center gap-2 group hover:shadow-md active:scale-95 disabled:opacity-50 disabled:grayscale transition-all duration-200 cursor-pointer"
               >
                 {isLoading ? (
@@ -522,6 +540,21 @@ export default function CustomerLoginPage() {
               </div>
             </div>
           )}
+
+          {/* Terms & Privacy Disclaimer */}
+          <div className="mt-6 pt-4 border-t border-slate-200 text-center">
+            <p className="text-[10px] text-slate-400 leading-relaxed font-normal">
+              By continuing, you agree to our{' '}
+              <Link href="/legal#terms" className="text-primary hover:underline font-medium">
+                Terms and Conditions
+              </Link>{' '}
+              &{' '}
+              <Link href="/legal#privacy" className="text-primary hover:underline font-medium">
+                Privacy Policies
+              </Link>
+              .
+            </p>
+          </div>
       </div>
     </div>
   );

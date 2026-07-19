@@ -8,6 +8,7 @@ import { Menu, X } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 import { useRegion } from '@/hooks/use-region';
 import { ShopService } from '@/services/shop.service';
+import { motion } from 'framer-motion';
 
 const navLinks = [
   { name: 'Home', href: '/' },
@@ -99,8 +100,11 @@ export function MarketingNavbar() {
   return (
     <>
       <header
-        className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-sm py-2"
+        className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.01),0_10px_20px_-2px_rgba(0,0,0,0.005)] py-2"
       >
+        {/* Top brand line indicator */}
+        <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-primary via-primary-light to-accent" />
+        
         <div className="max-w-360 mx-auto px-6 md:px-12 lg:px-24 flex items-center justify-between gap-4">
           {/* Left Column: Logo */}
           <div className="flex-1 flex items-center justify-start">
@@ -110,7 +114,7 @@ export function MarketingNavbar() {
                 alt="Infano"
                 fill
                 sizes="(max-width: 768px) 160px, (max-width: 1024px) 192px, 208px"
-                className="object-contain object-left transition-transform group-hover:scale-105 lg:-translate-y-[2px]"
+                className="object-contain object-left transition-transform group-hover:scale-102 lg:translate-y-[2px]"
                 priority
               />
             </Link>
@@ -118,21 +122,40 @@ export function MarketingNavbar() {
 
           {isWebinarPage ? (
             <div className="flex items-center gap-4 md:gap-6 ml-auto">
-              {/* Countdown Timer */}
-              {timeLeft && (timeLeft.days > 0 || timeLeft.hours > 0 || timeLeft.minutes > 0 || timeLeft.seconds > 0) && (
-                <div className="hidden sm:flex items-center gap-3 shrink-0 bg-slate-50 px-4.5 py-2 rounded-full border border-slate-100">
-                  <span className="text-xs font-extrabold uppercase tracking-widest text-slate-500">Starts in</span>
-                  <div className="flex items-center gap-1.5 font-mono text-sm font-bold text-slate-800">
-                    <span>{String(timeLeft.days).padStart(2, '0')}d</span>
-                    <span className="text-slate-300 font-normal">:</span>
-                    <span>{String(timeLeft.hours).padStart(2, '0')}h</span>
-                    <span className="text-slate-300 font-normal">:</span>
-                    <span>{String(timeLeft.minutes).padStart(2, '0')}m</span>
-                    <span className="text-slate-300 font-normal">:</span>
-                    <span className="text-primary">{String(timeLeft.seconds).padStart(2, '0')}s</span>
-                  </div>
-                </div>
-              )}
+               {/* Countdown Timer */}
+               {timeLeft && (timeLeft.days > 0 || timeLeft.hours > 0 || timeLeft.minutes > 0 || timeLeft.seconds > 0) && (
+                 <div className="hidden sm:flex items-center gap-3 shrink-0 bg-gradient-to-r from-primary to-rose-500 p-1.5 rounded-full shadow-md shadow-rose-500/10 border-none text-white">
+                   <div className="flex items-center gap-1.5 pl-3">
+                     <span className="relative flex h-2 w-2">
+                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                       <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                     </span>
+                     <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white/90">Starts in</span>
+                   </div>
+                   <div className="h-4 w-[1px] bg-white/20" />
+                   <div className="flex items-center gap-2.5 pr-3.5 font-mono text-xs font-bold text-white/90">
+                     <div className="flex items-baseline gap-0.5">
+                       <span className="text-sm font-black text-white">{String(timeLeft.days).padStart(2, '0')}</span>
+                       <span className="text-[9px] text-white/70 font-bold uppercase">d</span>
+                     </div>
+                     <span className="text-white/40 font-normal">:</span>
+                     <div className="flex items-baseline gap-0.5">
+                       <span className="text-sm font-black text-white">{String(timeLeft.hours).padStart(2, '0')}</span>
+                       <span className="text-[9px] text-white/70 font-bold uppercase">h</span>
+                     </div>
+                     <span className="text-white/40 font-normal">:</span>
+                     <div className="flex items-baseline gap-0.5">
+                       <span className="text-sm font-black text-white">{String(timeLeft.minutes).padStart(2, '0')}</span>
+                       <span className="text-[9px] text-white/70 font-bold uppercase">m</span>
+                     </div>
+                     <span className="text-white/40 font-normal">:</span>
+                     <div className="flex items-baseline gap-0.5">
+                       <span className="text-sm font-black text-white animate-pulse">{String(timeLeft.seconds).padStart(2, '0')}</span>
+                       <span className="text-[9px] text-white/80 font-bold uppercase">s</span>
+                     </div>
+                   </div>
+                 </div>
+               )}
 
               <button
                 onClick={handleRegisterClick}
@@ -145,7 +168,7 @@ export function MarketingNavbar() {
             <>
               {/* Center Column: Desktop Navigation (perfectly centered relative to viewport) */}
               <div className="flex-initial hidden xl:flex justify-center">
-                <nav className="flex items-center gap-1 bg-white/70 p-1 rounded-full border border-white/80 shadow-lg shadow-slate-200/50 backdrop-blur-md">
+                <nav className="flex items-center gap-1 bg-white/80 p-1 rounded-full border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-md">
                   {navLinks.map((link) => {
                     const isActive = link.href === '/'
                       ? cleanPath === '/'
@@ -154,11 +177,18 @@ export function MarketingNavbar() {
                       <Link
                         key={link.name}
                         href={getLocalizedLink(link.href)}
-                        className={`inline-flex items-center justify-center text-xs xl:text-[13px] px-3 xl:px-4 py-2 rounded-full transition-all duration-200 whitespace-nowrap ${isActive
-                          ? 'bg-primary text-white font-semibold shadow-sm'
-                          : 'text-slate-600 hover:text-primary font-medium hover:bg-white/60'
+                        className={`relative inline-flex items-center justify-center text-xs xl:text-[13px] px-4 py-2 rounded-full transition-all duration-300 whitespace-nowrap z-10 ${isActive
+                          ? 'text-white font-bold'
+                          : 'text-slate-600 hover:text-primary font-medium hover:bg-slate-50/60'
                           }`}
                       >
+                        {isActive && (
+                          <motion.div
+                            layoutId="active-pill"
+                            className="absolute inset-0 bg-primary rounded-full -z-10 shadow-sm"
+                            transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+                          />
+                        )}
                         {link.name}
                       </Link>
                     );
@@ -173,14 +203,14 @@ export function MarketingNavbar() {
                   {isAuthenticated ? (
                     <Link 
                       href={getLocalizedLink('/dashboard')} 
-                      className="text-xs xl:text-[13px] px-6 py-2.5 rounded-full bg-primary text-white hover:bg-primary-dark hover:shadow-lg hover:shadow-primary/20 font-bold transition-all duration-200 whitespace-nowrap active:scale-95"
+                      className="text-xs xl:text-[13px] px-6 py-2.5 rounded-full bg-gradient-to-r from-primary to-primary-light text-white font-bold transition-all duration-300 whitespace-nowrap shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20 hover:scale-[1.03] hover:-translate-y-[1px] active:scale-[0.97] border-none"
                     >
                       Go to Workspace &rarr;
                     </Link>
                   ) : (
                     <Link 
                       href={getLocalizedLink('/login')} 
-                      className="text-xs xl:text-[13px] px-6 py-2.5 rounded-full bg-primary/5 text-primary hover:bg-primary hover:text-white border border-primary/10 hover:border-primary hover:shadow-md hover:shadow-primary/10 hover:scale-[1.02] font-bold transition-all duration-300 whitespace-nowrap active:scale-95"
+                      className="text-xs xl:text-[13px] px-6 py-2.5 rounded-full bg-gradient-to-r from-primary to-primary-light text-white font-bold transition-all duration-300 whitespace-nowrap shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20 hover:scale-[1.03] hover:-translate-y-[1px] active:scale-[0.97] border-none"
                     >
                       Login
                     </Link>

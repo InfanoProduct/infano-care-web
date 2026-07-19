@@ -1011,29 +1011,35 @@ export default function WebinarLandingPage() {
             )}
           </div>
 
-          {/* Grid of exactly 3 expert cards, non-scrolling */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto px-6">
-            {EXPERT_MENTORS.slice(0, 3).map((expert, idx) => (
+          {/* Grid of exactly 2 expert cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto px-6">
+            {EXPERT_MENTORS.slice(0, 2).map((expert, idx) => (
               <div
                 key={idx}
-                className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(74,30,127,0.03)] hover:shadow-[0_15px_30px_-5px_rgba(74,30,127,0.06)] hover:-translate-y-1.5 transition-all duration-300 rounded-3xl p-6 text-left flex flex-col justify-between"
+                className="bg-white border border-slate-100 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_45px_-10px_rgba(74,30,127,0.08)] hover:-translate-y-1.5 transition-all duration-300 rounded-[2rem] p-8 text-left flex flex-col justify-between group relative overflow-hidden"
               >
-                <div>
-                  <div className="w-20 h-20 rounded-2xl bg-primary/10 mb-4 overflow-hidden border border-slate-200">
-                    <img
-                      src={expert.avatar}
-                      alt={expert.name}
-                      className="w-full h-full object-cover fallback-image"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${expert.seed}`;
-                      }}
-                    />
+                {/* Subtle background glow on hover */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                
+                <div className="relative z-10 flex flex-col h-full justify-between">
+                  <div>
+                    {/* Image wrapper: w-32 h-32 */}
+                    <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-[1.8rem] bg-primary/5 mb-5 overflow-hidden border-2 border-primary/10 shadow-sm relative group-hover:border-primary/30 transition-all duration-300">
+                      <img
+                        src={expert.avatar}
+                        alt={expert.name}
+                        className="w-full h-full object-cover scale-[1.05] group-hover:scale-110 transition-transform duration-300"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${expert.seed}`;
+                        }}
+                      />
+                    </div>
+                    <h4 className="text-lg font-bold text-slate-800 font-heading tracking-tight group-hover:text-primary transition-colors duration-300">{expert.name}</h4>
+                    <p className="inline-flex px-3 py-1 rounded-full bg-primary/5 text-primary text-[10px] font-black uppercase tracking-wider mt-1.5">{expert.role}</p>
+                    <p className="text-slate-500 text-xs sm:text-sm leading-relaxed font-normal mt-4">
+                      {expert.desc}
+                    </p>
                   </div>
-                  <h4 className="text-base font-bold text-slate-800">{expert.name}</h4>
-                  <p className="text-primary text-[10px] font-bold uppercase tracking-widest mt-1">{expert.role}</p>
-                  <p className="text-slate-500 text-xs leading-relaxed font-medium mt-3">
-                    {expert.desc}
-                  </p>
                 </div>
               </div>
             ))}

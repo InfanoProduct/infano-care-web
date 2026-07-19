@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   output: 'standalone',
+  allowedDevOrigins: ['192.168.1.6'],
   images: {
     remotePatterns: [
       {
@@ -14,6 +15,11 @@ const nextConfig: NextConfig = {
         protocol: 'http',
         hostname: 'localhost',
         port: '4005',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '4000',
       },
       {
         protocol: 'https',

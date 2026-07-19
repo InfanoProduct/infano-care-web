@@ -83,7 +83,7 @@ export function NewsScrollerSection() {
                 alt={`Media coverage ${(index % newsImages.length) + 1}`}
                 width={190}
                 height={100}
-                style={{ objectFit: 'contain', display: 'block' }}
+                style={{ objectFit: 'contain', display: 'block', width: '190px', height: '100px' }}
               />
             </div>
           ))}

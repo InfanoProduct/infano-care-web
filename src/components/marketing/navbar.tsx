@@ -99,20 +99,22 @@ export function MarketingNavbar() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-sm py-2' : 'bg-transparent py-4'
-          }`}
+        className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-sm py-2"
       >
         <div className="max-w-360 mx-auto px-6 md:px-12 lg:px-24 flex items-center justify-between gap-4">
-          <Link href={getLocalizedLink('/')} className="relative z-50 shrink-0 group w-40 md:w-48 lg:w-52 h-12 md:h-14 lg:h-16 flex items-center -ml-2">
-            <Image
-              src="/logo/infano-logo-for-light-bg.png"
-              alt="Infano"
-              fill
-              sizes="(max-width: 768px) 160px, (max-width: 1024px) 192px, 208px"
-              className="object-contain object-left transition-transform group-hover:scale-105"
-              priority
-            />
-          </Link>
+          {/* Left Column: Logo */}
+          <div className="flex-1 flex items-center justify-start">
+            <Link href={getLocalizedLink('/')} className="relative z-50 shrink-0 group w-40 md:w-48 lg:w-52 h-12 md:h-14 lg:h-16 flex items-center -ml-2">
+              <Image
+                src="/logo/infano-logo-for-light-bg.png"
+                alt="Infano"
+                fill
+                sizes="(max-width: 768px) 160px, (max-width: 1024px) 192px, 208px"
+                className="object-contain object-left transition-transform group-hover:scale-105 lg:-translate-y-[2px]"
+                priority
+              />
+            </Link>
+          </div>
 
           {isWebinarPage ? (
             <div className="flex items-center gap-4 md:gap-6 ml-auto">
@@ -141,51 +143,59 @@ export function MarketingNavbar() {
             </div>
           ) : (
             <>
-              {/* Desktop Nav */}
-              <nav className="hidden xl:flex items-center gap-1 bg-white/70 p-1 rounded-full border border-white/80 shadow-lg shadow-slate-200/50 backdrop-blur-md">
-                {navLinks.map((link) => {
-                  const isActive = link.href === '/'
-                    ? cleanPath === '/'
-                    : cleanPath.startsWith(link.href);
-                  return (
-                    <Link
-                      key={link.name}
-                      href={getLocalizedLink(link.href)}
-                      className={`text-xs xl:text-[13px] px-3 xl:px-4 py-2 rounded-full transition-all duration-200 whitespace-nowrap ${isActive
-                        ? 'bg-primary text-white font-semibold shadow-sm'
-                        : 'text-slate-600 hover:text-primary font-medium hover:bg-white/60'
-                        }`}
-                    >
-                      {link.name}
-                    </Link>
-                  );
-                })}
-              </nav>
-
-              {/* Desktop CTAs */}
-              <div className="hidden xl:flex items-center gap-3 xl:gap-6 shrink-0">
-                {isAuthenticated ? (
-                  <Link href={getLocalizedLink('/dashboard')} className="text-[13px] font-bold text-primary hover:text-primary-dark transition-colors whitespace-nowrap hidden 2xl:block">
-                    Go to Workspace &rarr;
-                  </Link>
-                ) : (
-                  <Link href={getLocalizedLink('/login')} className="text-[13px] font-bold text-slate-700 hover:text-primary transition-colors whitespace-nowrap hidden 2xl:block">
-                    Sign In
-                  </Link>
-                )}
-                <Link href={getLocalizedLink('/contact')} className="btn-primary text-xs xl:text-[13px] px-4 xl:px-6 py-2 xl:py-2.5 whitespace-nowrap shadow-md hover:shadow-lg transition-all active:scale-95">
-                  Enrol Your School &rarr;
-                </Link>
+              {/* Center Column: Desktop Navigation (perfectly centered relative to viewport) */}
+              <div className="flex-initial hidden xl:flex justify-center">
+                <nav className="flex items-center gap-1 bg-white/70 p-1 rounded-full border border-white/80 shadow-lg shadow-slate-200/50 backdrop-blur-md">
+                  {navLinks.map((link) => {
+                    const isActive = link.href === '/'
+                      ? cleanPath === '/'
+                      : cleanPath.startsWith(link.href);
+                    return (
+                      <Link
+                        key={link.name}
+                        href={getLocalizedLink(link.href)}
+                        className={`inline-flex items-center justify-center text-xs xl:text-[13px] px-3 xl:px-4 py-2 rounded-full transition-all duration-200 whitespace-nowrap ${isActive
+                          ? 'bg-primary text-white font-semibold shadow-sm'
+                          : 'text-slate-600 hover:text-primary font-medium hover:bg-white/60'
+                          }`}
+                      >
+                        {link.name}
+                      </Link>
+                    );
+                  })}
+                </nav>
               </div>
 
-              {/* Mobile Menu Toggle */}
-              <div className="xl:hidden flex items-center gap-3">
-                <button
-                  className="xl:hidden p-2 text-foreground z-50"
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                >
-                  {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                </button>
+              {/* Right Column: Desktop CTAs & Mobile Toggle */}
+              <div className="flex-1 flex items-center justify-end gap-4">
+                {/* Desktop CTAs */}
+                <div className="hidden xl:flex items-center gap-3 xl:gap-6">
+                  {isAuthenticated ? (
+                    <Link 
+                      href={getLocalizedLink('/dashboard')} 
+                      className="text-xs xl:text-[13px] px-6 py-2.5 rounded-full bg-primary text-white hover:bg-primary-dark hover:shadow-lg hover:shadow-primary/20 font-bold transition-all duration-200 whitespace-nowrap active:scale-95"
+                    >
+                      Go to Workspace &rarr;
+                    </Link>
+                  ) : (
+                    <Link 
+                      href={getLocalizedLink('/login')} 
+                      className="text-xs xl:text-[13px] px-6 py-2.5 rounded-full bg-primary/5 text-primary hover:bg-primary hover:text-white border border-primary/10 hover:border-primary hover:shadow-md hover:shadow-primary/10 hover:scale-[1.02] font-bold transition-all duration-300 whitespace-nowrap active:scale-95"
+                    >
+                      Login
+                    </Link>
+                  )}
+                </div>
+
+                {/* Mobile Menu Toggle */}
+                <div className="xl:hidden flex items-center">
+                  <button
+                    className="p-2 text-foreground z-50"
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  >
+                    {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                  </button>
+                </div>
               </div>
             </>
           )}
@@ -219,7 +229,7 @@ export function MarketingNavbar() {
                 <Link
                   href={getLocalizedLink('/dashboard')}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="btn-outline w-full text-center"
+                  className="btn-primary w-full text-center"
                 >
                   Go to Workspace &rarr;
                 </Link>
@@ -227,18 +237,11 @@ export function MarketingNavbar() {
                 <Link
                   href={getLocalizedLink('/login')}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="btn-outline w-full text-center"
+                  className="btn-primary w-full text-center"
                 >
-                  Sign In
+                  Login
                 </Link>
               )}
-              <Link
-                href={getLocalizedLink('/contact')}
-                onClick={() => setMobileMenuOpen(false)}
-                className="btn-primary w-full text-center"
-              >
-                Enrol Your School &rarr;
-              </Link>
             </div>
           </div>
         )

@@ -105,7 +105,7 @@ export function MarketingNavbar() {
         className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.01),0_10px_20px_-2px_rgba(0,0,0,0.005)] py-2"
       >
         {/* Top brand line indicator */}
-        <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-primary via-primary-light to-accent" />
+        <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-linear-to-r from-primary via-primary-light to-accent" />
 
         <div className="max-w-360 mx-auto px-6 md:px-12 lg:px-24 flex items-center justify-between gap-4">
           {/* Left Column: Logo */}
@@ -116,7 +116,7 @@ export function MarketingNavbar() {
                 alt="Infano"
                 fill
                 sizes="(max-width: 768px) 160px, (max-width: 1024px) 192px, 208px"
-                className="object-contain object-left transition-transform group-hover:scale-102 lg:translate-y-[2px]"
+                className="object-contain object-left transition-transform group-hover:scale-102 lg:translate-y-0.5"
                 priority
               />
             </Link>
@@ -134,7 +134,7 @@ export function MarketingNavbar() {
                     </span>
                     <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-800">Starts in</span>
                   </div>
-                  <div className="h-4 w-[1px] bg-slate-900/20" />
+                  <div className="h-4 w-px bg-slate-900/20" />
                   <div className="flex items-center gap-1.5 pr-2.5 font-mono text-xs font-bold text-slate-900 tracking-tight">
                     <div className="flex items-baseline"><span className="text-sm font-black text-slate-900">{String(timeLeft.days).padStart(2, '0')}</span><span className="text-[9px] text-slate-700 font-bold uppercase ml-px">d</span></div>
                     <div className="flex items-baseline"><span className="text-sm font-black text-slate-900">{String(timeLeft.hours).padStart(2, '0')}</span><span className="text-[9px] text-slate-700 font-bold uppercase ml-px">h</span></div>
@@ -190,14 +190,14 @@ export function MarketingNavbar() {
                   {isAuthenticated ? (
                     <Link
                       href={getLocalizedLink('/dashboard')}
-                      className="text-xs xl:text-[13px] px-6 py-2.5 rounded-full bg-gradient-to-r from-primary to-primary-light text-white font-bold transition-all duration-300 whitespace-nowrap shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20 hover:scale-[1.03] hover:-translate-y-[1px] active:scale-[0.97] border-none"
+                      className="text-xs xl:text-[13px] px-6 py-2.5 rounded-full bg-linear-to-r from-primary to-primary-light text-white font-bold transition-all duration-300 whitespace-nowrap shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20 hover:scale-[1.03] hover:-translate-y-px active:scale-[0.97] border-none"
                     >
                       Go to Workspace &rarr;
                     </Link>
                   ) : (
                     <Link
                       href={getLocalizedLink('/login')}
-                      className="text-xs xl:text-[13px] px-6 py-2.5 rounded-full bg-gradient-to-r from-primary to-primary-light text-white font-bold transition-all duration-300 whitespace-nowrap shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20 hover:scale-[1.03] hover:-translate-y-[1px] active:scale-[0.97] border-none"
+                      className="text-xs xl:text-[13px] px-6 py-2.5 rounded-full bg-linear-to-r from-primary to-primary-light text-white font-bold transition-all duration-300 whitespace-nowrap shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20 hover:scale-[1.03] hover:-translate-y-px active:scale-[0.97] border-none"
                     >
                       Login
                     </Link>

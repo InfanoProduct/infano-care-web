@@ -30,6 +30,10 @@ const nextConfig: NextConfig = {
         hostname: 'infano-prod.duckdns.org',
       },
       {
+        protocol: 'https',
+        hostname: 'api-dev.infano.care',
+      },
+      {
         protocol: 'http',
         hostname: '109.199.120.104',
         port: '8084',

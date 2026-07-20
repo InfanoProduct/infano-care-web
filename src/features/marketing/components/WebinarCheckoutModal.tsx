@@ -221,7 +221,7 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
                     if (parts.length > 1) {
                       return (
                         <>
-                          {parts.map((part, i) => 
+                          {parts.map((part: string, i: number) => 
                             part.toLowerCase() === target.toLowerCase() ? (
                               <span key={i} className="text-pink-500">{part}</span>
                             ) : (

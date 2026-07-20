@@ -54,7 +54,7 @@ export function NewsScrollerSection() {
         }
       `}</style>
 
-      <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
+      <div className="max-w-360 mx-auto px-6 md:px-12 lg:px-24 relative z-10">
         <div className="text-center max-w-4xl mx-auto mb-10">
           <motion.span
             initial={{ opacity: 0, y: 10 }}

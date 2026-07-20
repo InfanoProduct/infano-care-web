@@ -328,7 +328,7 @@ export default function WebinarLandingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFFCFA]">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
         <p className="mt-4 text-xs font-extrabold text-slate-500 uppercase tracking-widest">Loading webinar details...</p>
       </div>
@@ -337,7 +337,7 @@ export default function WebinarLandingPage() {
 
   if (error || !webinar) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFFCFA] p-6 text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6 text-center">
         <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mb-4">
           <AlertCircle size={28} />
         </div>
@@ -363,7 +363,7 @@ export default function WebinarLandingPage() {
           <div className="absolute top-[20%] right-[-10%] w-[50%] h-[50%] bg-rose-200/15 rounded-full blur-[130px]" />
         </div>
 
-        <div className="relative z-10 max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
+        <div className="relative z-10 max-w-360 mx-auto px-6 md:px-12 lg:px-24">
 
           {/* HERO SECTION */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -482,9 +482,9 @@ export default function WebinarLandingPage() {
 
             {/* Right Column: Visual illustration */}
             <div className="lg:col-span-5 relative">
-              <div className="relative w-full max-w-[420px] lg:max-w-none mx-auto aspect-[1.1] sm:aspect-square flex items-center justify-center">
+              <div className="relative w-full max-w-105 lg:max-w-none mx-auto aspect-[1.1] sm:aspect-square flex items-center justify-center">
                 {/* Decorative blobs */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/5 rounded-[3rem] -rotate-3 scale-95" />
+                <div className="absolute inset-0 bg-linear-to-br from-primary/10 to-accent/5 rounded-[3rem] -rotate-3 scale-95" />
 
                 {/* Photo Frame */}
                 <div className="relative w-[92%] h-[92%] rounded-[2.5rem] overflow-hidden border border-white shadow-md bg-white">
@@ -496,7 +496,7 @@ export default function WebinarLandingPage() {
                 </div>
 
                 {/* Floating quotes card */}
-                <div className="absolute bottom-4 left-[-20px] sm:left-[-30px] bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-100 shadow-sm max-w-[260px] sm:max-w-[280px] transition-all hover:scale-102">
+                <div className="absolute bottom-4 -left-5 sm:-left-7.5 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-100 shadow-sm max-w-65 sm:max-w-70 transition-all hover:scale-102">
                   <p className="text-[11px] font-semibold text-slate-600 leading-normal">
                     Because every girl deserves to be heard,
                   </p>
@@ -525,7 +525,7 @@ export default function WebinarLandingPage() {
       </div>
 
       {/* Overlapping Trust Badges Capsule */}
-      <div className="relative z-20 max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 -mt-12 md:-mt-16 mb-16 md:mb-24">
+      <div className="relative z-20 max-w-360 mx-auto px-6 md:px-12 lg:px-24 -mt-12 md:-mt-16 mb-16 md:mb-24">
         {/* BOTTOM ROW: TRUST BADGES (Capsule Style) */}
         <div className="bg-white rounded-none border border-slate-200 shadow-sm py-8 px-6 grid grid-cols-1 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-300 gap-4 sm:gap-0 max-w-6xl mx-auto items-center text-center">
           <div className="flex flex-col items-center justify-center py-2 sm:py-0">
@@ -559,7 +559,7 @@ export default function WebinarLandingPage() {
         </div>
       </div>
 
-      <div className="relative z-10 max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
+      <div className="relative z-10 max-w-360 mx-auto px-6 md:px-12 lg:px-24">
 
         {/* SECTION 2: THE PROBLEM (AGITATION) */}
         <motion.div
@@ -615,7 +615,7 @@ export default function WebinarLandingPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: idx * 0.1 }}
-                  className="p-6 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group flex flex-col items-start text-left min-h-[360px]"
+                  className="p-6 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group flex flex-col items-start text-left min-h-90"
                 >
                   {/* Card Image */}
                   <div className="w-full h-40 rounded-2xl overflow-hidden mb-5 border border-slate-100 shadow-sm relative">
@@ -639,7 +639,7 @@ export default function WebinarLandingPage() {
                     </h4>
                   </div>
 
-                  <div className={`w-10 h-[2px] ${idx === 0 ? 'bg-primary' : idx === 1 ? 'bg-accent' : 'bg-primary-light'} rounded-full mb-3`} />
+                  <div className={`w-10 h-0.5 ${idx === 0 ? 'bg-primary' : idx === 1 ? 'bg-accent' : 'bg-primary-light'} rounded-full mb-3`} />
                   <p className="text-slate-500 text-xs sm:text-sm leading-relaxed font-medium">
                     {point.desc}
                   </p>
@@ -668,7 +668,7 @@ export default function WebinarLandingPage() {
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[60%] bg-purple-200/20 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[60%] bg-blue-200/25 rounded-full blur-[120px] pointer-events-none" />
 
-        <div className="relative z-10 max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
+        <div className="relative z-10 max-w-360 mx-auto px-6 md:px-12 lg:px-24">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -715,7 +715,7 @@ export default function WebinarLandingPage() {
       </section>
 
       {/* Remaining sections container */}
-      <div className="relative z-10 max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 pt-12 pb-2 md:pt-20 md:pb-4">
+      <div className="relative z-10 max-w-360 mx-auto px-6 md:px-12 lg:px-24 pt-12 pb-2 md:pt-20 md:pb-4">
 
         {/* SECTION 3: WHAT YOU WILL LEARN */}
         <motion.div
@@ -835,7 +835,7 @@ export default function WebinarLandingPage() {
         <div className="absolute top-[10%] left-[10%] w-[40%] h-[40%] bg-purple-200/20 rounded-full blur-[100px] pointer-events-none" />
         <div className="absolute bottom-[10%] right-[10%] w-[40%] h-[40%] bg-rose-200/20 rounded-full blur-[100px] pointer-events-none" />
 
-        <div className="relative z-10 max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
+        <div className="relative z-10 max-w-360 mx-auto px-6 md:px-12 lg:px-24">
           <div className="text-center max-w-3xl mx-auto space-y-5 mb-14">
             <div className="inline-block px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-full">
               <span>Who This Is For</span>
@@ -937,7 +937,7 @@ export default function WebinarLandingPage() {
 
       {/* SECTION 4: AGENDA AT A GLANCE */}
       <section className="w-full bg-[#ffffff] border-y border-slate-100/60 pt-6 pb-12 md:pt-8 md:pb-16 relative overflow-hidden">
-        <div className="relative z-10 max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
+        <div className="relative z-10 max-w-360 mx-auto px-6 md:px-12 lg:px-24">
 
           <div className="text-center max-w-2xl mx-auto space-y-4 mb-14 relative z-10">
             <div className="inline-block px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-full">
@@ -994,13 +994,13 @@ export default function WebinarLandingPage() {
               transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.55 }}
               className="col-span-4 flex justify-center"
             >
-              <div className="relative w-full max-w-[340px] aspect-[3/4] rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-xl bg-gradient-to-b from-purple-50 to-rose-50">
+              <div className="relative w-full max-w-85 aspect-3/4 rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-xl bg-linear-to-b from-purple-50 to-rose-50">
                 <img
                   src="/agenda-center-gen.png"
                   alt="Agenda Insights"
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-purple-950/20 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-linear-to-t from-purple-950/20 to-transparent pointer-events-none" />
               </div>
             </motion.div>
 
@@ -1048,7 +1048,7 @@ export default function WebinarLandingPage() {
           >
             {/* Center Image */}
             <div className="flex justify-center">
-              <div className="relative w-full max-w-[280px] aspect-[4/5] rounded-3xl overflow-hidden border border-slate-100 shadow-md">
+              <div className="relative w-full max-w-70 aspect-4/5 rounded-3xl overflow-hidden border border-slate-100 shadow-md">
                 <img
                   src="/agenda-center-gen.png"
                   alt="Agenda Insights"
@@ -1093,7 +1093,7 @@ export default function WebinarLandingPage() {
       </section>
 
       {/* Remaining sections container */}
-      <div className="relative z-10 max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 py-12 md:py-20">
+      <div className="relative z-10 max-w-360 mx-auto px-6 md:px-12 lg:px-24 py-12 md:py-20">
 
         {/* SECTION 5: MEET YOUR TRAINERS */}
         <motion.div
@@ -1101,7 +1101,7 @@ export default function WebinarLandingPage() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="text-center max-w-[1440px] mx-auto mb-16 md:mb-24 relative"
+          className="text-center max-w-360 mx-auto mb-16 md:mb-24 relative"
         >
           <div className="space-y-3 mb-10 max-w-4xl mx-auto px-6">
             <div className="inline-block px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-full">
@@ -1126,7 +1126,7 @@ export default function WebinarLandingPage() {
                 className="bg-white border border-slate-100 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_45px_-10px_rgba(74,30,127,0.08)] hover:-translate-y-1.5 transition-all duration-300 rounded-[2rem] text-left flex flex-col group relative overflow-hidden"
               >
                 {/* Subtle background glow on hover */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
                 <div className="relative z-10 flex flex-col h-full">
                   {/* Image wrapper spanning full width at top */}
@@ -1165,7 +1165,7 @@ export default function WebinarLandingPage() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="mb-16 md:mb-24 overflow-hidden relative"
         >
-          <div className="max-w-[1440px] mx-auto px-6 mb-8 text-center">
+          <div className="max-w-360 mx-auto px-6 mb-8 text-center">
             <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-4">Real Stories</span>
             <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold font-heading text-slate-900 tracking-tight mb-4">
               Hear From <span className="text-primary">Other Parents</span>
@@ -1176,7 +1176,7 @@ export default function WebinarLandingPage() {
             </div>
           </div>
           
-          <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 px-6 sm:px-12 pb-12 max-w-[1440px] mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] py-4">
+          <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 px-6 sm:px-12 pb-12 max-w-360 mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] py-4">
             {[
               {
                 quote: "My daughter was pulling away in Class 6. This webinar gave me the exact vocabulary to react when she slams the door. Using their scripts, she actually opened up to me the very next day.",
@@ -1208,7 +1208,7 @@ export default function WebinarLandingPage() {
                 className="shrink-0 w-[85vw] sm:w-[400px] snap-center bg-white rounded-[2rem] p-8 md:p-10 relative flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-50 overflow-hidden group hover:-translate-y-1 transition-all duration-300"
               >
                 {/* Bottom Gradient Border */}
-                <div className={`absolute bottom-0 left-0 h-1.5 w-full bg-gradient-to-r ${testimonial.gradientBorder}`} />
+                <div className={`absolute bottom-0 left-0 h-1.5 w-full bg-linear-to-r ${testimonial.gradientBorder}`} />
                 
                 {/* Top Quotes */}
                 <Quote className="absolute top-8 right-8 text-primary/5 rotate-180" size={80} strokeWidth={0.5} />
@@ -1354,7 +1354,7 @@ export default function WebinarLandingPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: i * 0.1 }}
-                  className={`border rounded-[2rem] transition duration-300 overflow-hidden ${isOpen ? 'border-primary bg-primary/[0.02] shadow-xl shadow-primary/5' : 'border-slate-100 bg-white hover:border-slate-200'
+                  className={`border rounded-[2rem] transition duration-300 overflow-hidden ${isOpen ? 'border-primary bg-primary/2 shadow-xl shadow-primary/5' : 'border-slate-100 bg-white hover:border-slate-200'
                     }`}
                 >
                   <button
@@ -1398,7 +1398,7 @@ export default function WebinarLandingPage() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="text-center max-w-xl mx-auto p-8 rounded-[2rem] bg-white border border-slate-100 shadow-xl relative overflow-hidden"
         >
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-primary-light to-accent" />
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r from-primary via-primary-light to-accent" />
 
           <h3 className="text-lg md:text-xl font-bold font-heading text-slate-900 mb-2">Reserve Your Webinar Pass</h3>
           <p className="text-slate-500 text-xs leading-relaxed font-medium mb-6">
@@ -1441,7 +1441,7 @@ export default function WebinarLandingPage() {
             {/* Top Row on Mobile, Left/Mid on Desktop: Timer & Scarcity */}
             <div className="flex items-center justify-between w-full md:w-auto gap-3 shrink-0">
               {/* Timer */}
-              <div className="flex items-center gap-1.5 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-500 rounded-full px-3 md:px-4 py-1 md:py-1.5 text-white shadow-md font-mono font-bold text-xs md:text-base">
+              <div className="flex items-center gap-1.5 bg-linear-to-r from-violet-600 via-fuchsia-600 to-pink-500 rounded-full px-3 md:px-4 py-1 md:py-1.5 text-white shadow-md font-mono font-bold text-xs md:text-base">
                 <Clock size={14} className="animate-pulse text-white md:w-4 md:h-4" />
                 <span>{formatTotalTimeLeft()}</span>
               </div>
@@ -1462,7 +1462,7 @@ export default function WebinarLandingPage() {
             <div className="w-full md:w-auto shrink-0">
               <button
                 onClick={() => setModalOpen(true)}
-                className="w-full md:w-auto px-6 md:px-8 py-2.5 md:py-3 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-500 text-white font-extrabold text-sm md:text-base rounded-full shadow-lg shadow-fuchsia-500/30 hover:shadow-xl hover:scale-102 active:scale-98 transition-all flex items-center justify-center gap-2 border-none cursor-pointer"
+                className="w-full md:w-auto px-6 md:px-8 py-2.5 md:py-3 bg-linear-to-r from-violet-600 via-fuchsia-600 to-pink-500 text-white font-extrabold text-sm md:text-base rounded-full shadow-lg shadow-fuchsia-500/30 hover:shadow-xl hover:scale-102 active:scale-98 transition-all flex items-center justify-center gap-2 border-none cursor-pointer"
               >
                 <span>Reserve Your Seat Now</span>
                 <ArrowRight size={15} />

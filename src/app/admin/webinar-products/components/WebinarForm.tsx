@@ -27,6 +27,9 @@ export default function WebinarForm({ webinarId }: WebinarFormProps) {
     isActive: true,
     mode: 'ONLINE',
     instructor: '',
+    seoTitle: '',
+    seoDescription: '',
+    seoKeywords: '',
   });
 
   useEffect(() => {
@@ -71,6 +74,9 @@ export default function WebinarForm({ webinarId }: WebinarFormProps) {
         instructor: formData.instructor || null,
         slug: formData.slug || undefined,
         link: formData.mode === 'OFFLINE' ? formData.zoomLink : null,
+        seoTitle: formData.seoTitle || null,
+        seoDescription: formData.seoDescription || null,
+        seoKeywords: formData.seoKeywords || null,
       };
 
       if (webinarId) {
@@ -260,6 +266,55 @@ export default function WebinarForm({ webinarId }: WebinarFormProps) {
             </div>
 
 
+          </div>
+
+          {/* SEO Settings Card */}
+          <div className="glass-card rounded-[2.5rem] border-primary/5 shadow-2xl p-8 space-y-6">
+            <h3 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <Globe size={20} className="text-primary" />
+              SEO Settings (Search Engine Optimization)
+            </h3>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+                  Meta Title
+                </label>
+                <input
+                  type="text"
+                  value={formData.seoTitle || ''}
+                  onChange={(e) => setFormData({ ...formData, seoTitle: e.target.value })}
+                  placeholder="Leave empty to fallback to Webinar Title"
+                  className="w-full px-5 py-4 bg-secondary/30 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none rounded-2xl transition-all text-sm font-bold"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+                  Meta Description
+                </label>
+                <textarea
+                  rows={3}
+                  value={formData.seoDescription || ''}
+                  onChange={(e) => setFormData({ ...formData, seoDescription: e.target.value })}
+                  placeholder="Leave empty to fallback to Webinar Description snippet"
+                  className="w-full px-5 py-4 bg-secondary/30 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none rounded-2xl transition-all text-sm font-bold"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+                  Meta Keywords
+                </label>
+                <input
+                  type="text"
+                  value={formData.seoKeywords || ''}
+                  onChange={(e) => setFormData({ ...formData, seoKeywords: e.target.value })}
+                  placeholder="e.g. parenting, girls puberty, adolescent health (comma separated)"
+                  className="w-full px-5 py-4 bg-secondary/30 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none rounded-2xl transition-all text-sm font-bold"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Pricing Card */}

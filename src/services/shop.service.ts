@@ -75,6 +75,9 @@ export interface Webinar {
   mode: 'ONLINE' | 'OFFLINE';
   link?: string | null;
   instructor?: string | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  seoKeywords?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }

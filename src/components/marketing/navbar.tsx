@@ -19,7 +19,7 @@ const navLinks = [
   { name: 'Book', href: '/gigi-the-awkward-age-book' },
   // { name: 'Impact', href: '/impact' },
   { name: 'Blog', href: '/blog' },
-  { name: 'Webinar', href: '/webinar/decoding-silence' },
+  { name: 'Webinar', href: '/webinar/decoding-her-silence' },
   { name: 'About', href: '/about' },
 ];
 

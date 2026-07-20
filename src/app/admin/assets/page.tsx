@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Image as ImageIcon, Plus, Search, Copy, Check, Trash2, Eye, X, 
   Loader2, UploadCloud, FileImage, ExternalLink, Calendar, HardDrive,
-  FileText, Film, Grid
+  FileText, Film, Grid, Edit2
 } from 'lucide-react';
 import { AssetsService, Asset } from '@/services/assets.service';
 import { toast } from 'react-hot-toast';
@@ -131,6 +131,70 @@ export default function AssetsManagement() {
     } catch (error) {
       console.error('Failed to delete asset:', error);
       toast.error('Failed to delete asset');
+    }
+  };
+
+  // Rename handler
+  const handleRenameAsset = async (filename: string) => {
+    const extIndex = filename.lastIndexOf('.');
+    const ext = extIndex !== -1 ? filename.substring(extIndex) : '';
+    const currentDisplayName = getDisplayName(filename);
+
+    const newDisplayName = prompt(
+      `Enter new filename for this asset (the file extension "${ext}" will be preserved):`,
+      currentDisplayName
+    );
+
+    if (newDisplayName === null) return; // User cancelled
+
+    const sanitizedNewName = newDisplayName
+      .trim()
+      .replace(/[^a-zA-Z0-9-_]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+    if (!sanitizedNewName) {
+      toast.error('Filename cannot be empty');
+      return;
+    }
+
+    const newFilename = `${sanitizedNewName}${ext.toLowerCase()}`;
+
+    if (newFilename === filename) {
+      return; // No change
+    }
+
+    // Client-side uniqueness check
+    const exists = assets.some(
+      (asset) =>
+        asset.filename !== filename &&
+        getDisplayName(asset.filename).toLowerCase() === sanitizedNewName.toLowerCase() &&
+        asset.filename.substring(asset.filename.lastIndexOf('.')).toLowerCase() === ext.toLowerCase()
+    );
+
+    if (exists) {
+      toast.error(`An asset named "${sanitizedNewName}${ext}" already exists`);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const updatedAsset = await AssetsService.renameAsset(filename, sanitizedNewName + ext);
+      toast.success('Asset renamed successfully');
+      
+      // Update state
+      setAssets((prev) =>
+        prev.map((item) => (item.filename === filename ? updatedAsset : item))
+      );
+      
+      if (selectedAsset?.filename === filename) {
+        setSelectedAsset(updatedAsset);
+      }
+    } catch (error: any) {
+      console.error('Failed to rename asset:', error);
+      toast.error(error.message || 'Failed to rename asset');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -560,7 +624,7 @@ export default function AssetsManagement() {
                     </div>
 
                     {/* Actions footer */}
-                    <div className="grid grid-cols-5 gap-2 pt-2">
+                    <div className="grid grid-cols-6 gap-2 pt-2">
                       <button
                         onClick={() => handleCopyUrl(asset.url, asset.filename)}
                         className={`col-span-4 py-2.5 px-4 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 border shadow-sm ${
@@ -580,6 +644,13 @@ export default function AssetsManagement() {
                             <span>Copy URL</span>
                           </>
                         )}
+                      </button>
+                      <button
+                        onClick={() => handleRenameAsset(asset.filename)}
+                        className="col-span-1 py-2.5 rounded-xl bg-white hover:bg-slate-50 hover:text-slate-600 text-muted-foreground border border-border/60 hover:border-slate-200 shadow-sm flex items-center justify-center transition-all"
+                        title="Rename Asset"
+                      >
+                        <Edit2 size={14} />
                       </button>
                       <button
                         onClick={() => handleDeleteAsset(asset.filename)}
@@ -702,6 +773,13 @@ export default function AssetsManagement() {
                   <ExternalLink size={14} />
                   <span>Open URL</span>
                 </a>
+                <button
+                  onClick={() => handleRenameAsset(selectedAsset.filename)}
+                  className="px-4 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl transition-all flex items-center justify-center"
+                  title="Rename Asset"
+                >
+                  <Edit2 size={16} />
+                </button>
                 <button
                   onClick={() => handleDeleteAsset(selectedAsset.filename)}
                   className="px-4 bg-rose-50 hover:bg-rose-100 hover:text-rose-700 text-rose-600 border border-rose-100 hover:border-rose-200 rounded-xl transition-all flex items-center justify-center"

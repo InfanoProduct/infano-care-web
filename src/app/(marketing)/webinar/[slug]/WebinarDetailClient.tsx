@@ -128,18 +128,20 @@ const AGENDA_LIST = [
 
 const EXPERT_MENTORS = [
   {
-    name: "Bhumika Asrani",
-    role: "Lead Child Psychologist",
-    desc: "Over 8+ years of core experience in adolescent emotional regulation, helping girls bridge the communication gap with parents.",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Bhumika",
-    seed: "bhumika"
+    name: "Shipra Chawla",
+    role: "Soft Skills Trainer & Communication Coach",
+    desc: "I am committed to empowering young minds with the confidence and voice they need to thrive. Through my work with Infano Care, I guide adolescent girls to build strong communication skills, emotional awareness, and essential life skills that protect their mental health and overall well-being.",
+    achievement: "15+ Years Experience | 1,500+ Students Trained",
+    avatar: "https://api.dicebear.com/7.x/micah/svg?seed=ShipraChawla&backgroundColor=f4d03f",
+    seed: "shipra"
   },
   {
-    name: "Suman Sikdar",
-    role: "Puberty Educator",
-    desc: "Specializes in puberty transition biology and hormonal health. Passionate about empowering parents with correct biological frameworks.",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Suman",
-    seed: "suman"
+    name: "Ms. Gazal Luthra",
+    role: "Counselling Psychologist & Psychotherapist",
+    desc: "I support adolescent girls in navigating and understanding their emotions during one of the most critical stages of their development. I provide a safe space where your daughters can express themselves openly, giving them practical coping strategies to build lasting self-confidence, emotional resilience, and mental wellness.",
+    achievement: "Recognized by the India Book of Records (2020) for leading the longest-running virtual event on mental health.",
+    avatar: "https://api.dicebear.com/7.x/micah/svg?seed=GazalLuthra&backgroundColor=ffb8b8",
+    seed: "gazal"
   },
   {
     name: "Dr. Neha Sharma",
@@ -685,12 +687,12 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
               <div className="relative w-full max-w-[320px] aspect-square rounded-[2rem] overflow-hidden border-4 border-white shadow-xl bg-white">
                 <img
                   src="/webinar-expert-guides.png"
-                  alt="Meet Your Guides: Bhumika Asrani & Suman Sikdar"
+                  alt="Meet Your Guides: Shipra and Ghazal"
                   className="w-full h-full object-cover animate-in zoom-in-95 duration-500"
                 />
               </div>
               <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mt-4 text-center">
-                Meet Your Guides: Bhumika Asrani & Suman Sikdar
+                Meet Your Guides: Shipra and Ghazal
               </span>
             </div>
 
@@ -1114,11 +1116,6 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
               <span>Meet Your </span><span className="text-primary">Expert Mentors</span>
             </h3>
             <p className="text-slate-500 text-sm sm:text-base font-medium leading-relaxed">Lived experts specializing in adolescent psychology and girls' developmental health.</p>
-            {webinar.instructor && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold mt-2 uppercase tracking-wide">
-                <span>Featured Host: {webinar.instructor}</span>
-              </div>
-            )}
           </div>
 
           {/* Grid of exactly 2 expert cards */}
@@ -1151,8 +1148,13 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
                       <p className="inline-flex px-3 py-1 rounded-full bg-primary/5 text-primary text-[10px] font-black uppercase tracking-wider mt-1.5">{expert.role}</p>
                     </div>
                     <p className="text-slate-500 text-xs sm:text-sm leading-relaxed font-normal mt-4">
-                      {expert.desc}
+                      "{expert.desc}"
                     </p>
+                    {expert.achievement && (
+                      <p className="text-primary text-xs sm:text-sm font-semibold mt-3 italic">
+                        🏆 {expert.achievement}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1182,25 +1184,25 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
           <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 px-6 sm:px-12 pb-12 max-w-360 mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] py-4">
             {[
               {
-                quote: "My daughter was pulling away in Class 6. This webinar gave me the exact vocabulary to react when she slams the door. Using their scripts, she actually opened up to me the very next day.",
-                author: "Ritu S.",
-                role: "Mother of a 12-Year-Old",
+                quote: "My daughter hit Class 7 and suddenly started keeping everything locked inside. She spent hours in her room, and every time I asked how her day was, I just got one-word answers. The '3 Signals Framework' taught me how to change my approach instead of pushing harder. When I used one of their exact phrases during a quiet moment, she finally shared what was bothering her at school. This masterclass is a must-watch for any parent feeling disconnected.",
+                author: "Ananya Sharma",
+                role: "Mother of a Class 7 student, New Delhi",
                 icon: <MessageCircle size={32} />,
                 colorClass: "text-purple-600 bg-purple-100",
                 gradientBorder: "from-indigo-100 via-purple-300 to-fuchsia-100"
               },
               {
-                quote: "I thought I was doing something wrong when my 14-year-old stopped sharing her day with me. The '3 Silent Signals' framework completely changed my perspective. We are communicating so much better now.",
-                author: "Priya M.",
-                role: "Mother of a 14-Year-Old",
+                quote: "As a dad, watching my daughter enter Class 6 felt like trying to navigate a whole new language. I wanted to help, but every time I brought up her changing moods or screen time, it turned into an argument. The experts broke down the exact steps to handle those high-tension moments without raising my voice. Using their script during a car ride, she actually opened up to me about her worries instead of shutting down. Truly invaluable guidance.",
+                author: "Rajesh Nair",
+                role: "Father of a Class 6 student, Bengaluru",
                 icon: <MessageCircle size={32} />,
                 colorClass: "text-emerald-500 bg-emerald-100",
                 gradientBorder: "from-emerald-100 via-emerald-300 to-teal-100"
               },
               {
-                quote: "The Q&A segment alone was worth it. The experts didn't just give vague advice; they gave practical, actionable steps that I could use immediately. Every parent of a pre-teen needs this.",
-                author: "Anjali K.",
-                role: "Mother of a 10-Year-Old",
+                quote: "By Class 8, my daughter's mood swings and sudden stress over her social circle had our whole house walking on eggshells. I felt helpless and kept second-guessing every word I said. This masterclass gave me immediate clarity on what was going on under the surface. The script for handling emotional outbursts worked like magic—for the first time in months, we had an honest, calm conversation instead of a fight.",
+                author: "Meera Kulkarni",
+                role: "Mother of a Class 8 student, Pune",
                 icon: <Users size={32} />,
                 colorClass: "text-rose-500 bg-rose-100",
                 gradientBorder: "from-rose-100 via-orange-300 to-rose-200"

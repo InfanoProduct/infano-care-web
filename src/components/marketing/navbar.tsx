@@ -19,6 +19,7 @@ const navLinks = [
   { name: 'Book', href: '/gigi-the-awkward-age-book' },
   // { name: 'Impact', href: '/impact' },
   { name: 'Blog', href: '/blog' },
+  { name: 'Webinar', href: '/webinar/decoding-silence' },
   { name: 'About', href: '/about' },
 ];
 
@@ -41,6 +42,7 @@ export function MarketingNavbar() {
   // Clean pathname for matching active state correctly in subpaths
   const cleanPath = pathname.replace(/^\/en-(us|uk)/, '') || '/';
   const isWebinarPage = cleanPath.startsWith('/webinar');
+  const isWebinarSuccessPage = cleanPath.startsWith('/webinar/success');
 
   const handleRegisterClick = () => {
     window.dispatchEvent(new CustomEvent('open-webinar-registration'));
@@ -144,12 +146,14 @@ export function MarketingNavbar() {
                 </div>
               )}
 
-              <button
-                onClick={handleRegisterClick}
-                className="btn-primary text-xs md:text-[13px] px-5 md:px-7 py-2 md:py-2.5 whitespace-nowrap shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer border-none font-bold"
-              >
-                Register Now
-              </button>
+              {!isWebinarSuccessPage && (
+                <button
+                  onClick={handleRegisterClick}
+                  className="btn-primary text-xs md:text-[13px] px-5 md:px-7 py-2 md:py-2.5 whitespace-nowrap shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer border-none font-bold"
+                >
+                  Register Now
+                </button>
+              )}
             </div>
           ) : (
             <>

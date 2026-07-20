@@ -12,6 +12,7 @@ import {
   Activity, Target
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getImageUrl } from '@/lib/utils';
 
 const FAQ_ITEMS = [
   {
@@ -129,33 +130,23 @@ const AGENDA_LIST = [
 const EXPERT_MENTORS = [
   {
     name: "Shipra Chawla",
-    role: "Soft Skills Trainer & Communication Coach | Infano Care Expert",
-    achievement: "15+ Years Experience | 1,500+ Students Trained",
+    role: "Soft Skills Trainer & Communication Coach",
     desc: "I am committed to empowering young minds with the confidence and voice they need to thrive. Through my work with Infano Care, I guide adolescent girls to build strong communication skills, emotional awareness, and essential life skills that protect their mental health and overall well-being.",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Shipra",
-    seed: "shipra"
+    achievement: "15+ Years Experience | 1,500+ Students Trained",
+    avatar: "/uploads/assets/shipra.png",
+    seed: "shipra",
+    borderColor: "border-[#b8d5f2] hover:border-blue-400/50",
+    shadowColor: "shadow-[0_12px_30px_rgba(184,213,242,0.45)] hover:shadow-[0_20px_40px_rgba(184,213,242,0.7)]"
   },
   {
     name: "Ms. Gazal Luthra",
-    role: "Counselling Psychologist & Psychotherapist | Infano Care Expert",
-    achievement: "Recognized by the India Book of Records (2020) for leading the longest-running virtual event on mental health.",
+    role: "Counselling Psychologist & Psychotherapist",
     desc: "I support adolescent girls in navigating and understanding their emotions during one of the most critical stages of their development. I provide a safe space where your daughters can express themselves openly, giving them practical coping strategies to build lasting self-confidence, emotional resilience, and mental wellness.",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Gazal",
-    seed: "gazal"
-  },
-  {
-    name: "Bhumika Asrani",
-    role: "Lead Child Psychologist",
-    desc: "Over 8+ years of core experience in adolescent emotional regulation, helping girls bridge the communication gap with parents.",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Bhumika",
-    seed: "bhumika"
-  },
-  {
-    name: "Suman Sikdar",
-    role: "Puberty Educator",
-    desc: "Specializes in puberty transition biology and hormonal health. Passionate about empowering parents with correct biological frameworks.",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Suman",
-    seed: "suman"
+    achievement: "Recognized by the India Book of Records (2020) for leading the longest-running virtual event on mental health.",
+    avatar: "/uploads/assets/gazal.png",
+    seed: "gazal",
+    borderColor: "border-[#e3a8bd]/80 hover:border-rose-400/50",
+    shadowColor: "shadow-[0_12px_30px_rgba(227,168,189,0.45)] hover:shadow-[0_20px_40px_rgba(227,168,189,0.7)]"
   },
   {
     name: "Dr. Neha Sharma",
@@ -194,18 +185,10 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
     if (!webinar?.date) return;
 
     const calculateTimeLeft = () => {
-      let targetDate: Date;
-      if (webinar.date.endsWith('Z') || webinar.date.includes('+')) {
-        targetDate = new Date(webinar.date);
-      } else {
-        targetDate = new Date(`${webinar.date.replace(' ', 'T')}+05:30`);
-      }
-      const difference = +targetDate - +new Date();
-      if (difference <= 0) {
-        return { days: 0, hours: 0, minutes: 0, seconds: 0 };
-      }
+      const loopDurationMs = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
+      const difference = loopDurationMs - (new Date().getTime() % loopDurationMs);
       return {
-        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        days: 0,
         hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
         minutes: Math.floor((difference / 1000 / 60) % 60),
         seconds: Math.floor((difference / 1000) % 60)
@@ -494,7 +477,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
                 {/* Photo Frame */}
                 <div className="relative w-[92%] h-[92%] rounded-[2.5rem] overflow-hidden border border-white shadow-md bg-white">
                   <img
-                    src="/webinar-hero.png"
+                    src={getImageUrl('/uploads/assets/s1-heroimage.png')}
                     alt="Mother and Daughter sharing a warm bond"
                     className="w-full h-full object-cover"
                   />
@@ -625,7 +608,11 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
                   {/* Card Image */}
                   <div className="w-full h-40 rounded-2xl overflow-hidden mb-5 border border-slate-100 shadow-sm relative">
                     <img
-                      src={[`/problem-1-gen.png`, `/problem-2-gen.png`, `/problem-3-gen.png`][idx]}
+                      src={[
+                        getImageUrl('/uploads/assets/s2-1st.png'),
+                        getImageUrl('/uploads/assets/s2-2nd.png'),
+                        getImageUrl('/uploads/assets/s3-3rd.png')
+                      ][idx]}
                       alt={point.title}
                       className="w-full h-full object-cover"
                     />
@@ -668,10 +655,17 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
       </div>
 
       {/* REASSURANCE & PROMISE BANNER - Light Blue full-width background */}
-      <section className="w-full bg-[#F0F7FF] border-y border-blue-100/50 pt-6 pb-12 md:pt-8 md:pb-16 relative overflow-hidden">
+      <section className="w-full bg-[#F0F7FF] border-y border-blue-100/50 pt-6 pb-12 md:pt-16 md:pb-20 lg:pt-20 lg:pb-20 lg:min-h-[460px] relative overflow-hidden">
         {/* Soft background blurs */}
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[60%] bg-purple-200/20 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[60%] bg-blue-200/25 rounded-full blur-[120px] pointer-events-none" />
+
+        {/* Absolute positioned image for desktop - sticks to the bottom of the section */}
+        <img
+          src={getImageUrl('/uploads/assets/banner.png')}
+          alt="Meet Your Guides: Shipra and Ghazal"
+          className="hidden lg:block absolute bottom-0 right-[2%] lg:right-[5%] xl:right-[8%] h-[95%] max-h-[420px] w-auto object-contain object-bottom pointer-events-none z-10 animate-in zoom-in-95 duration-500"
+        />
 
         <div className="relative z-10 max-w-360 mx-auto px-6 md:px-12 lg:px-24">
           <motion.div
@@ -679,28 +673,33 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center"
+            className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center"
           >
 
-            {/* Expert image on right on desktop, top on mobile */}
-            <div className="lg:col-span-5 order-1 lg:order-2 flex flex-col items-center">
-              <div className="relative w-full max-w-[320px] aspect-square rounded-[2rem] overflow-hidden border-4 border-white shadow-xl bg-white">
-                <img
-                  src="/webinar-expert-guides.png"
-                  alt="Meet Your Guides: Bhumika Asrani & Suman Sikdar"
-                  className="w-full h-full object-cover animate-in zoom-in-95 duration-500"
-                />
-              </div>
-              <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mt-4 text-center">
-                Meet Your Guides: Bhumika Asrani & Suman Sikdar
-              </span>
+            {/* Mobile-only image container */}
+            <div className="lg:hidden col-span-12 order-1 flex justify-center">
+              <img
+                src={getImageUrl('/uploads/assets/banner.png')}
+                alt="Meet Your Guides: Shipra and Ghazal"
+                className="w-full max-w-[280px] h-auto object-contain"
+              />
             </div>
+
+            {/* Spacer on desktop to reserve space for absolute image */}
+            <div className="hidden lg:block lg:col-span-5 order-2" />
 
             {/* Copy column on left on desktop, bottom on mobile */}
             <div className="lg:col-span-7 order-2 lg:order-1 text-left space-y-6">
-              <h3 className="text-2xl md:text-3xl lg:text-4xl font-heading font-semibold text-slate-800 leading-tight">
-                You&apos;re not failing at this. No one ever taught you how to read what&apos;s underneath.
-              </h3>
+              <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest block">
+                Meet Your Guides: Shipra and Ghazal
+              </span>
+              <div className="relative pl-8 py-2 border-l-4 border-primary/25">
+                <Quote size={20} className="absolute top-0 left-2 text-primary/30 transform rotate-180" />
+                <h3 className="text-xl md:text-2xl lg:text-3xl font-heading font-bold text-slate-800 leading-tight italic">
+                  You&apos;re not failing at this. No one ever taught you how to read what&apos;s underneath.
+                  <Quote size={20} className="text-primary/30 inline-block align-top ml-1.5" />
+                </h3>
+              </div>
               <p className="text-slate-500 text-sm md:text-base font-normal leading-relaxed">
                 Our Promise: Learn the <span className="text-slate-900 font-semibold">3 Silent Signals</span> every daughter sends — and the <span className="text-slate-900 font-semibold">exact words to say back</span> — before a phase becomes a crisis.
               </p>
@@ -1001,7 +1000,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
             >
               <div className="relative w-full max-w-85 aspect-3/4 rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-xl bg-linear-to-b from-purple-50 to-rose-50">
                 <img
-                  src="/agenda-center-gen.png"
+                  src={getImageUrl('/uploads/assets/glance.png')}
                   alt="Agenda Insights"
                   className="w-full h-full object-cover"
                 />
@@ -1055,7 +1054,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
             <div className="flex justify-center">
               <div className="relative w-full max-w-70 aspect-4/5 rounded-3xl overflow-hidden border border-slate-100 shadow-md">
                 <img
-                  src="/agenda-center-gen.png"
+                  src={getImageUrl('/uploads/assets/glance.png')}
                   alt="Agenda Insights"
                   className="w-full h-full object-cover"
                 />
@@ -1116,11 +1115,6 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
               <span>Meet Your </span><span className="text-primary">Expert Mentors</span>
             </h3>
             <p className="text-slate-500 text-sm sm:text-base font-medium leading-relaxed">Lived experts specializing in adolescent psychology and girls' developmental health.</p>
-            {webinar.instructor && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold mt-2 uppercase tracking-wide">
-                <span>Featured Host: {webinar.instructor}</span>
-              </div>
-            )}
           </div>
 
           {/* Grid of exactly 2 expert cards */}
@@ -1128,29 +1122,35 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
             {EXPERT_MENTORS.slice(0, 2).map((expert, idx) => (
               <div
                 key={idx}
-                className="bg-white border border-slate-100 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_45px_-10px_rgba(74,30,127,0.08)] hover:-translate-y-1.5 transition-all duration-300 rounded-[2rem] text-left flex flex-col group relative overflow-hidden"
+                className={`bg-white border ${expert.borderColor || 'border-slate-200/90'} ${expert.shadowColor || 'shadow-[0_12px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_40px_rgba(74,30,127,0.12)] hover:border-slate-300'} hover:-translate-y-1.5 transition-all duration-300 rounded-[2rem] text-left flex flex-col group relative overflow-hidden`}
               >
                 {/* Subtle background glow on hover */}
                 <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
                 <div className="relative z-10 flex flex-col h-full">
                   {/* Image wrapper spanning full width at top */}
-                  <div className="w-full h-48 sm:h-56 bg-primary/5 relative overflow-hidden border-b border-primary/5">
+                  <div className="w-full h-64 sm:h-80 bg-primary/5 relative overflow-hidden border-b border-primary/5">
                     <img
-                      src={expert.avatar}
+                      src={getImageUrl(expert.avatar)}
                       alt={expert.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${expert.seed}`;
                       }}
                     />
+                    {/* Infano Care Expert Overlaid Pill */}
+                    <span className="absolute top-4 right-4 z-20 inline-flex px-3 py-1 rounded-full bg-emerald-500 text-white border border-emerald-400/20 text-[10px] font-bold tracking-wider shadow-sm select-none animate-in fade-in duration-300">
+                      Infano Care Expert
+                    </span>
                   </div>
-                  
+
                   {/* Text content with padding */}
                   <div className="p-6 sm:p-8 flex-1 flex flex-col">
                     <h4 className="text-lg font-bold text-slate-800 font-heading tracking-tight group-hover:text-primary transition-colors duration-300">{expert.name}</h4>
-                    <div>
-                      <p className="inline-flex px-3 py-1 rounded-full bg-primary/5 text-primary text-[10px] font-black uppercase tracking-wider mt-1.5">{expert.role}</p>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      <span className="inline-flex px-3 py-1 rounded-full bg-primary/5 text-primary text-[10px] font-black tracking-wider">
+                        {expert.role}
+                      </span>
                     </div>
                     {expert.achievement && (
                       <div className="flex items-start gap-1.5 mt-3 text-slate-600 bg-amber-50/50 border border-amber-100/60 rounded-xl p-2.5">
@@ -1161,8 +1161,17 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
                       </div>
                     )}
                     <p className="text-slate-500 text-xs sm:text-sm leading-relaxed font-normal mt-4">
-                      {expert.desc}
+                      "{expert.desc}"
                     </p>
+                    {expert.achievement && (
+                      <div className="mt-5 pt-4 border-t border-slate-100/80">
+                        <span className="text-[9px] font-black tracking-widest text-slate-400 block mb-1.5">Key Achievements</span>
+                        <p className="text-slate-700 text-xs sm:text-sm font-semibold italic flex items-start gap-1.5">
+                          <span className="shrink-0">🏆</span>
+                          <span>{expert.achievement}</span>
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1188,59 +1197,59 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
               <span className="text-slate-500 font-bold ml-1">5.0 Average Rating (500+ Attendees)</span>
             </div>
           </div>
-          
+
           <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 px-6 sm:px-12 pb-12 max-w-360 mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] py-4">
             {[
               {
-                quote: "My daughter hit Class 7 and suddenly started keeping everything locked inside. She spent hours in her room, and every time I asked how her day was, I just got one-word answers. The '3 Signals Framework' taught me how to change my approach instead of pushing harder. When I used one of their exact phrases during a quiet moment, she finally shared what was bothering her at school. This masterclass is a must-watch for any parent feeling disconnected.",
+                quote: "When my Class 7 daughter started shutting me out, I didn't know what to do. Using their exact phrases, she finally opened up about her school stress. Truly a lifesaver for disconnected parents!",
                 author: "Ananya Sharma",
-                role: "Mother of a Class 7 student, New Delhi",
+                role: "Mother, New Delhi",
                 icon: <MessageCircle size={32} />,
                 colorClass: "text-purple-600 bg-purple-100",
                 gradientBorder: "from-indigo-100 via-purple-300 to-fuchsia-100"
               },
               {
-                quote: "As a dad, watching my daughter enter Class 6 felt like trying to navigate a whole new language. I wanted to help, but every time I brought up her changing moods or screen time, it turned into an argument. The experts broke down the exact steps to handle those high-tension moments without raising my voice. Using their script during a car ride, she actually opened up to me about her worries instead of shutting down. Truly invaluable guidance.",
+                quote: "Navigating my Class 6 daughter's changing moods felt impossible. This masterclass gave me practical scripts to handle high-tension moments calmly. She actually opened up during our next talk instead of shutting down!",
                 author: "Rajesh Nair",
-                role: "Father of a Class 6 student, Bengaluru",
+                role: "Father, Bengaluru",
                 icon: <MessageCircle size={32} />,
                 colorClass: "text-emerald-500 bg-emerald-100",
                 gradientBorder: "from-emerald-100 via-emerald-300 to-teal-100"
               },
               {
-                quote: "By Class 8, my daughter's mood swings and sudden stress over her social circle had our whole house walking on eggshells. I felt helpless and kept second-guessing every word I said. This masterclass gave me immediate clarity on what was going on under the surface. The script for handling emotional outbursts worked like magic—for the first time in months, we had an honest, calm conversation instead of a fight.",
+                quote: "My Class 8 daughter's mood swings had us walking on eggshells. Their script for emotional outbursts worked like magic—we finally had a calm, honest conversation for the first time in months.",
                 author: "Meera Kulkarni",
-                role: "Mother of a Class 8 student, Pune",
+                role: "Mother, Pune",
                 icon: <Users size={32} />,
                 colorClass: "text-rose-500 bg-rose-100",
                 gradientBorder: "from-rose-100 via-orange-300 to-rose-200"
               }
             ].map((testimonial, idx) => (
-              <div 
-                key={idx} 
+              <div
+                key={idx}
                 className="shrink-0 w-[85vw] sm:w-[400px] snap-center bg-white rounded-[2rem] p-8 md:p-10 relative flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-50 overflow-hidden group hover:-translate-y-1 transition-all duration-300"
               >
                 {/* Bottom Gradient Border */}
                 <div className={`absolute bottom-0 left-0 h-1.5 w-full bg-linear-to-r ${testimonial.gradientBorder}`} />
-                
+
                 {/* Top Quotes */}
                 <Quote className="absolute top-8 right-8 text-primary/5 rotate-180" size={80} strokeWidth={0.5} />
-                
+
                 {/* Large Icon */}
                 <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-8 relative z-10 ${testimonial.colorClass}`}>
                   {testimonial.icon}
                 </div>
-                
+
                 {/* Stars */}
                 <div className="flex items-center gap-1 text-amber-400 text-sm mb-6 relative z-10 bg-amber-50 w-max px-3 py-1.5 rounded-lg">
                   <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
                 </div>
-                
+
                 {/* Quote text */}
                 <p className="text-slate-700 text-sm sm:text-base leading-relaxed mb-8 relative z-10 flex-1">
                   "{testimonial.quote}"
                 </p>
-                
+
                 {/* Divider & Author */}
                 <div className="pt-6 border-t border-slate-100 mt-auto relative z-10 flex items-center gap-4">
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${testimonial.colorClass} opacity-80`}>
@@ -1274,7 +1283,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
                 <span>Value Stack</span>
               </div>
               <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold font-heading text-slate-900 tracking-tight mb-4">
-                Everything You Get Today <span className="text-primary">For Just ₹99</span>
+                Everything You Get Today <span className="text-primary">For Just ₹{webinar ? webinar.price : 99}</span>
               </h3>
               <p className="text-slate-600 text-sm sm:text-base font-medium leading-relaxed max-w-2xl mx-auto mb-8">
                 Here is exactly what is included in your ticket, stacked with tools and resources to help you support your daughter:
@@ -1333,14 +1342,14 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
               <div className="flex flex-col items-center gap-4">
                 <div className="flex items-center gap-3 bg-rose-50 px-6 py-2.5 rounded-full border border-rose-100">
                   <Sparkles size={16} className="text-rose-500 animate-pulse" />
-                  <span className="text-sm font-bold text-slate-800">Your Price Today: <span className="text-rose-600 text-lg font-black ml-1">Only ₹99</span></span>
+                  <span className="text-sm font-bold text-slate-800">Your Price Today: <span className="text-rose-600 text-lg font-black ml-1">Only ₹{webinar ? webinar.price : 99}</span></span>
                 </div>
 
                 <button
                   onClick={() => setModalOpen(true)}
                   className="px-10 py-4 bg-primary text-white rounded-full font-bold text-sm md:text-base hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 flex items-center justify-center gap-2 group cursor-pointer border-none mt-2 w-full sm:w-auto"
                 >
-                  <span>Claim Your Ticket For ₹99</span>
+                  <span>Claim Your Ticket For ₹{webinar ? webinar.price : 99}</span>
                   <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
                 </button>
               </div>
@@ -1453,12 +1462,17 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
           >
             {/* Top Row on Mobile, Left/Mid on Desktop: Timer & Scarcity */}
             <div className="flex items-center justify-between w-full md:w-auto gap-3 shrink-0">
-              {/* Timer */}
-              <div className="flex items-center gap-1.5 bg-linear-to-r from-violet-600 via-fuchsia-600 to-pink-500 rounded-full px-3 md:px-4 py-1 md:py-1.5 text-white shadow-md font-mono font-bold text-xs md:text-base">
-                <Clock size={14} className="animate-pulse text-white md:w-4 md:h-4" />
-                <span>{formatTotalTimeLeft()}</span>
+              {/* Timer Wrapper */}
+              <div className="flex flex-col items-center md:items-start gap-1">
+                <span className="text-[9px] md:text-[10px] font-bold text-[#ff1f56] tracking-wide select-none leading-none">
+                  for limited time
+                </span>
+                <div className="flex items-center gap-1.5 bg-[#ff1f56] rounded-full px-3 md:px-4 py-1 md:py-1.5 text-white shadow-md font-mono font-bold text-xs md:text-base">
+                  <Clock size={14} className="animate-pulse text-white md:w-4 md:h-4" />
+                  <span>{formatTotalTimeLeft()}</span>
+                </div>
               </div>
-              
+
               {/* Scarcity Text */}
               <div className="flex items-center gap-1.5 md:gap-2.5 shrink-0">
                 <span className="relative flex h-2 w-2 md:h-2.5 md:w-2.5">
@@ -1475,9 +1489,9 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
             <div className="w-full md:w-auto shrink-0">
               <button
                 onClick={() => setModalOpen(true)}
-                className="w-full md:w-auto px-6 md:px-8 py-2.5 md:py-3 bg-linear-to-r from-violet-600 via-fuchsia-600 to-pink-500 text-white font-extrabold text-sm md:text-base rounded-full shadow-lg shadow-fuchsia-500/30 hover:shadow-xl hover:scale-102 active:scale-98 transition-all flex items-center justify-center gap-2 border-none cursor-pointer"
+                className="w-full md:w-auto px-6 md:px-8 py-2.5 md:py-3 bg-[#ff1f56] text-white font-extrabold text-sm md:text-base rounded-full shadow-lg shadow-[#ff1f56]/20 hover:shadow-xl hover:bg-[#e0144c] hover:scale-102 active:scale-98 transition-all flex items-center justify-center gap-2 border-none cursor-pointer"
               >
-                <span>Reserve Your Seat Now</span>
+                <span>Reserve My Seat for ₹{webinar ? webinar.price : 99}</span>
                 <ArrowRight size={15} />
               </button>
             </div>

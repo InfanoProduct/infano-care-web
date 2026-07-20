@@ -74,18 +74,10 @@ export function MarketingNavbar() {
     if (!webinarDate) return;
 
     const calculateTimeLeft = () => {
-      let targetDate: Date;
-      if (webinarDate.endsWith('Z') || webinarDate.includes('+')) {
-        targetDate = new Date(webinarDate);
-      } else {
-        targetDate = new Date(`${webinarDate.replace(' ', 'T')}+05:30`);
-      }
-      const difference = +targetDate - +new Date();
-      if (difference <= 0) {
-        return { days: 0, hours: 0, minutes: 0, seconds: 0 };
-      }
+      const loopDurationMs = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
+      const difference = loopDurationMs - (new Date().getTime() % loopDurationMs);
       return {
-        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        days: 0,
         hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
         minutes: Math.floor((difference / 1000 / 60) % 60),
         seconds: Math.floor((difference / 1000) % 60)
@@ -126,26 +118,6 @@ export function MarketingNavbar() {
 
           {isWebinarPage ? (
             <div className="flex items-center gap-4 md:gap-6 ml-auto">
-              {/* Countdown Timer */}
-              {timeLeft && (timeLeft.days > 0 || timeLeft.hours > 0 || timeLeft.minutes > 0 || timeLeft.seconds > 0) && (
-                <div className="hidden sm:flex items-center gap-3 shrink-0 bg-yellow-400 p-1.5 rounded-full shadow-lg shadow-yellow-500/20 border-none text-slate-900">
-                  <div className="flex items-center gap-1.5 pl-3">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-900 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-slate-900"></span>
-                    </span>
-                    <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-800">Starts in</span>
-                  </div>
-                  <div className="h-4 w-px bg-slate-900/20" />
-                  <div className="flex items-center gap-1.5 pr-2.5 font-mono text-xs font-bold text-slate-900 tracking-tight">
-                    <div className="flex items-baseline"><span className="text-sm font-black text-slate-900">{String(timeLeft.days).padStart(2, '0')}</span><span className="text-[9px] text-slate-700 font-bold uppercase ml-px">d</span></div>
-                    <div className="flex items-baseline"><span className="text-sm font-black text-slate-900">{String(timeLeft.hours).padStart(2, '0')}</span><span className="text-[9px] text-slate-700 font-bold uppercase ml-px">h</span></div>
-                    <div className="flex items-baseline"><span className="text-sm font-black text-slate-900">{String(timeLeft.minutes).padStart(2, '0')}</span><span className="text-[9px] text-slate-700 font-bold uppercase ml-px">m</span></div>
-                    <div className="flex items-baseline"><span className="text-sm font-black text-slate-900 animate-pulse">{String(timeLeft.seconds).padStart(2, '0')}</span><span className="text-[9px] text-slate-800 font-bold uppercase ml-px">s</span></div>
-                  </div>
-                </div>
-              )}
-
               {!isWebinarSuccessPage && (
                 <button
                   onClick={handleRegisterClick}

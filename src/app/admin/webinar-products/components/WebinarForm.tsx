@@ -32,6 +32,86 @@ export default function WebinarForm({ webinarId }: WebinarFormProps) {
     seoKeywords: '',
   });
 
+  const [keywordInput, setKeywordInput] = useState('');
+
+  const handleKeywordChange = (value: string) => {
+    if (value.includes(',')) {
+      const parts = value.split(',');
+      const newKeywords = parts
+        .slice(0, -1)
+        .map((k) => k.trim())
+        .filter(Boolean);
+      
+      const currentKeywords = formData.seoKeywords
+        ? formData.seoKeywords.split(',').map((k) => k.trim()).filter(Boolean)
+        : [];
+      
+      const updatedKeywords = [...currentKeywords, ...newKeywords];
+      setFormData({
+        ...formData,
+        seoKeywords: updatedKeywords.join(', ')
+      });
+      setKeywordInput(parts[parts.length - 1] || '');
+    } else {
+      setKeywordInput(value);
+    }
+  };
+
+  const handleKeywordKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const val = keywordInput.trim();
+      if (val) {
+        const currentKeywords = formData.seoKeywords
+          ? formData.seoKeywords.split(',').map((k) => k.trim()).filter(Boolean)
+          : [];
+        const updatedKeywords = [...currentKeywords, val];
+        setFormData({
+          ...formData,
+          seoKeywords: updatedKeywords.join(', ')
+        });
+        setKeywordInput('');
+      }
+    } else if (e.key === 'Backspace' && !keywordInput) {
+      const currentKeywords = formData.seoKeywords
+        ? formData.seoKeywords.split(',').map((k) => k.trim()).filter(Boolean)
+        : [];
+      if (currentKeywords.length > 0) {
+        const updatedKeywords = currentKeywords.slice(0, -1);
+        setFormData({
+          ...formData,
+          seoKeywords: updatedKeywords.join(', ')
+        });
+      }
+    }
+  };
+
+  const handleKeywordBlur = () => {
+    const val = keywordInput.trim();
+    if (val) {
+      const currentKeywords = formData.seoKeywords
+        ? formData.seoKeywords.split(',').map((k) => k.trim()).filter(Boolean)
+        : [];
+      const updatedKeywords = [...currentKeywords, val];
+      setFormData({
+        ...formData,
+        seoKeywords: updatedKeywords.join(', ')
+      });
+      setKeywordInput('');
+    }
+  };
+
+  const removeKeyword = (indexToRemove: number) => {
+    const currentKeywords = formData.seoKeywords
+      ? formData.seoKeywords.split(',').map((k) => k.trim()).filter(Boolean)
+      : [];
+    const updatedKeywords = currentKeywords.filter((_, idx) => idx !== indexToRemove);
+    setFormData({
+      ...formData,
+      seoKeywords: updatedKeywords.join(', ')
+    });
+  };
+
   useEffect(() => {
     if (webinarId) {
       loadWebinar();
@@ -103,6 +183,10 @@ export default function WebinarForm({ webinarId }: WebinarFormProps) {
       </div>
     );
   }
+
+  const keywordsArray = formData.seoKeywords
+    ? formData.seoKeywords.split(',').map((k) => k.trim()).filter(Boolean)
+    : [];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8 animate-in slide-in-from-bottom-8 duration-700">
@@ -306,13 +390,32 @@ export default function WebinarForm({ webinarId }: WebinarFormProps) {
                 <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
                   Meta Keywords
                 </label>
-                <input
-                  type="text"
-                  value={formData.seoKeywords || ''}
-                  onChange={(e) => setFormData({ ...formData, seoKeywords: e.target.value })}
-                  placeholder="e.g. parenting, girls puberty, adolescent health (comma separated)"
-                  className="w-full px-5 py-4 bg-secondary/30 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none rounded-2xl transition-all text-sm font-bold"
-                />
+                <div className="flex flex-wrap gap-2 items-center w-full px-5 py-4 bg-secondary/30 border border-slate-200 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 rounded-2xl transition-all text-sm font-bold min-h-[56px]">
+                  {keywordsArray.map((keyword, index) => (
+                    <span
+                      key={index}
+                      className="flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-extrabold px-3 py-1.5 rounded-full border border-primary/20 shrink-0 select-none animate-in scale-in-95 duration-200"
+                    >
+                      <span>{keyword}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeKeyword(index)}
+                        className="w-4 h-4 rounded-full flex items-center justify-center hover:bg-primary/20 transition-all text-primary shrink-0 p-0 border-none cursor-pointer"
+                      >
+                        <X size={10} strokeWidth={3} />
+                      </button>
+                    </span>
+                  ))}
+                  <input
+                    type="text"
+                    value={keywordInput}
+                    onChange={(e) => handleKeywordChange(e.target.value)}
+                    onKeyDown={handleKeywordKeyDown}
+                    onBlur={handleKeywordBlur}
+                    placeholder={keywordsArray.length === 0 ? "e.g. parenting, girls puberty (add comma to separate)" : ""}
+                    className="flex-grow bg-transparent border-none outline-none focus:ring-0 p-0 text-sm font-bold min-w-[120px]"
+                  />
+                </div>
               </div>
             </div>
           </div>

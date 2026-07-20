@@ -412,7 +412,7 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
               <button
                 type="submit"
                 disabled={processing}
-                className="w-full py-4 px-4 bg-primary hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] text-white font-extrabold text-sm rounded-full shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer border-none"
+                className="w-full py-4 px-4 bg-primary hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] text-white font-extrabold text-base rounded-full shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer border-none"
               >
                 {processing ? (
                   <>

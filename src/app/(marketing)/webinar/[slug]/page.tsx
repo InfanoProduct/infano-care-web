@@ -8,12 +8,24 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  const baseUrl = process.env.NEXT_PUBLIC_UPLOAD_API_URL || 'https://dev.infano.care';
+  const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+  const ogImageUrl = `${cleanBaseUrl}/uploads/assets/s1-heroimage.png`;
+
   try {
     const webinar = await ShopService.getWebinarBySlug(slug);
     if (!webinar) {
       return {
-        title: 'Live Parent Webinar: Understand Your Teen Daughter',
+        title: {
+          absolute: 'Live Parent Webinar: Understand Your Teen Daughter | Infano Care'
+        },
         description: 'Join Decoding Her Silence - a 90-minute live session for parents navigating adolescence. Learn to read the signs, open the conversation, and reconnect. Limited seats.',
+        openGraph: {
+          images: [{ url: ogImageUrl }]
+        },
+        twitter: {
+          images: [ogImageUrl]
+        }
       };
     }
 
@@ -21,22 +33,26 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const seoDescription = webinar.seoDescription || webinar.description || 'Join Decoding Her Silence - a 90-minute live session for parents navigating adolescence. Learn to read the signs, open the conversation, and reconnect. Limited seats.';
     const keywords = webinar.seoKeywords || 'parenting, teenager, puberty, mother daughter bond';
 
-    const finalTitle = (seoTitle.toLowerCase().includes('| infano') || seoTitle.toLowerCase().includes('| infano care'))
+    const finalTitle = (seoTitle.toLowerCase().includes('| infano care'))
       ? seoTitle
-      : `${seoTitle} | Infano`;
+      : seoTitle.toLowerCase().includes('| infano')
+        ? seoTitle.replace(/\|\s*infano/i, '| Infano Care')
+        : `${seoTitle} | Infano Care`;
 
     return {
-      title: finalTitle,
+      title: {
+        absolute: finalTitle
+      },
       description: seoDescription,
       keywords: keywords,
       openGraph: {
         title: finalTitle,
         description: seoDescription,
         type: 'website',
-        url: `https://dev.infano.care/webinar/${slug}`,
+        url: `${cleanBaseUrl}/webinar/${slug}`,
         images: [
           {
-            url: '/webinar-hero.png',
+            url: ogImageUrl,
             width: 1200,
             height: 630,
             alt: finalTitle,
@@ -47,14 +63,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         card: 'summary_large_image',
         title: finalTitle,
         description: seoDescription,
-        images: ['/webinar-hero.png'],
+        images: [ogImageUrl],
       }
     };
   } catch (error) {
     console.error('Failed to generate metadata for webinar page:', error);
     return {
-      title: 'Live Parent Webinar: Understand Your Teen Daughter | Infano',
+      title: {
+        absolute: 'Live Parent Webinar: Understand Your Teen Daughter | Infano Care'
+      },
       description: 'Join Decoding Her Silence - a 90-minute live session for parents navigating adolescence. Learn to read the signs, open the conversation, and reconnect. Limited seats.',
+      openGraph: {
+        images: [{ url: ogImageUrl }]
+      },
+      twitter: {
+        images: [ogImageUrl]
+      }
     };
   }
 }

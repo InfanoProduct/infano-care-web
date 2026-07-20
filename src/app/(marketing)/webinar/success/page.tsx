@@ -235,7 +235,7 @@ export default function WebinarSuccessPage() {
     : 'Saturday, July 25, 2026 at 05:00 PM';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-rose-50 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-rose-50 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
       <CanvasConfetti />
       
       {/* Background Orbs */}

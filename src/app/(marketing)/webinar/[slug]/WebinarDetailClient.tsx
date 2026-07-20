@@ -6,7 +6,7 @@ import { WebinarCheckoutModal } from '@/features/marketing/components/WebinarChe
 import { ShopService, Webinar } from '@/services/shop.service';
 import {
   Sparkles, Calendar, Clock, Video, CheckCircle2, ChevronDown,
-  Users, MessageCircle, AlertCircle, Quote, ShieldCheck,
+  Users, MessageCircle, AlertCircle, Quote, ShieldCheck, Star,
   Brain, Heart, ArrowRight, Award, DoorClosed, Smartphone, Loader2,
   Globe, FileText, CalendarCheck, MessageSquareX, Plus, Minus,
   Activity, Target
@@ -185,8 +185,9 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
     if (!webinar?.date) return;
 
     const calculateTimeLeft = () => {
-      const loopDurationMs = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
-      const difference = loopDurationMs - (new Date().getTime() % loopDurationMs);
+      const activeDurationMs = 3 * 60 * 60 * 1000; // 3 hours loop duration
+      const offsetMs = 2 * 60 * 60 * 1000; // 2 hours minimum offset
+      const difference = activeDurationMs - (new Date().getTime() % activeDurationMs) + offsetMs;
       return {
         days: 0,
         hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
@@ -342,9 +343,9 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
   }
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 overflow-x-clip relative">
+    <div className="min-h-screen bg-white text-slate-900 overflow-x-clip relative pb-32 md:pb-40 font-sans">
       {/* HERO WRAPPER WITH BACKGROUND */}
-      <div className="bg-[#FAF7F5] relative pt-24 pb-20 md:pb-28 border-b border-slate-100/60">
+      <div className="bg-[#FAF7F5] relative pt-8 md:pt-20 pb-16 md:pb-28 border-b border-slate-100/60">
         {/* Background radial glow */}
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
           <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-purple-200/20 rounded-full blur-[130px]" />
@@ -408,19 +409,19 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
                   <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary shrink-0">
                     <Brain size={14} />
                   </div>
-                  <span className="text-xs sm:text-[13px] font-semibold text-slate-600 leading-snug">Understand the unspoken emotions</span>
+                  <span className="text-sm sm:text-[13px] font-medium sm:font-semibold text-slate-600 leading-snug">Understand the unspoken emotions</span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary shrink-0">
                     <Heart size={14} />
                   </div>
-                  <span className="text-xs sm:text-[13px] font-semibold text-slate-600 leading-snug">Build trust & stronger connection</span>
+                  <span className="text-sm sm:text-[13px] font-medium sm:font-semibold text-slate-600 leading-snug">Build trust & stronger connection</span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary shrink-0">
                     <ShieldCheck size={14} />
                   </div>
-                  <span className="text-xs sm:text-[13px] font-semibold text-slate-600 leading-snug">Practical strategies you can start today</span>
+                  <span className="text-sm sm:text-[13px] font-medium sm:font-semibold text-slate-600 leading-snug">Practical strategies you can start today</span>
                 </div>
               </div>
 
@@ -453,7 +454,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
                 <div className="flex flex-col items-start gap-2.5">
                   <button
                     onClick={() => setModalOpen(true)}
-                    className="w-full sm:w-auto px-10 py-4 bg-primary text-white rounded-full font-semibold text-sm hover:bg-primary/90 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 group cursor-pointer border-none"
+                    className="w-full sm:w-auto px-10 py-4 bg-primary text-white rounded-full font-bold text-base hover:bg-primary/90 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 group cursor-pointer border-none"
                   >
                     <span>Reserve My Seat — ₹{webinar.price}/-</span>
                     <ArrowRight className="transition-transform group-hover:translate-x-1" size={16} />
@@ -513,7 +514,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
       </div>
 
       {/* Overlapping Trust Badges Capsule */}
-      <div className="relative z-20 max-w-360 mx-auto px-6 md:px-12 lg:px-24 -mt-12 md:-mt-16 mb-16 md:mb-24">
+      <div className="hidden sm:block relative z-20 max-w-360 mx-auto px-6 md:px-12 lg:px-24 -mt-12 md:-mt-16 mb-16 md:mb-24">
         {/* BOTTOM ROW: TRUST BADGES (Capsule Style) */}
         <div className="bg-white rounded-none border border-slate-200 shadow-sm py-8 px-6 grid grid-cols-1 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-300 gap-4 sm:gap-0 max-w-6xl mx-auto items-center text-center">
           <div className="flex flex-col items-center justify-center py-2 sm:py-0">
@@ -677,20 +678,28 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
           >
 
             {/* Mobile-only image container */}
-            <div className="lg:hidden col-span-12 order-1 flex justify-center">
-              <img
-                src={getImageUrl('/uploads/assets/banner.png')}
-                alt="Meet Your Guides: Shipra and Ghazal"
-                className="w-full max-w-[280px] h-auto object-contain"
-              />
+            <div className="lg:hidden col-span-full order-1 flex justify-center">
+              <div className="w-full max-w-[280px] flex flex-col items-center">
+                <img
+                  src={getImageUrl('/uploads/assets/banner.png')}
+                  alt="Meet Your Guides: Shipra and Ghazal"
+                  className="w-full h-auto object-contain"
+                />
+                {/* Mobile-only attached guides caption card */}
+                <div className="w-full bg-white border border-slate-200/60 border-t-0 rounded-b-2xl py-2.5 px-3 text-center shadow-xs -mt-0.5">
+                  <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">
+                    Meet Your Guides: Shipra and Ghazal
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Spacer on desktop to reserve space for absolute image */}
             <div className="hidden lg:block lg:col-span-5 order-2" />
 
             {/* Copy column on left on desktop, bottom on mobile */}
-            <div className="lg:col-span-7 order-2 lg:order-1 text-left space-y-6">
-              <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest block">
+            <div className="col-span-full lg:col-span-7 order-2 lg:order-1 text-left space-y-6">
+              <span className="hidden lg:block text-[11px] font-extrabold text-slate-500 uppercase tracking-widest">
                 Meet Your Guides: Shipra and Ghazal
               </span>
               <div className="relative pl-8 py-2 border-l-4 border-primary/25">
@@ -1152,14 +1161,6 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
                         {expert.role}
                       </span>
                     </div>
-                    {expert.achievement && (
-                      <div className="flex items-start gap-1.5 mt-3 text-slate-600 bg-amber-50/50 border border-amber-100/60 rounded-xl p-2.5">
-                        <Award size={14} className="text-amber-550 shrink-0 mt-0.5" />
-                        <p className="text-[11px] font-bold leading-normal text-amber-900">
-                          {expert.achievement}
-                        </p>
-                      </div>
-                    )}
                     <p className="text-slate-500 text-xs sm:text-sm leading-relaxed font-normal mt-4">
                       "{expert.desc}"
                     </p>
@@ -1198,7 +1199,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
             </div>
           </div>
 
-          <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 px-6 sm:px-12 pb-12 max-w-360 mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] py-4">
+          <div className="flex lg:grid lg:grid-cols-3 overflow-x-auto lg:overflow-x-visible snap-x snap-mandatory gap-6 px-6 sm:px-12 pb-12 max-w-6xl mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] py-4">
             {[
               {
                 quote: "When my Class 7 daughter started shutting me out, I didn't know what to do. Using their exact phrases, she finally opened up about her school stress. Truly a lifesaver for disconnected parents!",
@@ -1227,22 +1228,19 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
             ].map((testimonial, idx) => (
               <div
                 key={idx}
-                className="shrink-0 w-[85vw] sm:w-[400px] snap-center bg-white rounded-[2rem] p-8 md:p-10 relative flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-50 overflow-hidden group hover:-translate-y-1 transition-all duration-300"
+                className="shrink-0 w-[85vw] sm:w-[400px] lg:w-full snap-center bg-white rounded-[2rem] p-8 md:p-10 relative flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-50 overflow-hidden group hover:-translate-y-1 transition-all duration-300"
               >
                 {/* Bottom Gradient Border */}
                 <div className={`absolute bottom-0 left-0 h-1.5 w-full bg-linear-to-r ${testimonial.gradientBorder}`} />
 
-                {/* Top Quotes */}
-                <Quote className="absolute top-8 right-8 text-primary/5 rotate-180" size={80} strokeWidth={0.5} />
+                {/* Curved serif quotes */}
+                <span className="absolute top-0 right-8 text-primary/10 text-[8rem] font-serif font-black select-none pointer-events-none leading-none">
+                  ”
+                </span>
 
                 {/* Large Icon */}
                 <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-8 relative z-10 ${testimonial.colorClass}`}>
                   {testimonial.icon}
-                </div>
-
-                {/* Stars */}
-                <div className="flex items-center gap-1 text-amber-400 text-sm mb-6 relative z-10 bg-amber-50 w-max px-3 py-1.5 rounded-lg">
-                  <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
                 </div>
 
                 {/* Quote text */}
@@ -1250,14 +1248,23 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
                   "{testimonial.quote}"
                 </p>
 
-                {/* Divider & Author */}
-                <div className="pt-6 border-t border-slate-100 mt-auto relative z-10 flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${testimonial.colorClass} opacity-80`}>
-                    <Users size={20} />
+                {/* Divider & Author with Stars on the right */}
+                <div className="pt-6 border-t border-slate-100 mt-auto relative z-10 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${testimonial.colorClass} opacity-80`}>
+                      <Users size={16} />
+                    </div>
+                    <div className="min-w-0">
+                      <h5 className="text-sm font-bold text-slate-800 leading-tight whitespace-nowrap">{testimonial.author}</h5>
+                      <p className="text-[11px] font-medium text-slate-400 mt-1 leading-none whitespace-nowrap">{testimonial.role}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h5 className="text-sm font-black text-slate-900">{testimonial.author}</h5>
-                    <p className="text-xs font-semibold text-primary mt-1">{testimonial.role}</p>
+                  <div className="flex items-center gap-0.5 bg-amber-500/5 px-2.5 py-1 rounded-full border border-amber-500/10 shrink-0">
+                    <Star size={11} fill="currentColor" className="text-amber-500" />
+                    <Star size={11} fill="currentColor" className="text-amber-500" />
+                    <Star size={11} fill="currentColor" className="text-amber-500" />
+                    <Star size={11} fill="currentColor" className="text-amber-500" />
+                    <Star size={11} fill="currentColor" className="text-amber-500" />
                   </div>
                 </div>
               </div>
@@ -1430,7 +1437,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
           <div className="flex flex-col items-center gap-3">
             <button
               onClick={() => setModalOpen(true)}
-              className="w-full py-4 bg-primary text-white rounded-full font-bold text-sm hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 flex items-center justify-center gap-2 group cursor-pointer border-none"
+              className="w-full py-4 bg-primary text-white rounded-full font-bold text-base hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 flex items-center justify-center gap-2 group cursor-pointer border-none"
             >
               <span>Reserve My Seat — ₹{webinar.price}/-</span>
               <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
@@ -1489,7 +1496,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
             <div className="w-full md:w-auto shrink-0">
               <button
                 onClick={() => setModalOpen(true)}
-                className="w-full md:w-auto px-6 md:px-8 py-2.5 md:py-3 bg-[#ff1f56] text-white font-extrabold text-sm md:text-base rounded-full shadow-lg shadow-[#ff1f56]/20 hover:shadow-xl hover:bg-[#e0144c] hover:scale-102 active:scale-98 transition-all flex items-center justify-center gap-2 border-none cursor-pointer"
+                className="w-full md:w-auto px-6 md:px-8 py-2.5 md:py-3 bg-[#ff1f56] text-white font-extrabold text-base rounded-full shadow-lg shadow-[#ff1f56]/20 hover:shadow-xl hover:bg-[#e0144c] hover:scale-102 active:scale-98 transition-all flex items-center justify-center gap-2 border-none cursor-pointer"
               >
                 <span>Reserve My Seat for ₹{webinar ? webinar.price : 99}</span>
                 <ArrowRight size={15} />

@@ -172,20 +172,21 @@ export default function WebinarSuccessPage() {
     : 'Saturday, July 25, 2026 at 05:00 PM';
 
   return (
-    <div className="min-h-screen bg-slate-50/50 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-rose-50 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       <CanvasConfetti />
       
       {/* Background Orbs */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
-        <div className="absolute top-[10%] left-[-15%] w-[50%] h-[50%] bg-purple-200/40 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[10%] right-[-15%] w-[45%] h-[45%] bg-rose-200/40 rounded-full blur-[120px]" />
+      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-40">
+        <div className="absolute top-[5%] left-[-10%] w-[50%] h-[50%] bg-indigo-200/50 rounded-full blur-[140px]" />
+        <div className="absolute bottom-[5%] right-[-10%] w-[45%] h-[45%] bg-rose-200/50 rounded-full blur-[140px]" />
+        <div className="absolute top-[40%] left-[40%] w-[30%] h-[30%] bg-emerald-100/40 rounded-full blur-[100px]" />
       </div>
 
-      <div className="w-full max-w-2xl bg-white border border-slate-100 rounded-3xl shadow-xl shadow-slate-200/50 p-6 sm:p-10 relative z-10 text-center space-y-8">
+      <div className="w-full max-w-2xl bg-white/90 backdrop-blur-md border border-white rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(74,30,127,0.05)] p-6 sm:p-10 relative z-10 text-center space-y-8">
         
         {/* Party Popper visual */}
         <div className="relative">
-          <div className="w-20 h-20 rounded-full bg-purple-50 border border-purple-100 flex items-center justify-center mx-auto text-purple-600 shadow-md">
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-50 to-purple-50 border border-purple-100/50 flex items-center justify-center mx-auto text-purple-500 shadow-inner">
             <PartyPopper size={44} strokeWidth={1.5} className="animate-bounce" />
           </div>
           <h1 className="mt-5 text-2xl sm:text-3xl font-black font-heading text-slate-900 tracking-tight">
@@ -245,21 +246,22 @@ export default function WebinarSuccessPage() {
         {/* Action / Bonus Download Cards */}
         <div className="max-w-md mx-auto w-full">
           {/* WhatsApp bonus card */}
-          <div className="p-6 bg-emerald-50/20 border border-emerald-100 rounded-3xl text-center flex flex-col justify-between shadow-sm">
-            <div>
-              <span className="text-emerald-600 font-bold text-xs uppercase tracking-wider block mb-1">Parent Community</span>
-              <h4 className="text-sm font-black text-slate-800 mb-2">🎁 Join Private WhatsApp Group</h4>
-              <p className="text-[11px] text-slate-500 leading-relaxed font-semibold mb-4">
-                Connect directly with other parents and trainers. Ask queries prior to the cohort starting.
+          <div className="p-6 sm:p-8 bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100/60 rounded-[2rem] text-center flex flex-col justify-between shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="relative z-10">
+              <span className="text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] block mb-2">Exclusive Access</span>
+              <h4 className="text-lg font-black text-slate-800 mb-2">🎁 Join Parent Community</h4>
+              <p className="text-xs text-slate-500 leading-relaxed font-semibold mb-6 max-w-sm mx-auto">
+                Connect directly with other parents and trainers. Ask queries prior to the cohort starting in our private WhatsApp group.
               </p>
             </div>
             <Link
               href="https://chat.whatsapp.com/mock-parent-community-group"
               target="_blank"
-              className="py-3 px-4 bg-[#25D366] hover:bg-emerald-600 active:scale-98 text-white font-bold text-xs uppercase tracking-widest rounded-2xl shadow-md transition-all flex items-center justify-center gap-2"
+              className="py-3.5 px-6 bg-[#25D366] hover:bg-[#20bd5a] active:scale-95 text-white font-extrabold text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 relative z-10 w-full sm:w-auto mx-auto"
             >
-              <MessageSquare size={14} />
-              <span>Join Group Chat</span>
+              <MessageSquare size={16} />
+              <span>Join WhatsApp Group</span>
             </Link>
           </div>
         </div>

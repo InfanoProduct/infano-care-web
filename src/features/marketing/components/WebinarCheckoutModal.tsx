@@ -81,14 +81,12 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
       setError(`Please enter a valid ${selectedCountry.digits}-digit mobile number.`);
       return false;
     }
-    if (!email.trim()) {
-      setError('Please enter your email address.');
-      return false;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.trim())) {
-      setError('Please enter a valid email address.');
-      return false;
+    if (email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email.trim())) {
+        setError('Please enter a valid email address.');
+        return false;
+      }
     }
     return true;
   };
@@ -152,7 +150,8 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
                 zoomLink: webinar?.zoomLink || ''
               });
 
-              onClose();
+              // We do not call onClose() here. Let Next.js navigate to the new page.
+              // Closing it manually causes a brief flicker of the underlying page.
               router.push(`/webinar/success?${successParams.toString()}`);
             } catch (err) {
               setError('Payment verification failed. If money was deducted, please contact support.');
@@ -212,21 +211,40 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
             </div>
 
             {/* Title & Subtitle */}
-            <h3 className="text-3xl font-black text-slate-950 font-heading leading-tight flex items-center gap-1 flex-wrap">
+            <h3 className="text-3xl font-extrabold text-slate-950 font-heading leading-tight flex items-center gap-1 flex-wrap">
               {webinar?.title
                 ? (() => {
+                    const target = "Her Silence";
+                    const regex = new RegExp(`(${target})`, 'i');
+                    const parts = webinar.title.split(regex);
+                    
+                    if (parts.length > 1) {
+                      return (
+                        <>
+                          {parts.map((part, i) => 
+                            part.toLowerCase() === target.toLowerCase() ? (
+                              <span key={i} className="text-pink-500">{part}</span>
+                            ) : (
+                              <span key={i}>{part}</span>
+                            )
+                          )}
+                        </>
+                      );
+                    }
+                    
+                    // Fallback if "Her Silence" isn't in the title: just color the first word normally and the rest pink
                     const words = webinar.title.split(' ');
                     const first = words[0];
                     const rest = words.slice(1).join(' ');
                     return (
                       <>
-                        <span>{first}</span>{rest && <><span> </span><span className="text-[#E05397]">{rest}</span></>}
+                        <span>{first}</span>{rest && <><span> </span><span className="text-pink-500">{rest}</span></>}
                       </>
                     );
                   })()
                 : <span>Reserve Your Seat</span>
               }
-              <svg className="w-7 h-7 text-primary/30 inline-block animate-pulse ml-1 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <svg className="w-7 h-7 text-pink-500/50 inline-block animate-pulse ml-1 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
               </svg>
             </h3>
@@ -337,11 +355,10 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
                 </div>
                 <div className="flex-1 space-y-0.5 text-left">
                   <label className="text-[10px] font-bold text-slate-400 uppercase block tracking-wider">
-                    Email Address <span className="text-rose-500">*</span>
+                    Email Address <span className="text-slate-300 normal-case">(Optional)</span>
                   </label>
                   <input
                     type="email"
-                    required
                     disabled={processing}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -369,7 +386,7 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
               <button
                 type="submit"
                 disabled={processing}
-                className="w-full py-4 px-4 bg-gradient-to-r from-primary via-primary-light to-pink-500 hover:opacity-95 active:scale-95 text-white font-bold text-sm rounded-full shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 cursor-pointer border-none"
+                className="w-full py-4 px-4 bg-primary hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] text-white font-extrabold text-sm rounded-full shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer border-none"
               >
                 {processing ? (
                   <>

@@ -51,10 +51,10 @@ export function MarketingNavbar() {
 
   useEffect(() => {
     if (!isWebinarPage) return;
-    
+
     const parts = cleanPath.split('/');
     const slug = parts[2] || 'active';
-    
+
     ShopService.getWebinarBySlug(slug)
       .then((data) => {
         if (data && data.date) {
@@ -62,7 +62,9 @@ export function MarketingNavbar() {
         }
       })
       .catch((err) => {
-        console.error("Error fetching webinar details in Navbar:", err);
+        if (err.message !== 'Webinar not found') {
+          console.error("Error fetching webinar details in Navbar:", err);
+        }
       });
   }, [cleanPath, isWebinarPage]);
 
@@ -104,7 +106,7 @@ export function MarketingNavbar() {
       >
         {/* Top brand line indicator */}
         <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-primary via-primary-light to-accent" />
-        
+
         <div className="max-w-360 mx-auto px-6 md:px-12 lg:px-24 flex items-center justify-between gap-4">
           {/* Left Column: Logo */}
           <div className="flex-1 flex items-center justify-start">
@@ -122,40 +124,25 @@ export function MarketingNavbar() {
 
           {isWebinarPage ? (
             <div className="flex items-center gap-4 md:gap-6 ml-auto">
-               {/* Countdown Timer */}
-               {timeLeft && (timeLeft.days > 0 || timeLeft.hours > 0 || timeLeft.minutes > 0 || timeLeft.seconds > 0) && (
-                 <div className="hidden sm:flex items-center gap-3 shrink-0 bg-gradient-to-r from-primary to-rose-500 p-1.5 rounded-full shadow-md shadow-rose-500/10 border-none text-white">
-                   <div className="flex items-center gap-1.5 pl-3">
-                     <span className="relative flex h-2 w-2">
-                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                       <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                     </span>
-                     <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white/90">Starts in</span>
-                   </div>
-                   <div className="h-4 w-[1px] bg-white/20" />
-                   <div className="flex items-center gap-2.5 pr-3.5 font-mono text-xs font-bold text-white/90">
-                     <div className="flex items-baseline gap-0.5">
-                       <span className="text-sm font-black text-white">{String(timeLeft.days).padStart(2, '0')}</span>
-                       <span className="text-[9px] text-white/70 font-bold uppercase">d</span>
-                     </div>
-                     <span className="text-white/40 font-normal">:</span>
-                     <div className="flex items-baseline gap-0.5">
-                       <span className="text-sm font-black text-white">{String(timeLeft.hours).padStart(2, '0')}</span>
-                       <span className="text-[9px] text-white/70 font-bold uppercase">h</span>
-                     </div>
-                     <span className="text-white/40 font-normal">:</span>
-                     <div className="flex items-baseline gap-0.5">
-                       <span className="text-sm font-black text-white">{String(timeLeft.minutes).padStart(2, '0')}</span>
-                       <span className="text-[9px] text-white/70 font-bold uppercase">m</span>
-                     </div>
-                     <span className="text-white/40 font-normal">:</span>
-                     <div className="flex items-baseline gap-0.5">
-                       <span className="text-sm font-black text-white animate-pulse">{String(timeLeft.seconds).padStart(2, '0')}</span>
-                       <span className="text-[9px] text-white/80 font-bold uppercase">s</span>
-                     </div>
-                   </div>
-                 </div>
-               )}
+              {/* Countdown Timer */}
+              {timeLeft && (timeLeft.days > 0 || timeLeft.hours > 0 || timeLeft.minutes > 0 || timeLeft.seconds > 0) && (
+                <div className="hidden sm:flex items-center gap-3 shrink-0 bg-yellow-400 p-1.5 rounded-full shadow-lg shadow-yellow-500/20 border-none text-slate-900">
+                  <div className="flex items-center gap-1.5 pl-3">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-900 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-slate-900"></span>
+                    </span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-800">Starts in</span>
+                  </div>
+                  <div className="h-4 w-[1px] bg-slate-900/20" />
+                  <div className="flex items-center gap-1.5 pr-2.5 font-mono text-xs font-bold text-slate-900 tracking-tight">
+                    <div className="flex items-baseline"><span className="text-sm font-black text-slate-900">{String(timeLeft.days).padStart(2, '0')}</span><span className="text-[9px] text-slate-700 font-bold uppercase ml-px">d</span></div>
+                    <div className="flex items-baseline"><span className="text-sm font-black text-slate-900">{String(timeLeft.hours).padStart(2, '0')}</span><span className="text-[9px] text-slate-700 font-bold uppercase ml-px">h</span></div>
+                    <div className="flex items-baseline"><span className="text-sm font-black text-slate-900">{String(timeLeft.minutes).padStart(2, '0')}</span><span className="text-[9px] text-slate-700 font-bold uppercase ml-px">m</span></div>
+                    <div className="flex items-baseline"><span className="text-sm font-black text-slate-900 animate-pulse">{String(timeLeft.seconds).padStart(2, '0')}</span><span className="text-[9px] text-slate-800 font-bold uppercase ml-px">s</span></div>
+                  </div>
+                </div>
+              )}
 
               <button
                 onClick={handleRegisterClick}
@@ -201,15 +188,15 @@ export function MarketingNavbar() {
                 {/* Desktop CTAs */}
                 <div className="hidden xl:flex items-center gap-3 xl:gap-6">
                   {isAuthenticated ? (
-                    <Link 
-                      href={getLocalizedLink('/dashboard')} 
+                    <Link
+                      href={getLocalizedLink('/dashboard')}
                       className="text-xs xl:text-[13px] px-6 py-2.5 rounded-full bg-gradient-to-r from-primary to-primary-light text-white font-bold transition-all duration-300 whitespace-nowrap shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20 hover:scale-[1.03] hover:-translate-y-[1px] active:scale-[0.97] border-none"
                     >
                       Go to Workspace &rarr;
                     </Link>
                   ) : (
-                    <Link 
-                      href={getLocalizedLink('/login')} 
+                    <Link
+                      href={getLocalizedLink('/login')}
                       className="text-xs xl:text-[13px] px-6 py-2.5 rounded-full bg-gradient-to-r from-primary to-primary-light text-white font-bold transition-all duration-300 whitespace-nowrap shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20 hover:scale-[1.03] hover:-translate-y-[1px] active:scale-[0.97] border-none"
                     >
                       Login

@@ -8,7 +8,8 @@ import {
   Sparkles, Calendar, Clock, Video, CheckCircle2, ChevronDown,
   Users, MessageCircle, AlertCircle, Quote, ShieldCheck,
   Brain, Heart, ArrowRight, Award, DoorClosed, Smartphone, Loader2,
-  Globe, FileText, CalendarCheck, MessageSquareX, Plus, Minus
+  Globe, FileText, CalendarCheck, MessageSquareX, Plus, Minus,
+  Activity, Target
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -828,6 +829,112 @@ export default function WebinarLandingPage() {
         </motion.div>
       </div>
 
+      {/* SECTION 3.5: WHO THIS IS FOR */}
+      <section className="w-full bg-[#FAF7F5] border-y border-slate-100/60 pt-16 pb-20 md:pt-24 md:pb-28 relative overflow-hidden">
+        {/* Background blobs */}
+        <div className="absolute top-[10%] left-[10%] w-[40%] h-[40%] bg-purple-200/20 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-[10%] right-[10%] w-[40%] h-[40%] bg-rose-200/20 rounded-full blur-[100px] pointer-events-none" />
+
+        <div className="relative z-10 max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
+          <div className="text-center max-w-3xl mx-auto space-y-5 mb-14">
+            <div className="inline-block px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-full">
+              <span>Who This Is For</span>
+            </div>
+            <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold font-heading text-slate-900 tracking-tight">
+              Is This Masterclass <span className="text-primary">For You?</span>
+            </h3>
+            <p className="text-slate-500 text-sm sm:text-base font-medium leading-relaxed max-w-2xl mx-auto">
+              If you are raising a daughter in Grades 5 to 10 or aged between 10 to 16, you already know how fast things change. This masterclass is specifically designed for you if:
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto relative z-10">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="p-8 rounded-[2rem] bg-[#FAF8FD] border border-purple-300/80 hover:shadow-[0_15px_30px_-5px_rgba(74,30,127,0.12)] transition-all duration-300 relative overflow-hidden group flex flex-col items-start text-left"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-100/40 flex items-center justify-center shrink-0 mb-6 text-purple-600 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                <Activity size={24} strokeWidth={2} />
+              </div>
+              <h4 className="text-lg font-bold text-slate-800 tracking-tight mb-3 font-heading">
+                You've noticed a shift
+              </h4>
+              <p className="text-slate-500 text-sm leading-relaxed font-medium">
+                Her mood, screen habits, or willingness to talk has changed over the last year.
+              </p>
+              <div className="absolute -bottom-6 -right-6 w-16 h-16 rounded-full bg-purple-600/5 transition-colors -z-10" />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="p-8 rounded-[2rem] bg-[#FFF9F9] border border-rose-300/80 hover:shadow-[0_15px_30px_-5px_rgba(224,83,151,0.12)] transition-all duration-300 relative overflow-hidden group flex flex-col items-start text-left"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-100/40 flex items-center justify-center shrink-0 mb-6 text-rose-500 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                <Users size={24} strokeWidth={2} />
+              </div>
+              <h4 className="text-lg font-bold text-slate-800 tracking-tight mb-3 font-heading">
+                You feel the distance
+              </h4>
+              <p className="text-slate-500 text-sm leading-relaxed font-medium">
+                Whether she is just starting to change, right in the thick of it, or you feel like you've already lost the thread of the conversation.
+              </p>
+              <div className="absolute -bottom-6 -right-6 w-16 h-16 rounded-full bg-rose-500/5 transition-colors -z-10" />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="p-8 rounded-[2rem] bg-[#F7FAFC] border border-blue-300/80 hover:shadow-[0_15px_30px_-5px_rgba(37,99,235,0.12)] transition-all duration-300 relative overflow-hidden group flex flex-col items-start text-left"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100/40 flex items-center justify-center shrink-0 mb-6 text-blue-600 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                <Target size={24} strokeWidth={2} />
+              </div>
+              <h4 className="text-lg font-bold text-slate-800 tracking-tight mb-3 font-heading">
+                You want a strategy
+              </h4>
+              <p className="text-slate-500 text-sm leading-relaxed font-medium">
+                You are tired of second-guessing yourself and want a concrete plan instead of daily guesswork.
+              </p>
+              <div className="absolute -bottom-6 -right-6 w-16 h-16 rounded-full bg-blue-600/5 transition-colors -z-10" />
+            </motion.div>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="mt-14 flex flex-col items-center text-center"
+          >
+            <p className="text-slate-700 text-base sm:text-lg font-semibold mb-8 max-w-2xl">
+              No matter where you are in the journey, you don't have to navigate it blindly.
+            </p>
+
+            <div className="flex flex-col items-center gap-2">
+              <button
+                onClick={() => setModalOpen(true)}
+                className="px-10 py-4 bg-primary text-white rounded-full font-bold text-sm hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 flex items-center justify-center gap-2 group cursor-pointer border-none"
+              >
+                <span>Reserve My Spot Now</span>
+                <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+              </button>
+              <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold mt-2">
+                <ShieldCheck size={14} className="text-emerald-500" />
+                <span>Join thousands of parents building stronger bonds.</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* SECTION 4: AGENDA AT A GLANCE */}
       <section className="w-full bg-[#ffffff] border-y border-slate-100/60 pt-6 pb-12 md:pt-8 md:pb-16 relative overflow-hidden">
         <div className="relative z-10 max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24">
@@ -1016,26 +1123,30 @@ export default function WebinarLandingPage() {
             {EXPERT_MENTORS.slice(0, 2).map((expert, idx) => (
               <div
                 key={idx}
-                className="bg-white border border-slate-100 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_45px_-10px_rgba(74,30,127,0.08)] hover:-translate-y-1.5 transition-all duration-300 rounded-[2rem] p-8 text-left flex flex-col justify-between group relative overflow-hidden"
+                className="bg-white border border-slate-100 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_45px_-10px_rgba(74,30,127,0.08)] hover:-translate-y-1.5 transition-all duration-300 rounded-[2rem] text-left flex flex-col group relative overflow-hidden"
               >
                 {/* Subtle background glow on hover */}
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-                
-                <div className="relative z-10 flex flex-col h-full justify-between">
-                  <div>
-                    {/* Image wrapper: w-32 h-32 */}
-                    <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-[1.8rem] bg-primary/5 mb-5 overflow-hidden border-2 border-primary/10 shadow-sm relative group-hover:border-primary/30 transition-all duration-300">
-                      <img
-                        src={expert.avatar}
-                        alt={expert.name}
-                        className="w-full h-full object-cover scale-[1.05] group-hover:scale-110 transition-transform duration-300"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${expert.seed}`;
-                        }}
-                      />
-                    </div>
+
+                <div className="relative z-10 flex flex-col h-full">
+                  {/* Image wrapper spanning full width at top */}
+                  <div className="w-full h-48 sm:h-56 bg-primary/5 relative overflow-hidden border-b border-primary/5">
+                    <img
+                      src={expert.avatar}
+                      alt={expert.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${expert.seed}`;
+                      }}
+                    />
+                  </div>
+                  
+                  {/* Text content with padding */}
+                  <div className="p-6 sm:p-8 flex-1 flex flex-col">
                     <h4 className="text-lg font-bold text-slate-800 font-heading tracking-tight group-hover:text-primary transition-colors duration-300">{expert.name}</h4>
-                    <p className="inline-flex px-3 py-1 rounded-full bg-primary/5 text-primary text-[10px] font-black uppercase tracking-wider mt-1.5">{expert.role}</p>
+                    <div>
+                      <p className="inline-flex px-3 py-1 rounded-full bg-primary/5 text-primary text-[10px] font-black uppercase tracking-wider mt-1.5">{expert.role}</p>
+                    </div>
                     <p className="text-slate-500 text-xs sm:text-sm leading-relaxed font-normal mt-4">
                       {expert.desc}
                     </p>
@@ -1046,24 +1157,181 @@ export default function WebinarLandingPage() {
           </div>
         </motion.div>
 
-        {/* SECTION 7: SOCIAL PROOF / TESTIMONIAL */}
+        {/* SECTION 7: SOCIAL PROOF / TESTIMONIALS */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="max-w-3xl mx-auto mb-16 md:mb-24"
+          className="mb-16 md:mb-24 overflow-hidden relative"
         >
-          <div className="p-8 md:p-10 rounded-[2rem] bg-primary/5 border border-primary/10 text-center relative">
-            <Quote className="absolute top-6 left-6 text-primary/10" size={44} />
-            <div className="flex items-center justify-center gap-1 text-amber-500 text-xs font-bold mb-4">
+          <div className="max-w-[1440px] mx-auto px-6 mb-8 text-center">
+            <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-4">Real Stories</span>
+            <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold font-heading text-slate-900 tracking-tight mb-4">
+              Hear From <span className="text-primary">Other Parents</span>
+            </h3>
+            <div className="flex items-center justify-center gap-1 text-amber-500 text-xs font-bold mt-4">
               <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-              <span className="text-slate-500 font-bold ml-1">5.0 (500+ parents attended)</span>
+              <span className="text-slate-500 font-bold ml-1">5.0 Average Rating (500+ Attendees)</span>
             </div>
-            <p className="text-slate-700 text-sm md:text-base font-medium leading-relaxed italic mb-6">
-              "My daughter was pulling away in Class 6. This webinar gave me the exact vocabulary to react when she slams the door. Using their scripts, she actually opened up to me the very next day. Highly recommended!"
-            </p>
-            <h5 className="text-xs font-bold text-slate-800 uppercase tracking-widest">— Ritu S., Mother of a 12-Year-Old</h5>
+          </div>
+          
+          <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 px-6 sm:px-12 pb-12 max-w-[1440px] mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] py-4">
+            {[
+              {
+                quote: "My daughter was pulling away in Class 6. This webinar gave me the exact vocabulary to react when she slams the door. Using their scripts, she actually opened up to me the very next day.",
+                author: "Ritu S.",
+                role: "Mother of a 12-Year-Old",
+                icon: <MessageCircle size={32} />,
+                colorClass: "text-purple-600 bg-purple-100",
+                gradientBorder: "from-indigo-100 via-purple-300 to-fuchsia-100"
+              },
+              {
+                quote: "I thought I was doing something wrong when my 14-year-old stopped sharing her day with me. The '3 Silent Signals' framework completely changed my perspective. We are communicating so much better now.",
+                author: "Priya M.",
+                role: "Mother of a 14-Year-Old",
+                icon: <MessageCircle size={32} />,
+                colorClass: "text-emerald-500 bg-emerald-100",
+                gradientBorder: "from-emerald-100 via-emerald-300 to-teal-100"
+              },
+              {
+                quote: "The Q&A segment alone was worth it. The experts didn't just give vague advice; they gave practical, actionable steps that I could use immediately. Every parent of a pre-teen needs this.",
+                author: "Anjali K.",
+                role: "Mother of a 10-Year-Old",
+                icon: <Users size={32} />,
+                colorClass: "text-rose-500 bg-rose-100",
+                gradientBorder: "from-rose-100 via-orange-300 to-rose-200"
+              }
+            ].map((testimonial, idx) => (
+              <div 
+                key={idx} 
+                className="shrink-0 w-[85vw] sm:w-[400px] snap-center bg-white rounded-[2rem] p-8 md:p-10 relative flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-50 overflow-hidden group hover:-translate-y-1 transition-all duration-300"
+              >
+                {/* Bottom Gradient Border */}
+                <div className={`absolute bottom-0 left-0 h-1.5 w-full bg-gradient-to-r ${testimonial.gradientBorder}`} />
+                
+                {/* Top Quotes */}
+                <Quote className="absolute top-8 right-8 text-primary/5 rotate-180" size={80} strokeWidth={0.5} />
+                
+                {/* Large Icon */}
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-8 relative z-10 ${testimonial.colorClass}`}>
+                  {testimonial.icon}
+                </div>
+                
+                {/* Stars */}
+                <div className="flex items-center gap-1 text-amber-400 text-sm mb-6 relative z-10 bg-amber-50 w-max px-3 py-1.5 rounded-lg">
+                  <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                </div>
+                
+                {/* Quote text */}
+                <p className="text-slate-700 text-sm sm:text-base leading-relaxed mb-8 relative z-10 flex-1">
+                  "{testimonial.quote}"
+                </p>
+                
+                {/* Divider & Author */}
+                <div className="pt-6 border-t border-slate-100 mt-auto relative z-10 flex items-center gap-4">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${testimonial.colorClass} opacity-80`}>
+                    <Users size={20} />
+                  </div>
+                  <div>
+                    <h5 className="text-sm font-black text-slate-900">{testimonial.author}</h5>
+                    <p className="text-xs font-semibold text-primary mt-1">{testimonial.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* SECTION 7.5: VALUE STACK */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="max-w-4xl mx-auto mb-16 md:mb-24"
+        >
+          <div className="bg-[#FAF8FD] rounded-[2rem] border border-purple-200 shadow-xl overflow-hidden relative">
+            {/* Background elements */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
+
+            <div className="p-8 md:p-12 relative z-10 text-center">
+              <div className="inline-block px-4 py-1.5 bg-purple-100 text-purple-700 text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-6">
+                <span>Value Stack</span>
+              </div>
+              <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold font-heading text-slate-900 tracking-tight mb-4">
+                Everything You Get Today <span className="text-primary">For Just ₹99</span>
+              </h3>
+              <p className="text-slate-600 text-sm sm:text-base font-medium leading-relaxed max-w-2xl mx-auto mb-8">
+                Here is exactly what is included in your ticket, stacked with tools and resources to help you support your daughter:
+              </p>
+
+              <div className="bg-white rounded-2xl border border-purple-100 p-6 md:p-8 max-w-3xl mx-auto mb-8 text-left shadow-sm">
+                <ul className="space-y-5">
+                  <li className="flex items-start gap-4">
+                    <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
+                      <CheckCircle2 size={16} />
+                    </div>
+                    <div>
+                      <h4 className="text-base font-bold text-slate-800">90-Minute LIVE Masterclass</h4>
+                      <p className="text-sm text-slate-500 mt-1">Directly with child psychologists and experts.</p>
+                    </div>
+                    <div className="ml-auto text-base font-bold text-slate-400 line-through shrink-0">₹1,999</div>
+                  </li>
+                  <li className="flex items-start gap-4">
+                    <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
+                      <CheckCircle2 size={16} />
+                    </div>
+                    <div>
+                      <h4 className="text-base font-bold text-slate-800">The 3 Silent Signals Framework PDF</h4>
+                      <p className="text-sm text-slate-500 mt-1">Printable cheat sheet for quick reference.</p>
+                    </div>
+                    <div className="ml-auto text-base font-bold text-slate-400 line-through shrink-0">₹499</div>
+                  </li>
+                  <li className="flex items-start gap-4">
+                    <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
+                      <CheckCircle2 size={16} />
+                    </div>
+                    <div>
+                      <h4 className="text-base font-bold text-slate-800">Parent-Daughter Conversation Scripts</h4>
+                      <p className="text-sm text-slate-500 mt-1">Exact words to say during tough moments.</p>
+                    </div>
+                    <div className="ml-auto text-base font-bold text-slate-400 line-through shrink-0">₹799</div>
+                  </li>
+                  <li className="flex items-start gap-4">
+                    <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
+                      <CheckCircle2 size={16} />
+                    </div>
+                    <div>
+                      <h4 className="text-base font-bold text-slate-800">1:1 Free Consultation Call</h4>
+                      <p className="text-sm text-slate-500 mt-1">Personalized guidance after the masterclass.</p>
+                    </div>
+                    <div className="ml-auto text-base font-bold text-slate-400 line-through shrink-0">₹999</div>
+                  </li>
+                </ul>
+
+                <div className="mt-6 pt-6 border-t border-slate-100 flex items-center justify-between">
+                  <div className="text-base font-bold text-slate-500">Total Value</div>
+                  <div className="text-2xl font-bold text-rose-500 line-through decoration-rose-300">₹4,296</div>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-center gap-4">
+                <div className="flex items-center gap-3 bg-rose-50 px-6 py-2.5 rounded-full border border-rose-100">
+                  <Sparkles size={16} className="text-rose-500 animate-pulse" />
+                  <span className="text-sm font-bold text-slate-800">Your Price Today: <span className="text-rose-600 text-lg font-black ml-1">Only ₹99</span></span>
+                </div>
+
+                <button
+                  onClick={() => setModalOpen(true)}
+                  className="px-10 py-4 bg-primary text-white rounded-full font-bold text-sm md:text-base hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 flex items-center justify-center gap-2 group cursor-pointer border-none mt-2 w-full sm:w-auto"
+                >
+                  <span>Claim Your Ticket For ₹99</span>
+                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                </button>
+              </div>
+            </div>
           </div>
         </motion.div>
 
@@ -1168,33 +1436,33 @@ export default function WebinarLandingPage() {
             animate={{ opacity: 1, y: 0, x: '-50%' }}
             exit={{ opacity: 0, y: 100, x: '-50%' }}
             transition={{ duration: 0.3 }}
-            className="fixed bottom-6 left-1/2 z-40 w-[92%] max-w-3xl bg-white/95 backdrop-blur-xl border border-rose-100 shadow-premium rounded-2xl md:rounded-full py-4 px-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 pointer-events-auto"
+            className="fixed bottom-3 md:bottom-6 left-1/2 z-40 w-[95%] md:w-[92%] max-w-3xl bg-white/95 backdrop-blur-xl border border-rose-100 shadow-premium rounded-2xl md:rounded-full p-3 md:py-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-6 pointer-events-auto"
           >
-            {/* Left: Countdown Timer */}
-            <div className="flex items-center gap-3 shrink-0">
-              <div className="flex items-center gap-1.5 bg-rose-50 border border-rose-100/50 rounded-full px-4 py-1.5 text-rose-600 font-mono font-bold text-sm md:text-base">
-                <Clock size={16} className="animate-pulse text-rose-500" />
+            {/* Top Row on Mobile, Left/Mid on Desktop: Timer & Scarcity */}
+            <div className="flex items-center justify-between w-full md:w-auto gap-3 shrink-0">
+              {/* Timer */}
+              <div className="flex items-center gap-1.5 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-500 rounded-full px-3 md:px-4 py-1 md:py-1.5 text-white shadow-md font-mono font-bold text-xs md:text-base">
+                <Clock size={14} className="animate-pulse text-white md:w-4 md:h-4" />
                 <span>{formatTotalTimeLeft()}</span>
               </div>
-              <span className="text-xs md:text-sm font-extrabold text-rose-500 tracking-tight">Ending soon!</span>
-            </div>
-
-            {/* Middle: Scarcity Text */}
-            <div className="flex items-center gap-2.5 shrink-0">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
-              </span>
-              <span className="text-sm md:text-base font-extrabold text-slate-700">
-                Only 9 seats left!
-              </span>
+              
+              {/* Scarcity Text */}
+              <div className="flex items-center gap-1.5 md:gap-2.5 shrink-0">
+                <span className="relative flex h-2 w-2 md:h-2.5 md:w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 md:h-2.5 md:w-2.5 bg-rose-500"></span>
+                </span>
+                <span className="text-xs md:text-base font-extrabold text-slate-700">
+                  Only 9 seats left!
+                </span>
+              </div>
             </div>
 
             {/* Right: CTA Button */}
             <div className="w-full md:w-auto shrink-0">
               <button
                 onClick={() => setModalOpen(true)}
-                className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-primary to-[#E05397] text-white font-extrabold text-sm md:text-base rounded-full shadow-lg hover:shadow-xl hover:scale-102 active:scale-98 transition-all flex items-center justify-center gap-2 border-none cursor-pointer"
+                className="w-full md:w-auto px-6 md:px-8 py-2.5 md:py-3 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-500 text-white font-extrabold text-sm md:text-base rounded-full shadow-lg shadow-fuchsia-500/30 hover:shadow-xl hover:scale-102 active:scale-98 transition-all flex items-center justify-center gap-2 border-none cursor-pointer"
               >
                 <span>Reserve Your Seat Now</span>
                 <ArrowRight size={15} />

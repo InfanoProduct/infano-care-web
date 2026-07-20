@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const webinar = await ShopService.getWebinarBySlug(slug);
     if (!webinar) {
       return {
-        title: 'Live Parent Webinar: Understand Your Teen Daughter | Infano',
+        title: 'Live Parent Webinar: Understand Your Teen Daughter',
         description: 'Join Decoding Her Silence - a 90-minute live session for parents navigating adolescence. Learn to read the signs, open the conversation, and reconnect. Limited seats.',
       };
     }
@@ -62,7 +62,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function Page({ params }: PageProps) {
   const { slug } = await params;
   let webinar = null;
-  
+
   try {
     webinar = await ShopService.getWebinarBySlug(slug);
   } catch (error) {

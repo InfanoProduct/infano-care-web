@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { ShopService } from '@/services/shop.service';
 import { WebinarDetailClient } from './WebinarDetailClient';
+import { getImageUrl } from '@/lib/utils';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -8,9 +9,9 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const baseUrl = process.env.NEXT_PUBLIC_UPLOAD_API_URL || 'https://dev.infano.care';
-  const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-  const ogImageUrl = `${cleanBaseUrl}/uploads/assets/s1-heroimage.png`;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://infano.care';
+  const cleanAppUrl = appUrl.endsWith('/') ? appUrl.slice(0, -1) : appUrl;
+  const ogImageUrl = getImageUrl('/uploads/assets/s1-heroimage.png');
 
   try {
     const webinar = await ShopService.getWebinarBySlug(slug);
@@ -49,7 +50,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         title: finalTitle,
         description: seoDescription,
         type: 'website',
-        url: `${cleanBaseUrl}/webinar/${slug}`,
+        url: `${cleanAppUrl}/webinar/${slug}`,
         images: [
           {
             url: ogImageUrl,

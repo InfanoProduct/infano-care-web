@@ -61,6 +61,15 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
     }
   }, [user]);
 
+  useEffect(() => {
+    if (isOpen) {
+      setProcessing(false);
+      setError(null);
+      setPaymentFailed(false);
+      setPaymentFailedMsg('');
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const getFullNormalizedPhone = () => {
@@ -196,6 +205,7 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
           modal: {
             ondismiss: () => {
               setProcessing(false);
+              setError('Payment process was cancelled. You can try again when ready.');
             }
           }
         };

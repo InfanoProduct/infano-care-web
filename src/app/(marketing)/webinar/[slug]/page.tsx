@@ -31,7 +31,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     }
 
     const seoTitle = webinar.seoTitle || webinar.title || 'Live Parent Webinar: Understand Your Teen Daughter';
-    const seoDescription = webinar.seoDescription || webinar.description || 'Join Decoding Her Silence - a 90-minute live session for parents navigating adolescence. Learn to read the signs, open the conversation, and reconnect. Limited seats.';
+    const rawSeoDescription = webinar.seoDescription || webinar.description || 'Join Decoding Her Silence - a 90-minute live session for parents navigating adolescence. Learn to read the signs, open the conversation, and reconnect. Limited seats.';
+    const seoDescription = rawSeoDescription.replace(/Rs\.\s*99|Rs\s*99|₹\s*99/gi, `Rs. ${webinar.price}`);
     const keywords = webinar.seoKeywords || 'parenting, teenager, puberty, mother daughter bond';
 
     const finalTitle = (seoTitle.toLowerCase().includes('| infano care'))

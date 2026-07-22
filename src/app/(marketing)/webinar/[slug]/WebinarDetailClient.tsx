@@ -396,7 +396,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
                 className="text-slate-500 text-sm sm:text-base font-medium leading-relaxed max-w-xl animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
                 style={{ animationDelay: '250ms' }}
               >
-                {webinar.description}
+                {webinar.description ? webinar.description.replace(/Rs\.\s*99|Rs\s*99|₹\s*99/gi, `Rs. ${webinar.price}`) : ''}
               </p>
 
               {/* Mobile-only Image (shows directly after description) */}
@@ -1301,7 +1301,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
                 <span>Value Stack</span>
               </div>
               <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold font-heading text-slate-900 tracking-tight mb-4">
-                Everything You Get Today <span className="text-primary">For Just ₹{webinar ? webinar.price : 99}</span>
+                Everything You Get Today <span className="text-primary">For Just ₹{webinar.price}</span>
               </h3>
               <p className="text-slate-600 text-sm sm:text-base font-medium leading-relaxed max-w-2xl mx-auto mb-8">
                 Here is exactly what is included in your ticket, stacked with tools and resources to help you support your daughter:
@@ -1360,14 +1360,14 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
               <div className="flex flex-col items-center gap-4">
                 <div className="flex items-center gap-3 bg-rose-50 px-6 py-2.5 rounded-full border border-rose-100">
                   <Sparkles size={16} className="text-rose-500 animate-pulse" />
-                  <span className="text-sm font-bold text-slate-800">Your Price Today: <span className="text-rose-600 text-lg font-black ml-1">Only ₹{webinar ? webinar.price : 99}</span></span>
+                  <span className="text-sm font-bold text-slate-800">Your Price Today: <span className="text-rose-600 text-lg font-black ml-1">Only ₹{webinar.price}</span></span>
                 </div>
 
                 <button
                   onClick={() => setModalOpen(true)}
                   className="px-10 py-4 bg-primary text-white rounded-full font-bold text-sm md:text-base hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95 flex items-center justify-center gap-2 group cursor-pointer border-none mt-2 w-full sm:w-auto"
                 >
-                  <span>Claim Your Ticket For ₹{webinar ? webinar.price : 99}</span>
+                  <span>Claim Your Ticket For ₹{webinar.price}</span>
                   <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
                 </button>
               </div>
@@ -1509,7 +1509,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
                 onClick={() => setModalOpen(true)}
                 className="w-full md:w-auto px-6 md:px-8 py-2.5 md:py-3 bg-[#ff1f56] text-white font-extrabold text-base rounded-full shadow-lg shadow-[#ff1f56]/20 hover:shadow-xl hover:bg-[#e0144c] hover:scale-102 active:scale-98 transition-all flex items-center justify-center gap-2 border-none cursor-pointer"
               >
-                <span>Reserve My Seat for ₹{webinar ? webinar.price : 99}</span>
+                <span>Reserve My Seat for ₹{webinar.price}</span>
                 <ArrowRight size={15} />
               </button>
             </div>

@@ -35,6 +35,8 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
 
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [paymentFailed, setPaymentFailed] = useState(false);
+  const [paymentFailedMsg, setPaymentFailedMsg] = useState('');
   const rzpRef = useRef<any>(null);
 
   useEffect(() => {
@@ -157,11 +159,13 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
           handler: async function (response: any) {
             try {
               setProcessing(true);
-              await ShopService.verifyPayment({
+              
+              // Fire and forget verification to speed up routing
+              ShopService.verifyPayment({
                 razorpayOrderId: response.razorpay_order_id,
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpaySignature: response.razorpay_signature,
-              });
+              }).catch(console.error);
 
               const successParams = new URLSearchParams({
                 name: parentName,
@@ -198,7 +202,8 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
 
         const rzp = new (window as any).Razorpay(options);
         rzp.on('payment.failed', function (response: any) {
-          setError(response.error.description || 'Payment failed. Please try again.');
+          setPaymentFailed(true);
+          setPaymentFailedMsg(response.error.description || 'Payment failed. Please try again.');
           setProcessing(false);
         });
         rzpRef.current = rzp;
@@ -230,14 +235,43 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
           </button>
 
           <div className="p-8 md:p-10 relative z-10">
-            {/* Tag Badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 border border-primary/10 text-primary text-[10px] font-black uppercase tracking-wider animate-fade-in mb-3">
-              <Sparkles size={11} className="text-primary animate-pulse" />
-              <span>Reserve Your Seat</span>
-            </div>
+            {paymentFailed ? (
+              <div className="text-center py-6 animate-in zoom-in-95 duration-300">
+                <div className="w-20 h-20 bg-rose-50 border border-rose-100 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm">
+                  <AlertCircle size={40} strokeWidth={1.5} />
+                </div>
+                <h3 className="text-2xl font-black text-slate-900 font-heading mb-3 tracking-tight">Payment Failed</h3>
+                <p className="text-sm text-slate-500 font-medium mb-8 leading-relaxed max-w-sm mx-auto">
+                  {paymentFailedMsg}
+                </p>
+                <div className="flex gap-3 justify-center">
+                  <button
+                    onClick={onClose}
+                    className="flex-1 max-w-[140px] px-6 py-3 rounded-full border-2 border-slate-200 text-slate-600 font-bold hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer text-sm"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={() => {
+                      setPaymentFailed(false);
+                      setError(null);
+                    }}
+                    className="flex-1 max-w-[140px] px-6 py-3 rounded-full bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-md hover:shadow-lg active:scale-95 cursor-pointer text-sm"
+                  >
+                    Retry
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Tag Badge */}
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 border border-primary/10 text-primary text-[10px] font-black uppercase tracking-wider animate-fade-in mb-3">
+                  <Sparkles size={11} className="text-primary animate-pulse" />
+                  <span>Reserve Your Seat</span>
+                </div>
 
-            {/* Title & Subtitle */}
-            <h3 className="text-3xl font-extrabold text-slate-950 font-heading leading-tight flex items-center gap-1 flex-wrap">
+                {/* Title & Subtitle */}
+                <h3 className="text-3xl font-extrabold text-slate-950 font-heading leading-tight flex items-center gap-1 flex-wrap">
               {webinar?.title
                 ? (() => {
                     const target = "Her Silence";
@@ -433,6 +467,8 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
                 <span>Secure payment powered by Razorpay.</span>
               </div>
             </form>
+            </>
+            )}
           </div>
 
           {/* Bottom decorative floral graphics */}

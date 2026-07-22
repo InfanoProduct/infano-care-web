@@ -256,26 +256,13 @@ export default function WebinarSuccessPage() {
             Seat Confirmed!
           </h1>
           <p className="mt-2 text-xs text-slate-500 font-semibold leading-relaxed">
-            Thank you, <strong className="text-slate-800">{name}</strong>. Your payment of <strong className="text-slate-800">₹{amount}</strong> was verified successfully.
+            Thank you, <strong className="text-slate-800">{name}</strong>. Your payment of <strong className="text-slate-800">₹{amount}</strong> was verified successfully. Your confirmation ID is <strong className="text-slate-800">#{(orderId || '').slice(-8).toUpperCase()}</strong>{email ? <span> and confirmation sent to <strong className="text-slate-800">{email}</strong></span> : ''}.
           </p>
           <p className="mt-1 text-sm font-extrabold text-purple-650 tracking-tight">
             Topic: {title}
           </p>
         </div>
 
-        {/* Reference / Invoice Box */}
-        <div className="p-4 bg-[#FAF8FD] border border-purple-100/50 rounded-2xl flex flex-wrap items-center justify-between text-left gap-4 text-xs font-bold text-slate-700">
-          <div>
-            <span className="text-slate-400 block text-[10px] uppercase tracking-wider font-semibold">Order ID Reference</span>
-            <span className="text-purple-650 font-black">#{(orderId || '').slice(-8).toUpperCase()}</span>
-          </div>
-          {email && (
-            <div>
-              <span className="text-slate-400 block text-[10px] uppercase tracking-wider font-semibold">Confirmation Sent To</span>
-              <span className="text-slate-800 font-bold">{email}</span>
-            </div>
-          )}
-        </div>
 
         {/* Schedule & Meeting Details */}
         <div className="p-5 border border-slate-100 rounded-2xl bg-white shadow-sm space-y-4">

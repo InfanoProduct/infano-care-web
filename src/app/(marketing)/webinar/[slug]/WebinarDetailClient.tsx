@@ -171,10 +171,9 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
   const [modalOpen, setModalOpen] = useState(false);
   const [showStickyCta, setShowStickyCta] = useState(false);
   const formatTotalTimeLeft = () => {
-    if (!timeLeft) return '00h : 00m';
-    const { days, hours, minutes } = timeLeft;
-    const totalHours = days * 24 + hours;
-    return `${totalHours}h : ${String(minutes).padStart(2, '0')}m`;
+    if (!timeLeft) return '00m : 00s';
+    const { minutes, seconds } = timeLeft;
+    return `${String(minutes).padStart(2, '0')}m : ${String(seconds).padStart(2, '0')}s`;
   };
 
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
@@ -400,6 +399,18 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
                 {webinar.description}
               </p>
 
+              {/* Mobile-only Image (shows directly after description) */}
+              <div className="block lg:hidden relative w-full max-w-105 mx-auto aspect-[1.1] sm:aspect-square flex items-center justify-center animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both pt-2 pb-2" style={{ animationDelay: '300ms' }}>
+                <div className="absolute inset-0 bg-linear-to-br from-primary/10 to-accent/5 rounded-[3rem] -rotate-3 scale-95" />
+                <div className="relative w-[92%] h-[92%] rounded-[2.5rem] overflow-hidden border border-white shadow-md bg-white">
+                  <img
+                    src={getImageUrl('/uploads/assets/s1-heroimage.png')}
+                    alt="Mother and Daughter sharing a warm bond"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+
               {/* Sub-features list */}
               <div
                 className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
@@ -427,20 +438,20 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
 
               {/* Quick Info Capsule block */}
               <div
-                className="bg-white rounded-[2rem] border border-slate-100 shadow-premium py-4 px-6 grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 gap-4 sm:gap-0 max-w-2xl items-center animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+                className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-0 sm:divide-x divide-slate-100 sm:py-4 sm:px-6 sm:bg-white sm:rounded-[2rem] sm:border border-slate-100 sm:shadow-premium max-w-2xl items-center animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
                 style={{ animationDelay: '450ms' }}
               >
-                <div className="flex items-center gap-3 sm:justify-center py-2 sm:py-0">
-                  <Calendar size={16} className="text-primary shrink-0" />
-                  <span className="text-xs font-bold text-slate-700 tracking-tight">{formatWebinarDate(webinar.date)}</span>
+                <div className="flex items-center justify-center gap-2 sm:gap-3 py-1.5 px-2 sm:p-0 bg-white sm:bg-transparent rounded-full border border-slate-100 sm:border-none shadow-sm sm:shadow-none">
+                  <Calendar size={14} className="text-primary shrink-0 sm:w-4 sm:h-4" />
+                  <span className="text-[11px] sm:text-xs font-bold text-slate-700 tracking-tight">{formatWebinarDate(webinar.date)}</span>
                 </div>
-                <div className="flex items-center gap-3 sm:justify-center py-2 sm:py-0 sm:px-2">
-                  <Clock size={16} className="text-primary shrink-0" />
-                  <span className="text-xs font-bold text-slate-700 tracking-tight">{formatWebinarTime(webinar.date)}</span>
+                <div className="flex items-center justify-center gap-2 sm:gap-3 py-1.5 px-2 sm:p-0 sm:px-2 bg-white sm:bg-transparent rounded-full border border-slate-100 sm:border-none shadow-sm sm:shadow-none">
+                  <Clock size={14} className="text-primary shrink-0 sm:w-4 sm:h-4" />
+                  <span className="text-[11px] sm:text-xs font-bold text-slate-700 tracking-tight">{formatWebinarTime(webinar.date)}</span>
                 </div>
-                <div className="flex items-center gap-3 sm:justify-center py-2 sm:py-0 sm:px-2">
-                  <Video size={16} className="text-primary shrink-0" />
-                  <span className="text-xs font-bold text-slate-700 tracking-tight">
+                <div className="col-span-2 sm:col-span-1 mx-auto sm:mx-0 w-max sm:w-auto flex items-center justify-center gap-2 sm:gap-3 py-1.5 px-5 sm:p-0 sm:px-2 bg-white sm:bg-transparent rounded-full border border-slate-100 sm:border-none shadow-sm sm:shadow-none">
+                  <Video size={14} className="text-primary shrink-0 sm:w-4 sm:h-4" />
+                  <span className="text-[11px] sm:text-xs font-bold text-slate-700 tracking-tight">
                     {webinar.mode === 'ONLINE' ? 'Live on Zoom' : (webinar.link || 'In-Person Venue')}
                   </span>
                 </div>
@@ -469,8 +480,8 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
 
             </div>
 
-            {/* Right Column: Visual illustration */}
-            <div className="lg:col-span-5 relative">
+            {/* Right Column: Visual illustration (Hidden on mobile) */}
+            <div className="hidden lg:block lg:col-span-5 relative">
               <div className="relative w-full max-w-105 lg:max-w-none mx-auto aspect-[1.1] sm:aspect-square flex items-center justify-center">
                 {/* Decorative blobs */}
                 <div className="absolute inset-0 bg-linear-to-br from-primary/10 to-accent/5 rounded-[3rem] -rotate-3 scale-95" />
@@ -668,7 +679,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
           className="hidden lg:block absolute bottom-0 right-[2%] lg:right-[5%] xl:right-[8%] h-[95%] max-h-[420px] w-auto object-contain object-bottom pointer-events-none z-10 animate-in zoom-in-95 duration-500"
         />
 
-        <div className="relative z-10 max-w-360 mx-auto px-6 md:px-12 lg:px-24">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 lg:px-24">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -728,7 +739,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
       </section>
 
       {/* Remaining sections container */}
-      <div className="relative z-10 max-w-360 mx-auto px-6 md:px-12 lg:px-24 pt-12 pb-2 md:pt-20 md:pb-4">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 lg:px-24 pt-12 pb-2 md:pt-20 md:pb-4">
 
         {/* SECTION 3: WHAT YOU WILL LEARN */}
         <motion.div
@@ -1106,7 +1117,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
       </section>
 
       {/* Remaining sections container */}
-      <div className="relative z-10 max-w-360 mx-auto px-6 md:px-12 lg:px-24 py-12 md:py-20">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 lg:px-24 py-12 md:py-20">
 
         {/* SECTION 5: MEET YOUR TRAINERS */}
         <motion.div
@@ -1114,7 +1125,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="text-center max-w-360 mx-auto mb-16 md:mb-24 relative"
+          className="text-center max-w-7xl mx-auto mb-16 md:mb-24 relative"
         >
           <div className="space-y-3 mb-10 max-w-4xl mx-auto px-6">
             <div className="inline-block px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-full">
@@ -1188,7 +1199,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="mb-16 md:mb-24 overflow-hidden relative"
         >
-          <div className="max-w-360 mx-auto px-6 mb-8 text-center">
+          <div className="max-w-7xl mx-auto px-6 mb-8 text-center">
             <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-4">Real Stories</span>
             <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold font-heading text-slate-900 tracking-tight mb-4">
               Hear From <span className="text-primary">Other Parents</span>
@@ -1342,7 +1353,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
 
                 <div className="mt-6 pt-6 border-t border-slate-100 flex items-center justify-between">
                   <div className="text-base font-bold text-slate-500">Total Value</div>
-                  <div className="text-2xl font-bold text-rose-500 line-through decoration-rose-300">₹4,296</div>
+                  <div className="text-2xl font-bold text-slate-900 line-through decoration-slate-900 decoration-2">₹4,296</div>
                 </div>
               </div>
 

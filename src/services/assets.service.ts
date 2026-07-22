@@ -105,5 +105,14 @@ export const AssetsService = {
    */
   async deleteAsset(filename: string): Promise<void> {
     return apiClient.delete(`/admin/assets/${encodeURIComponent(filename)}`);
+  },
+
+  /**
+   * Renames an asset by filename
+   */
+  async renameAsset(filename: string, newFilename: string): Promise<Asset> {
+    return apiClient.patch<{ asset: Asset }>(`/admin/assets/${encodeURIComponent(filename)}/rename`, {
+      newFilename
+    }).then(res => res.asset);
   }
 };

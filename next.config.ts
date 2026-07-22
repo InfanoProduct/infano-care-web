@@ -34,14 +34,8 @@ const nextConfig: NextConfig = {
         hostname: 'api-dev.infano.care',
       },
       {
-        protocol: 'http',
-        hostname: '109.199.120.104',
-        port: '8084',
-      },
-      {
-        protocol: 'http',
-        hostname: '109.199.120.104',
-        port: '4005',
+        protocol: 'https',
+        hostname: 'dev.infano.care',
       }
     ],
   },

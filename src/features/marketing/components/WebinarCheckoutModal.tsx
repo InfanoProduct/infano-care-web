@@ -6,6 +6,7 @@ import Script from 'next/script';
 import { ShopService } from '@/services/shop.service';
 import { useAuthStore } from '@/store/auth-store';
 import { Loader2, X, ShieldCheck, AlertCircle, Sparkles, CheckCircle2, User, Mail, Phone, Ticket, Heart, ArrowRight } from 'lucide-react';
+import { isAnalyticsEnabled } from '@/components/common/Analytics';
 
 interface WebinarCheckoutModalProps {
   isOpen: boolean;
@@ -97,6 +98,29 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
     e.preventDefault();
     if (!validateForm()) return;
 
+    // Push generate_lead event to dataLayer
+    if (typeof window !== 'undefined') {
+      const eventValue = webinar ? webinar.price : 149;
+      const contentName = webinar ? webinar.title : "Decoding Her Silence: Parent Webinar";
+      if (isAnalyticsEnabled()) {
+        const windowObj = window as any;
+        windowObj.dataLayer = windowObj.dataLayer || [];
+        windowObj.dataLayer.push({
+          event: "generate_lead",
+          value: eventValue,
+          currency: "INR",
+          content_name: contentName
+        });
+      } else {
+        console.log("Analytics disabled. Simulated dataLayer push for 'generate_lead':", {
+          event: "generate_lead",
+          value: eventValue,
+          currency: "INR",
+          content_name: contentName
+        });
+      }
+    }
+
     try {
       setProcessing(true);
       setError(null);
@@ -151,7 +175,9 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
                 title: webinar?.title || '',
                 date: webinar?.date ? new Date(webinar.date).toISOString() : '',
                 mode: webinar?.mode || 'ONLINE',
-                zoomLink: webinar?.zoomLink || ''
+                zoomLink: webinar?.zoomLink || '',
+                paymentId: response.razorpay_payment_id || '',
+                slug: webinar?.slug || 'webinar-decoding-silence'
               });
 
               // We do not call onClose() here. Let Next.js navigate to the new page.
@@ -420,7 +446,7 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
               <button
                 type="submit"
                 disabled={processing}
-                className="w-full py-4 px-4 bg-primary hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] text-white font-extrabold text-sm rounded-full shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer border-none"
+                className="w-full py-4 px-4 bg-primary hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] text-white font-extrabold text-base rounded-full shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer border-none"
               >
                 {processing ? (
                   <>

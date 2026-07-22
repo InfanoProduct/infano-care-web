@@ -8,6 +8,7 @@ import {
   ArrowRight, ShieldCheck, Heart, AlertCircle 
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { isAnalyticsEnabled } from '@/components/common/Analytics';
 
 // Pure React Canvas Confetti effect
 function CanvasConfetti() {
@@ -159,6 +160,68 @@ export default function WebinarSuccessPage() {
   const mode = searchParams.get('mode') || 'ONLINE';
   const zoomLink = searchParams.get('zoomLink') || '';
   const dateParam = searchParams.get('date');
+  const paymentId = searchParams.get('paymentId') || 'MOCK_PAYMENT_ID';
+  const slug = searchParams.get('slug') || 'webinar-decoding-silence';
+
+  const trackFired = useRef(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !trackFired.current) {
+      trackFired.current = true;
+      const parsedAmount = parseFloat(amount) || 149;
+      
+      if (isAnalyticsEnabled()) {
+        const windowObj = window as any;
+        windowObj.dataLayer = windowObj.dataLayer || [];
+        windowObj.dataLayer.push({ ecommerce: null });   // clear any stale ecommerce data
+        windowObj.dataLayer.push({
+          event: "purchase",
+
+          // Flat fields — Meta reads these (reuses your existing DLVs)
+          value: parsedAmount,
+          currency: "INR",
+          transaction_id: paymentId,   // real Razorpay payment/order id
+          content_ids: [slug],
+          content_type: "product",
+
+          // Nested object — GA4 reads this
+          ecommerce: {
+            transaction_id: paymentId,
+            value: parsedAmount,
+            currency: "INR",
+            items: [{
+              item_id: slug,
+              item_name: title,
+              item_category: "Webinar",
+              price: parsedAmount,
+              quantity: 1
+            }]
+          }
+        });
+      } else {
+        console.log("Analytics disabled. Simulated dataLayer push for 'purchase':", {
+          event: "purchase",
+          value: parsedAmount,
+          currency: "INR",
+          transaction_id: paymentId,
+          content_ids: [slug],
+          content_type: "product",
+          ecommerce: {
+            transaction_id: paymentId,
+            value: parsedAmount,
+            currency: "INR",
+            items: [{
+              item_id: slug,
+              item_name: title,
+              item_category: "Webinar",
+              price: parsedAmount,
+              quantity: 1
+            }]
+          }
+        });
+      }
+    }
+  }, [amount, paymentId, slug, title]);
 
   const formattedDate = dateParam
     ? new Date(dateParam).toLocaleDateString('en-US', {
@@ -172,7 +235,7 @@ export default function WebinarSuccessPage() {
     : 'Saturday, July 25, 2026 at 05:00 PM';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-rose-50 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-rose-50 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
       <CanvasConfetti />
       
       {/* Background Orbs */}

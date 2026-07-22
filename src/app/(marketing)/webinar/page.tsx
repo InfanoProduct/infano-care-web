@@ -30,7 +30,7 @@ export default function WebinarRedirectPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFFCFA] p-6 text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFFCFA] p-6 text-center font-sans">
         <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mb-4">
           <AlertCircle size={28} />
         </div>
@@ -41,7 +41,7 @@ export default function WebinarRedirectPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFFCFA]">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFFCFA] font-sans">
       <Loader2 className="w-10 h-10 animate-spin text-primary" />
       <p className="mt-4 text-xs font-extrabold text-slate-500 uppercase tracking-widest text-center">
         Redirecting to active webinar...

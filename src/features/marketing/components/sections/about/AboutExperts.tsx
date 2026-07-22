@@ -129,7 +129,7 @@ export default function AboutExperts() {
       bgColor: 'bg-[#C3E8C8]',
     },
     {
-      name: 'Shipra Chawla',
+      name: 'Ms. Shipra Chawla',
       qual: '',
       spec: 'Soft Skills & communication coach.',
       quote: 'With over 15 years of experience, she has trained 1500+ students in communication, soft skills, and life skills.',

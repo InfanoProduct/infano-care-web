@@ -306,7 +306,7 @@ export default function WebinarSuccessPage() {
               </p>
             </div>
             <Link
-              href="https://chat.whatsapp.com/mock-parent-community-group"
+              href="https://chat.whatsapp.com/Hcu2sCgARbqH8PMbmW9nGv?s=cl&p=a&ilr=1&amv=1"
               target="_blank"
               className="py-3.5 px-6 bg-[#25D366] hover:bg-[#20bd5a] active:scale-95 text-white font-extrabold text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 relative z-10 w-full sm:w-auto mx-auto"
             >

@@ -689,20 +689,20 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
         <img
           src={getImageUrl('/uploads/assets/banner.png')}
           alt="Meet Your Guides: Shipra and Ghazal"
-          className="hidden lg:block absolute bottom-0 right-[2%] lg:right-[5%] xl:right-[8%] h-[95%] max-h-[420px] w-auto object-contain object-bottom pointer-events-none z-10 animate-in zoom-in-95 duration-500"
+          className="hidden xl:block absolute bottom-0 right-[2%] xl:right-[5%] 2xl:right-[8%] h-[95%] max-h-[420px] w-auto object-contain object-bottom pointer-events-none z-10 animate-in zoom-in-95 duration-500"
         />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 lg:px-24">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 xl:px-24">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center"
+            className="relative grid grid-cols-1 xl:grid-cols-12 gap-8 xl:gap-12 items-center"
           >
 
             {/* Mobile/Tablet image container */}
-            <div className="lg:hidden col-span-1 order-1 flex justify-center pb-4 md:pb-8">
+            <div className="xl:hidden col-span-1 order-1 flex justify-center pb-4 md:pb-8">
               <img
                 src={getImageUrl('/uploads/assets/banner.png')}
                 alt="Meet Your Guides: Shipra and Ghazal"
@@ -711,16 +711,16 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
             </div>
 
             {/* Spacer on desktop to reserve space for absolute image */}
-            <div className="hidden lg:block lg:col-span-5 order-2" />
+            <div className="hidden xl:block xl:col-span-5 order-2" />
 
             {/* Copy column on left on desktop, bottom on mobile */}
-            <div className="lg:col-span-7 order-2 lg:order-1 text-left space-y-6">
+            <div className="xl:col-span-7 order-2 xl:order-1 text-left space-y-6">
               <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest block">
                 Meet Your Guides: Shipra and Ghazal
               </span>
               <div className="relative pl-8 py-2 border-l-4 border-primary/25">
                 <Quote size={20} className="absolute top-0 left-2 text-primary/30 transform rotate-180" />
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-heading font-bold text-slate-800 leading-tight italic">
+                <h3 className="text-xl md:text-2xl xl:text-3xl font-heading font-bold text-slate-800 leading-tight italic">
                   You&apos;re not failing at this. No one ever taught you how to read what&apos;s underneath.
                   <Quote size={20} className="text-primary/30 inline-block align-top ml-1.5" />
                 </h3>

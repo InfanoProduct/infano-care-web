@@ -159,7 +159,7 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
         }
 
         const options = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_mockkeyid',
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
           amount: order.totalAmount * 100,
           currency: 'INR',
           name: 'Infano.care',

@@ -3,8 +3,9 @@ name: Development Deployment
 on:
   push:
     branches: [ "development" ]
-  pull_request:
-    branches: [ "development" ]
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -30,15 +31,12 @@ jobs:
         tags: registry.infano.care/infano.web:dev-latest
         build-args: |
           NEXT_PUBLIC_API_URL=https://api-dev.infano.care/api
-          NEXT_PUBLIC_APP_URL=https://dev.infano.care/
-          NEXT_PUBLIC_UPLOAD_API_URL=https://api-dev.infano.care/api
-          NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_test_jvNqNOEPY5sMuf
         cache-from: type=gha
         cache-to: type=gha,mode=max
         provenance: false
 
     - name: Copy docker-compose files
-      uses: appleboy/scp-action@master
+      uses: appleboy/scp-action@v0.1.7
       with:
         host: ${{ secrets.SSH_SERVER_IP }}
         username: root
@@ -48,14 +46,14 @@ jobs:
         target: "/data/docker/infano-web-dev/"
 
     - name: deploy web to server
-      uses: appleboy/ssh-action@master
+      uses: appleboy/ssh-action@v1.2.0
       with:
         host: ${{ secrets.SSH_SERVER_IP }}
         username: root
         password: ${{ secrets.SSH_SERVER_PWD }}
         port: 22
         script: |
-          docker login registry.infano.care -u "${{ secrets.REGISTRY_UNAME }}" -p "${{ secrets.REGISTRY_PWD }}"
+          echo "${{ secrets.REGISTRY_PWD }}" | docker login registry.infano.care -u "${{ secrets.REGISTRY_UNAME }}" --password-stdin
           docker pull registry.infano.care/infano.web:dev-latest
           mkdir -p /data/docker/infano-web-dev
           cd /data/docker/infano-web-dev

@@ -11,7 +11,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://infano.care';
   const cleanAppUrl = appUrl.endsWith('/') ? appUrl.slice(0, -1) : appUrl;
-  const ogImageUrl = getImageUrl('/uploads/assets/s1-heroimage.png');
+  
+  const defaultTitle = 'Live Parent Webinar: Understand Your Teen Daughter';
+  const defaultOgImageUrl = `/api/og?title=${encodeURIComponent(defaultTitle)}&category=Webinar&author=${encodeURIComponent('Infano Care')}&readTime=${encodeURIComponent('Live Session')}`;
 
   try {
     const webinar = await ShopService.getWebinarBySlug(slug);
@@ -22,15 +24,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         },
         description: 'Join Decoding Her Silence - a 90-minute live session for parents navigating adolescence. Learn to read the signs, open the conversation, and reconnect. Limited seats.',
         openGraph: {
-          images: [{ url: ogImageUrl }]
+          images: [{ url: defaultOgImageUrl }]
         },
         twitter: {
-          images: [ogImageUrl]
+          images: [defaultOgImageUrl]
         }
       };
     }
 
-    const seoTitle = webinar.seoTitle || webinar.title || 'Live Parent Webinar: Understand Your Teen Daughter';
+    const seoTitle = webinar.seoTitle || webinar.title || defaultTitle;
     const rawSeoDescription = webinar.seoDescription || webinar.description || 'Join Decoding Her Silence - a 90-minute live session for parents navigating adolescence. Learn to read the signs, open the conversation, and reconnect. Limited seats.';
     const seoDescription = rawSeoDescription.replace(/Rs\.\s*99|Rs\s*99|₹\s*99/gi, `Rs. ${webinar.price}`);
     const keywords = webinar.seoKeywords || 'parenting, teenager, puberty, mother daughter bond';
@@ -40,6 +42,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       : seoTitle.toLowerCase().includes('| infano')
         ? seoTitle.replace(/\|\s*infano/i, '| Infano Care')
         : `${seoTitle} | Infano Care`;
+
+    const encodedTitle = encodeURIComponent(seoTitle);
+    const encodedCategory = encodeURIComponent('Webinar');
+    const encodedAuthor = encodeURIComponent(webinar.instructor || 'Infano Care');
+    const ogImageUrl = `/api/og?title=${encodedTitle}&category=${encodedCategory}&author=${encodedAuthor}&readTime=${encodeURIComponent('Live Session')}`;
 
     return {
       title: {
@@ -76,10 +83,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       },
       description: 'Join Decoding Her Silence - a 90-minute live session for parents navigating adolescence. Learn to read the signs, open the conversation, and reconnect. Limited seats.',
       openGraph: {
-        images: [{ url: ogImageUrl }]
+        images: [{ url: defaultOgImageUrl }]
       },
       twitter: {
-        images: [ogImageUrl]
+        images: [defaultOgImageUrl]
       }
     };
   }

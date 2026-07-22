@@ -129,7 +129,7 @@ const AGENDA_LIST = [
 
 const EXPERT_MENTORS = [
   {
-    name: "Shipra Chawla",
+    name: "Ms. Shipra Chawla",
     role: "Soft Skills Trainer & Communication Coach",
     desc: "I am committed to empowering young minds with the confidence and voice they need to thrive. Through my work with Infano Care, I guide adolescent girls to build strong communication skills, emotional awareness, and essential life skills that protect their mental health and overall well-being.",
     achievement: "15+ Years Experience | 1,500+ Students Trained",
@@ -675,7 +675,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
         {/* Absolute positioned image for desktop - sticks to the bottom of the section */}
         <img
           src={getImageUrl('/uploads/assets/banner.png')}
-          alt="Meet Your Guides: Shipra and Ghazal"
+          alt="Meet Your Guides: Shipra and Gazal"
           className="hidden lg:block absolute bottom-0 right-[2%] lg:right-[5%] xl:right-[8%] h-[95%] max-h-[420px] w-auto object-contain object-bottom pointer-events-none z-10 animate-in zoom-in-95 duration-500"
         />
 
@@ -693,13 +693,13 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
               <div className="w-full max-w-[280px] flex flex-col items-center">
                 <img
                   src={getImageUrl('/uploads/assets/banner.png')}
-                  alt="Meet Your Guides: Shipra and Ghazal"
+                  alt="Meet Your Guides: Shipra and Gazal"
                   className="w-full h-auto object-contain"
                 />
                 {/* Mobile-only attached guides caption card */}
                 <div className="w-full bg-white border border-slate-200/60 border-t-0 rounded-b-2xl py-2.5 px-3 text-center shadow-xs -mt-0.5">
                   <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">
-                    Meet Your Guides: Shipra and Ghazal
+                    Meet Your Guides: Shipra and Gazal
                   </span>
                 </div>
               </div>
@@ -711,7 +711,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
             {/* Copy column on left on desktop, bottom on mobile */}
             <div className="col-span-full lg:col-span-7 order-2 lg:order-1 text-left space-y-6">
               <span className="hidden lg:block text-[11px] font-extrabold text-slate-500 uppercase tracking-widest">
-                Meet Your Guides: Shipra and Ghazal
+                Meet Your Guides: Shipra and Gazal
               </span>
               <div className="relative pl-8 py-2 border-l-4 border-primary/25">
                 <Quote size={20} className="absolute top-0 left-2 text-primary/30 transform rotate-180" />

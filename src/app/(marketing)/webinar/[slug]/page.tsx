@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const cleanAppUrl = appUrl.endsWith('/') ? appUrl.slice(0, -1) : appUrl;
   
   const defaultTitle = 'Live Parent Webinar: Understand Your Teen Daughter';
-  const defaultOgImageUrl = `/api/og?title=${encodeURIComponent(defaultTitle)}&category=Webinar&author=${encodeURIComponent('Infano Care')}&readTime=${encodeURIComponent('Live Session')}`;
+  const ogImageUrl = getImageUrl('/uploads/assets/s1-heroimage.png');
 
   try {
     const webinar = await ShopService.getWebinarBySlug(slug);
@@ -24,10 +24,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         },
         description: 'Join Decoding Her Silence - a 90-minute live session for parents navigating adolescence. Learn to read the signs, open the conversation, and reconnect. Limited seats.',
         openGraph: {
-          images: [{ url: defaultOgImageUrl }]
+          images: [{ url: ogImageUrl }]
         },
         twitter: {
-          images: [defaultOgImageUrl]
+          images: [ogImageUrl]
         }
       };
     }
@@ -42,11 +42,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       : seoTitle.toLowerCase().includes('| infano')
         ? seoTitle.replace(/\|\s*infano/i, '| Infano Care')
         : `${seoTitle} | Infano Care`;
-
-    const encodedTitle = encodeURIComponent(seoTitle);
-    const encodedCategory = encodeURIComponent('Webinar');
-    const encodedAuthor = encodeURIComponent(webinar.instructor || 'Infano Care');
-    const ogImageUrl = `/api/og?title=${encodedTitle}&category=${encodedCategory}&author=${encodedAuthor}&readTime=${encodeURIComponent('Live Session')}`;
 
     return {
       title: {
@@ -83,10 +78,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       },
       description: 'Join Decoding Her Silence - a 90-minute live session for parents navigating adolescence. Learn to read the signs, open the conversation, and reconnect. Limited seats.',
       openGraph: {
-        images: [{ url: defaultOgImageUrl }]
+        images: [{ url: ogImageUrl }]
       },
       twitter: {
-        images: [defaultOgImageUrl]
+        images: [ogImageUrl]
       }
     };
   }

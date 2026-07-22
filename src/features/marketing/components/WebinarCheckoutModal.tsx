@@ -61,6 +61,15 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
     }
   }, [user]);
 
+  useEffect(() => {
+    if (isOpen) {
+      setProcessing(false);
+      setError(null);
+      setPaymentFailed(false);
+      setPaymentFailedMsg('');
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const getFullNormalizedPhone = () => {
@@ -150,7 +159,7 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
         }
 
         const options = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_mockkeyid',
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
           amount: order.totalAmount * 100,
           currency: 'INR',
           name: 'Infano.care',
@@ -196,6 +205,7 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
           modal: {
             ondismiss: () => {
               setProcessing(false);
+              setError('Payment process was cancelled. You can try again when ready.');
             }
           }
         };

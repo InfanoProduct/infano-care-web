@@ -16,20 +16,20 @@ import { getImageUrl } from '@/lib/utils';
 
 const FAQ_ITEMS = [
   {
-    question: "Will this session be recorded?",
-    answer: "No, this is a live-only interactive experience to protect the privacy of the parents sharing their stories. We recommend attending live, but we may offer a temporary 24-hour replay strictly for registered attendees who couldn't make it due to emergencies."
+    question: "Will this be recorded?",
+    answer: "No, this is designed to be a live-only experience to encourage interactive participation. However, we do provide a temporary 24-hour replay link to registered parents afterward so you don't miss out, while still protecting the urgency of the training."
   },
   {
     question: "Is this appropriate if my daughter is 10 vs 15?",
-    answer: "Yes. While a 10-year-old and a 15-year-old face different developmental milestones, the core '3 Silent Signals' framework applies across the entire adolescent range (Grades 5-9). The trainer will provide specific, age-appropriate examples and scripts for both early adolescence (ages 10-12) and late adolescence (ages 13-15)."
+    answer: "Yes, the framework applies across the entire age range. The masterclass is designed to cover puberty and developmental milestones for Grades 5-9, with examples and actionable guidance given for both ends (ages 10-12 and 13-15)."
   },
   {
-    question: "Will you be selling something during the webinar?",
-    answer: "Yes, we want to be completely transparent. At the end of the webinar, we will share details about our comprehensive Grade-wise curriculum programs (Spark, Rise, Bloom, Ignite) for parents who want to go deeper. However, the webinar itself is packed with immediate, standalone value—there is absolutely no obligation to buy anything."
+    question: "Will you be selling something?",
+    answer: "Yes — at the end we'll share how families can go deeper if they want to. No pressure, no obligation."
   },
   {
     question: "What if I can't attend live?",
-    answer: "Since registrations are limited, please reserve a seat only if you intend to attend. If an emergency comes up, you can contact our support team, and we will do our best to share resources or fit you into a future cohort."
+    answer: "We strongly recommend attending live to participate in the Q&A. However, if you have a scheduling conflict, you will receive access to our 24-hour replay policy, allowing you to watch the recording within 24 hours after the live event."
   }
 ];
 

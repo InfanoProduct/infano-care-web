@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Image as ImageIcon, Plus, Search, Copy, Check, Trash2, Eye, X, 
   Loader2, UploadCloud, FileImage, ExternalLink, Calendar, HardDrive,
-  FileText
+  FileText, Film, Grid, Edit2
 } from 'lucide-react';
 import { AssetsService, Asset } from '@/services/assets.service';
 import { toast } from 'react-hot-toast';
@@ -14,6 +14,20 @@ const isVideo = (urlOrName: string) => {
   const videoExtensions = ['.mp4', '.mov', '.webm', '.avi', '.mkv', '.ogg', '.3gp'];
   const lower = urlOrName.toLowerCase();
   return videoExtensions.some(ext => lower.endsWith(ext));
+};
+
+const isGif = (urlOrName: string) => {
+  return urlOrName.toLowerCase().endsWith('.gif');
+};
+
+const isPdf = (urlOrName: string) => {
+  return urlOrName.toLowerCase().endsWith('.pdf');
+};
+
+const isImage = (urlOrName: string) => {
+  const imageExtensions = ['.png', '.jpg', '.jpeg', '.svg', '.webp', '.bmp', '.tiff', '.ico'];
+  const lower = urlOrName.toLowerCase();
+  return imageExtensions.some(ext => lower.endsWith(ext)) && !lower.endsWith('.gif');
 };
 
 const getDisplayName = (filename: string) => {
@@ -31,6 +45,7 @@ export default function AssetsManagement() {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'all' | 'image' | 'video' | 'gif' | 'pdf'>('all');
   const [copiedFilename, setCopiedFilename] = useState<string | null>(null);
   
   // Drag and drop states
@@ -116,6 +131,70 @@ export default function AssetsManagement() {
     } catch (error) {
       console.error('Failed to delete asset:', error);
       toast.error('Failed to delete asset');
+    }
+  };
+
+  // Rename handler
+  const handleRenameAsset = async (filename: string) => {
+    const extIndex = filename.lastIndexOf('.');
+    const ext = extIndex !== -1 ? filename.substring(extIndex) : '';
+    const currentDisplayName = getDisplayName(filename);
+
+    const newDisplayName = prompt(
+      `Enter new filename for this asset (the file extension "${ext}" will be preserved):`,
+      currentDisplayName
+    );
+
+    if (newDisplayName === null) return; // User cancelled
+
+    const sanitizedNewName = newDisplayName
+      .trim()
+      .replace(/[^a-zA-Z0-9-_]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+    if (!sanitizedNewName) {
+      toast.error('Filename cannot be empty');
+      return;
+    }
+
+    const newFilename = `${sanitizedNewName}${ext.toLowerCase()}`;
+
+    if (newFilename === filename) {
+      return; // No change
+    }
+
+    // Client-side uniqueness check
+    const exists = assets.some(
+      (asset) =>
+        asset.filename !== filename &&
+        getDisplayName(asset.filename).toLowerCase() === sanitizedNewName.toLowerCase() &&
+        asset.filename.substring(asset.filename.lastIndexOf('.')).toLowerCase() === ext.toLowerCase()
+    );
+
+    if (exists) {
+      toast.error(`An asset named "${sanitizedNewName}${ext}" already exists`);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const updatedAsset = await AssetsService.renameAsset(filename, sanitizedNewName + ext);
+      toast.success('Asset renamed successfully');
+      
+      // Update state
+      setAssets((prev) =>
+        prev.map((item) => (item.filename === filename ? updatedAsset : item))
+      );
+      
+      if (selectedAsset?.filename === filename) {
+        setSelectedAsset(updatedAsset);
+      }
+    } catch (error: any) {
+      console.error('Failed to rename asset:', error);
+      toast.error(error.message || 'Failed to rename asset');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -231,9 +310,18 @@ export default function AssetsManagement() {
   };
 
   // Filtered Assets list
-  const filteredAssets = assets.filter(asset => 
-    asset.filename.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredAssets = assets.filter(asset => {
+    const matchesSearch = asset.filename.toLowerCase().includes(searchQuery.toLowerCase());
+    if (!matchesSearch) return false;
+    
+    if (activeTab === 'all') return true;
+    if (activeTab === 'video') return isVideo(asset.filename);
+    if (activeTab === 'gif') return isGif(asset.filename);
+    if (activeTab === 'pdf') return isPdf(asset.filename);
+    if (activeTab === 'image') return isImage(asset.filename);
+    
+    return true;
+  });
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -340,25 +428,75 @@ export default function AssetsManagement() {
       {/* Main Panel */}
       <div className="glass-card rounded-[2.5rem] border-primary/5 overflow-hidden shadow-2xl p-8 space-y-6">
         
-        {/* Controls: Search and Count */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-border/30">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-            <input
-              type="text"
-              placeholder="Search assets by filename..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-secondary/30 hover:bg-secondary/50 focus:bg-white border border-border/40 focus:border-primary/30 rounded-2xl transition-all duration-300 font-medium outline-none text-sm placeholder:text-muted-foreground"
-            />
+        {/* Controls: Search, Tabs, and Count */}
+        <div className="flex flex-col gap-6 pb-6 border-b border-border/30">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+              <input
+                type="text"
+                placeholder="Search assets by filename..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-secondary/30 hover:bg-secondary/50 focus:bg-white border border-border/40 focus:border-primary/30 rounded-2xl transition-all duration-300 font-medium outline-none text-sm placeholder:text-muted-foreground"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-black bg-secondary/80 px-4 py-2 rounded-full border border-border shadow-sm uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                <FileImage size={14} className="text-primary" />
+                {filteredAssets.length === assets.length 
+                  ? `${assets.length} Total` 
+                  : `${filteredAssets.length} of ${assets.length} Matched`}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-black bg-secondary/80 px-4 py-2 rounded-full border border-border shadow-sm uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              <FileImage size={14} className="text-primary" />
-              {filteredAssets.length === assets.length 
-                ? `${assets.length} Total` 
-                : `${filteredAssets.length} of ${assets.length} Matched`}
-            </span>
+          
+          {/* Tabs Filter */}
+          <div className="flex flex-wrap items-center gap-2 pt-2">
+            {[
+              { id: 'all', label: 'All Assets', icon: Grid },
+              { id: 'image', label: 'Images', icon: ImageIcon },
+              { id: 'video', label: 'Videos', icon: Film },
+              { id: 'gif', label: 'GIFs', icon: FileImage },
+              { id: 'pdf', label: 'PDFs', icon: FileText },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              
+              // Count for this tab (matching search query if any)
+              const count = assets.filter(asset => {
+                const matchesSearch = asset.filename.toLowerCase().includes(searchQuery.toLowerCase());
+                if (!matchesSearch) return false;
+                if (tab.id === 'all') return true;
+                if (tab.id === 'video') return isVideo(asset.filename);
+                if (tab.id === 'gif') return isGif(asset.filename);
+                if (tab.id === 'pdf') return isPdf(asset.filename);
+                if (tab.id === 'image') return isImage(asset.filename);
+                return true;
+              }).length;
+
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all duration-300 border cursor-pointer select-none ${
+                    isActive
+                      ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20 scale-102'
+                      : 'bg-secondary/30 hover:bg-secondary/60 text-muted-foreground border-border/60 hover:text-foreground'
+                  }`}
+                >
+                  <Icon size={14} className={isActive ? 'text-white' : 'text-primary/70'} />
+                  <span>{tab.label}</span>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-extrabold ${
+                    isActive 
+                      ? 'bg-white/20 text-white' 
+                      : 'bg-secondary text-muted-foreground/80'
+                  }`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -486,7 +624,7 @@ export default function AssetsManagement() {
                     </div>
 
                     {/* Actions footer */}
-                    <div className="grid grid-cols-5 gap-2 pt-2">
+                    <div className="grid grid-cols-6 gap-2 pt-2">
                       <button
                         onClick={() => handleCopyUrl(asset.url, asset.filename)}
                         className={`col-span-4 py-2.5 px-4 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 border shadow-sm ${
@@ -506,6 +644,13 @@ export default function AssetsManagement() {
                             <span>Copy URL</span>
                           </>
                         )}
+                      </button>
+                      <button
+                        onClick={() => handleRenameAsset(asset.filename)}
+                        className="col-span-1 py-2.5 rounded-xl bg-white hover:bg-slate-50 hover:text-slate-600 text-muted-foreground border border-border/60 hover:border-slate-200 shadow-sm flex items-center justify-center transition-all"
+                        title="Rename Asset"
+                      >
+                        <Edit2 size={14} />
                       </button>
                       <button
                         onClick={() => handleDeleteAsset(asset.filename)}
@@ -628,6 +773,13 @@ export default function AssetsManagement() {
                   <ExternalLink size={14} />
                   <span>Open URL</span>
                 </a>
+                <button
+                  onClick={() => handleRenameAsset(selectedAsset.filename)}
+                  className="px-4 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl transition-all flex items-center justify-center"
+                  title="Rename Asset"
+                >
+                  <Edit2 size={16} />
+                </button>
                 <button
                   onClick={() => handleDeleteAsset(selectedAsset.filename)}
                   className="px-4 bg-rose-50 hover:bg-rose-100 hover:text-rose-700 text-rose-600 border border-rose-100 hover:border-rose-200 rounded-xl transition-all flex items-center justify-center"

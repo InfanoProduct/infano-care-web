@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Outfit, Poppins, Inter, Noto_Sans } from "next/font/google";
+import { Geist, Geist_Mono, Outfit, Poppins, Inter, Noto_Sans, Playfair_Display, Caveat } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/providers/query-provider";
 import { Analytics, AnalyticsNoScript } from "@/components/common/Analytics";
@@ -34,6 +34,18 @@ const notoSans = Noto_Sans({
   variable: "--font-noto-sans",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800", "900"],
+});
+
+const playfairDisplay = Playfair_Display({
+  variable: "--font-playfair-display",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+});
+
+const caveat = Caveat({
+  variable: "--font-caveat",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://infano.care";
@@ -115,7 +127,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} ${poppins.variable} ${inter.variable} ${notoSans.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} ${poppins.variable} ${inter.variable} ${notoSans.variable} ${playfairDisplay.variable} ${caveat.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>

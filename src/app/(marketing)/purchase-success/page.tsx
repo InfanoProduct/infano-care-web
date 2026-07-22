@@ -200,11 +200,16 @@ function PurchaseSuccessContent() {
   };
 
   useEffect(() => {
-    if (isAnalyticsEnabled()) {
+    if (isAnalyticsEnabled() && transactionId) {
       const windowObj = window as any;
       windowObj.dataLayer = windowObj.dataLayer || [];
       windowObj.dataLayer.push({
         event: 'purchase',
+        value: totalAmount,
+        currency: currencyCode,
+        transaction_id: transactionId,
+        content_ids: [itemId],
+        content_type: 'product',
         ecommerce: {
           transaction_id: transactionId,
           currency: currencyCode,

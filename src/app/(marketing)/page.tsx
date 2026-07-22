@@ -159,7 +159,7 @@ const homeSchema = {
     { "@type": "Person", "name": "Dr. Isha Kapoor", "jobTitle": "Menstrual Health Specialist, Gynaecology" },
     { "@type": "Person", "name": "Jasika Makhija", "jobTitle": "Clinical Nutritionist, Dietetics" },
     { "@type": "Person", "name": "Ms. Gazal Luthra", "jobTitle": "Counselling Psychologist & Psychotherapist" },
-    { "@type": "Person", "name": "Shipra Chawla", "jobTitle": "Soft Skills & Communication Coach" }
+    { "@type": "Person", "name": "Ms. Shipra Chawla", "jobTitle": "Soft Skills & Communication Coach" }
   ],
   "foundingLocation": {
     "@type": "Place",

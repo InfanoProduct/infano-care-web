@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
 import { AuthService } from '@/services/auth.service';
 import { NotificationBell } from '@/features/parent/components/NotificationBell';
+import { OnboardingModal } from '@/components/common/OnboardingModal';
 
 export default function CustomerDashboardLayout({
   children,
@@ -90,6 +91,11 @@ export default function CustomerDashboardLayout({
             ...user,
             email: fullUser.email,
             profile: fullUser.profile,
+            onboardingStep: fullUser.onboardingStep,
+            onboardingCompletedAt: fullUser.onboardingCompletedAt,
+            isOnboardingCompleted: fullUser.isOnboardingCompleted,
+            ageAtSignup: fullUser.ageAtSignup,
+            contentTier: fullUser.contentTier,
           });
           if (fullUser.profile?.avatarUrl && fullUser.id) {
             localStorage.setItem(`profileAvatar_${fullUser.id}`, fullUser.profile.avatarUrl);
@@ -133,6 +139,16 @@ export default function CustomerDashboardLayout({
 
   if (!mounted) return null;
 
+  const showOnboardingModal = 
+    !!(mounted && 
+    isAuthenticated && 
+    user && 
+    user.role !== 'ADMIN' && 
+    user.role !== 'EXPERT' && 
+    user.role !== 'PEER' && 
+    (user.onboardingStep === undefined || user.onboardingStep < 5) && 
+    !user.isOnboardingCompleted);
+
   if (!isAuthenticated || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FFFAF7] font-extrabold text-primary animate-pulse">
@@ -146,7 +162,7 @@ export default function CustomerDashboardLayout({
     return <div className="min-h-screen bg-background overflow-hidden">{children}</div>;
   }
 
-  const isTeen = user.role === 'TEEN';
+  const isTeen = user.role === 'TEEN' || (user.role === 'PEER' && user.contentTier && user.contentTier !== 'ADULT');
 
   // Navigation Items
   const menuItems = [
@@ -446,6 +462,8 @@ export default function CustomerDashboardLayout({
           </div>
         </div>
       )}
+      {/* Onboarding Modal Overlay for incomplete profiles */}
+      <OnboardingModal isOpen={showOnboardingModal} />
 
     </div>
   );

@@ -403,7 +403,7 @@ export default function ProfilePage() {
     }
   };
 
-  const isTeen = user?.role === 'TEEN';
+  const isTeen = user?.role === 'TEEN' || (user?.role === 'PEER' && user?.contentTier && user?.contentTier !== 'ADULT');
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12 w-full max-w-[1280px]">

@@ -59,16 +59,16 @@ export default function MentorDashboardLayout({
 
     const isAuthorized =
       user.role === 'PEER' ||
-      (user.role === 'TEEN' && user.peerApplicationStatus === 'approved');
+      ((user.role === 'TEEN' || user.role === 'PARENT') && user.peerApplicationStatus === 'approved');
 
     if (!isAuthorized) {
       router.push('/peerline/login');
       return;
     }
 
-    // If user is a TEEN with approved application (not yet certified),
+    // If user is a TEEN/PARENT with approved application (not yet certified),
     // force them to the training page unless they're already there
-    if (user.role === 'TEEN' && user.peerApplicationStatus === 'approved') {
+    if ((user.role === 'TEEN' || user.role === 'PARENT') && user.peerApplicationStatus === 'approved') {
       const isOnTrainingOrAssessment =
         pathname.startsWith('/peerline/dashboard/training') ||
         pathname.startsWith('/peerline/dashboard/assessment');

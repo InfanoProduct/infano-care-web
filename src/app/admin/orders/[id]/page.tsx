@@ -65,7 +65,13 @@ export default function OrderDetailPage() {
       const response = await apiClient.get<any>(`/admin/orders/${id}`);
       setOrder(response);
       if (response.comments) {
-        setComments(response.comments);
+        if (Array.isArray(response.comments)) {
+          setComments(response.comments);
+        } else if (typeof response.comments === 'object') {
+          setComments(response.comments.adminComments || []);
+        } else {
+          setComments([]);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch order', error);
@@ -162,10 +168,14 @@ export default function OrderDetailPage() {
       const commentText = newComment.trim();
       setNewComment('');
       // Optimistic update
-      setComments([...comments, { text: commentText, createdAt: new Date().toISOString() }]);
+      setComments((prev) => [...prev, { text: commentText, createdAt: new Date().toISOString() }]);
       const response = await apiClient.post<any>(`/admin/orders/${id}/comments`, { text: commentText });
       if (response && response.comments) {
-        setComments(response.comments);
+        if (Array.isArray(response.comments)) {
+          setComments(response.comments);
+        } else if (typeof response.comments === 'object') {
+          setComments(response.comments.adminComments || []);
+        }
       }
     } catch (err: any) {
       console.error('Failed to add comment', err);

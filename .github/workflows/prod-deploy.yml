@@ -59,5 +59,9 @@ jobs:
           mkdir -p /data/infano-web-prod
           cd /data/infano-web-prod
           
+          # Clean up any existing/conflicting containers to prevent recreation/rename errors
+          docker rm -f infano-web-prod || true
+          docker rm -f $(docker ps -a -q --filter "name=_infano-web-prod") 2>/dev/null || true
+          
           # Deploy with production compose
           docker-compose -f docker-compose.prod.yml up -d

@@ -65,4 +65,8 @@ jobs:
             touch .env
           fi
           
+          # Clean up any existing/conflicting containers to prevent recreation/rename errors
+          docker rm -f infano-web-dev || true
+          docker rm -f $(docker ps -a -q --filter "name=_infano-web-dev") 2>/dev/null || true
+          
           docker compose -f docker-compose.dev.yml up -d

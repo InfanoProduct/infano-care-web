@@ -184,12 +184,11 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
     if (!webinar?.date) return;
 
     const calculateTimeLeft = () => {
-      const activeDurationMs = 3 * 60 * 60 * 1000; // 3 hours loop duration
-      const offsetMs = 2 * 60 * 60 * 1000; // 2 hours minimum offset
-      const difference = activeDurationMs - (new Date().getTime() % activeDurationMs) + offsetMs;
+      const activeDurationMs = 30 * 60 * 1000; // 30 minutes loop duration
+      const difference = activeDurationMs - (new Date().getTime() % activeDurationMs);
       return {
         days: 0,
-        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        hours: 0,
         minutes: Math.floor((difference / 1000 / 60) % 60),
         seconds: Math.floor((difference / 1000) % 60)
       };

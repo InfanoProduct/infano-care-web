@@ -29,9 +29,7 @@ export default function MarketingLayout({
         </Suspense>
       )}
       <main className={`flex-1 w-full ${!isPortal ? 'pt-20' : ''}`}>
-        <Suspense fallback={null}>
-          {children}
-        </Suspense>
+        {children}
       </main>
       {!isPortal && !isPurchaseSuccess && !cleanPathname.startsWith('/webinar') && <MarketingFooter />}
 

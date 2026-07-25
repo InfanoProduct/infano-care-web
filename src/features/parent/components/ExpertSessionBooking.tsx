@@ -36,7 +36,9 @@ interface Session {
   meetLink?: string;
   programId?: string | null;
   sessionNumber?: number | null;
+  expertId: string;
   expert?: {
+    id: string;
     profile?: {
       displayName: string;
       specialisation?: string;
@@ -82,6 +84,29 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [rescheduleSession, setRescheduleSession] = useState<Session | null>(null);
   const [rescheduleSlot, setRescheduleSlot] = useState<string | null>(null);
+  const [rescheduleSlots, setRescheduleSlots] = useState<string[]>([]);
+  const [loadingRescheduleSlots, setLoadingRescheduleSlots] = useState(false);
+
+  useEffect(() => {
+    if (!rescheduleSession) {
+      setRescheduleSlots([]);
+      return;
+    }
+    const fetchRescheduleSlots = async () => {
+      try {
+        setLoadingRescheduleSlots(true);
+        const expertId = rescheduleSession.expert?.id;
+        if (!expertId) return;
+        const res = await ParentService.getExpertSlots(expertId);
+        setRescheduleSlots(res.data?.availableSlots || res.availableSlots || []);
+      } catch (err) {
+        console.error("Failed to fetch slots for reschedule", err);
+      } finally {
+        setLoadingRescheduleSlots(false);
+      }
+    };
+    fetchRescheduleSlots();
+  }, [rescheduleSession]);
 
   const [tab, setTab] = useState<'browse' | 'consultations' | 'demos'>(initialTab || 'consultations');
 
@@ -1040,28 +1065,39 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
               <h4 className="text-xs font-black text-slate-450 uppercase tracking-widest pl-0.5">Pick a New Time</h4>
               
               <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
-                {generateSlots().map((slot) => {
-                  const isSelected = rescheduleSlot === slot;
-                  return (
-                    <button
-                      key={slot}
-                      onClick={() => setRescheduleSlot(slot)}
-                      className={`w-full flex items-center justify-between p-3.5 rounded-2xl border text-left text-sm transition-all cursor-pointer active:scale-99 ${isSelected 
-                        ? 'border-primary bg-primary/5 shadow-2xs' 
-                        : 'border-slate-200/80 hover:border-primary/30 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Calendar size={14} className={isSelected ? 'text-primary' : 'text-slate-450'} />
-                        <div>
-                          <span className="font-black text-slate-800 block leading-tight">{formatDate(slot)}</span>
-                          <span className="text-xs text-slate-500 font-bold">{formatTime(slot)}</span>
+                {loadingRescheduleSlots ? (
+                  <div className="flex flex-col items-center justify-center py-8 gap-2">
+                    <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                    <span className="text-xs text-slate-500 font-bold">Loading slots...</span>
+                  </div>
+                ) : rescheduleSlots.length === 0 ? (
+                  <div className="text-center py-8 text-xs font-bold text-slate-400">
+                    No available slots for this expert.
+                  </div>
+                ) : (
+                  rescheduleSlots.map((slot) => {
+                    const isSelected = rescheduleSlot === slot;
+                    return (
+                      <button
+                        key={slot}
+                        onClick={() => setRescheduleSlot(slot)}
+                        className={`w-full flex items-center justify-between p-3.5 rounded-2xl border text-left text-sm transition-all cursor-pointer active:scale-99 ${isSelected 
+                          ? 'border-primary bg-primary/5 shadow-2xs' 
+                          : 'border-slate-200/80 hover:border-primary/30 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Calendar size={14} className={isSelected ? 'text-primary' : 'text-slate-450'} />
+                          <div>
+                            <span className="font-black text-slate-800 block leading-tight">{formatDate(slot)}</span>
+                            <span className="text-xs text-slate-500 font-bold">{formatTime(slot)}</span>
+                          </div>
                         </div>
-                      </div>
-                      {isSelected && <CheckCircle2 size={16} className="text-primary" />}
-                    </button>
-                  );
-                })}
+                        {isSelected && <CheckCircle2 size={16} className="text-primary" />}
+                      </button>
+                    );
+                  })
+                )}
               </div>
               
               <button

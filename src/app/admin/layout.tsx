@@ -12,6 +12,17 @@ import { useAuthStore } from '@/store/auth-store';
 import { AuthService } from '@/services/auth.service';
 import { toast } from 'react-hot-toast';
 
+const ROLE_LABELS: Record<string, string> = {
+  ADMIN: 'Super Admin',
+  EXPERT: 'Expert',
+  SCHOOL_COORDINATOR: 'School Coordinator',
+  OPS_MANAGER: 'Ops Manager',
+  TEEN: 'Teen',
+  PARENT: 'Parent',
+  GUARDIAN: 'Guardian',
+  PEER: 'Peer Support Line'
+};
+
 export default function AdminLayout({
   children,
 }: {
@@ -112,12 +123,12 @@ export default function AdminLayout({
       { name: user?.role === 'EXPERT' ? 'Consultations' : 'Experts & Consultations', icon: Calendar, href: '/admin/expert-consultations' },
       { name: 'My Calendar', icon: CalendarDays, href: '/admin/calendar' },
       { name: 'Enquiries', icon: FileQuestion, href: '/admin/enquiries' },
-      { name: 'System Settings', icon: Settings, href: '/admin/settings' },
+      { name: 'Settings', icon: Settings, href: '/admin/settings' },
     ];
 
     return user?.role === 'EXPERT'
-      ? items.filter(item => ['Learning Programs', 'Connect', 'Consultations', 'My Calendar', 'Experts & Consultations'].includes(item.name))
-      : items;
+      ? items.filter(item => ['Learning Programs', 'Connect', 'Consultations', 'My Calendar', 'Settings'].includes(item.name))
+      : items.filter(item => item.name !== 'My Calendar');
   }, [user?.role]);
 
   useEffect(() => {
@@ -254,7 +265,7 @@ export default function AdminLayout({
             </div>
             <div className="overflow-hidden">
               <p className="text-sm font-bold truncate text-foreground">{user?.username || 'Admin'}</p>
-              <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">{user?.role === 'ADMIN' ? 'Super Admin' : 'Staff'}</p>
+              <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">{ROLE_LABELS[user?.role || ''] || user?.role || 'Staff'}</p>
             </div>
           </div>
           

@@ -35,6 +35,7 @@ export default function AdminLoginPage() {
         id: data.userId,
         username: data.username,
         role: data.role,
+        requiresPasswordReset: data.requiresPasswordReset,
       });
 
       // Set cookie for middleware (expires in 7 days)

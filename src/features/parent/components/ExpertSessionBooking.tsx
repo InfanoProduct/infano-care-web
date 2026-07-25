@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { ProgramsService } from '@/services/programs.service';
 import {
   Loader2, Search, Filter, Star, Clock, Video, Calendar,
-  X, ChevronRight, AlertCircle, CheckCircle2, XCircle, RefreshCw, Sparkles, Info, Lock
+  X, ChevronRight, ChevronLeft, AlertCircle, CheckCircle2, XCircle, RefreshCw, Sparkles, Info, Lock
 } from 'lucide-react';
 
 const ENROLLED_THEMES: Record<string, { accent: string; gradient: string; border: string; badge: string; }> = {
@@ -51,28 +51,7 @@ const SPECIALISATION_FILTERS = [
   { label: 'Educator', value: 'Educator' },
 ];
 
-// Generate realistic time slots for the next 7 days
-function generateSlots(): string[] {
-  const slots: string[] = [];
-  const now = new Date();
-  for (let dayOffset = 1; dayOffset <= 7; dayOffset++) {
-    const date = new Date(now);
-    date.setDate(date.getDate() + dayOffset);
-    // Morning slot at 10:00
-    const morning = new Date(date);
-    morning.setHours(10, 0, 0, 0);
-    slots.push(morning.toISOString());
-    // Afternoon slot at 14:00
-    const afternoon = new Date(date);
-    afternoon.setHours(14, 0, 0, 0);
-    slots.push(afternoon.toISOString());
-    // Evening slot at 17:00
-    const evening = new Date(date);
-    evening.setHours(17, 0, 0, 0);
-    slots.push(evening.toISOString());
-  }
-  return slots;
-}
+
 
 export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | 'consultations' | 'demos' } = {}) {
   const { user } = useAuthStore();
@@ -90,8 +69,14 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
   // Booking modal state
   const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  
+  // Calendar View State
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [bookingStep, setBookingStep] = useState<'slot' | 'confirm' | 'processing' | 'success'>('slot');
   const [bookingError, setBookingError] = useState('');
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [expertSettings, setExpertSettings] = useState<any>(null);
 
   // Cancel/Reschedule state
   const [cancellingId, setCancellingId] = useState<string | null>(null);
@@ -140,12 +125,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
     try {
       setLoading(true);
       const data = await ParentService.getExperts(activeFilter || undefined);
-      // Enrich with generated slots
-      const enriched = (data || []).map((e: any) => ({
-        ...e,
-        availableSlots: generateSlots()
-      }));
-      setExperts(enriched);
+      setExperts(data || []);
     } catch (err) {
       console.error('Failed to fetch experts', err);
     } finally {
@@ -166,11 +146,24 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
   };
 
 
-  const openBookingModal = (expert: Expert) => {
-    setSelectedExpert(expert);
+  const openBookingModal = async (expert: Expert) => {
+    setSelectedExpert({ ...expert, availableSlots: [] });
     setSelectedSlot(null);
+    setSelectedDate(null);
+    setCurrentMonth(new Date());
     setBookingStep('slot');
     setBookingError('');
+    setExpertSettings(null);
+    setSlotsLoading(true);
+    try {
+      const res = await ParentService.getExpertSlots(expert.id);
+      setSelectedExpert({ ...expert, availableSlots: res.data?.availableSlots || res.availableSlots || [] });
+      setExpertSettings(res.data?.settings || res.settings || null);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSlotsLoading(false);
+    }
   };
 
   const closeModal = () => {
@@ -811,34 +804,130 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                 <div className="space-y-5">
                   <h4 className="text-xs font-black text-slate-450 uppercase tracking-widest pl-0.5">Select a Time Slot</h4>
 
-                  <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
-                    {selectedExpert.availableSlots.map((slot) => {
-                      const date = formatDate(slot);
-                      const time = formatTime(slot);
-                      const isSelected = selectedSlot === slot;
-                      return (
-                        <button
-                          key={slot}
-                          onClick={() => setSelectedSlot(slot)}
-                          className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all text-left cursor-pointer active:scale-99 ${isSelected
-                            ? 'border-primary bg-primary/5 shadow-2xs'
-                            : 'border-slate-200/80 hover:border-primary/30 hover:bg-slate-50'
-                            }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center border ${isSelected ? 'bg-primary text-white border-primary' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
-                              <Calendar size={14} />
-                            </div>
-                            <div>
-                              <p className="text-sm font-black text-slate-800">{date}</p>
-                              <p className="text-xs text-slate-500 font-bold">{time}</p>
-                            </div>
-                          </div>
-                          {isSelected && <CheckCircle2 size={18} className="text-primary" />}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  {expertSettings && (
+                    <div className="bg-blue-50/50 p-3 rounded-xl border border-blue-100 flex flex-col gap-1 text-xs text-slate-600">
+                      <div className="flex items-center gap-2"><Clock size={14} className="text-blue-500"/> <span><b>Reschedule Policy:</b> {expertSettings.reschedulePolicy}</span></div>
+                      <div className="flex items-center gap-2"><Calendar size={14} className="text-blue-500"/> <span><b>Booking Period:</b> Up to {expertSettings.bookingPeriodMonths} months ahead</span></div>
+                    </div>
+                  )}
+
+                  {slotsLoading ? (
+                    <div className="flex items-center justify-center p-8 text-slate-400">
+                      <Loader2 className="w-6 h-6 animate-spin" />
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {selectedExpert.availableSlots.length === 0 ? (
+                        <p className="text-sm text-slate-500 text-center py-4">No available slots found for this expert.</p>
+                      ) : (
+                        (() => {
+                          const groupedSlots: Record<string, string[]> = {};
+                          selectedExpert.availableSlots.forEach(slot => {
+                            const localDate = new Date(slot);
+                            const y = localDate.getFullYear();
+                            const m = String(localDate.getMonth() + 1).padStart(2, '0');
+                            const d = String(localDate.getDate()).padStart(2, '0');
+                            const dateKey = `${y}-${m}-${d}`;
+                            
+                            if (!groupedSlots[dateKey]) groupedSlots[dateKey] = [];
+                            groupedSlots[dateKey].push(slot);
+                          });
+                          const dates = Object.keys(groupedSlots).sort();
+                          const activeDate = selectedDate || dates[0];
+                          
+                          // Calendar logic
+                          const year = currentMonth.getFullYear();
+                          const month = currentMonth.getMonth();
+                          const firstDayOfMonth = new Date(year, month, 1).getDay();
+                          const daysInMonth = new Date(year, month + 1, 0).getDate();
+                          
+                          const nextMonth = (e: React.MouseEvent) => {
+                            e.preventDefault();
+                            setCurrentMonth(new Date(year, month + 1, 1));
+                          };
+                          const prevMonth = (e: React.MouseEvent) => {
+                            e.preventDefault();
+                            setCurrentMonth(new Date(year, month - 1, 1));
+                          };
+                          
+                          const days = [];
+                          for (let i = 0; i < firstDayOfMonth; i++) days.push(null);
+                          for (let i = 1; i <= daysInMonth; i++) days.push(new Date(year, month, i));
+                          
+                          return (
+                            <>
+                              <div className="bg-white rounded-2xl border border-slate-200 p-3 mb-2">
+                                <div className="flex items-center justify-between pb-3 mb-2 border-b border-slate-100">
+                                  <button onClick={prevMonth} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"><ChevronLeft size={16}/></button>
+                                  <span className="text-sm font-bold text-slate-800">{currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+                                  <button onClick={nextMonth} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"><ChevronRight size={16}/></button>
+                                </div>
+                                
+                                <div className="grid grid-cols-7 gap-1 text-center mb-1">
+                                  {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+                                    <span key={day} className="text-[10px] font-bold text-slate-400 uppercase">{day}</span>
+                                  ))}
+                                  
+                                  {days.map((dateObj, i) => {
+                                    if (!dateObj) return <div key={`empty-${i}`} className="h-8"></div>;
+                                    
+                                    const y = dateObj.getFullYear();
+                                    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+                                    const d = String(dateObj.getDate()).padStart(2, '0');
+                                    const key = `${y}-${m}-${d}`; 
+                                    
+                                    const hasSlots = !!groupedSlots[key];
+                                    const isSelected = activeDate === key;
+                                    
+                                    return (
+                                      <button
+                                        key={i}
+                                        disabled={!hasSlots}
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          if (hasSlots) {
+                                            setSelectedDate(key);
+                                            setSelectedSlot(null);
+                                          }
+                                        }}
+                                        className={`h-8 w-8 mx-auto rounded-full text-xs font-bold transition-all flex items-center justify-center ${
+                                          isSelected 
+                                            ? 'bg-primary text-white shadow-md shadow-primary/30' 
+                                            : hasSlots 
+                                              ? 'bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer' 
+                                              : 'text-slate-300 cursor-not-allowed opacity-50 hover:bg-transparent'
+                                        }`}
+                                      >
+                                        {dateObj.getDate()}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                              
+                              {activeDate && (
+                                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                                  {groupedSlots[activeDate].map(slot => {
+                                    const time = formatTime(slot);
+                                    const isSelected = selectedSlot === slot;
+                                    return (
+                                      <button
+                                        key={slot}
+                                        onClick={() => setSelectedSlot(slot)}
+                                        className={`flex items-center justify-center py-3 px-4 rounded-xl border transition-all cursor-pointer text-sm font-bold ${isSelected ? 'border-primary bg-primary/10 text-primary shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-primary/30 hover:bg-slate-50'}`}
+                                      >
+                                        {time}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()
+                      )}
+                    </div>
+                  )}
 
                   <button
                     onClick={() => {

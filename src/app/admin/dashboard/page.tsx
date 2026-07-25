@@ -8,6 +8,10 @@ import { RecentActivity } from "@/features/dashboard/components/RecentActivity";
 import { DetailedFeeds } from "@/features/dashboard/components/DetailedFeeds";
 import { useDashboardStats } from "@/features/dashboard/hooks/use-dashboard-data";
 import { Calendar } from "lucide-react";
+import { useAuthStore } from "@/store/auth-store";
+import { AuthService } from "@/services/auth.service";
+import { toast } from "react-hot-toast";
+import { useEffect } from "react";
 
 export default function AdminDashboard() {
   const [startDate, setStartDate] = useState<string>('');

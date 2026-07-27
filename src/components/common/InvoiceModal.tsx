@@ -185,9 +185,7 @@ export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps)
           div[class*="overflow-hidden"],
           .max-w-7xl, 
           .max-w-[1000px],
-          .max-w-[1280px],
-          .space-y-6, 
-          .grid {
+          .max-w-[1280px] {
             overflow: visible !important;
             height: auto !important;
             min-height: 0 !important;
@@ -255,23 +253,23 @@ export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps)
         onClick={e => e.stopPropagation()}
       >
         {/* Modal Header Panel - hidden on print */}
-        <div className="bg-slate-50 border-b border-slate-100 px-6 py-4 flex items-center justify-between no-print">
+        <div className="bg-slate-50 border-b border-slate-100 px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 no-print">
           <div className="flex items-center gap-2">
             <div className="bg-primary/10 p-1.5 rounded-lg text-primary">
               <FileText size={18} />
             </div>
             <h3 className="font-extrabold text-slate-800 text-sm">Tax Invoice</h3>
           </div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 w-full sm:w-auto">
             <button
               onClick={handlePrint}
-              className="px-4 py-2 bg-primary hover:bg-primary-dark text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
+              className="flex-1 sm:flex-none justify-center px-4 py-2 bg-primary hover:bg-primary-dark text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
             >
               Print / Save PDF
             </button>
             <button
               onClick={onClose}
-              className="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-600 hover:text-slate-800 text-xs font-bold rounded-xl transition-all active:scale-95 cursor-pointer"
+              className="flex-1 sm:flex-none justify-center px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-600 hover:text-slate-800 text-xs font-bold rounded-xl transition-all active:scale-95 cursor-pointer"
             >
               Close
             </button>

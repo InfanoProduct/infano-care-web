@@ -29,11 +29,11 @@ function CanvasConfetti() {
     window.addEventListener('resize', handleResize);
 
     const colors = [
-      '#FF007F', '#FF1493', '#D946EF', '#A855F7', '#8B5CF6', 
+      '#FF007F', '#FF1493', '#D946EF', '#A855F7', '#8B5CF6',
       '#6366F1', '#3B82F6', '#0EA5E9', '#00F2FE', '#4FACFE',
       '#10B981', '#22C55E', '#FFB800', '#F97316', '#FF4B4B'
     ];
-    
+
     const particleCount = 180;
     const particles: Array<{
       x: number;
@@ -168,26 +168,26 @@ function PurchaseSuccessContent() {
   const unitPrice = parseFloat(priceStr);
   const qty = parseInt(qtyStr, 10);
   const totalAmount = parseFloat(valueStr);
-  
+
   const discount = parseFloat(searchParams.get('discount') || '0');
   const deliveryParam = searchParams.get('delivery');
   const codChargeParam = searchParams.get('cod_charge');
-  
+
   const calculatedSubtotal = unitPrice * qty;
   const paymentMethodParam = searchParams.get('payment_method');
-  
-  const paymentMethod = paymentMethodParam 
-    ? paymentMethodParam 
+
+  const paymentMethod = paymentMethodParam
+    ? paymentMethodParam
     : (totalAmount > calculatedSubtotal ? 'COD' : 'ONLINE');
 
-  const delivery = deliveryParam 
-    ? parseFloat(deliveryParam) 
+  const delivery = deliveryParam
+    ? parseFloat(deliveryParam)
     : 0;
 
-  const codCharge = codChargeParam 
-    ? parseFloat(codChargeParam) 
+  const codCharge = codChargeParam
+    ? parseFloat(codChargeParam)
     : (paymentMethod === 'COD' ? Math.max(0, totalAmount - (calculatedSubtotal + delivery - discount)) : 0);
-    
+
   const subtotalStr = searchParams.get('subtotal');
   const subtotal = subtotalStr ? parseFloat(subtotalStr) : calculatedSubtotal;
 
@@ -227,7 +227,8 @@ function PurchaseSuccessContent() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#FAF5FF] via-[#FDF8F6] to-[#EFF6FF] p-4 sm:p-6 md:p-8 font-sans relative overflow-hidden">
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes bounceSlow {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-6px); }
@@ -237,29 +238,29 @@ function PurchaseSuccessContent() {
         }
       `}} />
       <CanvasConfetti />
-      
+
       {/* Decorative background elements */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] aspect-square rounded-full bg-purple-200/30 blur-3xl pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] aspect-square rounded-full bg-rose-200/20 blur-3xl pointer-events-none" />
 
       <div className="max-w-4xl w-full bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-300 relative z-10">
         <div className="grid md:grid-cols-12">
-          
+
           {/* Left Column: Success Message & Support */}
           <div className="md:col-span-7 p-6 sm:p-10 md:p-12 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-100">
             <div>
               <div className="w-20 h-20 bg-linear-to-tr from-emerald-400 to-teal-500 text-white rounded-3xl flex items-center justify-center mb-8 shadow-lg shadow-emerald-450/20 border border-emerald-300/20 animate-bounce-slow">
                 <CheckCircle2 size={44} className="stroke-[2.5]" />
               </div>
-              
+
               <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight mb-4 leading-tight">
                 Order Confirmed! 🎉
               </h1>
-              
+
               <p className="text-slate-500 text-sm sm:text-base leading-relaxed mb-8 font-medium">
                 Thank you for ordering your book. Your order has been successfully placed, and we will get it delivered to you soon! Our team will connect with you shortly with further updates.
               </p>
-              
+
               {/* Need Help Box */}
               <div className="bg-slate-50/80 rounded-2xl p-5 border border-slate-100/80 mb-8 shadow-sm">
                 <h3 className="font-bold text-slate-800 text-sm mb-3.5 flex items-center gap-1.5">
@@ -278,29 +279,29 @@ function PurchaseSuccessContent() {
                 </div>
               </div>
             </div>
-            
+
             {/* Back to Home CTA Button */}
             <div className="mt-6">
-              <button 
-                onClick={() => router.push('/')} 
+              <button
+                onClick={() => router.push('/')}
                 className="w-full py-4 bg-slate-900 hover:bg-slate-850 text-white rounded-2xl font-bold shadow-md hover:shadow-lg transition-all active:scale-[0.98] cursor-pointer text-center text-sm flex items-center justify-center gap-1.5"
               >
                 Back to Home <ArrowRight size={14} />
               </button>
             </div>
           </div>
-          
+
           {/* Right Column: Detailed Receipt & Breakdown */}
           <div className="md:col-span-5 bg-slate-50/40 p-6 sm:p-10 md:p-12 flex flex-col justify-center">
             <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
               <FileText size={16} className="text-slate-400" />
               Receipt Details
             </h2>
-            
+
             {/* Receipt Card */}
             <div className="bg-white rounded-2xl border border-slate-200/60 p-5 sm:p-6 shadow-xl shadow-slate-100/50 space-y-5 relative overflow-hidden">
               <div className="absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r from-primary via-indigo-500 to-purple-600" />
-              
+
               {/* Order ID: Shortened display */}
               <div className="flex justify-between items-center text-xs">
                 <span className="text-slate-400 font-bold uppercase tracking-wider">Order ID</span>
@@ -321,7 +322,7 @@ function PurchaseSuccessContent() {
                   </button>
                 </div>
               </div>
-              
+
               {/* Item Info */}
               <div className="flex gap-3.5 pt-4 border-t border-slate-100">
                 <div className="w-12 h-16 relative rounded-lg overflow-hidden bg-slate-50 shrink-0 border border-slate-100 shadow-3xs">
@@ -336,26 +337,26 @@ function PurchaseSuccessContent() {
                   <span className="text-[11px] font-bold text-slate-400 block mt-0.5">Quantity: {qty}</span>
                 </div>
               </div>
-              
+
               {/* Breakdown */}
               <div className="space-y-3.5 pt-4 border-t border-slate-100 text-xs font-bold">
                 <div className="flex justify-between items-center text-slate-500 font-medium">
                   <span>Unit Price</span>
                   <span className="text-slate-800 font-extrabold"><span>{currencySymbol}</span><span>{unitPrice}</span></span>
                 </div>
-                
+
                 <div className="flex justify-between items-center text-slate-500 font-medium">
                   <span>Item Subtotal</span>
                   <span className="text-slate-800 font-extrabold"><span>{currencySymbol}</span><span>{subtotal}</span></span>
                 </div>
-                
+
                 {discount > 0 && (
                   <div className="flex justify-between items-center text-emerald-600">
                     <span>Discount</span>
                     <span>-<span>{currencySymbol}</span><span>{discount}</span></span>
                   </div>
                 )}
-                
+
                 <div className="flex justify-between items-center text-slate-500 font-medium">
                   <span>Shipping</span>
                   {delivery > 0 ? (
@@ -364,7 +365,7 @@ function PurchaseSuccessContent() {
                     <span className="text-emerald-600 font-extrabold">Free</span>
                   )}
                 </div>
-                
+
                 {paymentMethod === 'COD' && codCharge > 0 && (
                   <div className="flex justify-between items-center text-slate-500 font-medium">
                     <span>Cash on Delivery (COD)</span>
@@ -372,7 +373,7 @@ function PurchaseSuccessContent() {
                   </div>
                 )}
               </div>
-              
+
               {/* Total Paid */}
               <div className="pt-4 border-t border-dashed border-slate-200 flex justify-between items-end">
                 <div className="space-y-0.5">
@@ -382,13 +383,13 @@ function PurchaseSuccessContent() {
                 <span className="text-3xl font-black text-slate-900 tracking-tight"><span>{currencySymbol}</span><span>{totalAmount}</span></span>
               </div>
             </div>
-            
+
             {/* Guarantee / Security info */}
             <div className="mt-4 text-center text-[10px] text-slate-400 font-bold flex items-center justify-center gap-1.5">
               <span>🔒 Secure checkout transaction</span>
             </div>
           </div>
-          
+
         </div>
       </div>
     </div>

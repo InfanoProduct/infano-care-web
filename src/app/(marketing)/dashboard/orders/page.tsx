@@ -111,7 +111,7 @@ export default function CustomerOrdersOverview() {
 
   return (
     <div className="space-y-6 w-full max-w-7xl mx-auto pb-8 font-sans px-4 sm:px-6">
-      
+      <div className="no-print space-y-6">
       {/* Header Banner */}
       <div className="bg-white p-6 sm:p-8 rounded-[28px] border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.015)]">
         {/* Decorative fading grid mesh background */}
@@ -348,6 +348,7 @@ export default function CustomerOrdersOverview() {
             </div>
           ))
         )}
+      </div>
       </div>
 
       {/* Invoice Download Modal */}

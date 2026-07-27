@@ -3,6 +3,7 @@ import { ArrowRight, ShieldAlert, Heart, Zap, Briefcase, Users, Star, Activity, 
 import Image from 'next/image';
 import { PeerBanner } from '@/features/marketing/components/sections/the-circle/PeerBanner';
 import { PeerMentorsSection } from '@/features/marketing/components/sections/the-circle/PeerMentorsSection';
+import { ExpertShowcase } from '@/features/marketing/components/sections/the-circle/ExpertShowcase';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -431,6 +432,9 @@ export default function TheCirclePage() {
 
       {/* Section 6.3.5 — Trained Peer Mentors */}
       {/* <PeerMentorsSection /> */}
+
+      {/* Section 6.3.8 — Verified Experts Showcase & Booking */}
+      <ExpertShowcase />
 
       {/* Section 6.4 — Peer Banner */}
       <PeerBanner />

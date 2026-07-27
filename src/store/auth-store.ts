@@ -18,6 +18,7 @@ interface AuthState {
     onboardingStep?: number;
     onboardingCompletedAt?: string | null;
     isOnboardingCompleted?: boolean;
+    requiresPasswordReset?: boolean;
     profile?: {
       displayName?: string;
       [key: string]: any;

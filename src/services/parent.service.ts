@@ -52,6 +52,10 @@ export const ParentService = {
     return apiClient.get<any[]>('/parent/experts', { params });
   },
 
+  async getExpertSlots(expertId: string): Promise<any> {
+    return apiClient.get<any>(`/parent/experts/${expertId}/slots`);
+  },
+
   async bookExpertSession(expertId: string, scheduledAt: string): Promise<any> {
     return apiClient.post<any>('/parent/experts/book', { expertId, scheduledAt });
   },

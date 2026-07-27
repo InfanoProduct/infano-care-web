@@ -77,11 +77,10 @@ export default function AdminWebinarRegistrationsPage() {
     }
   };
 
-  const handleSendReminder = async (email: string, name: string) => {
+  const handleSendReminder = async (id: string, email: string, name: string) => {
     try {
       toast.loading(`Sending reminder to ${name}...`);
-      // Simulate/Trigger custom email alert notification on the API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await apiClient.post(`/admin/orders/${id}/resend-email`, {});
       toast.dismiss();
       toast.success(`Webinar entry reminder successfully sent to ${email}`);
     } catch (err) {
@@ -260,7 +259,7 @@ export default function AdminWebinarRegistrationsPage() {
                       <td className="px-6 py-5 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
-                            onClick={() => handleSendReminder(reg.guestEmail, reg.guestName || 'Parent')}
+                            onClick={() => handleSendReminder(reg.id, reg.guestEmail, reg.guestName || 'Parent')}
                             disabled={!isCompleted}
                             title="Send Pass Reminders Email"
                             className="p-2 hover:bg-primary/10 rounded-xl text-primary transition-colors disabled:opacity-40 disabled:hover:bg-transparent"

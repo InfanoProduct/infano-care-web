@@ -1,14 +1,27 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   LayoutDashboard, Users, Calendar, Settings, ShieldCheck, LogOut, 
   BookOpen, FileText, ShoppingBag, ChevronDown, Zap, Globe, 
-  UserCheck, Ticket, MapPin, FileQuestion, Image, Award, CreditCard
+  UserCheck, Ticket, MapPin, FileQuestion, Image, Award, CreditCard, CalendarDays
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
+import { AuthService } from '@/services/auth.service';
+import { toast } from 'react-hot-toast';
+
+const ROLE_LABELS: Record<string, string> = {
+  ADMIN: 'Super Admin',
+  EXPERT: 'Expert',
+  SCHOOL_COORDINATOR: 'School Coordinator',
+  OPS_MANAGER: 'Ops Manager',
+  TEEN: 'Teen',
+  PARENT: 'Parent',
+  GUARDIAN: 'Guardian',
+  PEER: 'Peer Support Line'
+};
 
 export default function AdminLayout({
   children,
@@ -23,56 +36,100 @@ export default function AdminLayout({
   const [mounted, setMounted] = useState(false);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   
-  const menuItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, href: '/admin/dashboard' },
-    { 
-      name: 'School Partnerships', 
-      icon: ShieldCheck, 
-      subItems: [
-        { name: 'Partners List', icon: ShieldCheck, href: '/admin/schools' },
-        { name: 'Sessions Calendar', icon: Calendar, href: '/admin/schools/sessions-calendar' },
-      ]
-    },
-    { name: 'User Management', icon: Users, href: '/admin/users' },
-    { name: 'Learning Journeys', icon: BookOpen, href: '/admin/learning' },
-    { name: 'Learning Programs', icon: Award, href: '/admin/programs' },
-    { name: 'Blogs', icon: FileText, href: '/admin/blogs' },
-    { name: 'Assets', icon: Image, href: '/admin/assets' },
-    { name: 'Transactions', icon: CreditCard, href: '/admin/transactions' },
-    { 
-      name: 'Connect', 
-      icon: Zap, 
-      subItems: [
-        { name: 'Circles', icon: Globe, href: '/admin/connect/circles' },
-        { name: 'Peers', icon: UserCheck, href: '/admin/connect/peers' },
-        { name: 'Events', icon: Ticket, href: '/admin/connect/events' },
-        { name: 'Friends', icon: MapPin, href: '/admin/connect/friends' },
-      ]
-    },
-    { 
-      name: 'Book', 
-      icon: ShoppingBag, 
-      subItems: [
-        { name: 'Orders', icon: ShoppingBag, href: '/admin/orders' },
-        { name: 'Manage Books', icon: BookOpen, href: '/admin/books' },
-      ]
-    },
-    { 
-      name: 'Webinar', 
-      icon: Ticket, 
-      subItems: [
-        { name: 'Webinar Registrations', icon: Users, href: '/admin/webinar-orders' },
-        { name: 'Manage Webinars', icon: BookOpen, href: '/admin/webinar-products' },
-      ]
-    },
-    { name: user?.role === 'EXPERT' ? 'Consultations' : 'Experts & Consultations', icon: Calendar, href: '/admin/expert-consultations' },
-    { name: 'Enquiries', icon: FileQuestion, href: '/admin/enquiries' },
-    { name: 'System Settings', icon: Settings, href: '/admin/settings' },
-  ];
+  // Password Reset State
+  const token = useAuthStore((state) => state.token);
+  const setAuth = useAuthStore((state) => state.setAuth);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
-  const filteredMenuItems = user?.role === 'EXPERT'
-    ? menuItems.filter(item => ['Learning Programs', 'Connect', 'Consultations', 'Experts & Consultations'].includes(item.name))
-    : menuItems;
+  useEffect(() => {
+    if (user?.requiresPasswordReset) {
+      setShowPasswordModal(true);
+    } else {
+      setShowPasswordModal(false);
+    }
+  }, [user]);
+
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters long');
+      return;
+    }
+    setIsUpdatingPassword(true);
+    try {
+      await AuthService.resetAdminPassword(newPassword, token!);
+      toast.success('Password updated successfully');
+      setShowPasswordModal(false);
+      if (user) {
+        setAuth(token!, useAuthStore.getState().refreshToken!, { ...user, requiresPasswordReset: false });
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update password');
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+  
+  const filteredMenuItems = React.useMemo(() => {
+    const items = [
+      { name: 'Dashboard', icon: LayoutDashboard, href: '/admin/dashboard' },
+      { 
+        name: 'School Partnerships', 
+        icon: ShieldCheck, 
+        subItems: [
+          { name: 'Partners List', icon: ShieldCheck, href: '/admin/schools' },
+          { name: 'Sessions Calendar', icon: Calendar, href: '/admin/schools/sessions-calendar' },
+        ]
+      },
+      { name: 'User Management', icon: Users, href: '/admin/users' },
+      { name: 'Learning Journeys', icon: BookOpen, href: '/admin/learning' },
+      { name: 'Learning Programs', icon: Award, href: '/admin/programs' },
+      { name: 'Blogs', icon: FileText, href: '/admin/blogs' },
+      { name: 'Assets', icon: Image, href: '/admin/assets' },
+      { name: 'Transactions', icon: CreditCard, href: '/admin/transactions' },
+      { 
+        name: 'Connect', 
+        icon: Zap, 
+        subItems: [
+          { name: 'Circles', icon: Globe, href: '/admin/connect/circles' },
+          { name: 'Peers', icon: UserCheck, href: '/admin/connect/peers' },
+          { name: 'Events', icon: Ticket, href: '/admin/connect/events' },
+          { name: 'Friends', icon: MapPin, href: '/admin/connect/friends' },
+        ]
+      },
+      { 
+        name: 'Book', 
+        icon: ShoppingBag, 
+        subItems: [
+          { name: 'Orders', icon: ShoppingBag, href: '/admin/orders' },
+          { name: 'Manage Books', icon: BookOpen, href: '/admin/books' },
+        ]
+      },
+      { 
+        name: 'Webinar', 
+        icon: Ticket, 
+        subItems: [
+          { name: 'Webinar Registrations', icon: Users, href: '/admin/webinar-orders' },
+          { name: 'Manage Webinars', icon: BookOpen, href: '/admin/webinar-products' },
+        ]
+      },
+      { name: user?.role === 'EXPERT' ? 'Consultations' : 'Experts & Consultations', icon: Calendar, href: '/admin/expert-consultations' },
+      { name: 'My Calendar', icon: CalendarDays, href: '/admin/calendar' },
+      { name: 'Enquiries', icon: FileQuestion, href: '/admin/enquiries' },
+      { name: 'Settings', icon: Settings, href: '/admin/settings' },
+    ];
+
+    return user?.role === 'EXPERT'
+      ? items.filter(item => ['Learning Programs', 'Connect', 'Consultations', 'My Calendar', 'Settings'].includes(item.name))
+      : items.filter(item => item.name !== 'My Calendar');
+  }, [user?.role]);
 
   useEffect(() => {
     setMounted(true);
@@ -99,7 +156,13 @@ export default function AdminLayout({
       .filter(item => item.subItems?.some(sub => pathname.startsWith(sub.href)))
       .map(item => item.name);
     
-    setExpandedItems(prev => Array.from(new Set([...prev, ...activeItems])));
+    setExpandedItems(prev => {
+      const next = Array.from(new Set([...prev, ...activeItems]));
+      if (next.length === prev.length && next.every((v, i) => v === prev[i])) {
+        return prev;
+      }
+      return next;
+    });
   }, [mounted, pathname, filteredMenuItems]);
 
   if (!mounted) return null;
@@ -202,7 +265,7 @@ export default function AdminLayout({
             </div>
             <div className="overflow-hidden">
               <p className="text-sm font-bold truncate text-foreground">{user?.username || 'Admin'}</p>
-              <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">{user?.role === 'ADMIN' ? 'Super Admin' : 'Staff'}</p>
+              <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">{ROLE_LABELS[user?.role || ''] || user?.role || 'Staff'}</p>
             </div>
           </div>
           
@@ -223,6 +286,49 @@ export default function AdminLayout({
           {children}
         </div>
       </main>
+
+      {/* Force Password Update Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-300">
+            <h2 className="text-2xl font-black text-slate-800 mb-2">Update Default Password</h2>
+            <p className="text-sm text-slate-500 font-medium mb-6">
+              For security reasons, you must change your default password before accessing the dashboard.
+            </p>
+            <form onSubmit={handlePasswordUpdate} className="space-y-5">
+              <div>
+                <label className="text-xs font-bold text-slate-700 mb-1.5 block">New Password</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-4 py-3 border border-slate-200 bg-slate-50/50 rounded-xl text-sm font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                  placeholder="Enter strong password"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 mb-1.5 block">Confirm Password</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-4 py-3 border border-slate-200 bg-slate-50/50 rounded-xl text-sm font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                  placeholder="Confirm new password"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={isUpdatingPassword}
+                className="w-full py-3.5 bg-primary text-white rounded-xl text-sm font-black shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-70 disabled:scale-100 disabled:cursor-not-allowed mt-2"
+              >
+                {isUpdatingPassword ? 'Updating Password...' : 'Update Password'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

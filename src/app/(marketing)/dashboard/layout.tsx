@@ -139,15 +139,15 @@ export default function CustomerDashboardLayout({
 
   if (!mounted) return null;
 
-  const showOnboardingModal = 
-    !!(mounted && 
-    isAuthenticated && 
-    user && 
-    user.role !== 'ADMIN' && 
-    user.role !== 'EXPERT' && 
-    user.role !== 'PEER' && 
-    (user.onboardingStep === undefined || user.onboardingStep < 5) && 
-    !user.isOnboardingCompleted);
+  const showOnboardingModal =
+    !!(mounted &&
+      isAuthenticated &&
+      user &&
+      user.role !== 'ADMIN' &&
+      user.role !== 'EXPERT' &&
+      user.role !== 'PEER' &&
+      (user.onboardingStep === undefined || user.onboardingStep < 5) &&
+      !user.isOnboardingCompleted);
 
   if (!isAuthenticated || !user) {
     return (
@@ -212,8 +212,8 @@ export default function CustomerDashboardLayout({
         {!isCollapsed ? (
           <div className="px-2">
             <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-extrabold shadow-2xs border ${isTeen
-                ? 'bg-purple-50/90 text-purple-700 border-purple-200/80'
-                : 'bg-rose-50/90 text-rose-600 border-rose-200/80'
+              ? 'bg-purple-50/90 text-purple-700 border-purple-200/80'
+              : 'bg-rose-50/90 text-rose-600 border-rose-200/80'
               }`}>
               <Sparkles size={13} className={isTeen ? 'text-purple-500' : 'text-rose-500'} />
               {isTeen ? 'Teen Workspace' : 'Parent Portal'}
@@ -238,8 +238,8 @@ export default function CustomerDashboardLayout({
                   key={idx}
                   href={item.href}
                   className={`group relative flex items-center gap-3 px-5 py-3.5 rounded-2xl text-[14px] font-medium transition-all duration-300 ${active
-                      ? 'bg-primary text-white shadow-none'
-                      : 'text-slate-500 hover:bg-slate-100 hover:text-primary'
+                    ? 'bg-primary text-white shadow-none'
+                    : 'text-slate-500 hover:bg-slate-100 hover:text-primary'
                     } ${isCollapsed ? 'justify-center px-3.5 py-3.5 rounded-xl' : ''}`}
                 >
                   <Icon size={20} className={`shrink-0 ${active ? 'text-white' : 'text-slate-400 group-hover:text-primary group-hover:scale-110 transition-all duration-300'}`} />

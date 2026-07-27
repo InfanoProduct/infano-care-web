@@ -324,7 +324,7 @@ export default function CustomerPaymentsOverview() {
               Have questions about your invoice, tax structure, or need corporate reimbursement details? Chat directly with our finance coordinator.
             </p>
             <button
-              onClick={() => window.open('https://wa.me/919380724606?text=Hi,%20I%2520have%2520a%2520billing%2520inquiry%2520from%2520my%2520dashboard', '_blank')}
+              onClick={() => window.open('https://wa.me/919243019243?text=Hi,%20I%2520have%2520a%2520billing%2520inquiry%2520from%2520my%2520dashboard', '_blank')}
               className="w-full bg-[#25D366] hover:bg-[#20BA56] text-white font-extrabold py-2.5 px-4 rounded-full flex items-center justify-center gap-1.5 text-xs shadow-md transition-all duration-200 active:scale-95 cursor-pointer"
             >
               <MessageCircle size={14} className="fill-white" /> Chat on WhatsApp

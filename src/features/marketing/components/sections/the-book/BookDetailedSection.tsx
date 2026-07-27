@@ -19,11 +19,11 @@ export function BookDetailedSection({ book }: BookDetailedSectionProps) {
       <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-primary/5 blur-[120px] rounded-full translate-x-1/3 -translate-y-1/3" />
       <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-primary/5 blur-[100px] rounded-full -translate-x-1/3 translate-y-1/3" />
 
-      <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-center">
+      <div className="max-w-[1440px] mx-auto px-6 md:px-12 xl:px-24 relative z-10">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-16 xl:gap-24 items-center">
 
           {/* Left Column: Book Image & Testimonial */}
-          <div className="lg:col-span-5 flex flex-col items-center">
+          <div className="xl:col-span-5 flex flex-col items-center">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -64,7 +64,7 @@ export function BookDetailedSection({ book }: BookDetailedSectionProps) {
           </div>
 
           {/* Right Column: Content & Pricing */}
-          <div className="lg:col-span-7">
+          <div className="xl:col-span-7">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -86,12 +86,12 @@ export function BookDetailedSection({ book }: BookDetailedSectionProps) {
               </p>
 
               {/* Info Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
-                <div className="bg-[#FAF9FF] p-6 rounded-2xl border border-slate-100">
+              <div className="flex flex-wrap gap-4 mb-10">
+                <div className="flex-1 min-w-[200px] bg-[#FAF9FF] p-6 rounded-2xl border border-slate-100">
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Pages</h4>
                   <p className="text-slate-600 text-sm font-medium"><span className="font-bold text-slate-900">230 pages</span> of illustrated guidance</p>
                 </div>
-                <div className="bg-[#FAF9FF] p-6 rounded-2xl border border-slate-100">
+                <div className="flex-1 min-w-[200px] bg-[#FAF9FF] p-6 rounded-2xl border border-slate-100">
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Who it's for</h4>
                   <p className="text-slate-600 text-sm font-medium"><span className="font-bold text-slate-900">Ages 10–17</span> Trusted by parents & teachers</p>
                 </div>
@@ -114,8 +114,8 @@ export function BookDetailedSection({ book }: BookDetailedSectionProps) {
               </div>
 
               {/* Price & Buttons Box */}
-              <div className="bg-[#F5F3FF] p-8 rounded-[2.5rem] border border-primary/10  relative overflow-hidden group">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-8">
+              <div className="bg-[#F5F3FF] p-6 lg:p-8 rounded-[2.5rem] border border-primary/10  relative overflow-hidden group">
+                <div className="flex flex-wrap flex-col xl:flex-row items-center justify-between gap-6 xl:gap-8">
                   <div>
                     <div className="flex items-baseline gap-2 mb-1">
                       <span className="text-3xl font-bold text-slate-900">{formatPrice(getBookPrice(book, region), false)}</span>
@@ -126,16 +126,16 @@ export function BookDetailedSection({ book }: BookDetailedSectionProps) {
                     <span className="text-emerald-500 font-bold text-[10px] uppercase tracking-widest">50% off launch offer</span>
                   </div>
 
-                  <div className="flex flex-wrap gap-4 justify-center">
+                  <div className="flex flex-wrap gap-4 lg:gap-2 xl:gap-4 justify-center">
                     <Link
                       href={getLocalizedLink(book ? `/checkout?bookId=${book.id}` : '/checkout')}
-                      className="px-8 py-4 bg-primary text-white rounded-full font-bold text-sm hover:bg-primary transition-all shadow-lg active:scale-95 flex items-center gap-2"
+                      className="px-8 lg:px-5 xl:px-8 py-4 lg:py-3 xl:py-4 bg-primary text-white rounded-full font-bold text-sm lg:text-xs xl:text-sm hover:bg-primary transition-all shadow-lg active:scale-95 flex items-center gap-2"
                     >
                       Buy Now <ArrowRight size={16} />
                     </Link>
                     <button
                       onClick={() => document.getElementById('read')?.scrollIntoView({ behavior: 'smooth' })}
-                      className="px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-full font-bold text-sm hover:bg-slate-50 transition-all active:scale-95 flex items-center gap-2"
+                      className="px-8 lg:px-5 xl:px-8 py-4 lg:py-3 xl:py-4 bg-white text-slate-900 border border-slate-200 rounded-full font-bold text-sm lg:text-xs xl:text-sm hover:bg-slate-50 transition-all active:scale-95 flex items-center gap-2"
                       suppressHydrationWarning
                     >
                       <BookOpen size={16} className="text-primary" /> Read Sample
@@ -145,7 +145,7 @@ export function BookDetailedSection({ book }: BookDetailedSectionProps) {
               </div>
 
               {/* Trusted Footer */}
-              <p className="mt-8 text-center lg:text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+              <p className="mt-8 text-center xl:text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
                 Trusted by 2,000+ families • Endorsed by educators
               </p>
             </motion.div>

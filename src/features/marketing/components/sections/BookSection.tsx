@@ -53,7 +53,7 @@ export function BookSection() {
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
 
         {/* Mobile Title & Subtitle */}
-        <div className="flex lg:hidden flex-col mb-10">
+        <div className="flex lg:hidden flex-col mb-10 md:items-center md:text-center">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -90,7 +90,7 @@ export function BookSection() {
                   src="/girl-standing-with-book.png"
                   alt="A story of Every Adolescent Girl - Book Bundle"
                   fill
-                  className="object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.1)]"
+                  className="object-contain object-bottom drop-shadow-[0_30px_60px_rgba(0,0,0,0.1)]"
                   sizes="(max-width: 1024px) 100vw, 50vw"
                 />
               </motion.div>
@@ -101,7 +101,7 @@ export function BookSection() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="bg-white/60 backdrop-blur-sm p-8 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-50 relative max-w-lg mx-auto lg:mx-0"
+              className="bg-white/60 backdrop-blur-sm p-8 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-50 relative max-w-lg mx-auto lg:mx-0 mt-0"
             >
               <div className="text-primary/10 text-6xl font-serif absolute -top-2 left-6 leading-none select-none italic">“</div>
               <p className="text-slate-500 italic text-base leading-relaxed relative z-10  mb-4">
@@ -120,7 +120,7 @@ export function BookSection() {
           </div>
 
           {/* Right: Editorial Content */}
-          <div className="flex flex-col lg:pl-10">
+          <div className="flex flex-col lg:pl-10 md:items-center lg:items-start">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -137,7 +137,7 @@ export function BookSection() {
               A story of Every <br /> <span className="text-primary">Adolescent Girl</span>
             </h2>
 
-            <p className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-10 max-w-lg">
+            <p className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-10 max-w-lg md:text-center lg:text-left">
               A warm, illustrated guide to the adolescent journey—built to spark reflection, confidence, and conversations at home. Short chapters, friendly visuals, and practical prompts.
             </p>
 
@@ -178,8 +178,8 @@ export function BookSection() {
             </div>
 
             {/* Price and CTA - Elegant */}
-            <div className="flex flex-col sm:flex-row items-center gap-8 pt-8 border-t border-slate-100">
-              <div className="flex flex-col">
+            <div className="flex flex-wrap flex-col sm:flex-row items-center md:justify-center lg:justify-start gap-6 xl:gap-8 pt-8 border-t border-slate-100 w-full">
+              <div className="flex flex-col items-center sm:items-start">
                 <div className="flex items-baseline gap-2">
                   <span className="text-3xl font-bold text-slate-900 tracking-tighter">
                     {formatPrice(getBookPrice(book, region), false)}
@@ -193,11 +193,11 @@ export function BookSection() {
                 </span>
               </div>
 
-              <div className="flex gap-4 w-full sm:w-auto">
-                <Link href={getLocalizedLink(book ? `/checkout?bookId=${book.id}` : '/checkout')} className="flex-1 sm:flex-none inline-flex items-center justify-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-full font-bold text-base hover:bg-primary transition-all shadow-lg shadow-slate-900/5 active:scale-95 group">
+              <div className="flex flex-wrap gap-2 xl:gap-4 w-full sm:w-auto">
+                <Link href={getLocalizedLink(book ? `/checkout?bookId=${book.id}` : '/checkout')} className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 xl:gap-3 px-5 py-3 xl:px-8 xl:py-4 bg-slate-900 text-white rounded-full font-bold text-sm xl:text-base hover:bg-primary transition-all shadow-lg shadow-slate-900/5 active:scale-95 group whitespace-nowrap">
                   Buy Now <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                 </Link>
-                <Link href={getLocalizedLink("/gigi-the-awkward-age-book#read")} className="flex-1 sm:flex-none inline-flex items-center justify-center gap-3 px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-full font-bold text-sm hover:bg-slate-50 transition-all active:scale-95">
+                <Link href={getLocalizedLink("/gigi-the-awkward-age-book#read")} className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 xl:gap-3 px-5 py-3 xl:px-8 xl:py-4 bg-white text-slate-900 border border-slate-200 rounded-full font-bold text-xs xl:text-sm hover:bg-slate-50 transition-all active:scale-95 whitespace-nowrap">
                   <BookOpen size={18} className="text-primary" /> Read Sample
                 </Link>
               </div>

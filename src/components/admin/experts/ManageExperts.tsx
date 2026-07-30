@@ -17,6 +17,7 @@ interface Expert {
   email: string;
   phone: string;
   username: string;
+  isTestNumber?: boolean;
   profile: ExpertProfile;
   createdAt: string;
 }
@@ -36,7 +37,8 @@ export default function ManageExperts() {
     displayName: '',
     specialisation: '',
     consultationPrice: '',
-    bio: ''
+    bio: '',
+    isTestNumber: false
   });
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
@@ -69,7 +71,8 @@ export default function ManageExperts() {
       displayName: '',
       specialisation: '',
       consultationPrice: '500',
-      bio: ''
+      bio: '',
+      isTestNumber: false
     });
     setProfilePhoto(null);
     setError('');
@@ -84,7 +87,8 @@ export default function ManageExperts() {
       displayName: expert.profile?.displayName || '',
       specialisation: expert.profile?.specialisation || '',
       consultationPrice: expert.profile?.consultationPrice?.toString() || '500',
-      bio: expert.profile?.bio || ''
+      bio: expert.profile?.bio || '',
+      isTestNumber: !!expert.isTestNumber
     });
     setProfilePhoto(null);
     setError('');
@@ -106,16 +110,18 @@ export default function ManageExperts() {
       }
     }
 
-    if (formData.phone) {
-      const phoneVal = formData.phone.toString().trim();
-      const finalPhone = phoneVal.startsWith('+') ? phoneVal : `+91${phoneVal}`;
-      const duplicatePhone = experts.find(
-        (expert) => expert.phone === finalPhone && expert.id !== editingExpert?.id
-      );
-      if (duplicatePhone) {
-        setError('An expert with this phone number already exists.');
-        return;
-      }
+    if (!formData.phone || formData.phone.toString().trim().length !== 10) {
+      setError('Please enter a valid 10-digit phone number.');
+      return;
+    }
+    const phoneVal = formData.phone.toString().trim();
+    const finalPhone = phoneVal.startsWith('+') ? phoneVal : `+91${phoneVal}`;
+    const duplicatePhone = experts.find(
+      (expert) => expert.phone === finalPhone && expert.id !== editingExpert?.id
+    );
+    if (duplicatePhone) {
+      setError('An expert with this phone number already exists.');
+      return;
     }
 
     setSaving(true);
@@ -237,7 +243,14 @@ export default function ManageExperts() {
                   </div>
                 )}
                 <div>
-                  <h3 className="font-bold text-slate-800">{expert.profile?.displayName || 'Unnamed'}</h3>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-bold text-slate-800">{expert.profile?.displayName || 'Unnamed'}</h3>
+                    {expert.isTestNumber && (
+                      <span className="bg-amber-50 text-amber-700 border border-amber-200/60 text-[9px] font-black px-1.5 py-0.5 rounded-full select-none shrink-0 leading-none">
+                        Test
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground">{expert.profile?.specialisation || 'No specialisation'}</p>
                 </div>
               </div>
@@ -341,9 +354,8 @@ export default function ManageExperts() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Email {editingExpert ? '' : '*'}</label>
+                    <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Email</label>
                     <input
-                      required={!editingExpert}
                       type="email"
                       disabled={!!editingExpert}
                       className={`w-full px-3.5 py-2.5 rounded-xl border border-border outline-none text-sm transition-all ${
@@ -352,14 +364,13 @@ export default function ManageExperts() {
                       value={formData.email}
                       onChange={e => setFormData({...formData, email: e.target.value})}
                     />
-                    <p className="text-[10px] text-slate-500 font-medium leading-tight">This email is used as the login ID and cannot be changed.</p>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Phone {editingExpert ? '' : '*'}</label>
+                    <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Phone *</label>
                     <div className="relative flex items-center">
                       <span className="absolute left-3.5 text-sm font-bold text-slate-500 select-none pointer-events-none">+91</span>
                       <input
-                        required={!editingExpert}
+                        required
                         type="tel"
                         maxLength={10}
                         className="w-full pl-11 pr-3.5 py-2.5 rounded-xl border border-border focus:border-primary/50 focus:ring-2 focus:ring-primary/10 outline-none text-sm transition-all bg-slate-50 focus:bg-white"
@@ -367,6 +378,7 @@ export default function ManageExperts() {
                         onChange={e => setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10)})}
                       />
                     </div>
+                    <p className="text-[10px] text-slate-500 font-medium leading-tight">This phone number will be used for OTP login on the portal.</p>
                   </div>
                 </div>
 
@@ -391,14 +403,23 @@ export default function ManageExperts() {
                   />
                 </div>
 
-
+                <div className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-amber-50/50 border border-amber-100/60">
+                  <input
+                    type="checkbox"
+                    id="isTestNumber"
+                    checked={formData.isTestNumber}
+                    onChange={e => setFormData({...formData, isTestNumber: e.target.checked})}
+                    className="w-4 h-4 text-primary border-slate-300 rounded focus:ring-primary/20 accent-primary cursor-pointer"
+                  />
+                  <label htmlFor="isTestNumber" className="text-xs font-bold text-slate-700 cursor-pointer select-none">
+                    Test Expert <span className="text-slate-400 font-semibold">(Bypasses OTP verification)</span>
+                  </label>
+                </div>
                 
-                {!editingExpert && (
-                  <p className="text-xs text-muted-foreground italic flex items-center gap-1.5">
-                    <Check size={12} className="text-emerald-500" />
-                    Default password will be set to: <strong>Expert@123</strong>
-                  </p>
-                )}
+                <p className="text-xs text-muted-foreground italic flex items-center gap-1.5">
+                  <Check size={12} className="text-emerald-500" />
+                  Experts log in using Phone + OTP on the main dashboard.
+                </p>
               </form>
             </div>
             

@@ -5,9 +5,10 @@ import { createPortal } from 'react-dom';
 import {
   BookOpen, Calendar, ShieldCheck, Star, Sparkles,
   ChevronRight, Play, Loader2, Award, Layers, Compass, X, Check, ArrowRight, User, Users, Bookmark, Heart, GraduationCap,
-  Package, ShoppingBag, Truck, Video
+  Package, ShoppingBag, Truck, Video, Clock, DollarSign, Settings
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
+import { apiClient } from '@/lib/api-client';
 import { ProgramsService, Program, ProgramEnrollment } from '@/services/programs.service';
 import { toast } from 'react-hot-toast';
 import { ParentService } from '@/services/parent.service';
@@ -135,10 +136,19 @@ export default function CustomerDashboardOverview() {
   }, [user]);
 
   const isTeen = user?.role === 'TEEN' || (user?.role === 'PEER' && user?.contentTier && user?.contentTier !== 'ADULT');
+  const [expertSessions, setExpertSessions] = useState<any[]>([]);
 
   const loadDashboardData = useCallback(async () => {
+    if (!user) return;
     try {
       setLoading(true);
+      if (user.role === 'EXPERT') {
+        const response = await apiClient.get<any[]>('/expert/sessions').catch(() => []);
+        setExpertSessions(Array.isArray(response) ? response : []);
+        setLoading(false);
+        return;
+      }
+
       const [
         enrollRes,
         programsRes,
@@ -271,6 +281,222 @@ export default function CustomerDashboardOverview() {
   };
   const productOrders = orders.filter((o: any) => (o.items || []).some((it: any) => !isProgramItem(it)));
 
+
+  if (user?.role === 'EXPERT') {
+    const totalSessions = expertSessions.length;
+    const upcomingSessionsList = expertSessions
+      .filter(s => s.status === 'SCHEDULED' || s.status === 'RESCHEDULED')
+      .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
+    const upcomingCount = upcomingSessionsList.length;
+    const completedCount = expertSessions.filter(s => s.status === 'COMPLETED').length;
+    const consultationPrice = user?.profile?.consultationPrice || 500;
+    const totalEarnings = completedCount * consultationPrice;
+
+    const formatDate = (dateStr: string) => {
+      try {
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+      } catch {
+        return dateStr;
+      }
+    };
+
+    const formatTime = (dateStr: string) => {
+      try {
+        const d = new Date(dateStr);
+        return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      } catch {
+        return '';
+      }
+    };
+
+    return (
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto pb-8 font-sans">
+        {/* Welcome Hero Banner */}
+        <div className="relative overflow-hidden bg-linear-to-br from-indigo-900 to-indigo-950 text-white rounded-[2rem] p-8 md:p-10 shadow-lg border border-indigo-950">
+          <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[150%] bg-indigo-500/10 rounded-full blur-[80px] pointer-events-none" />
+          <div className="absolute bottom-[-20%] left-[-10%] w-[30%] h-[80%] bg-violet-500/10 rounded-full blur-[60px] pointer-events-none" />
+          
+          <div className="relative z-10 space-y-4 max-w-2xl">
+            <span className="inline-flex items-center gap-1.5 bg-indigo-500/20 text-indigo-200 border border-indigo-500/30 px-3.5 py-1 rounded-full text-xs font-black tracking-wider uppercase">
+              <Sparkles size={12} className="animate-pulse" /> Expert Workspace
+            </span>
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
+              Hello, <span className="text-indigo-200">{user?.profile?.displayName || user?.username || 'Consultant'}</span>!
+            </h1>
+            <p className="text-indigo-100 text-sm font-semibold leading-relaxed">
+              Your professional panel is ready. Here you can view your scheduled 1:1 sessions, track your earnings, and set your calendar availability for bookings.
+            </p>
+            <div className="pt-2 flex flex-wrap gap-3">
+              <Link 
+                href="/dashboard/calendar" 
+                className="px-5 py-3 bg-white text-indigo-900 hover:bg-slate-50 transition-all font-bold text-xs rounded-xl shadow-md active:scale-95 flex items-center gap-2"
+              >
+                <Calendar size={15} /> Set Slot Availability
+              </Link>
+              <Link 
+                href="/dashboard/expert-consultations" 
+                className="px-5 py-3 bg-indigo-600 text-white border border-indigo-500/40 hover:bg-indigo-700 transition-all font-bold text-xs rounded-xl shadow-md active:scale-95 flex items-center gap-2"
+              >
+                <Users size={15} /> Manage Consultations
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Row */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: 'Total Bookings', value: totalSessions, desc: 'Overall client consultations', icon: Users, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
+            { label: 'Upcoming Sessions', value: upcomingCount, desc: 'Scheduled & Active', icon: Calendar, color: 'text-amber-600 bg-amber-50 border-amber-100' },
+            { label: 'Completed Sessions', value: completedCount, desc: 'Successfully delivered', icon: Check, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
+            { label: 'Estimated Earnings', value: `₹${totalEarnings}`, desc: `₹${consultationPrice} per 1:1 session`, icon: DollarSign, color: 'text-rose-600 bg-rose-50 border-rose-100' }
+          ].map((stat, idx) => {
+            const Icon = stat.icon;
+            return (
+              <div key={idx} className="bg-white border border-slate-100 rounded-3xl p-5 md:p-6 shadow-xs flex items-center gap-4 relative overflow-hidden group hover:shadow-md transition-shadow">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${stat.color} group-hover:scale-105 transition-transform`}>
+                  <Icon size={20} />
+                </div>
+                <div>
+                  <span className="text-[10px] font-black text-slate-400 block uppercase tracking-wider">{stat.label}</span>
+                  <span className="text-xl md:text-2xl font-black text-slate-800 tracking-tight block mt-0.5">{stat.value}</span>
+                  <span className="text-[10px] font-semibold text-slate-400 block mt-1">{stat.desc}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Main Content Area */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Upcoming Consultations */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-extrabold text-slate-800">Upcoming Consultations</h3>
+                <p className="text-[11px] font-medium text-slate-400 mt-0.5">Your next scheduled video call sessions</p>
+              </div>
+              <span className="text-xs font-bold bg-indigo-50 border border-indigo-100 text-indigo-700 px-3 py-1 rounded-full">
+                {upcomingCount} Sessions
+              </span>
+            </div>
+
+            {upcomingCount === 0 ? (
+              <div className="bg-white rounded-3xl border border-slate-100 p-12 text-center shadow-2xs">
+                <div className="w-14 h-14 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                  <Calendar size={22} className="text-slate-400" />
+                </div>
+                <h4 className="font-bold text-slate-700">No upcoming consultations</h4>
+                <p className="text-xs text-slate-400 mt-1.5 max-w-sm mx-auto font-medium">
+                  When clients book slots, they will appear here. Ensure your calendar slots are configured in calendar settings.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {upcomingSessionsList.slice(0, 5).map((session) => (
+                  <div key={session.id} className="bg-white rounded-3xl border border-slate-100 p-5 shadow-2xs hover:shadow-sm transition-all flex flex-col md:flex-row gap-4 items-start md:items-center justify-between relative overflow-hidden group">
+                    <div className="flex gap-3.5 items-center">
+                      <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-black text-sm shrink-0 border border-indigo-100">
+                        {session.user?.profile?.displayName?.charAt(0).toUpperCase() || session.user?.username?.charAt(0).toUpperCase() || 'U'}
+                      </div>
+                      <div className="space-y-0.5">
+                        <h4 className="font-bold text-slate-800 text-sm group-hover:text-indigo-900 transition-colors">
+                          {session.user?.profile?.displayName || session.user?.username || 'Client'}
+                        </h4>
+                        <div className="flex flex-wrap gap-x-3 gap-y-1 text-slate-500 text-[11px] font-semibold">
+                          <span className="flex items-center gap-1">
+                            <Calendar size={12} className="text-indigo-400" /> {formatDate(session.scheduledAt)}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock size={12} className="text-indigo-400" /> {formatTime(session.scheduledAt)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-wrap items-center gap-2 pt-2 md:pt-0 w-full md:w-auto">
+                      {session.meetLink ? (
+                        <a 
+                          href={session.meetLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 md:flex-none text-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs"
+                        >
+                          <Video size={13} /> Join Call
+                        </a>
+                      ) : (
+                        <span className="flex-1 md:flex-none text-center text-xs font-semibold text-slate-400 border border-slate-200 px-3 py-2 rounded-xl bg-slate-50">
+                          No Link Yet
+                        </span>
+                      )}
+                      <Link 
+                        href={`/dashboard/expert-consultations?session=${session.id}`} 
+                        className="flex-1 md:flex-none text-center px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-800 rounded-xl font-bold text-xs transition-colors"
+                      >
+                        Manage
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+                
+                {upcomingCount > 5 && (
+                  <div className="text-center pt-2">
+                    <Link href="/dashboard/expert-consultations" className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:underline">
+                      View All {upcomingCount} Scheduled Sessions <ArrowRight size={14} />
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Quick Config Cards */}
+          <div className="space-y-5">
+            <div className="bg-white border border-slate-100 rounded-[2rem] p-5 shadow-2xs space-y-4">
+              <h3 className="text-sm font-extrabold text-slate-800 border-b border-slate-50 pb-3 flex items-center gap-2">
+                <Settings size={16} className="text-indigo-500" /> Availability Setup
+              </h3>
+              <p className="text-xs text-slate-500 leading-relaxed font-semibold">
+                Set up your working timezone, weekly schedule, slot intervals, and customize block dates when you are unavailable.
+              </p>
+              <Link 
+                href="/dashboard/calendar" 
+                className="w-full text-center block py-3.5 bg-slate-50 border border-slate-200/80 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 transition-all rounded-2xl text-xs font-bold"
+              >
+                Go to Availability Calendar
+              </Link>
+            </div>
+
+            <div className="bg-white border border-slate-100 rounded-[2rem] p-5 shadow-2xs space-y-4">
+              <h3 className="text-sm font-extrabold text-slate-800 border-b border-slate-50 pb-3 flex items-center gap-2">
+                <User size={16} className="text-indigo-500" /> Consultation Profile
+              </h3>
+              <p className="text-xs text-slate-500 leading-relaxed font-semibold">
+                Your specialisation, biography, profile avatar, and consultation charges are visible to potential parent and teen clients on the platform.
+              </p>
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3.5 space-y-2 text-xs font-semibold">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Speciality:</span>
+                  <span className="text-slate-700 font-extrabold">{user?.profile?.specialisation || 'Not set'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Charges:</span>
+                  <span className="text-slate-700 font-extrabold">₹{consultationPrice}</span>
+                </div>
+              </div>
+              <Link 
+                href="/dashboard/profile" 
+                className="w-full text-center block py-3.5 bg-slate-50 border border-slate-200/80 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 transition-all rounded-2xl text-xs font-bold"
+              >
+                Update Profile Settings
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto pb-8">

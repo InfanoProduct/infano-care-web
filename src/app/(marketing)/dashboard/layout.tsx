@@ -165,7 +165,12 @@ export default function CustomerDashboardLayout({
   const isTeen = user.role === 'TEEN' || (user.role === 'PEER' && user.contentTier && user.contentTier !== 'ADULT');
 
   // Navigation Items
-  const menuItems = [
+  const menuItems = user.role === 'EXPERT' ? [
+    { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
+    { href: '/dashboard/expert-consultations', label: 'My Consultations', icon: Calendar },
+    { href: '/dashboard/calendar', label: 'My Calendar', icon: Calendar },
+    { href: '/dashboard/profile', label: 'Profile', icon: User },
+  ] : [
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
     { href: '/dashboard/enrolled-programs', label: 'Enrolled Programs', icon: Layers },
     // { href: '/dashboard/learning-journeys', label: 'Learning Journeys', icon: GraduationCap, matchPrefix: true },
@@ -211,13 +216,20 @@ export default function CustomerDashboardLayout({
         {/* Workspace Mode Badge */}
         {!isCollapsed ? (
           <div className="px-2">
-            <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-extrabold shadow-2xs border ${isTeen
-              ? 'bg-purple-50/90 text-purple-700 border-purple-200/80'
-              : 'bg-rose-50/90 text-rose-600 border-rose-200/80'
-              }`}>
-              <Sparkles size={13} className={isTeen ? 'text-purple-500' : 'text-rose-500'} />
-              {isTeen ? 'Teen Workspace' : 'Parent Portal'}
-            </div>
+            {user.role === 'EXPERT' ? (
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-extrabold shadow-2xs border bg-indigo-50/90 text-indigo-700 border-indigo-200/80">
+                <Sparkles size={13} className="text-indigo-500" />
+                Expert Portal
+              </div>
+            ) : (
+              <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-extrabold shadow-2xs border ${isTeen
+                ? 'bg-purple-50/90 text-purple-700 border-purple-200/80'
+                : 'bg-rose-50/90 text-rose-600 border-rose-200/80'
+                }`}>
+                <Sparkles size={13} className={isTeen ? 'text-purple-500' : 'text-rose-500'} />
+                {isTeen ? 'Teen Workspace' : 'Parent Portal'}
+              </div>
+            )}
           </div>
         ) : null}
 

@@ -330,6 +330,9 @@ function PurchaseSuccessContent() {
                     src={imageUrl}
                     alt={itemName}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/Page-1.png';
+                    }}
                   />
                 </div>
                 <div className="min-w-0 flex-1">

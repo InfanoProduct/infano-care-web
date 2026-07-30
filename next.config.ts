@@ -1,3 +1,4 @@
+// Next.config.ts - Trigger route manifest reload
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {

@@ -167,6 +167,7 @@ export default function CustomerDashboardLayout({
   // Navigation Items
   const menuItems = user.role === 'EXPERT' ? [
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
+    { href: '/dashboard/program-sessions', label: 'Program Sessions', icon: Layers, matchPrefix: true },
     { href: '/dashboard/expert-consultations', label: 'My Consultations', icon: Calendar },
     { href: '/dashboard/calendar', label: 'My Calendar', icon: Calendar },
     { href: '/dashboard/profile', label: 'Profile', icon: User },

@@ -329,16 +329,22 @@ export default function CustomerDashboardOverview() {
             </p>
             <div className="pt-2 flex flex-wrap gap-3">
               <Link 
-                href="/dashboard/calendar" 
+                href="/dashboard/program-sessions" 
                 className="px-5 py-3 bg-white text-indigo-900 hover:bg-slate-50 transition-all font-bold text-xs rounded-xl shadow-md active:scale-95 flex items-center gap-2"
               >
-                <Calendar size={15} /> Set Slot Availability
+                <Layers size={15} /> Program Sessions
               </Link>
               <Link 
                 href="/dashboard/expert-consultations" 
                 className="px-5 py-3 bg-indigo-600 text-white border border-indigo-500/40 hover:bg-indigo-700 transition-all font-bold text-xs rounded-xl shadow-md active:scale-95 flex items-center gap-2"
               >
-                <Users size={15} /> Manage Consultations
+                <Users size={15} /> 1:1 Consultations
+              </Link>
+              <Link 
+                href="/dashboard/calendar" 
+                className="px-5 py-3 bg-indigo-950/80 text-indigo-200 border border-indigo-700/60 hover:bg-indigo-900 transition-all font-bold text-xs rounded-xl shadow-md active:scale-95 flex items-center gap-2"
+              >
+                <Calendar size={15} /> Slot Availability
               </Link>
             </div>
           </div>

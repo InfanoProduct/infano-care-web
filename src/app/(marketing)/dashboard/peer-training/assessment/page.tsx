@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  Trophy, CheckCircle2, AlertCircle, ArrowRight, Loader2, 
+import {
+  Trophy, CheckCircle2, AlertCircle, ArrowRight, Loader2,
   HelpCircle, Shield, Award, ChevronRight, PlayCircle
 } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
@@ -245,12 +245,6 @@ export default function FinalAssessmentPage() {
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<any>(null);
-  
-  const [agreements, setAgreements] = useState({
-    confidentiality: false,
-    safeguarding: false,
-    boundaries: false
-  });
 
   const checkStatus = useCallback(async () => {
     try {
@@ -261,7 +255,7 @@ export default function FinalAssessmentPage() {
         // Locked
       }
       if (res.certificationStatus === 'submitted' || res.certificationStatus === 'certified') {
-        router.push('/peerline/dashboard/training');
+        router.push('/dashboard/peer-training');
       }
     } catch (err) {
       console.error('Failed to check status:', err);
@@ -296,9 +290,9 @@ export default function FinalAssessmentPage() {
     ASSESSMENT_QUESTIONS.forEach((q, idx) => {
       if (answers[idx] === q.answer) score++;
     });
-    
+
     const finalScore = Math.round((score / ASSESSMENT_QUESTIONS.length) * 100);
-    
+
     try {
       const res: any = await apiClient.post('/peerline/training/assessment', {
         score: finalScore,
@@ -340,8 +334,8 @@ export default function FinalAssessmentPage() {
           <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Unlock Date</p>
           <p className="text-2xl font-black text-slate-800">{new Date(status.lockUntil).toLocaleDateString(undefined, { dateStyle: 'long' })}</p>
         </div>
-        <button 
-          onClick={() => router.push('/peerline/dashboard/training')}
+        <button
+          onClick={() => router.push('/dashboard/peer-training')}
           className="bg-slate-900 text-white px-10 py-4 rounded-2xl font-bold flex items-center gap-3 mx-auto hover:bg-slate-800 transition-all shadow-xl"
         >
           Back to Training <ChevronRight size={20} />
@@ -356,125 +350,38 @@ export default function FinalAssessmentPage() {
 
     return (
       <div className="max-w-2xl mx-auto py-20 text-center animate-in fade-in zoom-in duration-500">
-        <div className={`w-32 h-32 mx-auto rounded-[3rem] flex items-center justify-center mb-8 shadow-2xl ${
-          result.passed ? 'bg-green-100 text-green-600 shadow-green-200' : 'bg-red-100 text-red-600 shadow-red-200'
-        }`}>
+        <div className={`w-32 h-32 mx-auto rounded-[3rem] flex items-center justify-center mb-8 shadow-2xl ${result.passed ? 'bg-green-100 text-green-600 shadow-green-200' : 'bg-red-100 text-red-600 shadow-red-200'
+          }`}>
           {result.passed ? <Award size={64} /> : <AlertCircle size={64} />}
         </div>
-        
+
         <h2 className="text-4xl font-black text-slate-900 mb-4">
           {result.passed ? 'Assessment Passed!' : 'Assessment Not Passed'}
         </h2>
-        
+
         <div className="text-6xl font-black text-purple-600 mb-6">{result.score}%</div>
-        
+
         <p className="text-lg text-slate-500 mb-10 max-w-md mx-auto leading-relaxed">
-          {result.passed 
-            ? status?.certificationStatus === 'submitted'
-              ? "Congratulations! You have passed the final assessment. Since you've already agreed to the Code of Conduct previously, your application has been submitted for review."
-              : "Congratulations! You have passed the final assessment. Please complete the Code of Conduct agreement to submit your application."
-            : isNowLocked 
+          {result.passed
+            ? "Congratulations! You have passed the final assessment. Please proceed to the final application step."
+            : isNowLocked
               ? "You've used all 2 attempts and didn't reach the 80% threshold. The assessment is now locked for 14 days."
               : "You didn't reach the 80% passing threshold. You have 1 attempt remaining. Please review the training carefully before trying again."}
         </p>
-        
-        <button 
+
+        <button
           onClick={() => {
             if (result.passed) {
-              if (status?.certificationStatus === 'submitted') {
-                router.push('/peerline/dashboard/training');
-              } else {
-                setResult(null);
-                setStatus({ ...status, certificationStatus: 'pending_conduct' });
-              }
+              router.push('/dashboard/peer-training/application');
             } else {
-              router.push('/peerline/dashboard/training');
+              router.push('/dashboard/peer-training');
             }
           }}
           className="bg-slate-900 text-white px-10 py-4 rounded-2xl font-bold flex items-center gap-3 mx-auto hover:bg-slate-800 transition-all shadow-xl"
         >
-          {result.passed 
-            ? status?.certificationStatus === 'submitted' ? 'Return to Journey' : 'Continue to Code of Conduct' 
-            : isNowLocked ? 'Return to Journey' : 'Review Training'} <ChevronRight size={20} />
-        </button>
-      </div>
-    );
-  }
-
-  const handleAgreeConduct = async () => {
-    setSubmitting(true);
-    try {
-      await apiClient.post('/peerline/training/conduct-agree');
-      router.push('/peerline/dashboard/training');
-    } catch (err) {
-      console.error(err);
-      alert('Failed to submit agreement.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  if (status?.certificationStatus === 'pending_conduct') {
-    const canSubmitConduct = agreements.confidentiality && agreements.safeguarding && agreements.boundaries;
-    
-    return (
-      <div className="max-w-3xl mx-auto py-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
-        <div className="mb-8 text-center">
-          <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Shield size={32} />
-          </div>
-          <h2 className="text-3xl font-black text-slate-900 mb-2">PeerLine Code of Conduct</h2>
-          <p className="text-slate-500">Please review and agree to the following core principles to finalize your application.</p>
-        </div>
-
-        <div className="space-y-4 mb-8">
-          <label className={`p-6 border-2 rounded-[2rem] flex gap-4 cursor-pointer transition-all ${agreements.confidentiality ? 'border-purple-600 bg-purple-50' : 'border-slate-100 hover:border-purple-200'}`}>
-            <input 
-              type="checkbox" 
-              className="w-6 h-6 mt-1 rounded text-purple-600 focus:ring-purple-500 flex-shrink-0"
-              checked={agreements.confidentiality}
-              onChange={(e) => setAgreements(prev => ({ ...prev, confidentiality: e.target.checked }))}
-            />
-            <div>
-              <h4 className={`font-bold text-lg mb-1 ${agreements.confidentiality ? 'text-purple-900' : 'text-slate-800'}`}>Strict Confidentiality</h4>
-              <p className="text-sm text-slate-500 leading-relaxed">I will never share a user's personal details, conversation content, or identity outside of the PeerLine platform or the Mentor Circle, except as required by the Safeguarding protocol.</p>
-            </div>
-          </label>
-
-          <label className={`p-6 border-2 rounded-[2rem] flex gap-4 cursor-pointer transition-all ${agreements.safeguarding ? 'border-purple-600 bg-purple-50' : 'border-slate-100 hover:border-purple-200'}`}>
-            <input 
-              type="checkbox" 
-              className="w-6 h-6 mt-1 rounded text-purple-600 focus:ring-purple-500 flex-shrink-0"
-              checked={agreements.safeguarding}
-              onChange={(e) => setAgreements(prev => ({ ...prev, safeguarding: e.target.checked }))}
-            />
-            <div>
-              <h4 className={`font-bold text-lg mb-1 ${agreements.safeguarding ? 'text-purple-900' : 'text-slate-800'}`}>Safeguarding & Escalation</h4>
-              <p className="text-sm text-slate-500 leading-relaxed">I agree to follow the SAFE protocol. If a user indicates intent to harm themselves or others, or reveals abuse of a minor, I will escalate immediately to the Safety Team.</p>
-            </div>
-          </label>
-
-          <label className={`p-6 border-2 rounded-[2rem] flex gap-4 cursor-pointer transition-all ${agreements.boundaries ? 'border-purple-600 bg-purple-50' : 'border-slate-100 hover:border-purple-200'}`}>
-            <input 
-              type="checkbox" 
-              className="w-6 h-6 mt-1 rounded text-purple-600 focus:ring-purple-500 flex-shrink-0"
-              checked={agreements.boundaries}
-              onChange={(e) => setAgreements(prev => ({ ...prev, boundaries: e.target.checked }))}
-            />
-            <div>
-              <h4 className={`font-bold text-lg mb-1 ${agreements.boundaries ? 'text-purple-900' : 'text-slate-800'}`}>Healthy Boundaries</h4>
-              <p className="text-sm text-slate-500 leading-relaxed">I will not provide medical advice or act as a therapist. I will prioritize my own wellbeing by using the Pause feature when dysregulated and seeking support when needed.</p>
-            </div>
-          </label>
-        </div>
-
-        <button 
-          disabled={!canSubmitConduct || submitting}
-          onClick={handleAgreeConduct}
-          className="w-full bg-purple-600 text-white py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 shadow-2xl shadow-purple-200 hover:scale-[1.01] transition-all active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
-        >
-          {submitting ? <Loader2 className="animate-spin" /> : <CheckCircle2 size={24} />}
-          Agree & Submit Application
+          {result.passed
+            ? 'Continue to Application'
+            : isNowLocked ? 'Return to Training' : 'Review Training'} <ChevronRight size={20} />
         </button>
       </div>
     );
@@ -488,7 +395,7 @@ export default function FinalAssessmentPage() {
           <h1 className="text-4xl font-black mb-4 relative z-10">Mentor Certification Assessment</h1>
           <p className="text-purple-100 text-lg relative z-10">Demonstrate your readiness to support the PeerLine community.</p>
         </div>
-        
+
         <div className="p-12 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
@@ -504,7 +411,7 @@ export default function FinalAssessmentPage() {
               <p className="font-bold text-slate-900">{Math.max(0, 2 - (status?.assessmentAttempts || 0))} Attempts Remaining</p>
             </div>
           </div>
-          
+
           <div className="bg-amber-50 border border-amber-100 p-8 rounded-3xl">
             <h4 className="text-amber-800 font-black text-xs uppercase tracking-widest mb-3 flex items-center gap-2">
               <AlertCircle size={16} /> Important Note
@@ -513,15 +420,15 @@ export default function FinalAssessmentPage() {
               Once you start, you must complete the entire assessment. Your score and answers will be reviewed by the PeerLine administration team.
             </p>
           </div>
-          
+
           <div className="pt-4 flex justify-between items-center">
-            <button 
-              onClick={() => router.push('/peerline/dashboard/training')}
+            <button
+              onClick={() => router.push('/dashboard/peer-training')}
               className="px-8 py-4 font-bold text-slate-400 hover:text-slate-900 transition-colors"
             >
               Back to Training
             </button>
-            <button 
+            <button
               onClick={() => setStarted(true)}
               className="bg-purple-600 text-white px-12 py-5 rounded-2xl font-black text-lg flex items-center gap-3 shadow-2xl shadow-purple-200 hover:scale-[1.02] transition-all active:scale-95"
             >
@@ -557,26 +464,24 @@ export default function FinalAssessmentPage() {
         <h3 className="text-2xl font-bold text-slate-800 leading-relaxed">
           {q.question}
         </h3>
-        
+
         <div className="grid gap-4">
           {q.options.map((opt, idx) => (
             <button
               key={idx}
               onClick={() => handleAnswer(idx)}
-              className={`p-6 rounded-[2rem] border-2 text-left transition-all flex items-center justify-between group ${
-                answers[currentQuestion] === idx 
-                  ? 'border-purple-600 bg-purple-50 ring-4 ring-purple-100' 
+              className={`p-6 rounded-[2rem] border-2 text-left transition-all flex items-center justify-between group ${answers[currentQuestion] === idx
+                  ? 'border-purple-600 bg-purple-50 ring-4 ring-purple-100'
                   : 'border-slate-100 hover:border-purple-200 hover:bg-slate-50'
-              }`}
+                }`}
             >
               <span className={`text-lg font-bold ${answers[currentQuestion] === idx ? 'text-purple-700' : 'text-slate-600'}`}>
                 {opt}
               </span>
-              <div className={`w-8 h-8 rounded-xl border-2 flex items-center justify-center transition-all ${
-                answers[currentQuestion] === idx 
-                  ? 'bg-purple-600 border-purple-600 text-white' 
+              <div className={`w-8 h-8 rounded-xl border-2 flex items-center justify-center transition-all ${answers[currentQuestion] === idx
+                  ? 'bg-purple-600 border-purple-600 text-white'
                   : 'border-slate-200 group-hover:border-purple-300'
-              }`}>
+                }`}>
                 {answers[currentQuestion] === idx && <CheckCircle2 size={16} />}
               </div>
             </button>
@@ -584,16 +489,16 @@ export default function FinalAssessmentPage() {
         </div>
 
         <div className="pt-8 border-t border-slate-100 flex justify-between items-center">
-          <button 
+          <button
             disabled={currentQuestion === 0}
             onClick={prevQuestion}
             className="px-8 py-4 font-bold text-slate-400 hover:text-slate-900 transition-colors disabled:opacity-30"
           >
             Previous
           </button>
-          
+
           {currentQuestion === ASSESSMENT_QUESTIONS.length - 1 ? (
-            <button 
+            <button
               disabled={answers[currentQuestion] === undefined || submitting}
               onClick={handleSubmit}
               className="bg-purple-600 text-white px-12 py-5 rounded-2xl font-black text-lg flex items-center gap-3 shadow-2xl shadow-purple-200 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50"
@@ -602,7 +507,7 @@ export default function FinalAssessmentPage() {
               Submit Assessment
             </button>
           ) : (
-            <button 
+            <button
               disabled={answers[currentQuestion] === undefined}
               onClick={nextQuestion}
               className="bg-purple-600 text-white px-12 py-5 rounded-2xl font-black text-lg flex items-center gap-3 shadow-2xl shadow-purple-200 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50"

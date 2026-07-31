@@ -3,10 +3,10 @@
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
-import { ASSESSMENT_QUESTIONS, EPISODE_QUESTIONS, EPISODE_ORDER, EPISODE_REFLECTION_PROMPTS } from '@/lib/peerline-constants';
+import { ASSESSMENT_QUESTIONS, EPISODE_QUESTIONS, EPISODE_ORDER, EPISODE_REFLECTION_PROMPTS, ONBOARDING_SCENARIOS } from '@/lib/peerline-constants';
 import {
   ArrowLeft, Trophy, BookOpen, CheckCircle2, AlertCircle,
-  Loader2, Award, Clock
+  Loader2, Award, Clock, User, Mail, Phone, FileText, MessageCircle
 } from 'lucide-react';
 
 export default function PeerAssessmentPage({ params }: { params: Promise<{ userId: string }> }) {
@@ -143,6 +143,51 @@ export default function PeerAssessmentPage({ params }: { params: Promise<{ userI
         </div>
       </div>
 
+      {/* Identity Card (from Application) */}
+      <div className="glass-card rounded-2xl overflow-hidden border-white/40 shadow-xl">
+        <div className="bg-slate-50/50 p-6 border-b border-border">
+          <div className="flex items-center gap-5">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary-light/10 flex items-center justify-center text-primary font-bold text-2xl shadow-lg border border-primary/10">
+              {user.profile?.displayName?.[0] || 'U'}
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-foreground">{user.profile?.displayName || app.name || 'Unknown'}</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">ID: {user.id}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 bg-primary/10 rounded-lg flex items-center justify-center">
+                <User size={14} className="text-primary" />
+              </div>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Full Name</p>
+            </div>
+            <p className="font-semibold text-slate-800">{app.name || 'N/A'}</p>
+          </div>
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Mail size={14} className="text-primary" />
+              </div>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Email Address</p>
+            </div>
+            <p className="font-semibold text-slate-800">{app.email || 'N/A'}</p>
+          </div>
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Phone size={14} className="text-primary" />
+              </div>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Phone Number</p>
+            </div>
+            <p className="font-semibold text-slate-800">{app.phone || user.phone || 'N/A'}</p>
+          </div>
+        </div>
+      </div>
+
       {/* Score Card */}
       <div className="glass-card rounded-2xl overflow-hidden border-white/40 shadow-xl">
         <div className={`p-6 flex items-center justify-between border-b border-border ${passed ? 'bg-green-50/50' : 'bg-red-50/50'}`}>
@@ -235,82 +280,91 @@ export default function PeerAssessmentPage({ params }: { params: Promise<{ userI
         </div>
       )}
 
+
+
       {/* Episode Reflections */}
-      {episodeAnswers && (
+      {episodeAnswers && Object.keys(episodeAnswers).length > 0 && (
         <div className="glass-card rounded-2xl overflow-hidden border-white/40 shadow-xl">
           <div className="p-6 border-b border-border bg-slate-50/30">
             <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
               <BookOpen size={18} className="text-primary" />
-              Training Episodes & Reflections
+              Episode Reflections
             </h3>
+            <p className="text-xs text-muted-foreground mt-1">Candidate's responses to episode reflection prompts</p>
           </div>
-          <div className="p-6 space-y-8">
+          <div className="p-6 space-y-6">
             {EPISODE_ORDER.map((slug, idx) => {
-              const actualKey = Object.keys(episodeAnswers).find(k => k.includes(slug) || k.includes(`ep${idx + 1}`)) || slug;
-              const data = episodeAnswers[actualKey];
-              if (!data) return null;
+              const epData = episodeAnswers[`episode-${idx + 1}`];
+              if (!epData || !epData.reflection) return null;
+              
+              const prompts = EPISODE_REFLECTION_PROMPTS[slug];
+              const isArray = Array.isArray(prompts);
               
               return (
-                <div key={slug} className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center rounded-lg">
-                      {idx + 1}
-                    </div>
-                    <h4 className="text-sm font-semibold text-slate-700">
-                      {slug.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                    </h4>
-                  </div>
-
-                  {data.reflection && (
-                    <div className="space-y-3">
-                      {typeof data.reflection === 'object' ? (
-                        Object.entries(data.reflection as Record<string, string>).map(([rKey, rValue], rIdx) => {
-                          const prompts = EPISODE_REFLECTION_PROMPTS[slug];
-                          const prompt = Array.isArray(prompts) ? prompts[parseInt(rKey)] : prompts;
-                          return (
-                            <div key={rKey} className="rounded-2xl border border-primary/10 overflow-hidden">
-                              <div className="px-5 py-3 bg-primary/5 border-b border-primary/10">
-                                <p className="text-[10px] font-semibold text-primary uppercase tracking-wider mb-1">Reflection Part {rIdx + 1}</p>
-                                <p className="text-xs font-medium text-slate-700">{prompt || 'Reflection Prompt'}</p>
-                              </div>
-                              <div className="p-5 bg-white">
-                                <p className="text-sm text-slate-600 leading-relaxed">"{rValue}"</p>
-                              </div>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div className="rounded-2xl border border-primary/10 overflow-hidden">
-                          <div className="px-5 py-3 bg-primary/5 border-b border-primary/10">
-                            <p className="text-[10px] font-semibold text-primary uppercase tracking-wider mb-1">Episode Reflection</p>
-                            <p className="text-xs font-medium text-slate-700">{(EPISODE_REFLECTION_PROMPTS[slug] as string) || 'Reflection Prompt'}</p>
-                          </div>
-                          <div className="p-5 bg-white">
-                            <p className="text-sm text-slate-600 leading-relaxed">"{data.reflection}"</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {data.checks && Object.keys(data.checks).length > 0 && (
-                    <div className="grid gap-2 pl-3">
-                      {Object.entries(data.checks as Record<string, string>).map(([qIdx, answer]) => (
-                        <div key={qIdx} className="rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
-                          <div className="px-5 py-3 bg-slate-50 border-b border-slate-100">
-                            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Check Question {parseInt(qIdx) + 1}</p>
-                            <p className="text-xs font-medium text-slate-700">{EPISODE_QUESTIONS[slug]?.[parseInt(qIdx)] || 'Knowledge Check'}</p>
-                          </div>
-                          <div className="p-5 bg-white">
-                            <p className="text-sm text-slate-600 leading-relaxed">"{answer}"</p>
-                          </div>
-                        </div>
-                      ))}
+                <div key={slug} className="space-y-3">
+                  <h4 className="text-sm font-bold text-slate-800 border-b pb-2">Episode {idx + 1}: {slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</h4>
+                  
+                  {isArray ? (
+                    (prompts as string[]).map((prompt, pIdx) => (
+                      <div key={pIdx} className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                        <p className="text-xs font-semibold text-slate-500 mb-2">{prompt}</p>
+                        <p className="text-sm text-slate-700 whitespace-pre-wrap">{epData.reflection[pIdx] || 'No response.'}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                      <p className="text-xs font-semibold text-slate-500 mb-2">{prompts}</p>
+                      <p className="text-sm text-slate-700 whitespace-pre-wrap">{epData.reflection['0'] || 'No response.'}</p>
                     </div>
                   )}
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Personal Statement */}
+      <div className="glass-card rounded-2xl overflow-hidden border-white/40 shadow-xl">
+        <div className="p-6 border-b border-border bg-slate-50/30">
+          <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+            <FileText size={18} className="text-primary" />
+            Personal Statement
+          </h3>
+        </div>
+        <div className="p-6">
+          <div className="p-6 bg-white border border-slate-100 rounded-2xl text-sm text-slate-600 leading-relaxed relative">
+            <div className="absolute top-3 left-5 text-5xl text-primary/10 font-bold leading-none">&ldquo;</div>
+            <p className="relative z-10">{app.personalStatement || 'No statement provided.'}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Onboarding Scenarios */}
+      {app.scenarioResponses && Array.isArray(app.scenarioResponses) && (
+        <div className="glass-card rounded-2xl overflow-hidden border-white/40 shadow-xl">
+          <div className="p-6 border-b border-border bg-slate-50/30">
+            <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+              <MessageCircle size={18} className="text-primary" />
+              Onboarding Scenarios
+            </h3>
+          </div>
+          <div className="p-6 space-y-4">
+            {app.scenarioResponses.map((resp: string, idx: number) => (
+              <div key={idx} className="rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+                <div className="bg-primary/5 px-5 py-3 border-b border-primary/10">
+                  <p className="text-[10px] font-semibold text-primary uppercase tracking-wider mb-1">Scenario {idx + 1}</p>
+                  <p className="text-sm font-medium text-slate-700 leading-relaxed">
+                    {ONBOARDING_SCENARIOS[idx] || 'Candidate Scenario Response'}
+                  </p>
+                </div>
+                <div className="p-5 bg-white">
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    {resp || 'No response provided.'}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

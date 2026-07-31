@@ -7,7 +7,7 @@ export function PeerLineHeroAction() {
   return (
     <div className="flex flex-col items-center gap-4">
       <Link 
-        href="/peerline-onboarding"
+        href="/dashboard/peer-training"
         className="btn-primary text-xl px-12 py-6 rounded-full shadow-2xl hover:scale-105 transition-transform flex items-center gap-3 animate-in fade-in zoom-in duration-500"
       >
         <Shield size={28} />

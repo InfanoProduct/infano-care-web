@@ -269,7 +269,7 @@ export function GigiChatWidget() {
   const isExcludedPage = 
     cleanPathname.startsWith('/admin') || 
     cleanPathname.startsWith('/peerline') || 
-    cleanPathname.startsWith('/peerline-onboarding') ||
+    cleanPathname.startsWith('/dashboard/peer-training') ||
     cleanPathname.startsWith('/checkout') ||
     cleanPathname.startsWith('/gigi-the-awkward-age-book') ||
     cleanPathname.startsWith('/webinar');

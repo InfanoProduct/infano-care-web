@@ -25,8 +25,10 @@ export default function MentorEpisodeViewer() {
     const fetchData = async () => {
       try {
         // Fetch sequentially to reduce DB connection pool pressure
-        const epRes: any = await apiClient.get(`/learning/episodes/${params.episodeSlug}`);
-        const statusRes: any = await apiClient.get('/peerline/training/status');
+        const [statusRes, epRes]: [any, any] = await Promise.all([
+          apiClient.get('/peerline/training/status'),
+          apiClient.get(`/peerline/training/episodes/${params.episodeSlug}`),
+        ]);
         
         const ep = epRes.episode || epRes;
         setEpisode(ep);
@@ -76,7 +78,7 @@ export default function MentorEpisodeViewer() {
     } finally {
       setSaving(false);
     }
-    router.push('/peerline/dashboard/training');
+    router.push('/dashboard/peer-training');
   };
 
   if (loading) {
@@ -104,7 +106,7 @@ export default function MentorEpisodeViewer() {
       
       {/* Header */}
       <div className="mb-10">
-        <Link href="/peerline/dashboard/training" className="text-sm font-bold text-purple-600 flex items-center gap-1 mb-6 hover:underline group">
+        <Link href="/dashboard/peer-training" className="text-sm font-bold text-purple-600 flex items-center gap-1 mb-6 hover:underline group">
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back to Journey
         </Link>
         <div className="flex items-center gap-3 mb-4">
@@ -305,7 +307,7 @@ export default function MentorEpisodeViewer() {
                 <button onClick={() => setActiveTab('activity')} className="px-8 py-4 font-bold text-slate-400 hover:text-slate-900 transition-colors">Back to Reflection</button>
                 <button 
                   disabled={(!canComplete || saving) && !isReadOnly}
-                  onClick={isReadOnly ? () => router.push('/peerline/dashboard/training') : handleComplete} 
+                  onClick={isReadOnly ? () => router.push('/dashboard/peer-training') : handleComplete} 
                   className="bg-purple-600 hover:bg-purple-700 text-white px-12 py-5 rounded-2xl flex items-center gap-3 text-lg font-bold shadow-2xl shadow-purple-300/40 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale"
                 >
                   {saving ? (

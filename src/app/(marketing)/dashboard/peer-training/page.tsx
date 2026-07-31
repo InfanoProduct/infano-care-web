@@ -19,9 +19,9 @@ export default function MentorTrainingPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [journeyRes, statusRes]: [any, any] = await Promise.all([
-        apiClient.get('/learning/journeys/peerline-mentor-certification'),
+      const [statusRes, journeyRes]: [any, any] = await Promise.all([
         apiClient.get('/peerline/training/status'),
+        apiClient.get('/peerline/training/course'),
       ]);
       setEpisodes(journeyRes.episodes || []);
       setCompletedEpisodes(statusRes.completedEpisodes || []);
@@ -46,11 +46,11 @@ export default function MentorTrainingPage() {
 
     const dateStr = certifiedAt ? new Date(certifiedAt).toLocaleDateString(undefined, { dateStyle: 'long' }) : new Date().toLocaleDateString(undefined, { dateStyle: 'long' });
     const htmlContent = getCertificateTemplate(userName, dateStr, certificateId);
-    
+
     printWindow.document.write(htmlContent);
     printWindow.document.close();
   };
-;
+  ;
 
   const validCompletedEpisodes = completedEpisodes.filter(slug => episodes.some(ep => ep.slug === slug));
   const progressPercentage = episodes.length > 0 ? Math.round((validCompletedEpisodes.length / episodes.length) * 100) : 0;
@@ -122,7 +122,7 @@ export default function MentorTrainingPage() {
               <div className="text-sm text-purple-600">Access your full dashboard from the sidebar.</div>
             </div>
           </div>
-          <button 
+          <button
             onClick={handleDownloadCertificate}
             className="flex items-center gap-2 px-5 py-3 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition-all shadow-lg shadow-purple-200 active:scale-95"
             title="Download Certification"
@@ -166,13 +166,12 @@ export default function MentorTrainingPage() {
           return (
             <div key={ep.id} className="relative pl-24 group">
               {/* Timeline Dot */}
-              <div className={`absolute left-12 top-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9 rounded-full border-4 flex items-center justify-center z-10 transition-all duration-500 shadow-md ${
-                isCompleted
+              <div className={`absolute left-12 top-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9 rounded-full border-4 flex items-center justify-center z-10 transition-all duration-500 shadow-md ${isCompleted
                   ? 'bg-purple-600 border-purple-100 ring-4 ring-purple-100 shadow-purple-200'
                   : isLocked
                     ? 'bg-slate-200 border-white'
                     : 'bg-white border-purple-500 ring-4 ring-purple-100'
-              }`}>
+                }`}>
                 {isCompleted && <CheckCircle2 size={16} className="text-white" />}
                 {isLocked && <Lock size={13} className="text-slate-400" />}
                 {!isCompleted && !isLocked && <div className="w-2.5 h-2.5 bg-purple-500 rounded-full animate-pulse" />}
@@ -194,24 +193,21 @@ export default function MentorTrainingPage() {
                 </div>
               ) : (
                 <Link
-                  href={`/peerline/dashboard/training/${ep.slug}`}
-                  className={`bg-white p-7 rounded-[2rem] border shadow-xl flex items-center justify-between transition-all hover:scale-[1.015] hover:shadow-2xl group/card ${
-                    isCompleted
+                  href={`/dashboard/peer-training/${ep.slug}`}
+                  className={`bg-white p-7 rounded-[2rem] border shadow-xl flex items-center justify-between transition-all hover:scale-[1.015] hover:shadow-2xl group/card ${isCompleted
                       ? 'border-purple-100 hover:shadow-purple-100'
                       : 'border-purple-200/50 hover:shadow-purple-100'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-5">
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-colors ${
-                      isCompleted ? 'bg-purple-50 text-purple-600' : 'bg-purple-50 text-purple-500'
-                    }`}>
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-colors ${isCompleted ? 'bg-purple-50 text-purple-600' : 'bg-purple-50 text-purple-500'
+                      }`}>
                       {isCompleted ? <CheckCircle2 size={28} /> : <PlayCircle size={28} />}
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className={`text-[10px] font-black tracking-widest px-2.5 py-1 rounded-full ${
-                          isCompleted ? 'bg-purple-100 text-purple-700' : 'bg-purple-50 text-purple-500'
-                        }`}>
+                        <span className={`text-[10px] font-black tracking-widest px-2.5 py-1 rounded-full ${isCompleted ? 'bg-purple-100 text-purple-700' : 'bg-purple-50 text-purple-500'
+                          }`}>
                           EPISODE {String(i + 1).padStart(2, '0')}
                         </span>
                         {isCompleted && <span className="text-[10px] font-black text-purple-600 uppercase tracking-wider">✓ Completed</span>}
@@ -220,9 +216,8 @@ export default function MentorTrainingPage() {
                       <p className="text-sm text-slate-500 mt-1 leading-relaxed">{ep.description}</p>
                     </div>
                   </div>
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-                    isCompleted ? 'bg-purple-50 text-purple-600' : 'bg-slate-50 text-slate-300 group-hover/card:bg-purple-50 group-hover/card:text-purple-500'
-                  }`}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors ${isCompleted ? 'bg-purple-50 text-purple-600' : 'bg-slate-50 text-slate-300 group-hover/card:bg-purple-50 group-hover/card:text-purple-500'
+                    }`}>
                     <ArrowRight size={20} />
                   </div>
                 </Link>
@@ -237,7 +232,7 @@ export default function MentorTrainingPage() {
 
           {isAssessmentUnlocked && (certificationStatus === 'pending_training' || certificationStatus === 'unapproved') ? (
             <Link
-              href="/peerline/dashboard/assessment"
+              href="/dashboard/peer-training/assessment"
               className="p-10 bg-gradient-to-br from-purple-600 to-violet-700 rounded-[3rem] text-white flex items-center justify-between overflow-hidden relative shadow-2xl shadow-purple-300/40 hover:scale-[1.01] transition-transform group/assess"
             >
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-3xl rounded-full translate-x-1/3 -translate-y-1/3" />
@@ -257,7 +252,7 @@ export default function MentorTrainingPage() {
             </Link>
           ) : certificationStatus === 'pending_conduct' ? (
             <Link
-              href="/peerline/dashboard/assessment"
+              href="/dashboard/peer-training/assessment"
               className="p-10 bg-amber-50 border border-amber-200 rounded-[3rem] flex items-center justify-between group/assess transition-transform hover:scale-[1.01] shadow-xl shadow-amber-100"
             >
               <div className="flex items-center gap-6">

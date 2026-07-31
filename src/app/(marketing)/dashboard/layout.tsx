@@ -174,7 +174,7 @@ export default function CustomerDashboardLayout({
   ] : [
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
     { href: '/dashboard/enrolled-programs', label: 'Enrolled Programs', icon: Layers },
-    // { href: '/dashboard/learning-journeys', label: 'Learning Journeys', icon: GraduationCap, matchPrefix: true },
+    { href: '/dashboard/peer-training', label: 'Peer Training', icon: Sparkles, matchPrefix: true },
     { href: '/dashboard/orders', label: 'My Orders', icon: Package },
     ...(!isTeen ? [{ href: '/dashboard/expert-sessions', label: 'My Consultations', icon: Calendar }] : []),
     ...(!isTeen ? [{ href: '/dashboard/resources', label: 'Library', icon: BookOpen }] : []),

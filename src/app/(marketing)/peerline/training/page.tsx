@@ -13,7 +13,7 @@ export default function PeerLineTrainingDashboard() {
   useEffect(() => {
     const fetchTrainingData = async () => {
       try {
-        const response: any = await apiClient.get('/learning/journeys/peerline-mentor-certification');
+        const response: any = await apiClient.get('/peerline/training/course');
         setEpisodes(response.episodes || []);
       } catch (err) {
         console.error('Failed to fetch training data:', err);
@@ -44,7 +44,7 @@ export default function PeerLineTrainingDashboard() {
         
         {/* Header */}
         <div className="mb-12">
-          <Link href="/peerline-onboarding" className="text-sm font-bold text-primary flex items-center gap-1 mb-4 hover:underline">
+          <Link href="/dashboard/peer-training" className="text-sm font-bold text-primary flex items-center gap-1 mb-4 hover:underline">
             <ArrowLeft size={16} /> Back to Onboarding
           </Link>
           <h1 className="text-4xl font-bold font-heading text-slate-900 mb-4">Certification Journey</h1>

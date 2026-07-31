@@ -116,6 +116,7 @@ export default function CustomerDashboardOverview() {
   const [learningJourneys, setLearningJourneys] = useState<LearningJourney[]>([]);
   const [learningProgress, setLearningProgress] = useState<UserProgress[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
+  const [peerStats, setPeerStats] = useState<any>(null);
 
   // Demo booking modal state
   const [demoModalProg, setDemoModalProg] = useState<Program | null>(null);
@@ -157,7 +158,8 @@ export default function CustomerDashboardOverview() {
         ordersRes,
         learningJourneysRes,
         learningProgressRes,
-        bookmarksRes
+        bookmarksRes,
+        mentorStatsRes
       ] = await Promise.all([
         ProgramsService.getUserEnrollments().catch(() => ({ success: true, data: [] })),
         ProgramsService.getPrograms().catch(() => []),
@@ -166,7 +168,8 @@ export default function CustomerDashboardOverview() {
         ShopService.getUserOrders().catch(() => []),
         LearningService.getJourneys().catch(() => []),
         LearningService.getMyProgress().catch(() => []),
-        isTeen ? ParentService.getTeenParentBookmarks().catch(() => []) : Promise.resolve([])
+        isTeen ? ParentService.getTeenParentBookmarks().catch(() => []) : Promise.resolve([]),
+        user.role === 'PEER' ? apiClient.get('/peerline/mentor/stats').catch(() => null) : Promise.resolve(null)
       ]);
 
       const linked = linksRes.some((link: any) => link.status === 'LINKED');
@@ -177,6 +180,7 @@ export default function CustomerDashboardOverview() {
       setDemoSessions(demosRes.data || []);
       setOrders(ordersRes || []);
       setParentBookmarks(linked ? (bookmarksRes || []) : []);
+      setPeerStats(mentorStatsRes || null);
 
       // Exclude peerline certification from main user dashboard
       const userJourneys = learningJourneysRes.filter(
@@ -633,6 +637,11 @@ export default function CustomerDashboardOverview() {
                 <Check size={12} /> {isTeen ? 'Parent Linked' : 'Teen Linked'}
               </div>
             )}
+            {user?.role === 'PEER' && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-full text-[10px] font-extrabold shadow-2xs">
+                <ShieldCheck size={12} /> Certified Peer Mentor
+              </div>
+            )}
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">
             {isTeen ? 'Hey there, Champion! 🌟' : 'Empowering Her Journey 🤍'}
@@ -657,6 +666,43 @@ export default function CustomerDashboardOverview() {
         learningJourneys={learningJourneys}
         learningProgress={learningProgress}
       />
+
+      {/* Peer Mentor Stats (if PEER) */}
+      {user?.role === 'PEER' && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-col justify-between hover:scale-[1.02] transition-transform">
+            <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mb-4">
+              <Sparkles size={24} />
+            </div>
+            <div>
+              <div className="text-4xl font-black text-slate-900 mb-1">{peerStats?.sessionsTotal || 0}</div>
+              <div className="text-sm font-bold text-slate-500 uppercase tracking-widest">Completed Chats</div>
+            </div>
+          </div>
+          <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-col justify-between hover:scale-[1.02] transition-transform">
+            <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center mb-4">
+              <Star size={24} />
+            </div>
+            <div>
+              <div className="text-4xl font-black text-slate-900 mb-1">{peerStats?.avgScore?.toFixed(1) || '0.0'}</div>
+              <div className="text-sm font-bold text-slate-500 uppercase tracking-widest">Avg Rating</div>
+            </div>
+          </div>
+          <div className="bg-gradient-to-br from-purple-600 to-indigo-700 p-6 rounded-[2rem] text-white shadow-xl shadow-purple-200/40 relative overflow-hidden hover:scale-[1.02] transition-transform flex flex-col justify-between">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-2xl rounded-full translate-x-1/2 -translate-y-1/2" />
+            <div className="flex justify-between items-start mb-4 relative z-10">
+              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-white backdrop-blur-sm">
+                <Award size={24} />
+              </div>
+              <span className="text-[10px] font-black tracking-widest px-3 py-1 bg-white text-purple-700 rounded-full">{peerStats?.badgeTier?.toUpperCase() || 'BRONZE'}</span>
+            </div>
+            <div className="relative z-10">
+              <div className="text-4xl font-black mb-1">{(peerStats?.sessionsTotal || 0) * 10}</div>
+              <div className="text-sm font-bold text-white/80 uppercase tracking-widest">Points Earned</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className={showSidebar ? "grid grid-cols-1 lg:grid-cols-3 gap-6" : "space-y-6 w-full"}>
         <div className={showSidebar ? "lg:col-span-2 space-y-6" : "space-y-6 w-full"}>

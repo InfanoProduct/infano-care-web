@@ -16,7 +16,7 @@ export default function EpisodeViewer() {
   useEffect(() => {
     const fetchEpisode = async () => {
       try {
-        const res: any = await apiClient.get(`/learning/episodes/${params.episodeSlug}`);
+        const res: any = await apiClient.get(`/peerline/training/episodes/${params.episodeSlug}`);
         setEpisode(res.episode || res);
       } catch (err) {
         console.error('Failed to fetch episode:', err);

@@ -120,7 +120,7 @@ const circleProgramSchema = {
   "name": "Infano Peer Mentor Training Programme",
   "alternateName": "PeerLine Mentor Certification",
   "description": "A structured multi-step leadership and mentoring training programme for older adolescent girls who want to guide and support younger girls in the Infano community. Participants complete expert-designed training modules, earn an Infano Peer Mentor certification, and progress through reward tiers for sustained mentoring contribution. Mentors specialise in areas including anxiety, academic stress, body image, relationships, confidence, and bullying prevention.",
-  "url": "https://infano.care/peerline-onboarding",
+  "url": "https://infano.care/dashboard/peer-training",
   "educationalProgramMode": "online",
   "programType": "Peer Mentorship & Leadership Training",
   "typicalAgeRange": "16-21",
@@ -134,7 +134,7 @@ const circleProgramSchema = {
   "applicationContact": {
     "@type": "ContactPoint",
     "contactType": "admissions",
-    "url": "https://infano.care/peerline-onboarding",
+    "url": "https://infano.care/dashboard/peer-training",
     "email": "connect@infano.care"
   },
   "occupationalCategory": "Peer Support, Adolescent Wellness Mentoring",
@@ -148,7 +148,7 @@ const circleProgramSchema = {
     "priceCurrency": "INR",
     "description": "Free to apply. Includes multi-step expert training, Infano Certified Peer Mentor credential, reward tier progression, and leadership skill development.",
     "availability": "https://schema.org/InStock",
-    "url": "https://infano.care/peerline-onboarding"
+    "url": "https://infano.care/dashboard/peer-training"
   },
   "hasCourse": [
     {

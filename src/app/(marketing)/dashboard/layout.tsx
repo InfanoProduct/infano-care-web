@@ -12,6 +12,8 @@ import { useAuthStore } from '@/store/auth-store';
 import { AuthService } from '@/services/auth.service';
 import { NotificationBell } from '@/features/parent/components/NotificationBell';
 import { OnboardingModal } from '@/components/common/OnboardingModal';
+import { apiClient } from '@/lib/api-client';
+import { BecomePeerMentorModal } from '@/components/peerline/BecomePeerMentorModal';
 
 export default function CustomerDashboardLayout({
   children,
@@ -27,6 +29,21 @@ export default function CustomerDashboardLayout({
   const refreshedRef = useRef(false);
   const [avatarPhoto, setAvatarPhoto] = useState<string | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [certificationStatus, setCertificationStatus] = useState<string>('loading');
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+    const fetchPeerStatus = async () => {
+      try {
+        const res: any = await apiClient.get('/peerline/training/status');
+        setCertificationStatus(res.certificationStatus || 'unregistered');
+      } catch {
+        setCertificationStatus('unregistered');
+      }
+    };
+    fetchPeerStatus();
+  }, [isAuthenticated, user]);
 
   // Sync profile photo in layout header
   useEffect(() => {
@@ -174,7 +191,6 @@ export default function CustomerDashboardLayout({
   ] : [
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
     { href: '/dashboard/enrolled-programs', label: 'Enrolled Programs', icon: Layers },
-    { href: '/dashboard/peer-training', label: 'Peer Training', icon: Sparkles, matchPrefix: true },
     { href: '/dashboard/orders', label: 'My Orders', icon: Package },
     ...(!isTeen ? [{ href: '/dashboard/expert-sessions', label: 'My Consultations', icon: Calendar }] : []),
     ...(!isTeen ? [{ href: '/dashboard/resources', label: 'Library', icon: BookOpen }] : []),
@@ -391,6 +407,31 @@ export default function CustomerDashboardLayout({
           </div>
 
           <div className="flex items-center gap-2 md:gap-4">
+            {/* Peer Training / Become a Peer Training Top Bar Button */}
+            {user.role !== 'EXPERT' && (
+              certificationStatus === 'unregistered' ? (
+                <button
+                  onClick={() => setIsApplyModalOpen(true)}
+                  className="flex items-center gap-2.5 px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-md bg-[#431872] hover:bg-[#3B1C71] text-white shadow-purple-900/10 active:scale-95 cursor-pointer"
+                >
+                  <Sparkles size={18} className="text-white shrink-0" />
+                  <span>Become a Peer Training</span>
+                </button>
+              ) : (
+                <Link
+                  href="/dashboard/peer-training"
+                  className={`flex items-center gap-2.5 px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-md active:scale-95 ${
+                    pathname.startsWith('/dashboard/peer-training')
+                      ? 'bg-[#3B1C71] text-white ring-2 ring-purple-300 shadow-purple-200'
+                      : 'bg-[#431872] hover:bg-[#3B1C71] text-white shadow-purple-900/10'
+                  }`}
+                >
+                  <Sparkles size={18} className="text-white shrink-0" />
+                  <span>Peer Training</span>
+                </Link>
+              )
+            )}
+
             <NotificationBell />
 
             <div className="flex items-center gap-2.5 bg-slate-50/50 border border-slate-100/80 py-1 pl-2.5 pr-3.5 rounded-xl">
@@ -477,6 +518,13 @@ export default function CustomerDashboardLayout({
       )}
       {/* Onboarding Modal Overlay for incomplete profiles */}
       <OnboardingModal isOpen={showOnboardingModal} />
+
+      {/* Become a Peer Mentor Modal */}
+      <BecomePeerMentorModal
+        isOpen={isApplyModalOpen}
+        onClose={() => setIsApplyModalOpen(false)}
+        onSuccess={() => setCertificationStatus('pending_training')}
+      />
 
     </div>
   );

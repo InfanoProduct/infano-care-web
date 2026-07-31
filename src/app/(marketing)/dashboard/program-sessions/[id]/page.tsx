@@ -29,6 +29,8 @@ const GoogleMeetIcon = ({ size = 18 }: { size?: number }) => {
   );
 };
 
+
+
 export default function ExpertProgramSessionDetail({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = React.use(params);
   const router = useRouter();

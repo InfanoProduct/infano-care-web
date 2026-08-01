@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 import { UserApiService } from '@/features/users/services/user-api';
 import { ONBOARDING_SCENARIOS } from '@/lib/peerline-constants';
@@ -10,8 +10,9 @@ import {
   CheckCircle2, Clock, User, Mail, Phone, FileText
 } from 'lucide-react';
 
-export default function PeerApplicationPage({ params }: { params: Promise<{ userId: string }> }) {
-  const { userId } = use(params);
+export default function PeerApplicationPage() {
+  const params = useParams();
+  const userId = params?.userId as string;
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);

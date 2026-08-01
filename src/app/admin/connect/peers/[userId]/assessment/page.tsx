@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 import { ASSESSMENT_QUESTIONS, EPISODE_QUESTIONS, EPISODE_ORDER, EPISODE_REFLECTION_PROMPTS, ONBOARDING_SCENARIOS } from '@/lib/peerline-constants';
 import {
@@ -9,8 +9,9 @@ import {
   Loader2, Award, Clock, User, Mail, Phone, FileText, MessageCircle
 } from 'lucide-react';
 
-export default function PeerAssessmentPage({ params }: { params: Promise<{ userId: string }> }) {
-  const { userId } = use(params);
+export default function PeerAssessmentPage() {
+  const params = useParams();
+  const userId = params?.userId as string;
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);

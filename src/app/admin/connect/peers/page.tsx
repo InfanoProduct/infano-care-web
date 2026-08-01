@@ -155,7 +155,7 @@ export default function PeerManagement() {
       </div>
 
       {/* Table */}
-      <div className="glass-card rounded-2xl overflow-hidden border-white/40 shadow-xl">
+      <div className="glass-card rounded-2xl border-white/40 shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -186,7 +186,7 @@ export default function PeerManagement() {
                   {/* Contact */}
                   <td className="px-6 py-4">
                     <div className="space-y-0.5">
-                      <span className="text-sm font-medium text-slate-600 block">{user.peerApplication?.email || '—'}</span>
+                      <span className="text-sm font-medium text-slate-600 block">{user.peerApplication?.email || user.email || '—'}</span>
                       <span className="text-xs text-muted-foreground">{user.phone}</span>
                     </div>
                   </td>
@@ -254,24 +254,30 @@ export default function PeerManagement() {
                         </button>
 
                         {openMenuId === user.id && (
-                          <div className="absolute right-0 top-10 bg-white shadow-xl border border-slate-100 rounded-2xl overflow-hidden w-52 z-50 animate-in fade-in zoom-in-95 duration-150">
-                            {(user.peerApplication?.certificationStatus === 'certified' || user.peerApplication?.certificationStatus === 'submitted') && (
-                              <button
-                                onClick={() => handleUnapproveAssessment(user.id)}
-                                className="w-full text-left px-4 py-3 text-sm text-amber-600 hover:bg-amber-50 transition-colors flex items-center gap-2.5 font-medium border-b border-slate-50"
-                              >
-                                <Clock size={15} className="text-amber-500 shrink-0" />
-                                Unapprove Assessment
-                              </button>
-                            )}
-                            <button
-                              onClick={() => handleRevoke(user.id)}
-                              className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2.5 font-medium"
+                          <>
+                            <div className="fixed inset-0 z-40" onClick={() => setOpenMenuId(null)} />
+                            <div 
+                              style={{ bottom: 'calc(100% + 8px)' }}
+                              className="absolute right-0 bg-white shadow-2xl border border-slate-100 rounded-2xl overflow-hidden w-52 z-50 animate-in fade-in zoom-in-95 duration-150"
                             >
-                              <AlertCircle size={15} className="text-red-500 shrink-0" />
-                              Uncertify User
-                            </button>
-                          </div>
+                              {(user.peerApplication?.certificationStatus === 'certified' || user.peerApplication?.certificationStatus === 'submitted') && (
+                                <button
+                                  onClick={() => handleUnapproveAssessment(user.id)}
+                                  className="w-full text-left px-4 py-3 text-sm text-amber-600 hover:bg-amber-50 transition-colors flex items-center gap-2.5 font-medium border-b border-slate-50"
+                                >
+                                  <Clock size={15} className="text-amber-500 shrink-0" />
+                                  Unapprove Assessment
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleRevoke(user.id)}
+                                className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2.5 font-medium"
+                              >
+                                <AlertCircle size={15} className="text-red-500 shrink-0" />
+                                Uncertify User
+                              </button>
+                            </div>
+                          </>
                         )}
                       </div>
                     )}

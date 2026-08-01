@@ -363,7 +363,7 @@ export default function FinalAssessmentPage() {
 
         <p className="text-lg text-slate-500 mb-10 max-w-md mx-auto leading-relaxed">
           {result.passed
-            ? "Congratulations! You have passed the final assessment. Please proceed to the final application step."
+            ? "Congratulations! You have passed the final assessment. Please proceed to agree to the Code of Conduct."
             : isNowLocked
               ? "You've used all 2 attempts and didn't reach the 80% threshold. The assessment is now locked for 14 days."
               : "You didn't reach the 80% passing threshold. You have 1 attempt remaining. Please review the training carefully before trying again."}
@@ -380,7 +380,7 @@ export default function FinalAssessmentPage() {
           className="bg-slate-900 text-white px-10 py-4 rounded-2xl font-bold flex items-center gap-3 mx-auto hover:bg-slate-800 transition-all shadow-xl"
         >
           {result.passed
-            ? 'Continue to Application'
+            ? 'Continue to Code of Conduct'
             : isNowLocked ? 'Return to Training' : 'Review Training'} <ChevronRight size={20} />
         </button>
       </div>
@@ -392,8 +392,8 @@ export default function FinalAssessmentPage() {
       <div className="max-w-3xl mx-auto bg-white rounded-[3rem] border border-slate-100 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-700">
         <div className="bg-purple-600 p-12 text-white relative">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-3xl rounded-full translate-x-1/3 -translate-y-1/3" />
-          <h1 className="text-4xl font-black mb-4 relative z-10">Mentor Certification Assessment</h1>
-          <p className="text-purple-100 text-lg relative z-10">Demonstrate your readiness to support the PeerLine community.</p>
+          <h1 className="text-3xl font-black mb-2 relative z-10 tracking-tight">Mentor Certification Assessment</h1>
+          <p className="text-purple-100 text-sm font-medium relative z-10">Demonstrate your readiness to support the PeerLine community.</p>
         </div>
 
         <div className="p-12 space-y-8">
@@ -402,13 +402,13 @@ export default function FinalAssessmentPage() {
               <div className="flex items-center gap-3 mb-3 text-purple-600">
                 <HelpCircle size={20} /> <span className="font-black text-xs uppercase tracking-widest">Format</span>
               </div>
-              <p className="font-bold text-slate-900">20 Multiple Choice Questions</p>
+              <p className="text-sm font-bold text-slate-900">20 Multiple Choice Questions</p>
             </div>
             <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
               <div className="flex items-center gap-3 mb-3 text-purple-600">
                 <PlayCircle size={20} /> <span className="font-black text-xs uppercase tracking-widest">Attempts Left</span>
               </div>
-              <p className="font-bold text-slate-900">{Math.max(0, 2 - (status?.assessmentAttempts || 0))} Attempts Remaining</p>
+              <p className="text-sm font-bold text-slate-900">{Math.max(0, 2 - (status?.assessmentAttempts || 0))} Attempts Remaining</p>
             </div>
           </div>
 
@@ -430,9 +430,9 @@ export default function FinalAssessmentPage() {
             </button>
             <button
               onClick={() => setStarted(true)}
-              className="bg-purple-600 text-white px-12 py-5 rounded-2xl font-black text-lg flex items-center gap-3 shadow-2xl shadow-purple-200 hover:scale-[1.02] transition-all active:scale-95"
+              className="bg-purple-600 text-white px-8 py-3.5 rounded-2xl font-bold text-sm flex items-center gap-3 shadow-2xl shadow-purple-200 hover:scale-[1.02] transition-all active:scale-95"
             >
-              Begin Assessment <PlayCircle size={24} />
+              Begin Assessment <PlayCircle size={20} />
             </button>
           </div>
         </div>
@@ -444,13 +444,15 @@ export default function FinalAssessmentPage() {
   const progress = Math.round(((currentQuestion + 1) / ASSESSMENT_QUESTIONS.length) * 100);
 
   return (
-    <div className="max-w-4xl mx-auto animate-in fade-in duration-500">
+    <div className="max-w-6xl mx-auto animate-in fade-in duration-500 flex flex-col lg:flex-row gap-8">
+      {/* Main Question Area */}
+      <div className="flex-1">
       <div className="mb-12 flex justify-between items-end">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-[10px] font-black tracking-widest uppercase mb-4">
             Question {currentQuestion + 1} of {ASSESSMENT_QUESTIONS.length}
           </div>
-          <h1 className="text-3xl font-bold text-slate-900">Final Assessment</h1>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Final Assessment</h1>
         </div>
         <div className="text-right">
           <div className="text-sm font-black text-purple-600 mb-2">{progress}% Complete</div>
@@ -461,7 +463,7 @@ export default function FinalAssessmentPage() {
       </div>
 
       <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl p-12 space-y-10">
-        <h3 className="text-2xl font-bold text-slate-800 leading-relaxed">
+        <h3 className="text-lg font-bold text-slate-800 leading-relaxed">
           {q.question}
         </h3>
 
@@ -470,12 +472,12 @@ export default function FinalAssessmentPage() {
             <button
               key={idx}
               onClick={() => handleAnswer(idx)}
-              className={`p-6 rounded-[2rem] border-2 text-left transition-all flex items-center justify-between group ${answers[currentQuestion] === idx
+              className={`p-5 rounded-2xl border-2 text-left transition-all flex items-center justify-between group ${answers[currentQuestion] === idx
                   ? 'border-purple-600 bg-purple-50 ring-4 ring-purple-100'
                   : 'border-slate-100 hover:border-purple-200 hover:bg-slate-50'
                 }`}
             >
-              <span className={`text-lg font-bold ${answers[currentQuestion] === idx ? 'text-purple-700' : 'text-slate-600'}`}>
+              <span className={`text-sm font-bold ${answers[currentQuestion] === idx ? 'text-purple-700' : 'text-slate-600'}`}>
                 {opt}
               </span>
               <div className={`w-8 h-8 rounded-xl border-2 flex items-center justify-center transition-all ${answers[currentQuestion] === idx
@@ -492,7 +494,7 @@ export default function FinalAssessmentPage() {
           <button
             disabled={currentQuestion === 0}
             onClick={prevQuestion}
-            className="px-8 py-4 font-bold text-slate-400 hover:text-slate-900 transition-colors disabled:opacity-30"
+            className="px-6 py-3 font-bold text-sm text-slate-400 hover:text-slate-900 transition-colors disabled:opacity-30"
           >
             Previous
           </button>
@@ -501,20 +503,63 @@ export default function FinalAssessmentPage() {
             <button
               disabled={answers[currentQuestion] === undefined || submitting}
               onClick={handleSubmit}
-              className="bg-purple-600 text-white px-12 py-5 rounded-2xl font-black text-lg flex items-center gap-3 shadow-2xl shadow-purple-200 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50"
+              className="bg-purple-600 text-white px-8 py-3.5 rounded-2xl font-bold text-sm flex items-center gap-2 shadow-2xl shadow-purple-200 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50"
             >
-              {submitting ? <Loader2 className="animate-spin" /> : <Trophy size={24} />}
+              {submitting ? <Loader2 className="animate-spin" size={18} /> : <Trophy size={18} />}
               Submit Assessment
             </button>
           ) : (
             <button
               disabled={answers[currentQuestion] === undefined}
               onClick={nextQuestion}
-              className="bg-purple-600 text-white px-12 py-5 rounded-2xl font-black text-lg flex items-center gap-3 shadow-2xl shadow-purple-200 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50"
+              className="bg-purple-600 text-white px-8 py-3.5 rounded-2xl font-bold text-sm flex items-center gap-2 shadow-2xl shadow-purple-200 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50"
             >
-              Next Question <ArrowRight size={24} />
+              Next Question <ArrowRight size={18} />
             </button>
           )}
+        </div>
+      </div>
+      </div>
+      
+      {/* Question Navigation Sidebar */}
+      <div className="w-full lg:w-80 shrink-0">
+        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl p-6 sticky top-8">
+          <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-4">Questions</h3>
+          
+          <div className="grid grid-cols-5 gap-3">
+            {ASSESSMENT_QUESTIONS.map((_, idx) => {
+              const isAnswered = answers[idx] !== undefined;
+              const isCurrent = currentQuestion === idx;
+              
+              return (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentQuestion(idx)}
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm transition-all ${
+                    isCurrent
+                      ? 'ring-4 ring-purple-200 border-purple-600 bg-purple-50 text-purple-700 border-2'
+                      : isAnswered
+                        ? 'bg-purple-600 text-white shadow-md shadow-purple-200 hover:bg-purple-700'
+                        : 'bg-slate-50 border border-slate-200 text-slate-500 hover:border-purple-300 hover:bg-purple-50 hover:text-purple-600'
+                  }`}
+                >
+                  {idx + 1}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-slate-100 space-y-3">
+            <div className="flex items-center gap-3 text-xs font-semibold text-slate-600">
+              <div className="w-4 h-4 rounded-md bg-purple-600 shadow-sm" /> Answered
+            </div>
+            <div className="flex items-center gap-3 text-xs font-semibold text-slate-600">
+              <div className="w-4 h-4 rounded-md bg-slate-50 border border-slate-200" /> Unanswered
+            </div>
+            <div className="flex items-center gap-3 text-xs font-semibold text-slate-600">
+              <div className="w-4 h-4 rounded-md bg-purple-50 border-2 border-purple-600 ring-2 ring-purple-200" /> Current
+            </div>
+          </div>
         </div>
       </div>
     </div>

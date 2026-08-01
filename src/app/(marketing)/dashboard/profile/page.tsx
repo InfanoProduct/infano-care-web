@@ -90,6 +90,61 @@ export default function ProfilePage() {
     }
   }, [user]);
 
+  const [allTopics, setAllTopics] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (user?.role === 'PEER') {
+      apiClient.get('/peerline/topics')
+        .then((res: any) => setAllTopics(res?.topics || []))
+        .catch(console.error);
+    }
+  }, [user?.role]);
+
+  const getDisplayAge = useCallback(() => {
+    if (user?.profile?.dateOfBirth) {
+      const diff = Date.now() - new Date(user.profile.dateOfBirth).getTime();
+      return Math.abs(new Date(diff).getUTCFullYear() - 1970).toString();
+    }
+    if (user?.peerApplication?.eligibility) {
+      let eligibilityObj = user.peerApplication.eligibility;
+      if (typeof eligibilityObj === 'string') {
+        try { eligibilityObj = JSON.parse(eligibilityObj); } catch (e) { eligibilityObj = {}; }
+      }
+      if (eligibilityObj.age) return eligibilityObj.age.toString();
+    }
+    if (user?.ageAtSignup) {
+      return user.ageAtSignup.toString();
+    }
+    return 'Not provided';
+  }, [user]);
+
+  const getSelectedTopicNames = useCallback(() => {
+    if (user?.role !== 'PEER') return [];
+    
+    // First try certifiedTopicIds from profile if it exists and has items
+    let topicIds: string[] = [];
+    if (user?.profile?.certifiedTopicIds && user?.profile?.certifiedTopicIds.length > 0) {
+      topicIds = user.profile.certifiedTopicIds;
+    } else if (user?.peerApplication?.eligibility) {
+      // Fallback to application eligibility
+      let eligibilityObj = user.peerApplication.eligibility;
+      if (typeof eligibilityObj === 'string') {
+        try { eligibilityObj = JSON.parse(eligibilityObj); } catch (e) { eligibilityObj = {}; }
+      }
+      if (Array.isArray(eligibilityObj.topicIds)) {
+        topicIds = eligibilityObj.topicIds;
+      }
+    }
+
+    if (topicIds.length === 0) return [];
+    
+    // Map to names
+    return topicIds.map(id => {
+      const found = allTopics.find(t => t.id === id);
+      return found ? found.name : id; // fallback to ID if name not found yet
+    });
+  }, [user, allTopics]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -533,6 +588,34 @@ export default function ProfilePage() {
                     />
                     <p className="text-[9px] text-slate-400 mt-1">Contact support to change primary phone.</p>
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className={user?.role === 'PEER' ? '' : 'col-span-2'}>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Age</label>
+                    <input
+                      type="text"
+                      value={getDisplayAge()}
+                      disabled
+                      className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-sm font-semibold text-slate-500 cursor-not-allowed"
+                    />
+                  </div>
+                  {user?.role === 'PEER' && (
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Selected Topics</label>
+                      <div className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-sm font-semibold text-slate-500 cursor-not-allowed min-h-[42px] flex flex-wrap gap-1">
+                        {getSelectedTopicNames().length > 0 ? (
+                          getSelectedTopicNames().map((topicName: string, idx: number) => (
+                            <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
+                              {topicName}
+                            </span>
+                          ))
+                        ) : (
+                          <span>None selected</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {user?.role === 'EXPERT' && (

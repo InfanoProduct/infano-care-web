@@ -9,6 +9,7 @@ interface BecomePeerMentorModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  user?: any;
 }
 
 const DEFAULT_TOPICS = [
@@ -20,7 +21,7 @@ const DEFAULT_TOPICS = [
   { id: 'topic-life-transitions', name: 'Family & Life Transitions', emoji: '🏡', accentColor: '#6366F1' },
 ];
 
-export function BecomePeerMentorModal({ isOpen, onClose, onSuccess }: BecomePeerMentorModalProps) {
+export function BecomePeerMentorModal({ isOpen, onClose, onSuccess, user }: BecomePeerMentorModalProps) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [loading, setLoading] = useState(false);
@@ -29,6 +30,7 @@ export function BecomePeerMentorModal({ isOpen, onClose, onSuccess }: BecomePeer
   const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([]);
 
   const [formData, setFormData] = useState({
+    age: '',
     personalStatement: '',
     scenario1: '',
     scenario2: '',
@@ -39,6 +41,30 @@ export function BecomePeerMentorModal({ isOpen, onClose, onSuccess }: BecomePeer
       boundaries: false,
     },
   });
+
+  // Calculate age on mount if user data is available
+  useEffect(() => {
+    if (user) {
+      if (user.birthYear && user.birthMonth) {
+        const today = new Date();
+        let calculatedAge = today.getFullYear() - user.birthYear;
+        if (today.getMonth() + 1 < user.birthMonth) {
+          calculatedAge--;
+        }
+        setFormData(prev => ({
+          ...prev,
+          age: calculatedAge.toString(),
+          eligibility: { ...prev.eligibility, isOver18: calculatedAge >= 18 }
+        }));
+      } else if (user.ageAtSignup) {
+        setFormData(prev => ({
+          ...prev,
+          age: user.ageAtSignup.toString(),
+          eligibility: { ...prev.eligibility, isOver18: user.ageAtSignup >= 18 }
+        }));
+      }
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -74,6 +100,7 @@ export function BecomePeerMentorModal({ isOpen, onClose, onSuccess }: BecomePeer
         personalStatement: formData.personalStatement,
         scenarioResponses: [formData.scenario1, formData.scenario2],
         topicIds: selectedTopicIds,
+        age: parseInt(formData.age || '0', 10),
         eligibility: {
           isOver18: formData.eligibility.isOver18,
           hasLivedExperience: formData.eligibility.hasLivedExperience,
@@ -106,7 +133,7 @@ export function BecomePeerMentorModal({ isOpen, onClose, onSuccess }: BecomePeer
     router.push('/dashboard/peer-training');
   };
 
-  const isStep1Valid = formData.personalStatement.trim().length >= 10;
+  const isStep1Valid = formData.personalStatement.trim().length >= 10 && parseInt(formData.age || '0', 10) >= 18;
   const isStep2Valid = formData.scenario1.trim().length >= 10 && formData.scenario2.trim().length >= 10;
   const isStep3Valid = Object.values(formData.eligibility).every(Boolean) && selectedTopicIds.length > 0;
 
@@ -189,26 +216,65 @@ export function BecomePeerMentorModal({ isOpen, onClose, onSuccess }: BecomePeer
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="space-y-1">
               <span className="text-[10px] font-black uppercase tracking-widest text-purple-600 bg-purple-50 px-3 py-1 rounded-full border border-purple-100">
-                Step 1 of 3: Personal Statement
+                Step 1 of 3: Eligibility & Personal Statement
               </span>
-              <h3 className="text-xl font-bold text-slate-800 pt-2">Why do you want to become a Peer Mentor?</h3>
+              <h3 className="text-xl font-bold text-slate-800 pt-2">Tell us about yourself</h3>
               <p className="text-xs text-slate-500 font-medium">
-                Share what inspires you to offer peer support. There are no right or wrong answers.
+                Please verify your age and share what inspires you to offer peer support.
               </p>
             </div>
 
-            <div className="space-y-2">
-              <textarea
-                rows={5}
-                required
-                placeholder="Write a short statement (at least 1-2 sentences) about your interest in supporting peers..."
-                className="w-full p-4 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all font-normal"
-                value={formData.personalStatement}
-                onChange={(e) => setFormData({ ...formData, personalStatement: e.target.value })}
-              />
-              <p className="text-[11px] text-slate-400 text-right">
-                {formData.personalStatement.trim().length}/10 minimum characters
-              </p>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="block text-[13px] font-bold text-slate-800">
+                  Please confirm your current age to verify you meet the 18+ eligibility requirement: <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  min="13"
+                  max="100"
+                  required
+                  placeholder="Enter your age"
+                  className="w-full sm:w-1/3 p-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all font-semibold"
+                  value={formData.age}
+                  onChange={(e) => {
+                    const newAge = e.target.value;
+                    const isAdult = parseInt(newAge || '0', 10) >= 18;
+                    setFormData({ 
+                      ...formData, 
+                      age: newAge,
+                      eligibility: { ...formData.eligibility, isOver18: isAdult }
+                    });
+                  }}
+                />
+                {formData.age && parseInt(formData.age, 10) < 18 && (
+                  <p className="text-xs font-bold text-red-600 mt-2 bg-red-50 p-2.5 rounded-lg border border-red-100 flex items-center gap-1.5">
+                    <X size={14} /> You must be at least 18 years old to become a Peer Mentor.
+                  </p>
+                )}
+                {formData.age && parseInt(formData.age, 10) >= 18 && (
+                  <p className="text-xs font-bold text-green-700 mt-2 bg-green-50 p-2.5 rounded-lg border border-green-200 flex items-center gap-1.5">
+                    <CheckCircle2 size={14} /> Great! You meet the 18+ age requirement.
+                  </p>
+                )}
+              </div>
+              
+              <div className="space-y-2 pt-2">
+                <label className="block text-[13px] font-bold text-slate-800">
+                  Why do you want to become a Peer Mentor? <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  rows={4}
+                  required
+                  placeholder="Write a short statement (at least 1-2 sentences) about your interest in supporting peers..."
+                  className="w-full p-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all font-normal"
+                  value={formData.personalStatement}
+                  onChange={(e) => setFormData({ ...formData, personalStatement: e.target.value })}
+                />
+                <p className="text-[11px] text-slate-400 text-right">
+                  {formData.personalStatement.trim().length}/10 minimum characters
+                </p>
+              </div>
             </div>
 
             <div className="flex justify-end pt-4">
@@ -346,21 +412,17 @@ export function BecomePeerMentorModal({ isOpen, onClose, onSuccess }: BecomePeer
               </label>
 
               <div className="grid sm:grid-cols-2 gap-3">
-                <label className="flex items-start gap-3 p-3 bg-slate-50 rounded-2xl cursor-pointer hover:bg-purple-50/50 transition-all border border-slate-200/80 hover:border-purple-200">
+                <label className={`flex items-start gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-200/80 ${formData.eligibility.isOver18 ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer hover:bg-purple-50/50 hover:border-purple-200'} transition-all`}>
                   <input
                     type="checkbox"
                     checked={formData.eligibility.isOver18}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        eligibility: { ...formData.eligibility, isOver18: e.target.checked },
-                      })
-                    }
-                    className="w-4.5 h-4.5 accent-purple-600 mt-0.5 shrink-0"
+                    readOnly
+                    disabled
+                    className="w-4.5 h-4.5 accent-purple-600 mt-0.5 shrink-0 cursor-not-allowed"
                   />
                   <div>
                     <div className="text-xs font-bold text-slate-800">Age & Eligibility Requirement</div>
-                    <div className="text-[11px] text-slate-500 mt-0.5 leading-snug">I meet the age and eligibility criteria for Peer Mentors</div>
+                    <div className="text-[11px] text-slate-500 mt-0.5 leading-snug">Verified: I meet the age and eligibility criteria for Peer Mentors</div>
                   </div>
                 </label>
 

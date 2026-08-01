@@ -270,7 +270,7 @@ export default function MentorTrainingPage() {
             </Link>
           ) : certificationStatus === 'pending_conduct' ? (
             <Link
-              href="/dashboard/peer-training/assessment"
+              href="/dashboard/peer-training/application"
               className="p-6 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-between group/assess transition-all hover:scale-[1.01] shadow-sm"
             >
               <div className="flex items-center gap-4">

@@ -113,6 +113,8 @@ export default function CustomerDashboardLayout({
             onboardingCompletedAt: fullUser.onboardingCompletedAt,
             isOnboardingCompleted: fullUser.isOnboardingCompleted,
             ageAtSignup: fullUser.ageAtSignup,
+            birthYear: fullUser.birthYear,
+            birthMonth: fullUser.birthMonth,
             contentTier: fullUser.contentTier,
           });
           if (fullUser.profile?.avatarUrl && fullUser.id) {

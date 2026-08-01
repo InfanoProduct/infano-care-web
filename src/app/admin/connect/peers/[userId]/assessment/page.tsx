@@ -92,14 +92,11 @@ export default function PeerAssessmentPage({ params }: { params: Promise<{ userI
   const episodeAnswers = typeof app.episodeAnswers === 'string' ? JSON.parse(app.episodeAnswers) : app.episodeAnswers;
   const parsedEligibility = typeof app.eligibility === 'string' ? JSON.parse(app.eligibility) : (app.eligibility || {});
 
-  // Calculate age if not in parsedEligibility
-  let displayAge = parsedEligibility?.age;
-  if (!displayAge && user.birthYear && user.birthMonth) {
-    const today = new Date();
-    displayAge = today.getFullYear() - user.birthYear;
-    if (today.getMonth() + 1 < user.birthMonth) displayAge--;
-  } else if (!displayAge && user.ageAtSignup) {
-    displayAge = user.ageAtSignup;
+  let displayDOB = 'N/A';
+  if (user?.profile?.dateOfBirth) {
+    displayDOB = new Date(user.profile.dateOfBirth).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+  } else if (user?.birthYear && user?.birthMonth) {
+    displayDOB = `${user.birthMonth.toString().padStart(2, '0')}/${user.birthYear}`;
   }
 
   return (
@@ -201,10 +198,10 @@ export default function PeerAssessmentPage({ params }: { params: Promise<{ userI
               <div className="w-7 h-7 bg-primary/10 rounded-lg flex items-center justify-center">
                 <User size={14} className="text-primary" />
               </div>
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Age</p>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Date of Birth</p>
             </div>
             <p className="font-semibold text-sm text-slate-800 truncate">
-              {displayAge ? `${displayAge} years` : 'N/A'}
+              {displayDOB}
             </p>
           </div>
           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-1">

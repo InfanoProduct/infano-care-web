@@ -15,10 +15,13 @@ interface AuthState {
     peerApplicationStatus?: string;
     contentTier?: string;
     ageAtSignup?: number;
+    birthYear?: number;
+    birthMonth?: number;
     onboardingStep?: number;
     onboardingCompletedAt?: string | null;
     isOnboardingCompleted?: boolean;
     requiresPasswordReset?: boolean;
+    peerApplication?: any;
     profile?: {
       displayName?: string;
       [key: string]: any;

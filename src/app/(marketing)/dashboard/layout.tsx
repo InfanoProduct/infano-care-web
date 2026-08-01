@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import {
   ShieldCheck, LogOut, LayoutDashboard, Calendar, Compass, User,
   Sparkles, CreditCard, BookOpen, Layers, GraduationCap, Menu, X,
-  ChevronLeft, ChevronRight, Package
+  ChevronLeft, ChevronRight, Package, MessageSquare
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
@@ -94,12 +94,11 @@ export default function CustomerDashboardLayout({
     return () => clearTimeout(refreshTimeout);
   }, [isAuthenticated, refreshToken, user, setAuth]);
 
-  // Fetch full user profile
+  // Fetch full user profile (and refresh on window focus)
   const profileFetchedRef = useRef(false);
   useEffect(() => {
-    if (!isAuthenticated || !user || !accessToken || profileFetchedRef.current) return;
+    if (!isAuthenticated || !user || !accessToken) return;
 
-    profileFetchedRef.current = true;
     const fetchUserProfile = async () => {
       try {
         const fullUser = await AuthService.getMe();
@@ -108,6 +107,8 @@ export default function CustomerDashboardLayout({
             ...user,
             email: fullUser.email,
             profile: fullUser.profile,
+            role: fullUser.role,
+            peerApplication: fullUser.peerApplication,
             onboardingStep: fullUser.onboardingStep,
             onboardingCompletedAt: fullUser.onboardingCompletedAt,
             isOnboardingCompleted: fullUser.isOnboardingCompleted,
@@ -123,7 +124,15 @@ export default function CustomerDashboardLayout({
       }
     };
 
-    fetchUserProfile();
+    if (!profileFetchedRef.current) {
+      profileFetchedRef.current = true;
+      fetchUserProfile();
+    }
+
+    // Instantly sync role/profile changes when switching back to this tab
+    const handleFocus = () => fetchUserProfile();
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [isAuthenticated, accessToken]);
 
   // Auth Guard
@@ -196,6 +205,7 @@ export default function CustomerDashboardLayout({
     ...(!isTeen ? [{ href: '/dashboard/resources', label: 'Library', icon: BookOpen }] : []),
     ...(isTeen ? [{ href: '/dashboard/expert-sessions', label: 'My Consultations', icon: Calendar }] : []),
     { href: '/dashboard/parent', label: isTeen ? 'Link Parent' : 'Link Daughter', icon: User },
+    ...(user.role === 'PEER' ? [{ href: '/dashboard/my-chats', label: 'My Chats', icon: MessageSquare }] : []),
     { href: '/dashboard/profile', label: 'Profile', icon: User },
   ];
 
@@ -407,15 +417,15 @@ export default function CustomerDashboardLayout({
           </div>
 
           <div className="flex items-center gap-2 md:gap-4">
-            {/* Peer Training / Become a Peer Training Top Bar Button */}
-            {user.role !== 'EXPERT' && (
+            {/* Peer Training / Become a Peer Top Bar Button */}
+            {user.role !== 'EXPERT' && user.role !== 'PEER' && (
               certificationStatus === 'unregistered' ? (
                 <button
                   onClick={() => setIsApplyModalOpen(true)}
                   className="flex items-center gap-2.5 px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-md bg-[#431872] hover:bg-[#3B1C71] text-white shadow-purple-900/10 active:scale-95 cursor-pointer"
                 >
                   <Sparkles size={18} className="text-white shrink-0" />
-                  <span>Become a Peer Training</span>
+                  <span>Become a Peer</span>
                 </button>
               ) : (
                 <Link
@@ -524,6 +534,7 @@ export default function CustomerDashboardLayout({
         isOpen={isApplyModalOpen}
         onClose={() => setIsApplyModalOpen(false)}
         onSuccess={() => setCertificationStatus('pending_training')}
+        user={user}
       />
 
     </div>

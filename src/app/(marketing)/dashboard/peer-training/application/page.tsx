@@ -10,8 +10,6 @@ export default function PeerApplicationPage() {
   const [success, setSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
-    scenario1: '',
-    scenario2: '',
     eligibility: {
       isOver18: false,
       hasLivedExperience: false,
@@ -44,7 +42,6 @@ export default function PeerApplicationPage() {
     setLoading(true);
     try {
       await apiClient.post('/peerline/mentor/apply', {
-        scenarioResponses: [formData.scenario1, formData.scenario2],
         eligibility: formData.eligibility
       });
       setSuccess(true);
@@ -77,52 +74,21 @@ export default function PeerApplicationPage() {
   }
 
   const allChecked = Object.values(formData.eligibility).every(Boolean);
-  const allScenarios = formData.scenario1.length > 10 && formData.scenario2.length > 10;
 
   return (
     <div className="max-w-4xl mx-auto py-8 animate-in fade-in duration-500">
-      <div className="mb-10 text-center">
+        <div className="mb-10 text-center">
         <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
           <Shield size={32} />
         </div>
-        <h1 className="text-3xl font-black text-slate-900 mb-2">Final Application Step</h1>
-        <p className="text-slate-500">Complete the scenario exercise and agree to our guidelines to finalize your application.</p>
+        <h1 className="text-3xl font-black text-slate-900 mb-2">Code of Conduct</h1>
+        <p className="text-slate-500">Agree to our guidelines to finalize your application.</p>
       </div>
 
       <div className="bg-white rounded-[2rem] shadow-xl border border-slate-100 p-8 md:p-12 space-y-12">
-        {/* Scenario Exercise */}
-        <section className="space-y-6">
-          <h2 className="text-2xl font-bold text-slate-800">1. Scenario Exercise</h2>
-          <p className="text-sm text-slate-500">How would you respond to these sample messages? Focus on active listening and empathy.</p>
-
-          <div className="space-y-6">
-            <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200">
-              <p className="text-sm italic mb-4 font-bold text-slate-600">Scenario 1: "I've been feeling so alone lately. I don't think anyone understands."</p>
-              <textarea
-                className="w-full p-4 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-primary/50 min-h-[100px]"
-                placeholder="Write your supportive response here..."
-                value={formData.scenario1}
-                onChange={(e) => setFormData({ ...formData, scenario1: e.target.value })}
-              />
-            </div>
-
-            <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200">
-              <p className="text-sm italic mb-4 font-bold text-slate-600">Scenario 2: "I'm so stressed about my exams. I feel like failing is not an option."</p>
-              <textarea
-                className="w-full p-4 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-primary/50 min-h-[100px]"
-                placeholder="Write your supportive response here..."
-                value={formData.scenario2}
-                onChange={(e) => setFormData({ ...formData, scenario2: e.target.value })}
-              />
-            </div>
-          </div>
-        </section>
-
-        <hr className="border-slate-100" />
-
         {/* Eligibility & Conduct */}
         <section className="space-y-6">
-          <h2 className="text-2xl font-bold text-slate-800">2. Eligibility & Code of Conduct</h2>
+          <h2 className="text-2xl font-bold text-slate-800">Eligibility & Code of Conduct</h2>
           <p className="text-sm text-slate-500">Please confirm that you meet our criteria and agree to the guidelines.</p>
 
           <div className="grid sm:grid-cols-2 gap-4">
@@ -148,7 +114,7 @@ export default function PeerApplicationPage() {
         {/* Submit */}
         <div className="pt-8 flex justify-end">
           <button
-            disabled={!allChecked || !allScenarios || loading}
+            disabled={!allChecked || loading}
             onClick={handleApply}
             className="btn-primary py-4 px-10 text-lg flex items-center justify-center disabled:opacity-50 min-w-[250px]"
           >

@@ -1,16 +1,17 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
-import { ASSESSMENT_QUESTIONS, EPISODE_QUESTIONS, EPISODE_ORDER, EPISODE_REFLECTION_PROMPTS } from '@/lib/peerline-constants';
+import { ASSESSMENT_QUESTIONS, EPISODE_QUESTIONS, EPISODE_ORDER, EPISODE_REFLECTION_PROMPTS, ONBOARDING_SCENARIOS } from '@/lib/peerline-constants';
 import {
   ArrowLeft, Trophy, BookOpen, CheckCircle2, AlertCircle,
-  Loader2, Award, Clock
+  Loader2, Award, Clock, User, Mail, Phone, FileText, MessageCircle
 } from 'lucide-react';
 
-export default function PeerAssessmentPage({ params }: { params: Promise<{ userId: string }> }) {
-  const { userId } = use(params);
+export default function PeerAssessmentPage() {
+  const params = useParams();
+  const userId = params?.userId as string;
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -90,6 +91,17 @@ export default function PeerAssessmentPage({ params }: { params: Promise<{ userI
 
   const trainingAnswers = typeof app.trainingAnswers === 'string' ? JSON.parse(app.trainingAnswers) : app.trainingAnswers;
   const episodeAnswers = typeof app.episodeAnswers === 'string' ? JSON.parse(app.episodeAnswers) : app.episodeAnswers;
+  const parsedEligibility = typeof app.eligibility === 'string' ? JSON.parse(app.eligibility) : (app.eligibility || {});
+
+  // Calculate age if not in parsedEligibility
+  let displayAge = parsedEligibility?.age;
+  if (!displayAge && user.birthYear && user.birthMonth) {
+    const today = new Date();
+    displayAge = today.getFullYear() - user.birthYear;
+    if (today.getMonth() + 1 < user.birthMonth) displayAge--;
+  } else if (!displayAge && user.ageAtSignup) {
+    displayAge = user.ageAtSignup;
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -143,6 +155,81 @@ export default function PeerAssessmentPage({ params }: { params: Promise<{ userI
         </div>
       </div>
 
+      {/* Identity Card (from Application) */}
+      <div className="glass-card rounded-2xl overflow-hidden border-white/40 shadow-xl">
+        <div className="bg-slate-50/50 p-6 border-b border-border">
+          <div className="flex items-center gap-5">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary-light/10 flex items-center justify-center text-primary font-bold text-2xl shadow-lg border border-primary/10">
+              {user.profile?.displayName?.[0] || 'U'}
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-foreground">{user.profile?.displayName || app.name || 'Unknown'}</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">ID: {user.id}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 bg-primary/10 rounded-lg flex items-center justify-center">
+                <User size={14} className="text-primary" />
+              </div>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Full Name</p>
+            </div>
+            <p className="font-semibold text-sm text-slate-800 truncate">{app.name || 'N/A'}</p>
+          </div>
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Mail size={14} className="text-primary" />
+              </div>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Email Address</p>
+            </div>
+            <p className="font-semibold text-sm text-slate-800 break-all" title={app.email}>{app.email || 'N/A'}</p>
+          </div>
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Phone size={14} className="text-primary" />
+              </div>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Phone Number</p>
+            </div>
+            <p className="font-semibold text-sm text-slate-800 truncate">{app.phone || user.phone || 'N/A'}</p>
+          </div>
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 bg-primary/10 rounded-lg flex items-center justify-center">
+                <User size={14} className="text-primary" />
+              </div>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Age</p>
+            </div>
+            <p className="font-semibold text-sm text-slate-800 truncate">
+              {displayAge ? `${displayAge} years` : 'N/A'}
+            </p>
+          </div>
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-1">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 bg-primary/10 rounded-lg flex items-center justify-center">
+                <CheckCircle2 size={14} className="text-primary" />
+              </div>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Selected Topics</p>
+            </div>
+            <div className="flex flex-wrap gap-1.5 mt-1">
+              {(parsedEligibility?.topicIds || user.profile?.certifiedTopicIds || []).length > 0 ? (
+                (parsedEligibility?.topicIds || user.profile?.certifiedTopicIds as string[]).map((tId: string) => (
+                  <span key={tId} className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-md text-[10px] font-bold whitespace-nowrap">
+                    {tId.replace('topic-', '').replace(/-/g, ' ')}
+                  </span>
+                ))
+              ) : (
+                <p className="font-semibold text-sm text-slate-800">N/A</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Score Card */}
       <div className="glass-card rounded-2xl overflow-hidden border-white/40 shadow-xl">
         <div className={`p-6 flex items-center justify-between border-b border-border ${passed ? 'bg-green-50/50' : 'bg-red-50/50'}`}>
@@ -191,6 +278,7 @@ export default function PeerAssessmentPage({ params }: { params: Promise<{ userI
         )}
       </div>
 
+
       {/* Quiz Breakdown */}
       {trainingAnswers && (
         <div className="glass-card rounded-2xl overflow-hidden border-white/40 shadow-xl">
@@ -235,85 +323,83 @@ export default function PeerAssessmentPage({ params }: { params: Promise<{ userI
         </div>
       )}
 
-      {/* Episode Reflections */}
-      {episodeAnswers && (
+
+
+      {/* Episode Reflections & Checks */}
+      {episodeAnswers && Object.keys(episodeAnswers).length > 0 && (
         <div className="glass-card rounded-2xl overflow-hidden border-white/40 shadow-xl">
           <div className="p-6 border-b border-border bg-slate-50/30">
             <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
               <BookOpen size={18} className="text-primary" />
-              Training Episodes & Reflections
+              Episode Reflections & Checks
             </h3>
+            <p className="text-xs text-muted-foreground mt-1">Candidate responses from the training episodes.</p>
           </div>
-          <div className="p-6 space-y-8">
-            {EPISODE_ORDER.map((slug, idx) => {
-              const actualKey = Object.keys(episodeAnswers).find(k => k.includes(slug) || k.includes(`ep${idx + 1}`)) || slug;
-              const data = episodeAnswers[actualKey];
-              if (!data) return null;
+          <div className="p-6 space-y-6">
+            {EPISODE_ORDER.map((slug, epIndex) => {
+              const epData = episodeAnswers[slug] || episodeAnswers[`episode-${epIndex + 1}`];
+              if (!epData) return null;
+              
+              const reflectionPrompt = EPISODE_REFLECTION_PROMPTS[slug];
+              const epQuestions = EPISODE_QUESTIONS[slug] || [];
               
               return (
-                <div key={slug} className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center rounded-lg">
-                      {idx + 1}
-                    </div>
-                    <h4 className="text-sm font-semibold text-slate-700">
-                      {slug.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                    </h4>
+                <div key={slug} className="rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+                  <div className="bg-primary/5 px-5 py-3 border-b border-primary/10">
+                    <p className="text-[10px] font-semibold text-primary uppercase tracking-wider mb-1">Episode {epIndex + 1}</p>
+                    <p className="text-sm font-bold text-slate-800 leading-relaxed capitalize">
+                      {slug.replace(/-/g, ' ')}
+                    </p>
                   </div>
-
-                  {data.reflection && (
-                    <div className="space-y-3">
-                      {typeof data.reflection === 'object' ? (
-                        Object.entries(data.reflection as Record<string, string>).map(([rKey, rValue], rIdx) => {
-                          const prompts = EPISODE_REFLECTION_PROMPTS[slug];
-                          const prompt = Array.isArray(prompts) ? prompts[parseInt(rKey)] : prompts;
-                          return (
-                            <div key={rKey} className="rounded-2xl border border-primary/10 overflow-hidden">
-                              <div className="px-5 py-3 bg-primary/5 border-b border-primary/10">
-                                <p className="text-[10px] font-semibold text-primary uppercase tracking-wider mb-1">Reflection Part {rIdx + 1}</p>
-                                <p className="text-xs font-medium text-slate-700">{prompt || 'Reflection Prompt'}</p>
+                  <div className="p-5 bg-white space-y-5">
+                    {/* Reflection */}
+                    {epData.reflection && (
+                      <div className="space-y-2">
+                        <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Reflection</h4>
+                        {Array.isArray(reflectionPrompt) ? (
+                          <div className="space-y-3">
+                            {reflectionPrompt.map((prompt, pIdx) => (
+                              <div key={pIdx} className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                                <p className="text-xs font-semibold text-slate-700 mb-2">{prompt}</p>
+                                <p className="text-sm text-slate-600">{(epData.reflection as any)?.[pIdx] || 'No response'}</p>
                               </div>
-                              <div className="p-5 bg-white">
-                                <p className="text-sm text-slate-600 leading-relaxed">"{rValue}"</p>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                            <p className="text-xs font-semibold text-slate-700 mb-2">{reflectionPrompt}</p>
+                            <p className="text-sm text-slate-600">{typeof epData.reflection === 'string' ? epData.reflection : ((epData.reflection as any)?.[0] || 'No response')}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Checks */}
+                    {epData.checks && Object.keys(epData.checks).length > 0 && (
+                      <div className="space-y-2 pt-2 border-t border-slate-100">
+                        <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Episode Checks</h4>
+                        <div className="space-y-3">
+                          {epQuestions.map((qText: string, cIdx: number) => {
+                            const ans = (epData.checks as any)[cIdx];
+                            if (!ans) return null; // Don't show unanswered checks
+                            return (
+                              <div key={cIdx} className="p-3 bg-white border border-slate-200 rounded-xl">
+                                <p className="text-xs font-semibold text-slate-700 mb-1">Q: {qText}</p>
+                                <p className="text-sm text-slate-600"><span className="font-semibold text-xs text-primary uppercase mr-1">A:</span> {ans}</p>
                               </div>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div className="rounded-2xl border border-primary/10 overflow-hidden">
-                          <div className="px-5 py-3 bg-primary/5 border-b border-primary/10">
-                            <p className="text-[10px] font-semibold text-primary uppercase tracking-wider mb-1">Episode Reflection</p>
-                            <p className="text-xs font-medium text-slate-700">{(EPISODE_REFLECTION_PROMPTS[slug] as string) || 'Reflection Prompt'}</p>
-                          </div>
-                          <div className="p-5 bg-white">
-                            <p className="text-sm text-slate-600 leading-relaxed">"{data.reflection}"</p>
-                          </div>
+                            );
+                          })}
                         </div>
-                      )}
-                    </div>
-                  )}
-
-                  {data.checks && Object.keys(data.checks).length > 0 && (
-                    <div className="grid gap-2 pl-3">
-                      {Object.entries(data.checks as Record<string, string>).map(([qIdx, answer]) => (
-                        <div key={qIdx} className="rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
-                          <div className="px-5 py-3 bg-slate-50 border-b border-slate-100">
-                            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Check Question {parseInt(qIdx) + 1}</p>
-                            <p className="text-xs font-medium text-slate-700">{EPISODE_QUESTIONS[slug]?.[parseInt(qIdx)] || 'Knowledge Check'}</p>
-                          </div>
-                          <div className="p-5 bg-white">
-                            <p className="text-sm text-slate-600 leading-relaxed">"{answer}"</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
       )}
+
     </div>
   );
 }

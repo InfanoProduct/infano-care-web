@@ -184,12 +184,11 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
     if (!webinar?.date) return;
 
     const calculateTimeLeft = () => {
-      const activeDurationMs = 3 * 60 * 60 * 1000; // 3 hours loop duration
-      const offsetMs = 2 * 60 * 60 * 1000; // 2 hours minimum offset
-      const difference = activeDurationMs - (new Date().getTime() % activeDurationMs) + offsetMs;
+      const activeDurationMs = 30 * 60 * 1000; // 30 minutes loop duration
+      const difference = activeDurationMs - (new Date().getTime() % activeDurationMs);
       return {
         days: 0,
-        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        hours: 0,
         minutes: Math.floor((difference / 1000 / 60) % 60),
         seconds: Math.floor((difference / 1000) % 60)
       };
@@ -351,13 +350,13 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
           <div className="absolute top-[20%] right-[-10%] w-[50%] h-[50%] bg-rose-200/15 rounded-full blur-[130px]" />
         </div>
 
-        <div className="relative z-10 max-w-360 mx-auto px-6 md:px-12 lg:px-24">
+        <div className="relative z-10 max-w-360 mx-auto px-6 md:px-12 lg:px-16 xl:px-24">
 
           {/* HERO SECTION */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-12 items-center">
 
             {/* Left Column: Copy & Badges */}
-            <div className="lg:col-span-7 space-y-6 text-left">
+            <div className="xl:col-span-7 space-y-6 text-left lg:text-center xl:text-left">
               <div
                 className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-full animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
                 style={{ animationDelay: '50ms' }}
@@ -393,14 +392,14 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
               </h1>
 
               <p
-                className="text-slate-500 text-sm sm:text-base font-medium leading-relaxed max-w-xl animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+                className="text-slate-500 text-sm sm:text-base font-medium leading-relaxed max-w-xl animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both lg:mx-auto xl:mx-0"
                 style={{ animationDelay: '250ms' }}
               >
                 {webinar.description ? webinar.description.replace(/Rs\.\s*99|Rs\s*99|₹\s*99/gi, `Rs. ${webinar.price}`) : ''}
               </p>
 
               {/* Mobile-only Image (shows directly after description) */}
-              <div className="block lg:hidden relative w-full max-w-105 mx-auto aspect-[1.1] sm:aspect-square flex items-center justify-center animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both pt-2 pb-2" style={{ animationDelay: '300ms' }}>
+              <div className="block xl:hidden relative w-full max-w-105 mx-auto aspect-[1.1] sm:aspect-square flex items-center justify-center animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both pt-2 pb-2" style={{ animationDelay: '300ms' }}>
                 <div className="absolute inset-0 bg-linear-to-br from-primary/10 to-accent/5 rounded-[3rem] -rotate-3 scale-95" />
                 <div className="relative w-[92%] h-[92%] rounded-[2.5rem] overflow-hidden border border-white shadow-md bg-white">
                   <img
@@ -413,32 +412,32 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
 
               {/* Sub-features list */}
               <div
-                className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+                className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both lg:max-w-fit lg:mx-auto xl:max-w-none xl:mx-0"
                 style={{ animationDelay: '350ms' }}
               >
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary shrink-0">
                     <Brain size={14} />
                   </div>
-                  <span className="text-sm sm:text-[13px] font-medium sm:font-semibold text-slate-600 leading-snug">Understand the unspoken emotions</span>
+                  <span className="text-sm sm:text-[13px] font-medium sm:font-semibold text-slate-600 leading-snug lg:text-left">Understand the unspoken emotions</span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary shrink-0">
                     <Heart size={14} />
                   </div>
-                  <span className="text-sm sm:text-[13px] font-medium sm:font-semibold text-slate-600 leading-snug">Build trust & stronger connection</span>
+                  <span className="text-sm sm:text-[13px] font-medium sm:font-semibold text-slate-600 leading-snug lg:text-left">Build trust & stronger connection</span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary shrink-0">
                     <ShieldCheck size={14} />
                   </div>
-                  <span className="text-sm sm:text-[13px] font-medium sm:font-semibold text-slate-600 leading-snug">Practical strategies you can start today</span>
+                  <span className="text-sm sm:text-[13px] font-medium sm:font-semibold text-slate-600 leading-snug lg:text-left">Practical strategies you can start today</span>
                 </div>
               </div>
 
               {/* Quick Info Capsule block */}
               <div
-                className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-0 sm:divide-x divide-slate-100 sm:py-4 sm:px-6 sm:bg-white sm:rounded-[2rem] sm:border border-slate-100 sm:shadow-premium max-w-2xl items-center animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+                className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-0 sm:divide-x divide-slate-100 sm:py-4 sm:px-6 sm:bg-white sm:rounded-[2rem] sm:border border-slate-100 sm:shadow-premium max-w-2xl items-center animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both lg:mx-auto xl:mx-0"
                 style={{ animationDelay: '450ms' }}
               >
                 <div className="flex items-center justify-center gap-2 sm:gap-3 py-1.5 px-2 sm:p-0 bg-white sm:bg-transparent rounded-full border border-slate-100 sm:border-none shadow-sm sm:shadow-none">
@@ -459,10 +458,10 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
 
               {/* CTA Action button & Countdown */}
               <div
-                className="flex flex-col sm:flex-row sm:items-center gap-6 pt-4 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+                className="flex flex-col sm:flex-row sm:items-center gap-6 pt-4 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both lg:justify-center xl:justify-start"
                 style={{ animationDelay: '550ms' }}
               >
-                <div className="flex flex-col items-start gap-2.5">
+                <div className="flex flex-col items-start lg:items-center xl:items-start gap-2.5">
                   <button
                     onClick={() => setModalOpen(true)}
                     className="w-full sm:w-auto px-10 py-4 bg-primary text-white rounded-full font-bold text-base hover:bg-primary/90 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 group cursor-pointer border-none"
@@ -470,7 +469,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
                     <span>Reserve My Seat — ₹{webinar.price}/-</span>
                     <ArrowRight className="transition-transform group-hover:translate-x-1" size={16} />
                   </button>
-                  <div className="flex items-center gap-2 text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-1.5 ml-1">
+                  <div className="flex items-center gap-2 text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-1.5 ml-1 lg:ml-0 xl:ml-1">
                     <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
                     <span>Limited Seats Remaining for this Cohort</span>
                   </div>
@@ -481,7 +480,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
             </div>
 
             {/* Right Column: Visual illustration (Hidden on mobile) */}
-            <div className="hidden lg:block lg:col-span-5 relative">
+            <div className="hidden xl:block xl:col-span-5 relative">
               <div className="relative w-full max-w-105 lg:max-w-none mx-auto aspect-[1.1] sm:aspect-square flex items-center justify-center">
                 {/* Decorative blobs */}
                 <div className="absolute inset-0 bg-linear-to-br from-primary/10 to-accent/5 rounded-[3rem] -rotate-3 scale-95" />
@@ -525,7 +524,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
       </div>
 
       {/* Overlapping Trust Badges Capsule */}
-      <div className="hidden sm:block relative z-20 max-w-360 mx-auto px-6 md:px-12 lg:px-24 -mt-12 md:-mt-16 mb-16 md:mb-24">
+      <div className="hidden sm:block relative z-20 max-w-360 mx-auto px-6 md:px-12 lg:px-16 xl:px-24 -mt-12 md:-mt-16 mb-16 md:mb-24">
         {/* BOTTOM ROW: TRUST BADGES (Capsule Style) */}
         <div className="bg-white rounded-none border border-slate-200 shadow-sm py-8 px-6 grid grid-cols-1 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-300 gap-4 sm:gap-0 max-w-6xl mx-auto items-center text-center">
           <div className="flex flex-col items-center justify-center py-2 sm:py-0">
@@ -559,7 +558,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
         </div>
       </div>
 
-      <div className="relative z-10 max-w-360 mx-auto px-6 md:px-12 lg:px-24">
+      <div className="relative z-10 max-w-360 mx-auto px-6 md:px-12 lg:px-16 xl:px-24">
 
         {/* SECTION 2: THE PROBLEM (AGITATION) */}
         <motion.div
@@ -676,10 +675,10 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
         <img
           src={getImageUrl('/uploads/assets/banner.png')}
           alt="Meet Your Guides: Shipra and Gazal"
-          className="hidden lg:block absolute bottom-0 right-[2%] lg:right-[5%] xl:right-[8%] h-[95%] max-h-[420px] w-auto object-contain object-bottom pointer-events-none z-10 animate-in zoom-in-95 duration-500"
+          className="hidden lg:block absolute bottom-0 lg:-right-10 xl:right-[8%] h-[95%] lg:max-h-[460px] xl:max-h-[420px] w-auto object-contain object-bottom pointer-events-none z-10 animate-in zoom-in-95 duration-500"
         />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 lg:px-24">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 xl:px-24">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -690,7 +689,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
 
             {/* Mobile-only image container */}
             <div className="lg:hidden col-span-full order-1 flex justify-center">
-              <div className="w-full max-w-[280px] flex flex-col items-center">
+              <div className="w-full max-w-[360px] sm:max-w-[420px] flex flex-col items-center">
                 <img
                   src={getImageUrl('/uploads/assets/banner.png')}
                   alt="Meet Your Guides: Shipra and Gazal"
@@ -706,16 +705,16 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
             </div>
 
             {/* Spacer on desktop to reserve space for absolute image */}
-            <div className="hidden lg:block lg:col-span-5 order-2" />
+            <div className="hidden lg:block lg:col-span-7 xl:col-span-5 order-2" />
 
             {/* Copy column on left on desktop, bottom on mobile */}
-            <div className="col-span-full lg:col-span-7 order-2 lg:order-1 text-left space-y-6">
+            <div className="col-span-full lg:col-span-5 xl:col-span-7 order-2 lg:order-1 text-left space-y-6 relative z-20">
               <span className="hidden lg:block text-[11px] font-extrabold text-slate-500 uppercase tracking-widest">
                 Meet Your Guides: Shipra and Gazal
               </span>
               <div className="relative pl-8 py-2 border-l-4 border-primary/25">
                 <Quote size={20} className="absolute top-0 left-2 text-primary/30 transform rotate-180" />
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-heading font-bold text-slate-800 leading-tight italic">
+                <h3 className="text-xl md:text-2xl xl:text-3xl font-heading font-bold text-slate-800 leading-tight italic">
                   You&apos;re not failing at this. No one ever taught you how to read what&apos;s underneath.
                   <Quote size={20} className="text-primary/30 inline-block align-top ml-1.5" />
                 </h3>
@@ -987,9 +986,31 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: idx * 0.15 + 0.1 }}
-                  className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(74,30,127,0.05)] hover:shadow-[0_15px_30px_-5px_rgba(74,30,127,0.06)] rounded-3xl p-6 flex items-center justify-end transition-all duration-300 hover:-translate-y-0.5 group text-right"
+                  className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(74,30,127,0.05)] hover:shadow-[0_15px_30px_-5px_rgba(74,30,127,0.06)] rounded-3xl p-6 flex flex-col xl:flex-row xl:items-center justify-end transition-all duration-300 hover:-translate-y-0.5 group text-right"
                 >
-                  <div className="mr-5">
+                  {/* Tablet Layout (lg) */}
+                  <div className="xl:hidden w-full flex justify-end items-center gap-3 mb-2">
+                    <h4 className="text-sm sm:text-base md:text-lg font-semibold text-slate-800 tracking-tight font-heading group-hover:text-primary transition-colors">
+                      {item.title}
+                    </h4>
+                    <div
+                      className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105 ${item.textColor}`}
+                      style={{ backgroundColor: item.color }}
+                    >
+                      {item.icon}
+                    </div>
+                  </div>
+                  <div className="xl:hidden w-full">
+                    <p className="text-[11px] sm:text-xs text-slate-400 font-extrabold uppercase tracking-wide mt-0.5">
+                      {item.time}
+                    </p>
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed mt-1.5">
+                      {item.desc}
+                    </p>
+                  </div>
+
+                  {/* Desktop Layout (xl) */}
+                  <div className="hidden xl:block mr-5">
                     <h4 className="text-sm sm:text-base md:text-lg font-semibold text-slate-800 tracking-tight font-heading group-hover:text-primary transition-colors">
                       {item.title}
                     </h4>
@@ -1001,7 +1022,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
                     </p>
                   </div>
                   <div
-                    className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105 ${item.textColor}`}
+                    className={`hidden xl:flex w-12 h-12 rounded-2xl items-center justify-center shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105 ${item.textColor}`}
                     style={{ backgroundColor: item.color }}
                   >
                     {item.icon}
@@ -1037,15 +1058,37 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: idx * 0.15 + 0.7 }}
-                  className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(74,30,127,0.05)] hover:shadow-[0_15px_30px_-5px_rgba(74,30,127,0.06)] rounded-3xl p-6 flex items-center justify-start transition-all duration-300 hover:-translate-y-0.5 group text-left"
+                  className="bg-white border border-slate-100 shadow-[0_4px_20px_-4px_rgba(74,30,127,0.05)] hover:shadow-[0_15px_30px_-5px_rgba(74,30,127,0.06)] rounded-3xl p-6 flex flex-col xl:flex-row xl:items-center justify-start transition-all duration-300 hover:-translate-y-0.5 group text-left"
                 >
+                  {/* Tablet Layout (lg) */}
+                  <div className="xl:hidden w-full flex justify-start items-center gap-3 mb-2">
+                    <div
+                      className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105 ${item.textColor}`}
+                      style={{ backgroundColor: item.color }}
+                    >
+                      {item.icon}
+                    </div>
+                    <h4 className="text-sm sm:text-base md:text-lg font-semibold text-slate-800 tracking-tight font-heading group-hover:text-primary transition-colors">
+                      {item.title}
+                    </h4>
+                  </div>
+                  <div className="xl:hidden w-full">
+                    <p className="text-[11px] sm:text-xs text-slate-400 font-extrabold uppercase tracking-wide mt-0.5">
+                      {item.time}
+                    </p>
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed mt-1.5">
+                      {item.desc}
+                    </p>
+                  </div>
+
+                  {/* Desktop Layout (xl) */}
                   <div
-                    className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105 mr-5 ${item.textColor}`}
+                    className={`hidden xl:flex w-12 h-12 rounded-2xl items-center justify-center shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105 mr-5 ${item.textColor}`}
                     style={{ backgroundColor: item.color }}
                   >
                     {item.icon}
                   </div>
-                  <div>
+                  <div className="hidden xl:block">
                     <h4 className="text-sm sm:text-base md:text-lg font-semibold text-slate-800 tracking-tight font-heading group-hover:text-primary transition-colors">
                       {item.title}
                     </h4>
@@ -1210,7 +1253,7 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
             </div>
           </div>
 
-          <div className="flex lg:grid lg:grid-cols-3 overflow-x-auto lg:overflow-x-visible snap-x snap-mandatory gap-6 px-6 sm:px-12 pb-12 max-w-6xl mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] py-4">
+          <div className="flex lg:grid lg:grid-cols-3 overflow-x-auto lg:overflow-x-visible snap-x snap-mandatory gap-6 lg:gap-4 xl:gap-6 px-6 sm:px-12 lg:px-6 xl:px-12 pb-12 max-w-6xl mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] py-4">
             {[
               {
                 quote: "When my Class 7 daughter started shutting me out, I didn't know what to do. Using their exact phrases, she finally opened up about her school stress. Truly a lifesaver for disconnected parents!",
@@ -1239,34 +1282,34 @@ export function WebinarDetailClient({ initialWebinar, slug }: WebinarDetailClien
             ].map((testimonial, idx) => (
               <div
                 key={idx}
-                className="shrink-0 w-[85vw] sm:w-[400px] lg:w-full snap-center bg-white rounded-[2rem] p-8 md:p-10 relative flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-50 overflow-hidden group hover:-translate-y-1 transition-all duration-300"
+                className="shrink-0 w-[85vw] sm:w-[400px] lg:w-full snap-center bg-white rounded-[2rem] p-8 md:p-10 lg:p-6 xl:p-10 relative flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-50 overflow-hidden group hover:-translate-y-1 transition-all duration-300"
               >
                 {/* Bottom Gradient Border */}
                 <div className={`absolute bottom-0 left-0 h-1.5 w-full bg-linear-to-r ${testimonial.gradientBorder}`} />
 
                 {/* Curved serif quotes */}
-                <span className="absolute top-0 right-8 text-primary/10 text-[8rem] font-serif font-black select-none pointer-events-none leading-none">
+                <span className="absolute top-0 right-8 text-primary/10 text-[8rem] lg:text-[6rem] xl:text-[8rem] font-serif font-black select-none pointer-events-none leading-none">
                   ”
                 </span>
 
                 {/* Large Icon */}
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-8 relative z-10 ${testimonial.colorClass}`}>
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-8 lg:mb-4 xl:mb-8 lg:scale-75 xl:scale-100 origin-left relative z-10 ${testimonial.colorClass}`}>
                   {testimonial.icon}
                 </div>
 
                 {/* Quote text */}
-                <p className="text-slate-700 text-sm sm:text-base leading-relaxed mb-8 relative z-10 flex-1">
+                <p className="text-slate-700 text-sm sm:text-base lg:text-sm xl:text-base leading-relaxed mb-8 relative z-10 flex-1">
                   "{testimonial.quote}"
                 </p>
 
                 {/* Divider & Author with Stars on the right */}
-                <div className="pt-6 border-t border-slate-100 mt-auto relative z-10 flex items-center justify-between gap-4">
+                <div className="pt-6 lg:pt-4 xl:pt-6 border-t border-slate-100 mt-auto relative z-10 flex flex-row lg:flex-col xl:flex-row items-center lg:items-start xl:items-center justify-between gap-4 lg:gap-3 xl:gap-4">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${testimonial.colorClass} opacity-80`}>
                       <Users size={16} />
                     </div>
                     <div className="min-w-0">
-                      <h5 className="text-sm font-bold text-slate-800 leading-tight whitespace-nowrap">{testimonial.author}</h5>
+                      <h5 className="text-sm lg:text-[13px] xl:text-sm font-bold text-slate-800 leading-tight whitespace-nowrap">{testimonial.author}</h5>
                       <p className="text-[11px] font-medium text-slate-400 mt-1 leading-none whitespace-nowrap">{testimonial.role}</p>
                     </div>
                   </div>

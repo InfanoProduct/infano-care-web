@@ -38,6 +38,7 @@ export default function CustomerLoginPage() {
   const [selectedCountryCode, setSelectedCountryCode] = useState('+91');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState({ code: '+91', iso: 'in', name: 'India', digits: 10 });
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   // Resend Timer States
   const [resendTimer, setResendTimer] = useState(30);
@@ -89,6 +90,10 @@ export default function CustomerLoginPage() {
 
   const handleSendOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (!termsAccepted) {
+      setError('Please accept the Terms & Conditions and Privacy Policy.');
+      return;
+    }
     if (!phone) {
       setError('Please enter a valid phone number');
       return;
@@ -195,7 +200,8 @@ export default function CustomerLoginPage() {
         id: data.userId,
         role: data.role,
         phone: formattedPhone || data.phone,
-        peerApplicationStatus: data.peerApplicationStatus
+        peerApplicationStatus: data.peerApplicationStatus,
+        isOnboardingCompleted: data.isOnboardingCompleted
       });
     }
   };
@@ -216,7 +222,8 @@ export default function CustomerLoginPage() {
         id: tempAuthData.userId,
         role: tempAuthData.role, // Default 'TEEN'
         phone: formattedPhone || tempAuthData.phone,
-        peerApplicationStatus: tempAuthData.peerApplicationStatus
+        peerApplicationStatus: tempAuthData.peerApplicationStatus,
+        isOnboardingCompleted: tempAuthData.isOnboardingCompleted
       });
 
       // Update the user role in the backend
@@ -233,7 +240,8 @@ export default function CustomerLoginPage() {
         id: tempAuthData.userId,
         role: role,
         phone: formattedPhone || tempAuthData.phone,
-        peerApplicationStatus: tempAuthData.peerApplicationStatus
+        peerApplicationStatus: tempAuthData.peerApplicationStatus,
+        isOnboardingCompleted: tempAuthData.isOnboardingCompleted
       });
 
       router.push('/dashboard');
@@ -378,9 +386,23 @@ export default function CustomerLoginPage() {
                 </div>
               </div>
 
+              <div className="space-y-3 pb-3">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                    className="mt-1 w-4 h-4 rounded text-primary focus:ring-primary border-slate-200 accent-primary"
+                  />
+                  <span className="text-xs text-slate-500 font-medium leading-relaxed">
+                    I accept the <a href="/legal/terms" target="_blank" className="text-primary hover:underline font-bold">Terms of Service</a> and <a href="/legal/privacy" target="_blank" className="text-primary hover:underline font-bold">Privacy Policy</a>.
+                  </span>
+                </label>
+              </div>
+
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || !termsAccepted || !phone}
                 className="w-full py-3 bg-primary hover:bg-primary-dark text-white font-bold rounded-lg flex items-center justify-center gap-2 group hover:shadow-md transition-all active:scale-95 disabled:opacity-50 duration-200 cursor-pointer"
               >
                 {isLoading ? (

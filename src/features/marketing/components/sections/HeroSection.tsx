@@ -38,11 +38,11 @@ export function HeroSection() {
           style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #4a1e7f 1px, transparent 0)', backgroundSize: '40px 40px' }} />
       </div>
 
-      <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-20">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      <div className="max-w-[1440px] mx-auto px-6 md:px-12 xl:px-24 relative z-20">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-center">
 
           {/* Left Column: Content */}
-          <div className="lg:col-span-4 text-center lg:text-left z-30">
+          <div className="xl:col-span-4 text-center xl:text-left z-30">
             <div
               className="inline-flex items-center gap-2 px-3 py-1 bg-slate-50/80 backdrop-blur-sm border border-slate-100 rounded-full mb-6 animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both"
             >
@@ -53,22 +53,22 @@ export function HeroSection() {
             </div>
 
             <h1
-              className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              className="text-4xl md:text-5xl xl:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
               style={{ animationDelay: '100ms' }}
             >
               <span className="text-primary">From Girlhood → Adulthood → Womanhood </span>
             </h1>
 
             <p
-              className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-0 lg:mb-8 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-0 xl:mb-8 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
               style={{ animationDelay: '200ms' }}
             >
               Infano.care is India's most holistic ecosystem for girls—blending story-led learning, wellness tracking, and expert guidance into one safe space.
             </p>
 
-            {/* Desktop CTA: Visible only on LG+ */}
+            {/* Desktop CTA: Visible only on XL+ */}
             <div
-              className="hidden lg:flex flex-col sm:flex-row items-center justify-start gap-4 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              className="hidden xl:flex flex-col sm:flex-row items-center justify-start gap-4 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
               style={{ animationDelay: '300ms' }}
             >
               <Link href="/program-enrollment" className="btn-primary w-full sm:w-auto text-sm px-8 py-3.5 group shadow-lg shadow-primary/20">
@@ -81,11 +81,11 @@ export function HeroSection() {
           </div>
 
           {/* Center Column: Spacer for Image (hidden on mobile) */}
-          <div className="hidden lg:block lg:col-span-4 h-[500px]" />
+          <div className="hidden xl:block xl:col-span-4 h-[500px]" />
 
           {/* Right Column: Cards & Slider (4 cols) */}
-          <div className="lg:col-span-4 flex flex-col relative h-auto lg:h-[500px] items-center justify-center lg:justify-end z-30 lg:mt-0">
-            <div className="relative w-full max-w-[320px] sm:max-w-[360px] lg:max-w-[340px] h-[400px] sm:h-[440px] lg:h-[450px] flex items-center justify-center">
+          <div className="xl:col-span-4 flex flex-col relative h-auto xl:h-[500px] items-center justify-center xl:justify-end z-30 xl:mt-0">
+            <div className="relative w-full max-w-[320px] sm:max-w-[360px] xl:max-w-[340px] h-[400px] sm:h-[440px] xl:h-[450px] flex items-center justify-center">
               <AnimatePresence mode="sync">
                 {cards.map((card, index) => {
                   const isFirst = index === 0;
@@ -104,9 +104,9 @@ export function HeroSection() {
             </div>
 
             {/* Slider Progress Indicators - Attached below slider */}
-            <div className="mt-8 flex gap-2 z-40 bg-white/80 px-3 py-1.5 lg:px-4 lg:py-2 rounded-2xl border border-slate-100 shadow-sm">
+            <div className="mt-8 flex gap-2 z-40 bg-white/80 px-3 py-1.5 xl:px-4 xl:py-2 rounded-2xl border border-slate-100 shadow-sm">
               {SLIDER_DATA.map((_, index) => (
-                <div key={index} className="relative h-1 lg:h-1.5 w-8 lg:w-10 bg-slate-100/50 rounded-full overflow-hidden">
+                <div key={index} className="relative h-1 xl:h-1.5 w-8 xl:w-10 bg-slate-100/50 rounded-full overflow-hidden">
                   <motion.div
                     className="absolute inset-0 bg-primary"
                     initial={{ scaleX: 0 }}
@@ -118,9 +118,9 @@ export function HeroSection() {
               ))}
             </div>
 
-            {/* Mobile CTA: Visible only below LG */}
+            {/* Mobile CTA: Visible only below XL */}
             <div
-              className="flex lg:hidden flex-col items-center gap-4 w-full max-w-[320px] mt-8 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              className="flex xl:hidden flex-col items-center gap-4 w-full max-w-[320px] mt-8 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
               style={{ animationDelay: '300ms' }}
             >
               <Link href="/program-enrollment" className="btn-primary w-full text-sm px-8 py-3.5 group shadow-lg shadow-primary/20 text-center">
@@ -135,7 +135,7 @@ export function HeroSection() {
       </div>
 
       {/* Layered Absolute Subject Image (The Girl) */}
-      <div className="hidden lg:block absolute bottom-0 left-1/2 -translate-x-1/2 z-10 w-full max-w-[700px] h-[95%] pointer-events-none">
+      <div className="hidden xl:block absolute bottom-0 left-1/2 -translate-x-1/2 z-10 w-full max-w-[600px] 2xl:max-w-[700px] h-[90%] xl:h-[95%] pointer-events-none">
         <div className="relative w-full h-full flex items-end justify-center">
           <div className="absolute bottom-[10%] w-[70%] h-[20%] bg-primary/10 rounded-full blur-2xl z-0" />
           <div
@@ -149,7 +149,6 @@ export function HeroSection() {
               className="object-contain object-bottom drop-shadow-[0_15px_40px_rgba(0,0,0,0.12)]"
               sizes="(max-width: 768px) 100vw, 50vw"
               priority
-              unoptimized
             />
           </div>
         </div>

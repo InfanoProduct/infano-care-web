@@ -23,8 +23,15 @@ export function OnboardingModal({ isOpen }: OnboardingModalProps) {
   const [birthDay, setBirthDay] = useState(1);
   const [birthMonth, setBirthMonth] = useState(1);
   const [birthYear, setBirthYear] = useState(2010);
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const handleSkip = () => {
+    toast.success('Onboarding skipped for this session!');
+    if (user) {
+      setAuth(token || '', refreshToken || '', {
+        ...user,
+        isOnboardingCompleted: true, // Skips locally for this session
+      });
+    }
+  };
 
   // Step 2: Personalization fields
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
@@ -82,10 +89,6 @@ export function OnboardingModal({ isOpen }: OnboardingModalProps) {
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!termsAccepted || !privacyAccepted) {
-      setError('Please accept the Terms & Conditions and Privacy Policy.');
-      return;
-    }
     if (!email.trim() || !email.includes('@')) {
       setError('Please enter a valid email address.');
       return;
@@ -322,36 +325,19 @@ export function OnboardingModal({ isOpen }: OnboardingModalProps) {
                 </div>
               </div>
 
-              <div className="space-y-3 pt-2">
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                    className="mt-1 w-4 h-4 rounded text-primary focus:ring-primary border-slate-200 accent-primary"
-                  />
-                  <span className="text-xs text-slate-500 font-medium leading-relaxed">
-                    I accept the <a href="/legal/terms" target="_blank" className="text-primary hover:underline font-bold">Terms of Service</a> and understand how Infano operates.
-                  </span>
-                </label>
+              {/* Terms and Privacy removed as requested */}
 
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={privacyAccepted}
-                    onChange={(e) => setPrivacyAccepted(e.target.checked)}
-                    className="mt-1 w-4 h-4 rounded text-primary focus:ring-primary border-slate-200 accent-primary"
-                  />
-                  <span className="text-xs text-slate-500 font-medium leading-relaxed">
-                    I agree to the <a href="/legal/privacy" target="_blank" className="text-primary hover:underline font-bold">Privacy Policy</a> governing my profile setup.
-                  </span>
-                </label>
-              </div>
-
-              <div className="pt-4 border-t border-slate-100 flex justify-end shrink-0">
+              <div className="pt-4 border-t border-slate-100 flex justify-between shrink-0">
+                <button
+                  type="button"
+                  onClick={handleSkip}
+                  className="px-6 py-3 text-slate-500 hover:text-slate-700 font-bold transition-all active:scale-95 duration-200 cursor-pointer"
+                >
+                  Skip
+                </button>
                 <button
                   type="submit"
-                  disabled={loading || !termsAccepted || !privacyAccepted || !displayName.trim() || !email.trim()}
+                  disabled={loading || !displayName.trim() || !email.trim()}
                   className="px-6 py-3 bg-primary hover:bg-primary-dark text-white font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-primary/10 transition-all active:scale-95 disabled:opacity-50 duration-200 cursor-pointer"
                 >
                   {loading ? <Loader2 className="animate-spin" size={18} /> : (
@@ -426,7 +412,7 @@ export function OnboardingModal({ isOpen }: OnboardingModalProps) {
                 </div>
               </div>
 
-              <div className="pt-6 border-t border-slate-100 flex justify-between shrink-0">
+              <div className="pt-6 border-t border-slate-100 flex items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
@@ -434,7 +420,14 @@ export function OnboardingModal({ isOpen }: OnboardingModalProps) {
                 >
                   <ArrowLeft size={16} /> Back
                 </button>
-
+                <div className="flex-1" />
+                <button
+                  type="button"
+                  onClick={handleSkip}
+                  className="px-6 py-3 text-slate-500 hover:text-slate-700 font-bold transition-all active:scale-95 duration-200 cursor-pointer"
+                >
+                  Skip
+                </button>
                 <button
                   type="button"
                   onClick={handlePersonalizationSubmit}

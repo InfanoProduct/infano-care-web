@@ -102,7 +102,7 @@ export default function OrderDetailsPage() {
 
   return (
     <div className="space-y-6 w-full max-w-7xl mx-auto pb-8 font-sans px-4 sm:px-6">
-      
+      <div className="no-print space-y-6">
       {/* Back button & Header */}
       <div className="flex items-center gap-4 mb-2 no-print">
         <button 
@@ -432,7 +432,7 @@ export default function OrderDetailsPage() {
               Have questions regarding mentoring session structures, payments, or coordinates? Reach out directly.
             </p>
             <a 
-              href={`https://wa.me/919380724606?text=Hi,%2520I%252520need%252520help%252520with%25252520my%252520${type === 'PROGRAM' ? 'mentoring%2520program' : 'book%2520order'}%2520%23${data.id}`}
+              href={`https://wa.me/919243019243?text=Hi,%2520I%252520need%252520help%252520with%25252520my%252520${type === 'PROGRAM' ? 'mentoring%2520program' : 'book%2520order'}%2520%23${data.id}`}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full bg-[#25D366] hover:bg-[#20BA56] text-white font-extrabold py-2.5 px-4 rounded-full flex items-center justify-center gap-1.5 text-xs shadow-md transition-all duration-200 active:scale-95 cursor-pointer"
@@ -442,6 +442,7 @@ export default function OrderDetailsPage() {
           </div>
 
         </div>
+      </div>
       </div>
 
       {/* Invoice Download Modal */}

@@ -44,12 +44,28 @@ export const AuthService = {
     });
   },
 
+  async resetAdminPassword(newPassword: string, token: string): Promise<any> {
+    return apiClient.post('/auth/admin/reset-password', { newPassword }, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  },
+
   async requestNewCredentials(username: string, phone: string): Promise<any> {
     return apiClient.post('/auth/coordinator/request-credentials', { username, phone });
   },
 
   async getMe(): Promise<any> {
     return apiClient.get('/user/me');
+  },
+
+  async sendSettingsEmailOtp(): Promise<any> {
+    return apiClient.post('/expert/settings/password-reset/send-otp');
+  },
+
+  async verifySettingsEmailOtpAndResetPassword(otp: string, newPassword: string): Promise<any> {
+    return apiClient.post('/expert/settings/password-reset/verify-otp', { otp, newPassword });
   },
 
   async checkUser(phone: string): Promise<{ exists: boolean; role?: string }> {

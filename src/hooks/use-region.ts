@@ -1,6 +1,5 @@
-'use client';
-
-import { usePathname, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 export type Region = 'IN' | 'US' | 'UK';
 
@@ -53,27 +52,32 @@ const REGION_CONFIGS: Record<Region, Omit<RegionMetadata, 'getLocalizedLink' | '
 
 export function useRegion(): RegionMetadata {
   const pathname = usePathname() || '';
-  const searchParams = useSearchParams();
 
-  let region: Region = 'IN';
-  
-  // 1. Check dynamic search param set by internal proxy/middleware rewrite
-  const rParam = searchParams?.get('__region')?.toUpperCase();
-  if (rParam === 'US' || rParam === 'UK') {
-    region = rParam as Region;
-  } else {
-    // 2. Fallback to parsing pathname (checking window location first for browser accuracy)
-    let checkPath = pathname;
-    if (typeof window !== 'undefined') {
-      checkPath = window.location.pathname;
-    }
-    const lowerPath = checkPath.toLowerCase();
-    if (lowerPath.startsWith('/en-us') || lowerPath.includes('/en-us')) {
-      region = 'US';
-    } else if (lowerPath.startsWith('/en-uk') || lowerPath.includes('/en-uk')) {
-      region = 'UK';
-    }
+  // 1. Determine base region from pathname (SSR-safe, no suspense)
+  let baseRegion: Region = 'IN';
+  const lowerPath = pathname.toLowerCase();
+  if (lowerPath.startsWith('/en-us') || lowerPath.includes('/en-us')) {
+    baseRegion = 'US';
+  } else if (lowerPath.startsWith('/en-uk') || lowerPath.includes('/en-uk')) {
+    baseRegion = 'UK';
   }
+
+  const [region, setRegion] = useState<Region>(baseRegion);
+
+  // 2. Client-side hydration/mount logic to read query parameters without suspending the page
+  useEffect(() => {
+    let currentRegion = baseRegion;
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const rParam = params.get('__region')?.toUpperCase();
+      if (rParam === 'US' || rParam === 'UK') {
+        currentRegion = rParam as Region;
+      }
+    }
+    if (currentRegion !== region) {
+      setRegion(currentRegion);
+    }
+  }, [pathname, baseRegion]);
 
   const config = REGION_CONFIGS[region];
 

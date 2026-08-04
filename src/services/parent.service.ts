@@ -52,6 +52,10 @@ export const ParentService = {
     return apiClient.get<any[]>('/parent/experts', { params });
   },
 
+  async getExpertSlots(expertId: string): Promise<any> {
+    return apiClient.get<any>(`/parent/experts/${expertId}/slots`);
+  },
+
   async bookExpertSession(expertId: string, scheduledAt: string): Promise<any> {
     return apiClient.post<any>('/parent/experts/book', { expertId, scheduledAt });
   },
@@ -80,6 +84,40 @@ export const ParentService = {
 
   async rescheduleExpertSession(sessionId: string, newScheduledAt: string): Promise<any> {
     return apiClient.patch<any>(`/parent/expert-sessions/${sessionId}/reschedule`, { newScheduledAt });
+  },
+
+  // --- Public Expert Session Methods ---
+
+  async getPublicExperts(specialisation?: string): Promise<any[]> {
+    const params = specialisation ? { specialisation } : undefined;
+    return apiClient.get<any[]>('/parent/public/experts', { params });
+  },
+
+  async getPublicExpertSlots(expertId: string): Promise<any> {
+    return apiClient.get<any>(`/parent/public/experts/${expertId}/slots`);
+  },
+
+  async bookPublicExpertSession(data: {
+    expertId: string;
+    scheduledAt: string;
+    name: string;
+    phone: string;
+    email: string;
+  }): Promise<any> {
+    return apiClient.post<any>('/parent/public/experts/book', data);
+  },
+
+  async verifyPublicExpertSessionPayment(data: {
+    razorpayOrderId: string;
+    razorpayPaymentId: string;
+    razorpaySignature: string;
+    expertId: string;
+    scheduledAt: string;
+    name: string;
+    phone: string;
+    email: string;
+  }): Promise<any> {
+    return apiClient.post<any>('/parent/public/experts/verify-payment', data);
   },
 
   // --- Resource Library & Bookmark Methods ---

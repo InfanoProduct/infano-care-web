@@ -5,13 +5,15 @@ import { useRouter, usePathname } from 'next/navigation';
 import {
   ShieldCheck, LogOut, LayoutDashboard, Calendar, Compass, User,
   Sparkles, CreditCard, BookOpen, Layers, GraduationCap, Menu, X,
-  ChevronLeft, ChevronRight, Package
+  ChevronLeft, ChevronRight, Package, MessageSquare
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
 import { AuthService } from '@/services/auth.service';
 import { NotificationBell } from '@/features/parent/components/NotificationBell';
 import { OnboardingModal } from '@/components/common/OnboardingModal';
+import { apiClient } from '@/lib/api-client';
+import { BecomePeerMentorModal } from '@/components/peerline/BecomePeerMentorModal';
 
 export default function CustomerDashboardLayout({
   children,
@@ -27,6 +29,21 @@ export default function CustomerDashboardLayout({
   const refreshedRef = useRef(false);
   const [avatarPhoto, setAvatarPhoto] = useState<string | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [certificationStatus, setCertificationStatus] = useState<string>('loading');
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+    const fetchPeerStatus = async () => {
+      try {
+        const res: any = await apiClient.get('/peerline/training/status');
+        setCertificationStatus(res.certificationStatus || 'unregistered');
+      } catch {
+        setCertificationStatus('unregistered');
+      }
+    };
+    fetchPeerStatus();
+  }, [isAuthenticated, user]);
 
   // Sync profile photo in layout header
   useEffect(() => {
@@ -77,12 +94,11 @@ export default function CustomerDashboardLayout({
     return () => clearTimeout(refreshTimeout);
   }, [isAuthenticated, refreshToken, user, setAuth]);
 
-  // Fetch full user profile
+  // Fetch full user profile (and refresh on window focus)
   const profileFetchedRef = useRef(false);
   useEffect(() => {
-    if (!isAuthenticated || !user || !accessToken || profileFetchedRef.current) return;
+    if (!isAuthenticated || !user || !accessToken) return;
 
-    profileFetchedRef.current = true;
     const fetchUserProfile = async () => {
       try {
         const fullUser = await AuthService.getMe();
@@ -91,6 +107,8 @@ export default function CustomerDashboardLayout({
             ...user,
             email: fullUser.email,
             profile: fullUser.profile,
+            role: fullUser.role,
+            peerApplication: fullUser.peerApplication,
             onboardingStep: fullUser.onboardingStep,
             onboardingCompletedAt: fullUser.onboardingCompletedAt,
             isOnboardingCompleted: fullUser.isOnboardingCompleted,
@@ -106,7 +124,15 @@ export default function CustomerDashboardLayout({
       }
     };
 
-    fetchUserProfile();
+    if (!profileFetchedRef.current) {
+      profileFetchedRef.current = true;
+      fetchUserProfile();
+    }
+
+    // Instantly sync role/profile changes when switching back to this tab
+    const handleFocus = () => fetchUserProfile();
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [isAuthenticated, accessToken]);
 
   // Auth Guard
@@ -139,15 +165,15 @@ export default function CustomerDashboardLayout({
 
   if (!mounted) return null;
 
-  const showOnboardingModal = 
-    !!(mounted && 
-    isAuthenticated && 
-    user && 
-    user.role !== 'ADMIN' && 
-    user.role !== 'EXPERT' && 
-    user.role !== 'PEER' && 
-    (user.onboardingStep === undefined || user.onboardingStep < 5) && 
-    !user.isOnboardingCompleted);
+  const showOnboardingModal =
+    !!(mounted &&
+      isAuthenticated &&
+      user &&
+      user.role !== 'ADMIN' &&
+      user.role !== 'EXPERT' &&
+      user.role !== 'PEER' &&
+      (user.onboardingStep === undefined || user.onboardingStep < 5) &&
+      !user.isOnboardingCompleted);
 
   if (!isAuthenticated || !user) {
     return (
@@ -165,15 +191,21 @@ export default function CustomerDashboardLayout({
   const isTeen = user.role === 'TEEN' || (user.role === 'PEER' && user.contentTier && user.contentTier !== 'ADULT');
 
   // Navigation Items
-  const menuItems = [
+  const menuItems = user.role === 'EXPERT' ? [
+    { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
+    { href: '/dashboard/program-sessions', label: 'Program Sessions', icon: Layers, matchPrefix: true },
+    { href: '/dashboard/expert-consultations', label: 'My Consultations', icon: Calendar },
+    { href: '/dashboard/calendar', label: 'My Calendar', icon: Calendar },
+    { href: '/dashboard/profile', label: 'Profile', icon: User },
+  ] : [
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
     { href: '/dashboard/enrolled-programs', label: 'Enrolled Programs', icon: Layers },
-    // { href: '/dashboard/learning-journeys', label: 'Learning Journeys', icon: GraduationCap, matchPrefix: true },
     { href: '/dashboard/orders', label: 'My Orders', icon: Package },
     ...(!isTeen ? [{ href: '/dashboard/expert-sessions', label: 'My Consultations', icon: Calendar }] : []),
     ...(!isTeen ? [{ href: '/dashboard/resources', label: 'Library', icon: BookOpen }] : []),
     ...(isTeen ? [{ href: '/dashboard/expert-sessions', label: 'My Consultations', icon: Calendar }] : []),
     { href: '/dashboard/parent', label: isTeen ? 'Link Parent' : 'Link Daughter', icon: User },
+    ...(user.role === 'PEER' ? [{ href: '/dashboard/my-chats', label: 'My Chats', icon: MessageSquare }] : []),
     { href: '/dashboard/profile', label: 'Profile', icon: User },
   ];
 
@@ -211,13 +243,20 @@ export default function CustomerDashboardLayout({
         {/* Workspace Mode Badge */}
         {!isCollapsed ? (
           <div className="px-2">
-            <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-extrabold shadow-2xs border ${isTeen
+            {user.role === 'EXPERT' ? (
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-extrabold shadow-2xs border bg-indigo-50/90 text-indigo-700 border-indigo-200/80">
+                <Sparkles size={13} className="text-indigo-500" />
+                Expert Portal
+              </div>
+            ) : (
+              <div className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-extrabold shadow-2xs border ${isTeen
                 ? 'bg-purple-50/90 text-purple-700 border-purple-200/80'
                 : 'bg-rose-50/90 text-rose-600 border-rose-200/80'
-              }`}>
-              <Sparkles size={13} className={isTeen ? 'text-purple-500' : 'text-rose-500'} />
-              {isTeen ? 'Teen Workspace' : 'Parent Portal'}
-            </div>
+                }`}>
+                <Sparkles size={13} className={isTeen ? 'text-purple-500' : 'text-rose-500'} />
+                {isTeen ? 'Teen Workspace' : 'Parent Portal'}
+              </div>
+            )}
           </div>
         ) : null}
 
@@ -238,8 +277,8 @@ export default function CustomerDashboardLayout({
                   key={idx}
                   href={item.href}
                   className={`group relative flex items-center gap-3 px-5 py-3.5 rounded-2xl text-[14px] font-medium transition-all duration-300 ${active
-                      ? 'bg-primary text-white shadow-none'
-                      : 'text-slate-500 hover:bg-slate-100 hover:text-primary'
+                    ? 'bg-primary text-white shadow-none'
+                    : 'text-slate-500 hover:bg-slate-100 hover:text-primary'
                     } ${isCollapsed ? 'justify-center px-3.5 py-3.5 rounded-xl' : ''}`}
                 >
                   <Icon size={20} className={`shrink-0 ${active ? 'text-white' : 'text-slate-400 group-hover:text-primary group-hover:scale-110 transition-all duration-300'}`} />
@@ -378,6 +417,31 @@ export default function CustomerDashboardLayout({
           </div>
 
           <div className="flex items-center gap-2 md:gap-4">
+            {/* Peer Training / Become a Peer Top Bar Button */}
+            {user.role !== 'EXPERT' && user.role !== 'PEER' && (
+              certificationStatus === 'unregistered' ? (
+                <button
+                  onClick={() => setIsApplyModalOpen(true)}
+                  className="flex items-center gap-2.5 px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-md bg-[#431872] hover:bg-[#3B1C71] text-white shadow-purple-900/10 active:scale-95 cursor-pointer"
+                >
+                  <Sparkles size={18} className="text-white shrink-0" />
+                  <span>Become a Peer</span>
+                </button>
+              ) : (
+                <Link
+                  href="/dashboard/peer-training"
+                  className={`flex items-center gap-2.5 px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-md active:scale-95 ${
+                    pathname.startsWith('/dashboard/peer-training')
+                      ? 'bg-[#3B1C71] text-white ring-2 ring-purple-300 shadow-purple-200'
+                      : 'bg-[#431872] hover:bg-[#3B1C71] text-white shadow-purple-900/10'
+                  }`}
+                >
+                  <Sparkles size={18} className="text-white shrink-0" />
+                  <span>Peer Training</span>
+                </Link>
+              )
+            )}
+
             <NotificationBell />
 
             <div className="flex items-center gap-2.5 bg-slate-50/50 border border-slate-100/80 py-1 pl-2.5 pr-3.5 rounded-xl">
@@ -464,6 +528,14 @@ export default function CustomerDashboardLayout({
       )}
       {/* Onboarding Modal Overlay for incomplete profiles */}
       <OnboardingModal isOpen={showOnboardingModal} />
+
+      {/* Become a Peer Mentor Modal */}
+      <BecomePeerMentorModal
+        isOpen={isApplyModalOpen}
+        onClose={() => setIsApplyModalOpen(false)}
+        onSuccess={() => setCertificationStatus('pending_training')}
+        user={user}
+      />
 
     </div>
   );

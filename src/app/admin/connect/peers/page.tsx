@@ -155,7 +155,7 @@ export default function PeerManagement() {
       </div>
 
       {/* Table */}
-      <div className="glass-card rounded-2xl overflow-hidden border-white/40 shadow-xl">
+      <div className="glass-card rounded-2xl border-white/40 shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -163,7 +163,6 @@ export default function PeerManagement() {
                 <th className="px-6 py-4 text-[11px] uppercase tracking-[0.15em] font-semibold text-muted-foreground">User Identity</th>
                 <th className="px-6 py-4 text-[11px] uppercase tracking-[0.15em] font-semibold text-muted-foreground">Contact Details</th>
                 <th className="px-6 py-4 text-[11px] uppercase tracking-[0.15em] font-semibold text-muted-foreground">Platform Role</th>
-                <th className="px-6 py-4 text-[11px] uppercase tracking-[0.15em] font-semibold text-muted-foreground">Peer Onboarding</th>
                 <th className="px-6 py-4 text-[11px] uppercase tracking-[0.15em] font-semibold text-muted-foreground">Certification</th>
                 <th className="px-6 py-4"></th>
               </tr>
@@ -187,7 +186,7 @@ export default function PeerManagement() {
                   {/* Contact */}
                   <td className="px-6 py-4">
                     <div className="space-y-0.5">
-                      <span className="text-sm font-medium text-slate-600 block">{user.peerApplication?.email || '—'}</span>
+                      <span className="text-sm font-medium text-slate-600 block">{user.peerApplication?.email || user.email || '—'}</span>
                       <span className="text-xs text-muted-foreground">{user.phone}</span>
                     </div>
                   </td>
@@ -203,65 +202,34 @@ export default function PeerManagement() {
                     </span>
                   </td>
 
-                  {/* Onboarding Status */}
-                  <td className="px-6 py-4">
-                    {user.peerApplication?.status === 'approved' || user.role === 'PEER' ? (
-                      <div className="flex flex-col gap-1.5">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-700 rounded-lg text-xs font-semibold border border-green-200 w-fit">
-                          <CheckCircle2 size={12} /> Approved
-                        </span>
-                        {user.peerApplication && (
-                          <button
-                            onClick={() => router.push(`/admin/connect/peers/${user.id}/application`)}
-                            className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 w-fit transition-colors"
-                          >
-                            <Eye size={12} /> View Application
-                          </button>
-                        )}
-                      </div>
-                    ) : user.peerApplication ? (
-                      <div className="flex flex-col gap-1.5">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-700 rounded-lg text-xs font-semibold border border-amber-200 w-fit">
-                          <Clock size={12} /> Pending
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <button
-                            disabled={approvingPeer === user.id}
-                            onClick={() => handleApprovePeer(user.id)}
-                            className="text-xs font-semibold bg-primary text-white px-3 py-1 rounded-lg hover:shadow-md hover:shadow-primary/20 transition-all active:scale-95 flex items-center gap-1 disabled:opacity-50"
-                          >
-                            {approvingPeer === user.id ? <Loader2 size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => router.push(`/admin/connect/peers/${user.id}/application`)}
-                            className="p-1 bg-slate-100 text-slate-500 rounded-lg hover:bg-primary/10 hover:text-primary transition-all"
-                            title="View Application"
-                          >
-                            <Eye size={13} />
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">No application</span>
-                    )}
-                  </td>
-
-                  {/* Certification */}
+                  {/* Certification & Application */}
                   <td className="px-6 py-4">
                     {user.peerApplication ? (
-                      <div className="flex flex-col gap-1.5">
+                      <div className="flex flex-col gap-2">
                         {certBadge(user.peerApplication.certificationStatus || 'pending_training')}
-                        {user.peerApplication.trainingScore !== null && (
+                        
+                        <div className="flex flex-col gap-1 mt-1">
                           <button
                             onClick={() => router.push(`/admin/connect/peers/${user.id}/assessment`)}
                             className="text-xs text-muted-foreground hover:text-purple-600 flex items-center gap-1 w-fit transition-colors"
                           >
-                            <Eye size={12} /> Review Assessment
+                            <Eye size={12} /> Review Full Details
+                          </button>
+                        </div>
+
+                        {user.peerApplication.status === 'pending' && (
+                          <button
+                            disabled={approvingPeer === user.id}
+                            onClick={() => handleApprovePeer(user.id)}
+                            className="mt-1 text-xs font-semibold bg-primary text-white px-3 py-1.5 rounded-lg hover:shadow-md hover:shadow-primary/20 transition-all active:scale-95 flex items-center gap-1.5 w-fit disabled:opacity-50"
+                          >
+                            {approvingPeer === user.id ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
+                            Approve Peer
                           </button>
                         )}
+
                         {user.peerApplication.certificateId && (
-                          <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 bg-slate-50 text-slate-400 border border-slate-100 rounded text-[9px] font-bold uppercase tracking-tighter">
+                          <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 bg-slate-50 text-slate-400 border border-slate-100 rounded text-[9px] font-bold uppercase tracking-tighter w-fit">
                             ID: {user.peerApplication.certificateId}
                           </div>
                         )}
@@ -286,24 +254,30 @@ export default function PeerManagement() {
                         </button>
 
                         {openMenuId === user.id && (
-                          <div className="absolute right-0 top-10 bg-white shadow-xl border border-slate-100 rounded-2xl overflow-hidden w-52 z-50 animate-in fade-in zoom-in-95 duration-150">
-                            {(user.peerApplication?.certificationStatus === 'certified' || user.peerApplication?.certificationStatus === 'submitted') && (
-                              <button
-                                onClick={() => handleUnapproveAssessment(user.id)}
-                                className="w-full text-left px-4 py-3 text-sm text-amber-600 hover:bg-amber-50 transition-colors flex items-center gap-2.5 font-medium border-b border-slate-50"
-                              >
-                                <Clock size={15} className="text-amber-500 shrink-0" />
-                                Unapprove Assessment
-                              </button>
-                            )}
-                            <button
-                              onClick={() => handleRevoke(user.id)}
-                              className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2.5 font-medium"
+                          <>
+                            <div className="fixed inset-0 z-40" onClick={() => setOpenMenuId(null)} />
+                            <div 
+                              style={{ bottom: 'calc(100% + 8px)' }}
+                              className="absolute right-0 bg-white shadow-2xl border border-slate-100 rounded-2xl overflow-hidden w-52 z-50 animate-in fade-in zoom-in-95 duration-150"
                             >
-                              <AlertCircle size={15} className="text-red-500 shrink-0" />
-                              Uncertify User
-                            </button>
-                          </div>
+                              {(user.peerApplication?.certificationStatus === 'certified' || user.peerApplication?.certificationStatus === 'submitted') && (
+                                <button
+                                  onClick={() => handleUnapproveAssessment(user.id)}
+                                  className="w-full text-left px-4 py-3 text-sm text-amber-600 hover:bg-amber-50 transition-colors flex items-center gap-2.5 font-medium border-b border-slate-50"
+                                >
+                                  <Clock size={15} className="text-amber-500 shrink-0" />
+                                  Unapprove Assessment
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleRevoke(user.id)}
+                                className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2.5 font-medium"
+                              >
+                                <AlertCircle size={15} className="text-red-500 shrink-0" />
+                                Uncertify User
+                              </button>
+                            </div>
+                          </>
                         )}
                       </div>
                     )}
@@ -313,7 +287,7 @@ export default function PeerManagement() {
 
               {data?.users.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-8 py-16 text-center">
+                  <td colSpan={5} className="px-8 py-16 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center">
                         <UserCheck size={22} className="text-slate-300" />

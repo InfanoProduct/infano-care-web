@@ -39,8 +39,7 @@ export default function WebinarRegistrationDetailPage() {
     if (!order) return;
     try {
       toast.loading(`Resending ticket credentials to ${order.guestEmail}...`);
-      // Simulate/Trigger resending the email templates
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await apiClient.post(`/admin/orders/${order.id}/resend-email`, {});
       toast.dismiss();
       toast.success(`Success! Webinar confirmation email sent to ${order.guestEmail}`);
     } catch (e) {

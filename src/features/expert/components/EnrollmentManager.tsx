@@ -115,7 +115,7 @@ export function EnrollmentManager() {
                     </td>
                     <td className="py-4 px-4 text-right">
                       <button
-                        onClick={() => router.push(`/admin/expert/enrollments/${enrollment.id}`)}
+                        onClick={() => router.push(`/dashboard/program-sessions/${enrollment.id}`)}
                         className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-white transition-colors font-bold text-xs"
                         title="Manage Sessions"
                       >

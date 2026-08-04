@@ -20,6 +20,9 @@ export default function ProfilePage() {
     displayName: user?.profile?.displayName || '',
     email: user?.email || '',
     phone: user?.phone || '',
+    specialisation: user?.profile?.specialisation || '',
+    consultationPrice: user?.profile?.consultationPrice?.toString() || '500',
+    bio: user?.profile?.bio || '',
   });
 
   // Sync state if user data is fetched post-mount by the layout
@@ -29,6 +32,9 @@ export default function ProfilePage() {
         displayName: user?.profile?.displayName || '',
         email: user?.email || '',
         phone: user?.phone || '',
+        specialisation: user?.profile?.specialisation || '',
+        consultationPrice: user?.profile?.consultationPrice?.toString() || '500',
+        bio: user?.profile?.bio || '',
       });
     }
   }, [user, editMode]);
@@ -84,6 +90,61 @@ export default function ProfilePage() {
     }
   }, [user]);
 
+  const [allTopics, setAllTopics] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (user?.role === 'PEER') {
+      apiClient.get('/peerline/topics')
+        .then((res: any) => setAllTopics(res?.topics || []))
+        .catch(console.error);
+    }
+  }, [user?.role]);
+
+  const getDisplayAge = useCallback(() => {
+    if (user?.profile?.dateOfBirth) {
+      const diff = Date.now() - new Date(user.profile.dateOfBirth).getTime();
+      return Math.abs(new Date(diff).getUTCFullYear() - 1970).toString();
+    }
+    if (user?.peerApplication?.eligibility) {
+      let eligibilityObj = user.peerApplication.eligibility;
+      if (typeof eligibilityObj === 'string') {
+        try { eligibilityObj = JSON.parse(eligibilityObj); } catch (e) { eligibilityObj = {}; }
+      }
+      if (eligibilityObj.age) return eligibilityObj.age.toString();
+    }
+    if (user?.ageAtSignup) {
+      return user.ageAtSignup.toString();
+    }
+    return 'Not provided';
+  }, [user]);
+
+  const getSelectedTopicNames = useCallback(() => {
+    if (user?.role !== 'PEER') return [];
+    
+    // First try certifiedTopicIds from profile if it exists and has items
+    let topicIds: string[] = [];
+    if (user?.profile?.certifiedTopicIds && user?.profile?.certifiedTopicIds.length > 0) {
+      topicIds = user.profile.certifiedTopicIds;
+    } else if (user?.peerApplication?.eligibility) {
+      // Fallback to application eligibility
+      let eligibilityObj = user.peerApplication.eligibility;
+      if (typeof eligibilityObj === 'string') {
+        try { eligibilityObj = JSON.parse(eligibilityObj); } catch (e) { eligibilityObj = {}; }
+      }
+      if (Array.isArray(eligibilityObj.topicIds)) {
+        topicIds = eligibilityObj.topicIds;
+      }
+    }
+
+    if (topicIds.length === 0) return [];
+    
+    // Map to names
+    return topicIds.map(id => {
+      const found = allTopics.find(t => t.id === id);
+      return found ? found.name : id; // fallback to ID if name not found yet
+    });
+  }, [user, allTopics]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -133,6 +194,9 @@ export default function ProfilePage() {
       displayName: user?.profile?.displayName || '',
       email: user?.email || '',
       phone: user?.phone || '',
+      specialisation: user?.profile?.specialisation || '',
+      consultationPrice: user?.profile?.consultationPrice?.toString() || '500',
+      bio: user?.profile?.bio || '',
     });
     setEditMode(false);
   };
@@ -375,9 +439,15 @@ export default function ProfilePage() {
     e.preventDefault();
     setLoading(true);
     try {
+      const isExpert = user?.role === 'EXPERT';
       await apiClient.put('/user/profile', {
         displayName: formData.displayName,
         email: formData.email,
+        ...(isExpert && {
+          specialisation: formData.specialisation,
+          consultationPrice: formData.consultationPrice ? parseFloat(formData.consultationPrice) : null,
+          bio: formData.bio
+        })
       });
       
       toast.success('Profile preferences updated!');
@@ -390,9 +460,15 @@ export default function ProfilePage() {
           {
             ...user,
             email: formData.email,
-            profile: user.profile 
-              ? { ...user.profile, displayName: formData.displayName }
-              : { displayName: formData.displayName }
+            profile: {
+              ...user.profile,
+              displayName: formData.displayName,
+              ...(isExpert && {
+                specialisation: formData.specialisation,
+                consultationPrice: formData.consultationPrice ? parseFloat(formData.consultationPrice) : null,
+                bio: formData.bio
+              })
+            }
           }
         );
       }
@@ -513,6 +589,89 @@ export default function ProfilePage() {
                     <p className="text-[9px] text-slate-400 mt-1">Contact support to change primary phone.</p>
                   </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className={user?.role === 'PEER' ? '' : 'col-span-2'}>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Age</label>
+                    <input
+                      type="text"
+                      value={getDisplayAge()}
+                      disabled
+                      className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-sm font-semibold text-slate-500 cursor-not-allowed"
+                    />
+                  </div>
+                  {user?.role === 'PEER' && (
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Selected Topics</label>
+                      <div className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-sm font-semibold text-slate-500 cursor-not-allowed min-h-[42px] flex flex-wrap gap-1">
+                        {getSelectedTopicNames().length > 0 ? (
+                          getSelectedTopicNames().map((topicName: string, idx: number) => (
+                            <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
+                              {topicName}
+                            </span>
+                          ))
+                        ) : (
+                          <span>None selected</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {user?.role === 'EXPERT' && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Specialisation</label>
+                      <input
+                        type="text"
+                        name="specialisation"
+                        value={formData.specialisation}
+                        onChange={handleChange}
+                        disabled={!editMode}
+                        placeholder="e.g. Pediatrician, Counselor"
+                        className={`w-full px-3.5 py-2.5 border rounded-lg text-sm font-semibold transition-all ${
+                          editMode 
+                            ? 'bg-white border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none text-slate-800' 
+                            : 'bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed'
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Consultation Price (₹)</label>
+                      <input
+                        type="number"
+                        name="consultationPrice"
+                        value={formData.consultationPrice}
+                        onChange={handleChange}
+                        disabled={!editMode}
+                        min="0"
+                        className={`w-full px-3.5 py-2.5 border rounded-lg text-sm font-semibold transition-all ${
+                          editMode 
+                            ? 'bg-white border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none text-slate-800' 
+                            : 'bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed'
+                        }`}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {user?.role === 'EXPERT' && (
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Bio</label>
+                    <textarea
+                      name="bio"
+                      value={formData.bio}
+                      onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                      disabled={!editMode}
+                      rows={3}
+                      className={`w-full px-3.5 py-2.5 border rounded-lg text-sm font-semibold transition-all resize-none ${
+                        editMode 
+                          ? 'bg-white border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none text-slate-800' 
+                          : 'bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed'
+                      }`}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="pt-3 flex justify-end gap-2">

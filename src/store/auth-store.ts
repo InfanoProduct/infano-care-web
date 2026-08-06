@@ -22,7 +22,6 @@ interface AuthState {
     onboardingCompletedAt?: string | null;
     isOnboardingCompleted?: boolean;
     requiresPasswordReset?: boolean;
-    peerApplication?: any;
     profile?: {
       displayName?: string;
       [key: string]: any;

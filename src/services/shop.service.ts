@@ -60,6 +60,7 @@ export interface OrderResponse {
   razorpayOrderId?: string;
   paymentMethod: string;
   stripeSessionUrl?: string;
+  razorpayKeyId?: string;
 }
 
 export interface Webinar {

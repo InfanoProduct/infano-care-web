@@ -16,6 +16,8 @@ interface AuthState {
     peerApplication?: any;
     contentTier?: string;
     ageAtSignup?: number;
+    birthYear?: number;
+    birthMonth?: number;
     onboardingStep?: number;
     onboardingCompletedAt?: string | null;
     isOnboardingCompleted?: boolean;

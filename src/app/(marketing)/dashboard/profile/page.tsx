@@ -20,6 +20,7 @@ export default function ProfilePage() {
     displayName: user?.profile?.displayName || '',
     email: user?.email || '',
     phone: user?.phone || '',
+    dateOfBirth: user?.birthYear && user?.birthMonth ? `${user.birthYear}-${user.birthMonth.toString().padStart(2, '0')}-01` : '',
     specialisation: user?.profile?.specialisation || '',
     consultationPrice: user?.profile?.consultationPrice?.toString() || '500',
     bio: user?.profile?.bio || '',
@@ -32,6 +33,7 @@ export default function ProfilePage() {
         displayName: user?.profile?.displayName || '',
         email: user?.email || '',
         phone: user?.phone || '',
+        dateOfBirth: user?.birthYear && user?.birthMonth ? `${user.birthYear}-${user.birthMonth.toString().padStart(2, '0')}-01` : '',
         specialisation: user?.profile?.specialisation || '',
         consultationPrice: user?.profile?.consultationPrice?.toString() || '500',
         bio: user?.profile?.bio || '',
@@ -100,20 +102,9 @@ export default function ProfilePage() {
     }
   }, [user?.role]);
 
-  const getDisplayAge = useCallback(() => {
-    if (user?.profile?.dateOfBirth) {
-      const diff = Date.now() - new Date(user.profile.dateOfBirth).getTime();
-      return Math.abs(new Date(diff).getUTCFullYear() - 1970).toString();
-    }
-    if (user?.peerApplication?.eligibility) {
-      let eligibilityObj = user.peerApplication.eligibility;
-      if (typeof eligibilityObj === 'string') {
-        try { eligibilityObj = JSON.parse(eligibilityObj); } catch (e) { eligibilityObj = {}; }
-      }
-      if (eligibilityObj.age) return eligibilityObj.age.toString();
-    }
-    if (user?.ageAtSignup) {
-      return user.ageAtSignup.toString();
+  const getDisplayDOB = useCallback(() => {
+    if (user?.birthYear && user?.birthMonth) {
+      return `${user.birthMonth.toString().padStart(2, '0')}/${user.birthYear}`;
     }
     return 'Not provided';
   }, [user]);
@@ -194,6 +185,7 @@ export default function ProfilePage() {
       displayName: user?.profile?.displayName || '',
       email: user?.email || '',
       phone: user?.phone || '',
+      dateOfBirth: user?.birthYear && user?.birthMonth ? `${user.birthYear}-${user.birthMonth.toString().padStart(2, '0')}-01` : '',
       specialisation: user?.profile?.specialisation || '',
       consultationPrice: user?.profile?.consultationPrice?.toString() || '500',
       bio: user?.profile?.bio || '',
@@ -443,6 +435,7 @@ export default function ProfilePage() {
       await apiClient.put('/user/profile', {
         displayName: formData.displayName,
         email: formData.email,
+        dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString() : undefined,
         ...(isExpert && {
           specialisation: formData.specialisation,
           consultationPrice: formData.consultationPrice ? parseFloat(formData.consultationPrice) : null,
@@ -460,6 +453,10 @@ export default function ProfilePage() {
           {
             ...user,
             email: formData.email,
+            ...(formData.dateOfBirth && {
+              birthYear: new Date(formData.dateOfBirth).getFullYear(),
+              birthMonth: new Date(formData.dateOfBirth).getMonth() + 1
+            }),
             profile: {
               ...user.profile,
               displayName: formData.displayName,
@@ -592,13 +589,23 @@ export default function ProfilePage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className={user?.role === 'PEER' ? '' : 'col-span-2'}>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Age</label>
-                    <input
-                      type="text"
-                      value={getDisplayAge()}
-                      disabled
-                      className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-sm font-semibold text-slate-500 cursor-not-allowed"
-                    />
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Date of Birth</label>
+                    {editMode ? (
+                      <input
+                        type="date"
+                        name="dateOfBirth"
+                        value={formData.dateOfBirth}
+                        onChange={handleChange}
+                        className="w-full px-3.5 py-2.5 border border-primary rounded-lg text-sm font-semibold text-slate-800 bg-white focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                      />
+                    ) : (
+                      <input
+                        type="text"
+                        value={getDisplayDOB()}
+                        disabled
+                        className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-sm font-semibold text-slate-500 cursor-not-allowed"
+                      />
+                    )}
                   </div>
                   {user?.role === 'PEER' && (
                     <div>

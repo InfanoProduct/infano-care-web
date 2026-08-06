@@ -216,7 +216,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
         }
 
         const options = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+          key: order.razorpayKeyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
           amount: order.amount,
           currency: order.currency,
           name: 'Infano.care',

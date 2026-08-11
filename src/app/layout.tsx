@@ -132,6 +132,7 @@ export default function RootLayout({
     >
       <head>
         <Analytics />
+        <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
       </head>
       <body className="min-h-full flex flex-col bg-background" suppressHydrationWarning>
         <AnalyticsNoScript />

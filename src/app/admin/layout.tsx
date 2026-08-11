@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { 
   LayoutDashboard, Users, Calendar, Settings, ShieldCheck, LogOut, 
   BookOpen, FileText, ShoppingBag, ChevronDown, Zap, Globe, 
-  UserCheck, Ticket, MapPin, FileQuestion, Image, Award, CreditCard, CalendarDays
+  UserCheck, Ticket, MapPin, FileQuestion, Image, Award, CreditCard, CalendarDays, MonitorPlay
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 import { AuthService } from '@/services/auth.service';
@@ -91,6 +91,7 @@ export default function AdminLayout({
       { name: 'User Management', icon: Users, href: '/admin/users' },
       { name: 'Learning Journeys', icon: BookOpen, href: '/admin/learning' },
       { name: 'Learning Programs', icon: Award, href: '/admin/programs' },
+      { name: 'LMS Courses', icon: MonitorPlay, href: '/admin/lms/courses' },
       { name: 'Blogs', icon: FileText, href: '/admin/blogs' },
       { name: 'Assets', icon: Image, href: '/admin/assets' },
       { name: 'Transactions', icon: CreditCard, href: '/admin/transactions' },

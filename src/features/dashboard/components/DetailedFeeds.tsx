@@ -116,7 +116,7 @@ export function DetailedFeeds({ startDate, endDate }: DetailedFeedsProps) {
                       {prog.title}
                     </p>
                     <p className="text-[10px] text-[#64748B] font-bold mt-0.5">
-                      Classes {prog.classRange} • {prog.duration}
+                      {prog.duration}
                     </p>
                   </div>
                   <div className="text-right">

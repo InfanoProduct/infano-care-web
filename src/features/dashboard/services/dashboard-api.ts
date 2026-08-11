@@ -48,7 +48,6 @@ export interface RecentProgram {
   id: string;
   title: string;
   tagline: string;
-  classRange: string;
   duration: string;
   price: number;
   enrolledCount: number;

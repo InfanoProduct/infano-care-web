@@ -186,10 +186,8 @@ export default function OrderDetailsPage() {
 
                       <div className="flex items-center justify-between pt-2">
                         <span className="text-xs font-bold text-slate-400">
-                          Class range: <span className="text-slate-700 font-extrabold">{data.program?.classRange}</span>
                           {data.program?.duration && (
                             <>
-                              <span className="mx-2">•</span>
                               Duration: <span className="text-slate-700 font-extrabold">{data.program.duration}</span>
                             </>
                           )}

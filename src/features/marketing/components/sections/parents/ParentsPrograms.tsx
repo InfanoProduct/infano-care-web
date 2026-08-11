@@ -120,21 +120,21 @@ function ProgramCard({ program, index }: { program: Program; index: number }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const themeKeys = Object.keys(STYLES_MAP);
   const styles = STYLES_MAP[themeKeys[index % themeKeys.length]] || DEFAULT_STYLE;
-  
+
   const consultationsCount = Array.isArray(program.consultations)
     ? program.consultations.length
     : 0;
   const remainingFeatures = (program.features && program.features.length > 0)
     ? program.features
     : [
-        "1 physical book",
-        "Digital learning access",
-        "Safe community led by experts",
-        "Menstrual Tracker"
-      ];
+      "1 physical book",
+      "Digital learning access",
+      "Safe community led by experts",
+      "Menstrual Tracker"
+    ];
   const programIncludesItems = [
-    `${program.sessionsList?.length || 0} sessions by trained experts`,
-    `${consultationsCount} doctors consultations`,
+    `${program.sessionsList?.length || 0} Sessions by trained experts`,
+    `${consultationsCount} Consultation`,
     ...remainingFeatures
   ];
 
@@ -172,9 +172,6 @@ function ProgramCard({ program, index }: { program: Program; index: number }) {
               <h3 className={`text-2xl md:text-3xl font-bold tracking-tight ${styles.text}`}>
                 {program.title}
               </h3>
-              <span className={`shrink-0 whitespace-nowrap mt-1 md:mt-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-white shadow-sm border border-slate-100 ${styles.text}`}>
-                {program.classRange}
-              </span>
             </div>
             <p className="text-slate-800 font-semibold text-sm md:text-[15px] leading-snug">
               "{program.tagline}"
@@ -271,7 +268,7 @@ export function ParentsPrograms() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-4xl md:text-5xl font-bold font-heading mb-6 tracking-tight leading-[1.15] text-slate-900 w-full"
           >
-            5 Programs. <span className="text-primary">One Complete Journey.</span>
+            <span className="text-primary">One Complete Journey.</span>
           </motion.h2>
 
           <motion.p

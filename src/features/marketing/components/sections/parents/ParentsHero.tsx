@@ -99,15 +99,9 @@ export function ParentsHero() {
               className="flex flex-col sm:flex-row items-center gap-6 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
               style={{ animationDelay: '300ms' }}
             >
-              <Link href="/program-enrollment" className="btn-primary w-full text-sm px-8 py-3.5 group shadow-lg shadow-primary/20 text-center sm:w-auto">
+              <Link href="/programs/the unfiltered journey" className="btn-primary w-full text-sm px-8 py-3.5 group shadow-lg shadow-primary/20 text-center sm:w-auto">
                 Enrol Your Daughter <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1" size={20} />
               </Link>
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="btn-outline w-full text-sm px-8 py-3.5 backdrop-blur-md bg-white/50 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 text-center sm:w-auto"
-              >
-                Download the Parent Guide
-              </button>
             </div>
           </div>
 

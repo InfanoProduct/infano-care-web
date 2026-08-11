@@ -158,9 +158,6 @@ export default function ProgramsManagement() {
   const [formTitle, setFormTitle] = useState('');
   const [formTagline, setFormTagline] = useState('');
   const [formDescription, setFormDescription] = useState('');
-  const [formClassRange, setFormClassRange] = useState('');
-  const [formMinClass, setFormMinClass] = useState(5);
-  const [formMaxClass, setFormMaxClass] = useState(6);
   const [formDuration, setFormDuration] = useState('');
   const [formPrice, setFormPrice] = useState(0);
   const [formIsActive, setFormIsActive] = useState(true);
@@ -336,9 +333,6 @@ export default function ProgramsManagement() {
     setFormTitle('');
     setFormTagline('');
     setFormDescription('');
-    setFormClassRange('');
-    setFormMinClass(5);
-    setFormMaxClass(6);
     setFormDuration('');
     setFormPrice(0);
     setFormIsActive(true);
@@ -362,9 +356,6 @@ export default function ProgramsManagement() {
     setFormTitle(program.title);
     setFormTagline(program.tagline);
     setFormDescription(program.description || '');
-    setFormClassRange(program.classRange);
-    setFormMinClass(program.minClass);
-    setFormMaxClass(program.maxClass);
     setFormDuration(program.duration);
     setFormPrice(program.price || 0);
     setFormIsActive(program.isActive);
@@ -427,7 +418,7 @@ export default function ProgramsManagement() {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formTitle || !formClassRange || !formDuration) {
+    if (!formTitle || !formDuration) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -438,9 +429,6 @@ export default function ProgramsManagement() {
       tagline: formTagline,
       description: formDescription,
       thumbnailUrl: formThumbnailUrl || null,
-      classRange: formClassRange,
-      minClass: Number(formMinClass),
-      maxClass: Number(formMaxClass),
       duration: formDuration,
       price: Number(formPrice),
       isActive: formIsActive,
@@ -507,8 +495,7 @@ export default function ProgramsManagement() {
   // Filter & Search Logic
   const filteredPrograms = programs.filter(p =>
     p.title.toLowerCase().includes(programSearch.toLowerCase()) ||
-    p.tagline.toLowerCase().includes(programSearch.toLowerCase()) ||
-    p.classRange.toLowerCase().includes(programSearch.toLowerCase())
+    p.tagline.toLowerCase().includes(programSearch.toLowerCase())
   );
 
   const filteredEnrollments = enrollments.filter(e => {
@@ -624,24 +611,7 @@ export default function ProgramsManagement() {
                 />
               </div>
 
-              {/* Class Target */}
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Target Class *</label>
-                <input
-                  type="number"
-                  required
-                  min={1}
-                  max={12}
-                  value={formMinClass}
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    setFormMinClass(val);
-                    setFormMaxClass(val);
-                    setFormClassRange(`Class ${val}`);
-                  }}
-                  className="w-full bg-secondary/30 border border-border/50 rounded-2xl px-5 py-3.5 text-foreground outline-none focus:border-primary/50 transition-all font-semibold"
-                />
-              </div>
+
 
               <div className="grid grid-cols-2 gap-4">
 
@@ -1162,9 +1132,6 @@ export default function ProgramsManagement() {
                             <img src={program.thumbnailUrl} alt={program.title} className="w-16 h-16 rounded-2xl object-cover shrink-0 border border-slate-200" />
                           )}
                           <div>
-                            <span className="text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-md border border-slate-200">
-                              {program.classRange}
-                            </span>
                             <h3 className="text-xl font-black text-slate-800 tracking-tight mt-1.5 transition-colors">
                               {program.title}
                             </h3>
@@ -1205,10 +1172,6 @@ export default function ProgramsManagement() {
                         </div>
                       )}
                       <div className="relative z-10 flex justify-between items-start">
-                        <span className="text-xs font-black uppercase tracking-widest bg-white/25 backdrop-blur-sm px-3.5 py-1 rounded-full border border-white/10 shadow-sm">
-                          {activeProgram.classRange}
-                        </span>
-
                         <div className="flex items-center gap-1.5 bg-white/25 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-wider">
                           <div className={`w-1.5 h-1.5 rounded-full ${activeProgram.isActive ? 'bg-emerald-300 animate-pulse' : 'bg-amber-300'}`} />
                           {activeProgram.isActive ? 'Active' : 'Draft'}
@@ -1493,9 +1456,7 @@ export default function ProgramsManagement() {
                             <span className="font-extrabold text-foreground bg-secondary px-3 py-1 rounded-xl border border-border/60 text-sm">
                               {enrollment.program.title}
                             </span>
-                            <p className="text-xs text-muted-foreground font-bold mt-2">
-                              Target: {enrollment.program.classRange}
-                            </p>
+
                           </div>
                         </td>
 
@@ -1894,7 +1855,7 @@ export default function ProgramsManagement() {
                       <option value="">Select a Program</option>
                       {programs.map((prog) => (
                         <option key={prog.id} value={prog.id}>
-                          {prog.title} ({prog.classRange})
+                          {prog.title}
                         </option>
                       ))}
                     </select>

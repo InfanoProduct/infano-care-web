@@ -285,16 +285,8 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
 
   // Find the appropriate program metadata based on class range selection
   const getSuggestedPrograms = () => {
-    const selectedClass = answers.classRange;
-    if (!selectedClass || programsList.length === 0) return [];
-    const matched = programsList.find((p) => {
-      const classNum = parseInt(selectedClass);
-      if (!isNaN(classNum)) {
-        return p.minClass <= classNum && classNum <= p.maxClass;
-      }
-      return p.classRange.toLowerCase().includes(selectedClass.toLowerCase());
-    });
-    return matched ? [matched] : [programsList[0]];
+    if (programsList.length === 0) return [];
+    return [programsList[0]];
   };
 
   const suggestedPrograms = getSuggestedPrograms();
@@ -731,9 +723,6 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                         {/* Title / Class */}
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground bg-slate-100 px-2 py-0.5 rounded-md">
-                              {prog.classRange}
-                            </span>
                             <span className="text-xs font-medium text-slate-400 flex items-center gap-1">
                               <Calendar size={11} />
                               {prog.duration} • {prog.sessionsList?.length || 0} Sessions

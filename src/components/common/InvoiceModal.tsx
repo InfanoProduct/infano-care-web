@@ -49,7 +49,7 @@ export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps)
     const book = item.book || {};
     const bookId = (item.bookId || '').toLowerCase();
     const bookTitle = (book.title || item.bookTitle || '').toLowerCase();
-    if (book.curriculum?.length || book.classRange || book.duration) return true;
+    if (book.curriculum?.length || book.duration) return true;
     if (bookId.includes('program') || bookId.includes('private') || bookId.includes('group') || bookId.includes('cohort')) return true;
     if (bookTitle.includes('program') || bookTitle.includes('mentoring') || bookTitle.includes('cohort')) return true;
     return false;

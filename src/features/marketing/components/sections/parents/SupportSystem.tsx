@@ -186,16 +186,6 @@ export function SupportSystem() {
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
                       priority
                     />
-
-                    {/* Free Consultation Badges inside Image Container at Top Right */}
-                    <div className="absolute top-3.5 right-3.5 flex flex-row items-center gap-1.5 z-10">
-                      <span className="text-[10px] font-bold lowercase px-2.5 py-1 rounded-full backdrop-blur-md bg-white/95 text-slate-800 border border-white/40 shadow-sm">
-                        {index === 0 ? "1st consultation" : index === 1 ? "2nd consultation" : "3rd consultation"}
-                      </span>
-                      <span className="text-[10px] font-extrabold lowercase px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-500 text-white shadow-sm animate-pulse">
-                        free
-                      </span>
-                    </div>
                   </div>
 
                   {/* Highlighted Badge & Icon Row */}

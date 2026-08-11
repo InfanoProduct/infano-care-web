@@ -74,8 +74,8 @@ export function VideoPlayer({ src, poster, autoPlay = false }: VideoPlayerProps)
         },
         () => {
           videojs.log("player is ready");
-          if (player.hlsQualitySelector) {
-            player.hlsQualitySelector({ displayCurrentQuality: true });
+          if ((player as any).hlsQualitySelector) {
+            (player as any).hlsQualitySelector({ displayCurrentQuality: true });
           }
         }
       ));

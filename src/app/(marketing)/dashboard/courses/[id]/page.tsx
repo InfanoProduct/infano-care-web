@@ -10,7 +10,7 @@ import { apiClient } from "@/lib/api-client";
 import dynamic from "next/dynamic";
 import { VideoPlayer } from "@/components/video/VideoPlayer";
 
-const ReactPlayer = dynamic(() => import("react-player"), { ssr: false });
+const ReactPlayer = dynamic(() => import("react-player"), { ssr: false }) as any;
 
 export default function CoursePlayerPage() {
   const { id } = useParams();

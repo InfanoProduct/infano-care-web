@@ -61,7 +61,7 @@ export default function ExploreCoursesPage() {
 
   const handlePurchase = async (courseId: string) => {
     try {
-      const res = await apiClient.post(`/lms/${courseId}/purchase`);
+      const res = await apiClient.post(`/lms/${courseId}/purchase`) as any;
       
       if (res && res.razorpay) {
         if (typeof (window as any).Razorpay === 'undefined') {

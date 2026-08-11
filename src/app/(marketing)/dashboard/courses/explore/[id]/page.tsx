@@ -35,7 +35,7 @@ export default function CourseExplorePage() {
 
   const handlePurchase = async () => {
     try {
-      const res = await apiClient.post(`/lms/${course.id}/purchase`, {});
+      const res = await apiClient.post(`/lms/${course.id}/purchase`, {}) as any;
       
       if (course.isFree || !res.razorpay) {
         toast.success("Successfully enrolled!");
@@ -66,7 +66,7 @@ export default function CourseExplorePage() {
           }
         },
         prefill: {
-          name: user?.name || "",
+          name: (user as any)?.profile?.displayName || (user as any)?.name || "",
           email: user?.email || "",
           contact: user?.phone || "",
         },

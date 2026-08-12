@@ -9,6 +9,7 @@ export interface ProgramSession {
 export interface Program {
   id: string;
   title: string;
+  slug?: string;
   tagline: string;
   description?: string;
   thumbnailUrl?: string | null;

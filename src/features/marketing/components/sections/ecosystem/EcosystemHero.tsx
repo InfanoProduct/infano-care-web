@@ -13,7 +13,7 @@ export function EcosystemHero() {
 
   const handleNavigate = () => {
     setIsModalOpen(false);
-    router.push('/programs/the unfiltered journey');
+    router.push('/programs/the-unfiltered-journey');
   };
 
   return (

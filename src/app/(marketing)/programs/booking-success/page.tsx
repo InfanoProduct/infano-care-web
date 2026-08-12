@@ -133,6 +133,17 @@ function BookingSuccessContent() {
   const slotDate = searchParams.get('date') || '';
   const slotTime = searchParams.get('time') || '';
 
+  // Push generate_lead event to dataLayer
+  useEffect(() => {
+    const targetProgramName = programTitle && programTitle !== 'our Program' ? programTitle : 'The Unfiltered Journey';
+    const windowObj = window as any;
+    windowObj.dataLayer = windowObj.dataLayer || [];
+    windowObj.dataLayer.push({
+      event: "generate_lead",
+      content_name: targetProgramName
+    });
+  }, [programTitle]);
+
   // Format Date for display
   const getFormattedDateTime = () => {
     if (!slotDate) return 'your preferred date';

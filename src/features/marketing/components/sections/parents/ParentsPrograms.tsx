@@ -206,7 +206,7 @@ function ProgramCard({ program, index }: { program: Program; index: number }) {
         )}
 
         <Link
-          href={`/programs/${program.title.toLowerCase()}`}
+          href={`/programs/${program.slug || program.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`}
           className={`w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-2xl text-white font-semibold  transition-all ${styles.btnBg} relative z-10`}
         >
           <span>Enroll Now</span>

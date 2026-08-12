@@ -59,7 +59,7 @@ const parentServiceSchema = {
   "availableChannel": {
     "@type": "ServiceChannel",
     "name": "Enrol your daughter directly",
-    "serviceUrl": "https://infano.care/programs/the%20unfiltered%20journey",
+    "serviceUrl": "https://infano.care/programs/the-unfiltered-journey",
     "availableLanguage": "English"
   },
   "serviceOutput": "Infano app access for daughter (ages 10–21), non-intrusive parent dashboard, weekly learning summary of modules and topics completed, wellness flags with parental notification on consent, monthly progress milestones and skill development tracking, curated weekly conversation starter prompts for use at home",
@@ -85,7 +85,7 @@ const parentServiceSchema = {
         "@type": "Offer",
         "name": "Direct Family Access",
         "description": "Enrol directly through the Infano website or app. Includes full app access for your daughter and the parent dashboard with weekly insights and conversation prompts.",
-        "url": "https://infano.care/programs/the%20unfiltered%20journey",
+        "url": "https://infano.care/programs/the-unfiltered-journey",
         "itemOffered": { "@type": "Service", "name": "Infano app + parent dashboard — direct family enrolment" },
         "availability": "https://schema.org/InStock"
       },

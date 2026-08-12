@@ -71,7 +71,7 @@ export function HeroSection() {
               className="hidden xl:flex flex-col sm:flex-row items-center justify-start gap-4 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
               style={{ animationDelay: '300ms' }}
             >
-              <Link href="/programs/the unfiltered journey" className="btn-primary w-full sm:w-auto text-sm px-8 py-3.5 group shadow-lg shadow-primary/20">
+              <Link href="/programs/the-unfiltered-journey" className="btn-primary w-full sm:w-auto text-sm px-8 py-3.5 group shadow-lg shadow-primary/20">
                 Explore Journeys <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1" size={16} />
               </Link>
               <Link href="/parents" className="btn-outline w-full sm:w-auto text-sm px-8 py-3.5 bg-white/50 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300">

@@ -233,7 +233,8 @@ export default function ProgramDetailsPage() {
         
         if (data) {
           setProgram(data);
-          const pIndex = allPrograms.findIndex(p => p.id === id || p.title.toLowerCase() === decodeURIComponent(id).toLowerCase());
+          const targetSlug = decodeURIComponent(id).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+          const pIndex = allPrograms.findIndex(p => p.id === id || (p.slug && p.slug === targetSlug) || p.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') === targetSlug);
           setProgramIndex(Math.max(0, pIndex));
         } else {
           throw new Error('Not found');

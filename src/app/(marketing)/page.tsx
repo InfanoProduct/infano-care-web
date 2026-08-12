@@ -103,7 +103,7 @@ const homeSchema = {
         },
         "price": "799",
         "priceCurrency": "INR",
-        "url": "https://infano.care/program-enrollment"
+        "url": "https://infano.care/programs/the%20unfiltered%20journey"
       },
       {
         "@type": "Offer",
@@ -115,7 +115,7 @@ const homeSchema = {
         },
         "price": "799",
         "priceCurrency": "INR",
-        "url": "https://infano.care/program-enrollment"
+        "url": "https://infano.care/programs/the%20unfiltered%20journey"
       },
       {
         "@type": "Offer",
@@ -127,7 +127,7 @@ const homeSchema = {
         },
         "price": "999",
         "priceCurrency": "INR",
-        "url": "https://infano.care/program-enrollment"
+        "url": "https://infano.care/programs/the%20unfiltered%20journey"
       },
       {
         "@type": "Offer",

@@ -126,8 +126,6 @@ export default function EnrolledProgramsPage() {
                     </span>
                   </div>
                   <div className="flex items-center flex-wrap gap-1.5 text-xs font-semibold text-slate-400">
-                    <span>{enr.program.classRange}</span>
-                    <span className="w-1 h-1 rounded-full bg-slate-200" />
                     <span>{enr.program.curriculum?.length || 8} Sessions</span>
                     {enr.user?.id && user?.id && enr.user.id !== user.id && (
                       <>

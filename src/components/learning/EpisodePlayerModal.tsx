@@ -532,10 +532,10 @@ export default function EpisodePlayerModal({
 
   return (
     <div className="fixed inset-0 z-[150] bg-white overflow-hidden flex flex-col animate-in fade-in duration-200">
-      
+
       {/* Modal Container */}
       <div className="relative w-full h-full bg-white flex flex-col overflow-hidden">
-        
+
         {/* Top Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-white">
           <div className="flex items-center gap-2.5">
@@ -572,11 +572,11 @@ export default function EpisodePlayerModal({
             <div className="flex-1 flex flex-col overflow-hidden bg-white">
               {/* Player Body Content */}
               <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar">
-                
+
                 {/* WIZARD SCREENS */}
 
                 {/* ---------------- INTERACTIVE (TEEN) FLOW ---------------- */}
-                
+
                 {/* 1. HOOK SCREEN */}
                 {currentStep === 'hook' && (
                   <div className="max-w-2xl mx-auto space-y-4 py-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
@@ -623,15 +623,14 @@ export default function EpisodePlayerModal({
                           <p className="text-xs font-semibold">Image URL not specified.</p>
                         </div>
                       )}
-                      
+
                       {/* Navigation inside Flipbook overlay */}
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3 flex justify-between items-center">
                         <button
                           onClick={() => currentStoryPage > 0 && setCurrentStoryPage(p => p - 1)}
                           disabled={currentStoryPage === 0}
-                          className={`p-1.5 rounded bg-white/90 backdrop-blur-sm shadow-sm transition-all ${
-                            currentStoryPage === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
-                          }`}
+                          className={`p-1.5 rounded bg-white/90 backdrop-blur-sm shadow-sm transition-all ${currentStoryPage === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
+                            }`}
                         >
                           <ChevronLeft size={14} className="text-slate-700" />
                         </button>
@@ -640,9 +639,8 @@ export default function EpisodePlayerModal({
                           {content.story.pages.map((_, i) => (
                             <div
                               key={i}
-                              className={`h-1 rounded transition-all duration-200 ${
-                                i === currentStoryPage ? 'w-4 bg-white' : 'w-1 bg-white/50'
-                              }`}
+                              className={`h-1 rounded transition-all duration-200 ${i === currentStoryPage ? 'w-4 bg-white' : 'w-1 bg-white/50'
+                                }`}
                             />
                           ))}
                         </div>
@@ -650,9 +648,8 @@ export default function EpisodePlayerModal({
                         <button
                           onClick={() => currentStoryPage < content.story.pages.length - 1 && setCurrentStoryPage(p => p + 1)}
                           disabled={currentStoryPage === content.story.pages.length - 1}
-                          className={`p-1.5 rounded bg-white/90 backdrop-blur-sm shadow-sm transition-all ${
-                            currentStoryPage === content.story.pages.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
-                          }`}
+                          className={`p-1.5 rounded bg-white/90 backdrop-blur-sm shadow-sm transition-all ${currentStoryPage === content.story.pages.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
+                            }`}
                         >
                           <ChevronRight size={14} className="text-slate-700" />
                         </button>
@@ -681,9 +678,8 @@ export default function EpisodePlayerModal({
                         return (
                           <div key={qIdx} className={`p-4 bg-white border ${isCorrect ? 'border-emerald-150 bg-emerald-50/20' : 'border-slate-100'} rounded-lg transition-all shadow-sm duration-200 space-y-3`}>
                             <div className="flex items-start gap-2.5">
-                              <span className={`w-6 h-6 rounded flex items-center justify-center shrink-0 text-[10px] font-semibold uppercase ${
-                                isCorrect ? 'bg-emerald-100 text-emerald-600' : 'bg-purple-100 text-purple-600'
-                              }`}>
+                              <span className={`w-6 h-6 rounded flex items-center justify-center shrink-0 text-[10px] font-semibold uppercase ${isCorrect ? 'bg-emerald-100 text-emerald-600' : 'bg-purple-100 text-purple-600'
+                                }`}>
                                 Q{qIdx + 1}
                               </span>
                               <h4 className="text-xs sm:text-sm font-semibold text-slate-800 leading-tight">
@@ -696,7 +692,7 @@ export default function EpisodePlayerModal({
                                 const isSelected = quizAnswers[qIdx] === optIndex;
                                 const isOptionCorrect = optIndex === q.correctIndex;
                                 const isOptionWrong = isSelected && !isOptionCorrect;
-                                
+
                                 let btnClass = 'border-slate-150 bg-white hover:border-purple-200 hover:bg-purple-50/5 text-slate-700';
                                 if (quizLocked[qIdx]) {
                                   if (isOptionCorrect) {
@@ -719,11 +715,10 @@ export default function EpisodePlayerModal({
                                     disabled={quizLocked[qIdx]}
                                     className={`w-full flex items-center gap-2 p-3 rounded-lg border font-semibold text-left text-xs transition-all ${btnClass}`}
                                   >
-                                    <div className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-semibold border uppercase shrink-0 ${
-                                      isSelected
-                                        ? 'bg-current text-white border-transparent'
-                                        : 'bg-slate-50 border-slate-200 text-slate-400'
-                                    }`}>
+                                    <div className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-semibold border uppercase shrink-0 ${isSelected
+                                      ? 'bg-current text-white border-transparent'
+                                      : 'bg-slate-50 border-slate-200 text-slate-400'
+                                      }`}>
                                       {String.fromCharCode(65 + optIndex)}
                                     </div>
                                     <span className="flex-1 leading-tight">{opt}</span>
@@ -777,35 +772,33 @@ export default function EpisodePlayerModal({
                           <span className={reflectionText.trim().length >= 20 ? 'text-emerald-600' : 'text-slate-450'}>
                             Characters: {reflectionText.length} / 20 min
                           </span>
-                          
+
                           <div className="flex gap-1.5">
                             <button
                               type="button"
                               onClick={() => setReflectionMode('private')}
-                              className={`px-2 py-0.5 rounded border text-[9px] font-semibold uppercase tracking-wider transition-all ${
-                                reflectionMode === 'private'
-                                  ? 'bg-slate-900 border-slate-900 text-white shadow-sm'
-                                  : 'border-slate-100 text-slate-400 hover:border-slate-200'
-                              }`}
+                              className={`px-2 py-0.5 rounded border text-[9px] font-semibold uppercase tracking-wider transition-all ${reflectionMode === 'private'
+                                ? 'bg-slate-900 border-slate-900 text-white shadow-sm'
+                                : 'border-slate-100 text-slate-400 hover:border-slate-200'
+                                }`}
                             >
                               Private
                             </button>
                             <button
                               type="button"
                               onClick={() => setReflectionMode('community')}
-                              className={`px-2 py-0.5 rounded border text-[9px] font-semibold uppercase tracking-wider transition-all ${
-                                reflectionMode === 'community'
-                                  ? 'bg-slate-900 border-slate-900 text-white shadow-sm'
-                                  : 'border-slate-100 text-slate-400 hover:border-slate-200'
-                              }`}
+                              className={`px-2 py-0.5 rounded border text-[9px] font-semibold uppercase tracking-wider transition-all ${reflectionMode === 'community'
+                                ? 'bg-slate-900 border-slate-900 text-white shadow-sm'
+                                : 'border-slate-100 text-slate-400 hover:border-slate-200'
+                                }`}
                             >
                               Community
                             </button>
                           </div>
                         </div>
                         <p className="text-[9px] text-slate-400 leading-normal mt-1 font-medium">
-                          {reflectionMode === 'private' 
-                            ? '🔒 Private: Only you can view this journal entry in your dashboard.' 
+                          {reflectionMode === 'private'
+                            ? '🔒 Private: Only you can view this journal entry in your dashboard.'
                             : '👥 Community: Anonymous peer reflection shared in Gigis Circle feed.'}
                         </p>
                       </div>
@@ -1040,7 +1033,7 @@ export default function EpisodePlayerModal({
                           <span className={reflectionText.trim().length >= 30 ? 'text-emerald-600' : 'text-slate-400'}>
                             Characters: {reflectionText.length} / 30 min
                           </span>
-                          
+
                           <span className="px-2 py-0.5 bg-slate-100 text-slate-505 border border-slate-200 rounded text-[9px] font-semibold uppercase tracking-wider">
                             Private Submission
                           </span>
@@ -1124,16 +1117,15 @@ export default function EpisodePlayerModal({
 
               {/* Bottom Footer Controls */}
               <div className="px-4 py-3 border-t border-slate-100 bg-white flex items-center justify-between">
-                
+
                 {/* Back Button */}
                 <button
                   onClick={handlePrev}
                   disabled={currentStepIndex === 0 && currentStoryPage === 0}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded border text-[10px] font-semibold uppercase tracking-wider transition-all ${
-                    currentStepIndex === 0 && currentStoryPage === 0
-                      ? 'border-slate-100 text-slate-350 bg-slate-50/20 cursor-not-allowed'
-                      : 'border-slate-205 text-slate-600 bg-white hover:bg-slate-50 hover:shadow-sm'
-                  }`}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded border text-[10px] font-semibold uppercase tracking-wider transition-all ${currentStepIndex === 0 && currentStoryPage === 0
+                    ? 'border-slate-100 text-slate-350 bg-slate-50/20 cursor-not-allowed'
+                    : 'border-slate-205 text-slate-600 bg-white hover:bg-slate-50 hover:shadow-sm'
+                    }`}
                 >
                   <ChevronLeft size={14} /> Back
                 </button>
@@ -1143,13 +1135,12 @@ export default function EpisodePlayerModal({
                   {steps.map((s, idx) => (
                     <div
                       key={idx}
-                      className={`h-1.5 rounded transition-all duration-300 ${
-                        idx === currentStepIndex
-                          ? 'w-6 bg-purple-650'
-                          : idx < currentStepIndex
+                      className={`h-1.5 rounded transition-all duration-300 ${idx === currentStepIndex
+                        ? 'w-6 bg-purple-650'
+                        : idx < currentStepIndex
                           ? 'w-1.5 bg-emerald-505'
                           : 'w-1.5 bg-slate-200'
-                      }`}
+                        }`}
                       title={`Step ${idx + 1}`}
                     />
                   ))}
@@ -1160,11 +1151,10 @@ export default function EpisodePlayerModal({
                   <button
                     onClick={handleComplete}
                     disabled={isSubmitting || !canProceed()}
-                    className={`flex items-center gap-1 px-3 py-1.5 rounded text-[10px] font-semibold uppercase tracking-wider transition-all text-white bg-slate-900 shadow-sm ${
-                      !canProceed() || isSubmitting
-                        ? 'opacity-40 cursor-not-allowed bg-slate-300 shadow-none'
-                        : 'hover:scale-[1.01] hover:bg-purple-700'
-                    }`}
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded text-[10px] font-semibold uppercase tracking-wider transition-all text-white bg-slate-900 shadow-sm ${!canProceed() || isSubmitting
+                      ? 'opacity-40 cursor-not-allowed bg-slate-300 shadow-none'
+                      : 'hover:scale-[1.01] hover:bg-purple-700'
+                      }`}
                   >
                     {isSubmitting ? (
                       <>
@@ -1180,11 +1170,10 @@ export default function EpisodePlayerModal({
                   <button
                     onClick={handleNext}
                     disabled={!canProceed()}
-                    className={`flex items-center gap-1 px-3 py-1.5 rounded text-[10px] font-semibold uppercase tracking-wider transition-all text-white bg-purple-600 shadow-sm ${
-                      !canProceed()
-                        ? 'opacity-40 cursor-not-allowed bg-slate-300 shadow-none'
-                        : 'hover:scale-[1.01] hover:bg-purple-700'
-                    }`}
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded text-[10px] font-semibold uppercase tracking-wider transition-all text-white bg-purple-600 shadow-sm ${!canProceed()
+                      ? 'opacity-40 cursor-not-allowed bg-slate-300 shadow-none'
+                      : 'hover:scale-[1.01] hover:bg-purple-700'
+                      }`}
                   >
                     Next <ChevronRight size={14} />
                   </button>
@@ -1202,22 +1191,20 @@ export default function EpisodePlayerModal({
                   const isCurrent = idx === currentStepIndex;
                   const isCompleted = completedSteps.includes(stepName);
                   const isUnlocked = idx === 0 || completedSteps.includes(steps[idx - 1]);
-                  
+
                   return (
                     <button
                       key={stepName}
                       onClick={() => handleSidebarClick(idx)}
-                      className={`w-full flex items-center gap-2.5 p-2 rounded-none transition-all group relative ${
-                        isCurrent
-                          ? 'bg-purple-600 text-white shadow-sm'
-                          : isUnlocked
+                      className={`w-full flex items-center gap-2.5 p-2 rounded-none transition-all group relative ${isCurrent
+                        ? 'bg-purple-600 text-white shadow-sm'
+                        : isUnlocked
                           ? 'hover:bg-slate-200 text-slate-600 hover:text-slate-900'
                           : 'opacity-50 cursor-not-allowed text-slate-400'
-                      }`}
+                        }`}
                     >
-                      <div className={`w-6 h-6 rounded-none flex items-center justify-center transition-colors ${
-                        isCurrent ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-500'
-                      }`}>
+                      <div className={`w-6 h-6 rounded-none flex items-center justify-center transition-colors ${isCurrent ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-500'
+                        }`}>
                         {isUnlocked ? <Icon size={12} /> : <Lock size={10} />}
                       </div>
                       <div className="flex-1 text-left min-w-0">

@@ -12,9 +12,6 @@ export interface Program {
   tagline: string;
   description?: string;
   thumbnailUrl?: string | null;
-  classRange: string;
-  minClass: number;
-  maxClass: number;
   duration: string;
   topics: string[];
   price: number;
@@ -169,6 +166,11 @@ export const ProgramsService = {
    */
   async updateDemoStatus(id: string, payload: { status?: string; isReadyToEnroll?: boolean; comment?: string; meetLink?: string; slotDate?: string; slotTime?: string }): Promise<DemoSession> {
     return apiClient.patch<DemoSession>(`/admin/programs/demos/${id}`, payload);
+  },
+
+  async getBookedSlots(date: string): Promise<string[]> {
+    const res = await apiClient.get<{ success: boolean; data: string[] }>('/programs/demo/booked-slots', { params: { date } });
+    return res.data;
   },
 
   /**

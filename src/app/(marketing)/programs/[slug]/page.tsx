@@ -23,6 +23,7 @@ import {
 import { ProgramsService, Program, ProgramSession } from '@/services/programs.service';
 import { AuthService } from '@/services/auth.service';
 import { useAuthStore } from '@/store/auth-store';
+import { DateTimePickerModal } from '@/components/common/DateTimePickerModal';
 
 // Standard themes map matching parent program display
 const THEMES_MAP: Record<string, {
@@ -156,14 +157,13 @@ export default function ProgramDetailsPage() {
   const [slotDate, setSlotDate] = useState('');
   const [slotTime, setSlotTime] = useState('');
   const [showSlotSelection, setShowSlotSelection] = useState(true);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
 
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Role selection step
-  const [selectedRole, setSelectedRole] = useState<'PARENT' | 'TEEN'>('PARENT');
 
   const [userExists, setUserExists] = useState(false);
   const [isCheckingUser, setIsCheckingUser] = useState(false);
@@ -233,7 +233,6 @@ export default function ProgramDetailsPage() {
         
         if (data) {
           setProgram(data);
-          setClassRange(data.classRange);
           const pIndex = allPrograms.findIndex(p => p.id === id || p.title.toLowerCase() === decodeURIComponent(id).toLowerCase());
           setProgramIndex(Math.max(0, pIndex));
         } else {
@@ -326,7 +325,7 @@ export default function ProgramDetailsPage() {
         parentName,
         phone: getFullNormalizedPhone(),
         email: email || null,
-        classRange,
+        classRange: classRange || "General",
         confidence,
         interests,
         hasMentor,
@@ -340,9 +339,8 @@ export default function ProgramDetailsPage() {
 
       const result = await ProgramsService.bookDemoSession(bookingData);
       if (result.success) {
-        setSubmitted(true);
-        // Reset states
         setFormError(null);
+        router.push(`/programs/booking-success?name=${encodeURIComponent(parentName)}&program=${encodeURIComponent(program?.title || '')}&date=${encodeURIComponent(slotDate)}&time=${encodeURIComponent(slotTime)}`);
       } else {
         throw new Error('Booking failed');
       }
@@ -415,10 +413,10 @@ export default function ProgramDetailsPage() {
         </div>
 
         {/* Dynamic Split Screen Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-6 lg:gap-y-16 lg:gap-x-12 lg:gap-x-16 items-start">
 
           {/* LEFT COLUMN: Program Details & Session Breakdown */}
-          <div className="lg:col-span-7 flex flex-col">
+          <div className="lg:col-span-7 lg:col-start-1 lg:row-start-1 order-1 flex flex-col">
 
             {/* Title & Tagline Header */}
             <div className="mb-10">
@@ -427,14 +425,11 @@ export default function ProgramDetailsPage() {
                   <Sparkles size={10} />
                   <span>Infano Master Cohort</span>
                 </span>
-                <span className={`px-3 py-1 rounded-full text-[10px] font-bold border uppercase tracking-widest ${theme.badge}`}>
-                  {program.classRange}
-                </span>
               </div>
 
               {program.thumbnailUrl && (
                 <div className="w-full h-64 md:h-80 rounded-[2rem] overflow-hidden mb-8 shadow-xl border border-slate-200/50">
-                  <img src={program.thumbnailUrl} alt={program.title} className="w-full h-full object-cover" />
+                  <img src={program.thumbnailUrl} alt={program.title} className="w-full h-full object-cover object-top" />
                 </div>
               )}
 
@@ -447,7 +442,7 @@ export default function ProgramDetailsPage() {
             </div>
 
             {/* Description Card */}
-            <div className="p-8 rounded-[2rem] bg-white border border-slate-100/80 shadow-md mb-8">
+            <div className="p-8 rounded-[2rem] bg-white border border-slate-100/80 shadow-md mb-0 lg:mb-8">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Program Overview</h3>
               <div className="relative">
                 <p className={`text-slate-600 text-base leading-relaxed font-medium transition-all duration-300 ${!isOverviewExpanded ? 'line-clamp-4' : ''}`}>
@@ -496,8 +491,10 @@ export default function ProgramDetailsPage() {
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Curriculum Roadmap / Timeline */}
+          {/* Curriculum Roadmap / Timeline */}
+          <div className="lg:col-span-7 lg:col-start-1 lg:row-start-2 order-3 lg:order-2 flex flex-col">
             <div className="mb-12">
               <div className="flex items-center gap-3 mb-8">
                 <h3 className="text-2xl font-bold font-heading text-slate-800 tracking-tight">
@@ -547,12 +544,9 @@ export default function ProgramDetailsPage() {
           </div>
 
           {/* RIGHT COLUMN: Sticky Demo Booking Form */}
-          <div className="lg:col-span-5 relative">
+          <div className="lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:row-span-2 order-2 lg:order-3 relative">
             <div className="lg:sticky lg:top-24 self-start">
 
-              <AnimatePresence mode="wait">
-                {!submitted ? (
-                  /* THE BOOKING FORM */
                   <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -582,36 +576,6 @@ export default function ProgramDetailsPage() {
 
                     <form onSubmit={handleBookDemo} className="space-y-5">
 
-                      {/* Role Selection Segment Control */}
-                      <div>
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">
-                          Enrolling As? <span className="text-rose-500">*</span>
-                        </label>
-                        <div className="grid grid-cols-2 gap-3 mb-4">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedRole('PARENT')}
-                            className={`flex items-center justify-center gap-2 py-3 px-4 rounded-2xl border text-xs font-bold transition-all shadow-sm ${selectedRole === 'PARENT'
-                              ? 'border-primary bg-primary/5 text-primary font-black'
-                              : 'border-slate-200 bg-[#FAFBFE] text-slate-500 hover:border-slate-350 hover:bg-slate-50'
-                              }`}
-                          >
-                            <span>💜</span>
-                            <span>I am a Parent</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedRole('TEEN')}
-                            className={`flex items-center justify-center gap-2 py-3 px-4 rounded-2xl border text-xs font-bold transition-all shadow-sm ${selectedRole === 'TEEN'
-                              ? 'border-amber-400 bg-amber-50 text-amber-750 font-black'
-                              : 'border-slate-200 bg-[#FAFBFE] text-slate-500 hover:border-slate-350 hover:bg-slate-50'
-                              }`}
-                          >
-                            <span>✨</span>
-                            <span>I am a Teen</span>
-                          </button>
-                        </div>
-                      </div>
 
                       {/* Name input */}
                       <div className="space-y-1">
@@ -624,7 +588,7 @@ export default function ProgramDetailsPage() {
                           value={parentName}
                           onChange={(e) => setParentName(e.target.value)}
                           placeholder="Your name"
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-slate-400 focus:outline-none text-slate-800 text-sm font-semibold transition-colors bg-[#FAFBFE] shadow-sm"
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-slate-400 focus:outline-none text-slate-800 text-sm font-normal transition-colors bg-[#FAFBFE] shadow-sm"
                         />
                       </div>
 
@@ -683,7 +647,7 @@ export default function ProgramDetailsPage() {
                             onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
                             placeholder={`Enter ${selectedCountry.digits}-digit number`}
                             maxLength={selectedCountry.digits}
-                            className="w-full px-4 py-3 outline-none text-slate-800 text-sm font-semibold bg-transparent"
+                            className="w-full px-4 py-3 outline-none text-slate-800 text-sm font-normal bg-transparent"
                           />
                         </div>
                       </div>
@@ -698,52 +662,58 @@ export default function ProgramDetailsPage() {
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="Email Address"
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-slate-400 focus:outline-none text-slate-800 text-sm font-semibold transition-colors bg-[#FAFBFE] shadow-sm"
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-slate-400 focus:outline-none text-slate-800 text-sm font-normal transition-colors bg-[#FAFBFE] shadow-sm"
                         />
                       </div>
 
                       {/* Slot Booking Date and Time */}
                       {showSlotSelection && (
-                        <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-3">
+                        <div className="space-y-2">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
                             Select Consultation Slot *
                           </span>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <input
-                                type="date"
-                                min={getTomorrowString()}
-                                value={slotDate}
-                                onChange={(e) => setSlotDate(e.target.value)}
-                                className={`w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none text-xs font-semibold bg-white ${slotDate ? 'text-slate-800' : 'text-slate-400'}`}
-                              />
-                            </div>
-                            <div>
-                              <select
-                                value={slotTime}
-                                onChange={(e) => setSlotTime(e.target.value)}
-                                className={`w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none text-xs font-semibold bg-white ${slotTime ? 'text-slate-800' : 'text-slate-400'}`}
+                          {slotDate && slotTime ? (
+                            <div className="p-4 bg-primary/5 border border-primary/10 rounded-2xl flex items-center justify-between gap-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                  <Calendar size={18} />
+                                </div>
+                                <div>
+                                  <p className="text-[10px] font-bold text-primary/80 uppercase tracking-wider">Selected Slot</p>
+                                  <p className="text-slate-800 font-extrabold text-sm mt-0.5">
+                                    {new Date(slotDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} at {slotTime}
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setIsDatePickerOpen(true)}
+                                className="text-xs font-bold text-primary hover:text-primary/95 bg-white hover:bg-primary/5 border border-primary/20 px-3.5 py-2 rounded-xl transition-all shadow-sm"
                               >
-                                <option value="">Select Time</option>
-                                <option value="10:00 AM - 10:30 AM">10:00 AM - 10:30 AM</option>
-                                <option value="10:30 AM - 11:00 AM">10:30 AM - 11:00 AM</option>
-                                <option value="11:00 AM - 11:30 AM">11:00 AM - 11:30 AM</option>
-                                <option value="11:30 AM - 12:00 PM">11:30 AM - 12:00 PM</option>
-                                <option value="12:00 PM - 12:30 PM">12:00 PM - 12:30 PM</option>
-                                <option value="12:30 PM - 01:00 PM">12:30 PM - 01:00 PM</option>
-                                <option value="02:00 PM - 02:30 PM">02:00 PM - 02:30 PM</option>
-                                <option value="02:30 PM - 03:00 PM">02:30 PM - 03:00 PM</option>
-                                <option value="03:00 PM - 03:30 PM">03:00 PM - 03:30 PM</option>
-                                <option value="03:30 PM - 04:00 PM">03:30 PM - 04:00 PM</option>
-                                <option value="04:00 PM - 04:30 PM">04:00 PM - 04:30 PM</option>
-                                <option value="04:30 PM - 05:00 PM">04:30 PM - 05:00 PM</option>
-                                <option value="05:00 PM - 05:30 PM">05:00 PM - 05:30 PM</option>
-                                <option value="05:30 PM - 06:00 PM">05:30 PM - 06:00 PM</option>
-                                <option value="06:00 PM - 06:30 PM">06:00 PM - 06:30 PM</option>
-                                <option value="06:30 PM - 07:00 PM">06:30 PM - 07:00 PM</option>
-                              </select>
+                                Change
+                              </button>
                             </div>
-                          </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setIsDatePickerOpen(true)}
+                              className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl border border-dashed border-primary/30 hover:border-primary/55 bg-primary/5 hover:bg-primary/10 text-primary font-bold text-sm transition-all"
+                            >
+                              <Calendar size={16} />
+                              <span>Select Date & Time Slot</span>
+                            </button>
+                          )}
+
+                          <DateTimePickerModal
+                            isOpen={isDatePickerOpen}
+                            onClose={() => setIsDatePickerOpen(false)}
+                            onSelect={(date, time) => {
+                              setSlotDate(date);
+                              setSlotTime(time);
+                            }}
+                            initialDate={slotDate}
+                            initialTime={slotTime}
+                          />
                         </div>
                       )}
 
@@ -769,58 +739,6 @@ export default function ProgramDetailsPage() {
 
                     </form>
                   </motion.div>
-                ) : (
-                  /* THE SUCCESS SCREEN */
-                  <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -15 }}
-                    transition={{ duration: 0.4 }}
-                    className="p-8 md:p-10 rounded-[2rem] bg-white border border-slate-100/80 shadow-2xl text-center relative overflow-hidden backdrop-blur-xl"
-                  >
-                    {/* Tiny decorative success bar */}
-                    <div className="absolute top-0 left-0 right-0 h-2 bg-emerald-500" />
-
-                    <div className="w-20 h-20 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto mb-6 text-emerald-600 shadow-md">
-                      <CheckCircle2 size={44} strokeWidth={1.5} />
-                    </div>
-
-                    <h3 className="text-2xl font-bold font-heading text-slate-800 mb-3 tracking-tight">
-                      Demo Session Confirmed!
-                    </h3>
-                    <p className="text-slate-500 text-sm leading-relaxed mb-6 font-medium">
-                      Thank you, <strong className="text-slate-800">{parentName}</strong>. Your inquiry for <strong className="text-slate-800">{program.title}</strong> has been successfully received. A certified coordinator will call you at <strong className="text-slate-800">{phone}</strong> within 24 hours to align your booking details.
-                    </p>
-
-                    <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-600 text-xs font-semibold space-y-2.5 text-left mb-6 shadow-inner">
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Selected Program:</span>
-                        <span>{program.title} ({program.classRange})</span>
-                      </div>
-                      {slotDate && (
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Preferred Slot:</span>
-                          <span>{slotDate} at {slotTime || "10:00 AM"}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Learning Setting:</span>
-                        <span>{learningPref || "Not Specified"}</span>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        setSubmitted(false);
-                        setShowSlotSelection(false);
-                      }}
-                      className="w-full inline-flex items-center justify-center gap-2 py-4 px-6 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-widest rounded-2xl transition-all shadow-md"
-                    >
-                      Book Another Slot
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
 
             </div>
           </div>

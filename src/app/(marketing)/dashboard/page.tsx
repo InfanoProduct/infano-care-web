@@ -233,7 +233,7 @@ export default function CustomerDashboardOverview() {
         parentName: demoName,
         phone: demoPhone,
         email: demoEmail || null,
-        classRange: demoModalProg.classRange,
+        classRange: "General",
         confidence: "",
         interests: [],
         hasMentor: "",
@@ -278,7 +278,7 @@ export default function CustomerDashboardOverview() {
     const book = it.book || {};
     const bookId = (it.bookId || '').toLowerCase();
     const bookTitle = (book.title || it.bookTitle || '').toLowerCase();
-    if ((book as any).curriculum?.length || book.classRange || book.duration) return true;
+    if ((book as any).curriculum?.length || book.duration) return true;
     if (bookId.includes('program') || bookId.includes('private') || bookId.includes('group') || bookId.includes('cohort')) return true;
     if (bookTitle.includes('program') || bookTitle.includes('mentoring') || bookTitle.includes('cohort')) return true;
     return false;
@@ -547,7 +547,7 @@ export default function CustomerDashboardOverview() {
                         <div className="mb-4">
                           <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md ${theme.badge}`}>Book Demo Session</span>
                           <h3 className={`text-xl font-bold mt-1.5 ${theme.accent}`}>{demoModalProg.title} Program</h3>
-                          <p className="text-xs text-slate-505 font-medium mt-0.5">{demoModalProg.classRange} • {demoModalProg.curriculum?.length || 8} Sessions • {demoModalProg.duration}</p>
+                          <p className="text-xs text-slate-505 font-medium mt-0.5">{demoModalProg.curriculum?.length || 8} Sessions • {demoModalProg.duration}</p>
                         </div>
 
                         <div className="bg-slate-50 border border-slate-100 rounded-lg p-3 text-xs text-slate-600 mb-4">
@@ -896,7 +896,7 @@ export default function CustomerDashboardOverview() {
                             )}
                             <div>
                               <h4 className={`font-black text-base ${theme.accent} tracking-tight leading-snug`}>{enr.program.title}</h4>
-                              <p className="text-xs font-semibold text-slate-400 mt-0.5">{enr.program.classRange} • 1:1 Private Mentoring</p>
+                              <p className="text-xs font-semibold text-slate-400 mt-0.5">1:1 Private Mentoring</p>
                               {enr.program.consultations && Array.isArray(enr.program.consultations) && enr.program.consultations.length > 0 && (
                                 <p className="text-[10px] font-bold text-slate-500 mt-1 flex items-center gap-1">
                                   <Sparkles size={11} className={`${theme.accent} animate-pulse shrink-0`} /> Free: <span className={`${theme.accent} font-extrabold`}>{enr.program.consultations.map((c: any) => c.title).join(', ')}</span>
@@ -1069,11 +1069,6 @@ export default function CustomerDashboardOverview() {
                         <div className="w-full h-40 sm:h-44 relative overflow-hidden shrink-0 border-b border-white/40">
                           <img src={program.thumbnailUrl} alt={program.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                           <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
-                          <div className="absolute top-3 right-3 z-10">
-                            <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${styles.badge} shadow-sm backdrop-blur-md border border-white/50`}>
-                              {program.classRange}
-                            </span>
-                          </div>
                         </div>
                       )}
 

@@ -197,7 +197,7 @@ export default function EpisodePlayerPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuthStore();
-  
+
   const journeyId = params.journeyId as string;
   const episodeId = params.episodeId as string;
 
@@ -262,7 +262,7 @@ export default function EpisodePlayerPage() {
     const fetchEpisode = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch learning journey to get category and find next episode
         try {
           const journeyData = await LearningService.getJourney(journeyId);
@@ -359,7 +359,7 @@ export default function EpisodePlayerPage() {
                 if (historyObj.quizAnswers) answers = historyObj.quizAnswers;
                 if (historyObj.quizLocked) locked = historyObj.quizLocked;
                 if (historyObj.incorrectAttempts) incorrect = historyObj.incorrectAttempts;
-                
+
                 // For all questions present in quizLocked, populate quizNotice with success feedback
                 if (locked) {
                   Object.keys(locked).forEach((key) => {
@@ -839,7 +839,7 @@ export default function EpisodePlayerPage() {
           >
             <ArrowLeft size={18} />
           </button>
-          
+
           <div className="min-w-0">
             <span className={`text-[9px] font-black uppercase tracking-widest ${theme.accent} flex items-center gap-1`}>
               <Sparkles size={10} className="fill-current" /> Interactive Player
@@ -885,12 +885,12 @@ export default function EpisodePlayerPage() {
 
       {/* Main Core Layout */}
       <div className="flex-1 flex overflow-hidden relative z-10">
-        
+
         {/* Main Content Area */}
         <main className="flex-1 overflow-hidden px-4 py-4 md:py-6 md:px-8 flex flex-col justify-between items-center">
-          
+
           <div className="w-full max-w-5xl flex-1 flex flex-col justify-center items-center min-h-0 overflow-hidden">
-            
+
             {/* Step Sub-Header */}
             <div className="text-center mb-3 max-w-xl shrink-0">
               <span className={`inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-200 rounded-full text-[10px] font-black tracking-widest ${theme.accent} uppercase shadow-sm`}>
@@ -900,7 +900,7 @@ export default function EpisodePlayerPage() {
 
             {/* Centered Glassmorphic View Canvas */}
             <div className="w-full bg-white border border-slate-200 shadow-sm rounded-3xl p-5 sm:p-8 flex flex-col items-center justify-center relative overflow-hidden transition-all duration-300 flex-1 min-h-0">
-              
+
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentStep + '-' + currentStoryPage}
@@ -912,653 +912,642 @@ export default function EpisodePlayerPage() {
                 >
                   <div className="w-full flex-1 overflow-y-auto py-1 pr-1 custom-scrollbar min-h-0 flex flex-col">
                     <div className="my-auto w-full">
-                  
-                  {/* ==================== TEEN (INTERACTIVE) FLOW ==================== */}
 
-                  {/* 1. HOOK */}
-                  {currentStep === 'hook' && (
-                    <div className="space-y-6 text-center">
-                      <h2 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-snug">
-                        Let's set the stage...
-                      </h2>
-                      <div className="p-6 bg-slate-50/50 rounded-2xl border border-slate-100 text-left relative overflow-hidden">
-                        <p className="text-sm text-slate-700 font-medium leading-relaxed whitespace-pre-line select-none relative z-10">
-                          {content.hook.text}
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                      {/* ==================== TEEN (INTERACTIVE) FLOW ==================== */}
 
-                  {/* 2. STORY */}
-                  {currentStep === 'story' && content.story?.pages && (
-                    <div className="space-y-4 flex flex-col items-center justify-center flex-1 min-h-0 w-full">
-                      <div className="text-center shrink-0">
-                        <h2 className="text-lg sm:text-xl font-black text-slate-855 tracking-tight">Flip through the story cards</h2>
-                        <p className="text-xs font-semibold text-slate-400 mt-1">Page {currentStoryPage + 1} of {content.story.pages.length}</p>
-                      </div>
-
-                      {/* Premium Story Frame */}
-                      <div className="relative h-[min(48vh,400px)] aspect-[16/9] bg-white rounded-3xl overflow-hidden shadow-premium border border-slate-100 group transition-all duration-300 hover:shadow-glow mx-auto shrink-0">
-                        {content.story.pages[currentStoryPage] ? (
-                          <img
-                            src={content.story.pages[currentStoryPage]}
-                            alt={`Story Page ${currentStoryPage + 1}`}
-                            className="w-full h-full object-cover select-none pointer-events-none"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 p-8 text-center bg-slate-50">
-                            <BookOpen size={48} className="opacity-10 mb-3" />
-                            <p className="text-sm font-bold">Image URL not specified.</p>
-                          </div>
-                        )}
-                        
-                        {/* Slide Flip Overlay navigation overlay */}
-                        <div className="absolute inset-0 flex justify-between p-4 items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); currentStoryPage > 0 && setCurrentStoryPage(p => p - 1); }}
-                            disabled={currentStoryPage === 0}
-                            className={`p-2.5 rounded-full bg-white/95 backdrop-blur-sm shadow-md transition-all pointer-events-auto ${
-                              currentStoryPage === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110 hover:bg-white active:scale-90'
-                            }`}
-                          >
-                            <ChevronLeft size={16} className="text-slate-800" />
-                          </button>
-
-                          <button
-                            onClick={(e) => { e.stopPropagation(); currentStoryPage < content.story.pages.length - 1 && setCurrentStoryPage(p => p + 1); }}
-                            disabled={currentStoryPage === content.story.pages.length - 1}
-                            className={`p-2.5 rounded-full bg-white/95 backdrop-blur-sm shadow-md transition-all pointer-events-auto ${
-                              currentStoryPage === content.story.pages.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110 hover:bg-white active:scale-90'
-                            }`}
-                          >
-                            <ChevronRight size={16} className="text-slate-800" />
-                          </button>
-                        </div>
-
-                        {/* Pagination slider dots */}
-                        <div className="absolute inset-x-0 bottom-4 flex justify-center gap-1.5 z-10 pointer-events-none">
-                          {content.story.pages.map((_, i) => (
-                            <div
-                              key={i}
-                              className={`h-1.5 rounded-full transition-all duration-300 ${
-                                i === currentStoryPage ? 'w-5 bg-white shadow-sm' : 'w-1.5 bg-white/60'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                                  {/* 3. QUIZ */}
-                  {currentStep === 'quiz' && content.quiz?.questions && content.quiz.questions[currentQuizIndex] && (() => {
-                    const qIdx = currentQuizIndex;
-                    const q = content.quiz.questions[qIdx];
-                    const isCorrect = quizLocked[qIdx] && quizAnswers[qIdx] === q.correctIndex;
-
-                    return (
-                      <div className="space-y-4 w-full flex flex-col items-center justify-center flex-1 min-h-0">
-                        <div className="text-center shrink-0">
-                          <h2 className="text-lg sm:text-xl font-black text-slate-850 tracking-tight">Interactive Quiz</h2>
-                          <p className="text-xs font-semibold text-slate-400 mt-1">
-                            Question {qIdx + 1} of {content.quiz.questions.length}
-                          </p>
-                        </div>
-
-                        <div className="w-full max-w-xl p-5 sm:p-6 bg-white border border-slate-200 rounded-2xl shadow-sm transition-all duration-300 space-y-4 my-auto">
-                          <div className="flex items-start gap-3">
-                            <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-black uppercase ${
-                              isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-primary/10 text-primary'
-                            }`}>
-                              Q{qIdx + 1}
-                            </span>
-                            <h4 className="text-sm sm:text-base font-bold text-slate-800 leading-snug">
-                              {q.question}
-                            </h4>
-                          </div>
-
-                          <div className="grid grid-cols-1 gap-2.5 pt-1">
-                            {q.options.map((opt, optIndex) => {
-                              const isSelected = quizAnswers[qIdx] === optIndex;
-                              const isOptionCorrect = optIndex === q.correctIndex;
-                              const isOptionWrong = isSelected && !isOptionCorrect;
-                              
-                              let btnClass = 'border-slate-200 bg-white hover:border-slate-350 hover:bg-slate-50 text-slate-700';
-                              if (quizLocked[qIdx]) {
-                                if (isOptionCorrect) {
-                                  btnClass = 'border-emerald-500 bg-emerald-50 text-emerald-950 shadow-sm';
-                                } else if (isSelected) {
-                                  btnClass = 'border-rose-300 bg-rose-50 text-rose-950 opacity-60';
-                                } else {
-                                  btnClass = 'border-slate-100 bg-slate-50/40 opacity-40 text-slate-400';
-                                }
-                              } else if (isSelected && isOptionWrong) {
-                                btnClass = 'border-rose-400 bg-rose-50 text-rose-955';
-                              }
-
-                              return (
-                                <button
-                                  key={optIndex}
-                                  onClick={() => handleQuizSelect(qIdx, optIndex, q.correctIndex)}
-                                  disabled={quizLocked[qIdx]}
-                                  className={`w-full flex items-center gap-3 p-3.5 rounded-xl border font-bold text-left text-xs sm:text-sm transition-all active:scale-[0.99] hover:shadow-sm ${btnClass}`}
-                                >
-                                  <div className={`w-5.5 h-5.5 rounded-md flex items-center justify-center text-[10px] font-black border uppercase shrink-0 ${
-                                    isSelected
-                                      ? 'bg-current text-white border-transparent'
-                                      : 'bg-white border-slate-200 text-slate-400'
-                                  }`}>
-                                    {String.fromCharCode(65 + optIndex)}
-                                  </div>
-                                  <span className="flex-1 leading-snug">{opt}</span>
-                                  {quizLocked[qIdx] && isOptionCorrect && <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />}
-                                </button>
-                              );
-                            })}
-                          </div>
-
-                          {/* Quiz Answer Inline Feedback */}
-                          {quizNotice[qIdx] && (
-                            <div className={`p-3 rounded-xl flex items-center gap-2 text-xs font-bold animate-in slide-in-from-top-1 duration-200 border ${
-                              quizNotice[qIdx]?.type === 'success'
-                                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                                : 'bg-rose-50 border-rose-200 text-rose-800'
-                            }`}>
-                              {quizNotice[qIdx]?.type === 'success' ? (
-                                <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
-                              ) : (
-                                <AlertCircle size={14} className="text-rose-600 shrink-0" />
-                              )}
-                              <span>{quizNotice[qIdx]?.message}</span>
-                            </div>
-                          )}
-
-                          {/* Quiz Explanation */}
-                          {quizLocked[qIdx] && q.explanation && (
-                            <div className="p-4 bg-emerald-55 border border-emerald-100 rounded-xl flex gap-3 text-emerald-950 text-xs font-semibold animate-in slide-in-from-top-2 duration-300">
-                              <Info size={16} className="shrink-0 text-emerald-600 mt-0.5" />
-                              <p className="leading-relaxed">{q.explanation}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* 4. JOURNAL */}
-                  {currentStep === 'journal' && (
-                    <div className="space-y-6">
-                      <div className="text-center">
-                        <h2 className="text-xl font-black text-slate-850 tracking-tight">Learning Journal</h2>
-                        <p className="text-xs font-semibold text-slate-400 mt-1">Reflect on what you've learned to lock in your knowledge</p>
-                      </div>
-
-                      <div className={`border rounded-2xl p-5 space-y-4 transition-all duration-300 ${journalSubmitted ? 'bg-emerald-50/30 border-emerald-200' : 'bg-rose-50/10 border-rose-100'}`}>
-                        <div className="space-y-1.5">
-                          <h4 className={`text-[10px] font-black uppercase tracking-widest ${journalSubmitted ? 'text-emerald-600' : 'text-rose-500'}`}>Journal Prompt</h4>
-                          <p className="text-sm font-bold text-slate-800 leading-snug">
-                            {content.journal.prompt}
-                          </p>
-                        </div>
-
-                        <div className="space-y-3">
-                          <textarea
-                            value={reflectionText}
-                            onChange={(e) => {
-                              setReflectionText(e.target.value);
-                              if (journalSubmitted) {
-                                setJournalSubmitted(false);
-                                setJournalNotice(null);
-                              }
-                            }}
-                            disabled={journalSubmitted}
-                            placeholder="Type your reflection here (minimum 20 characters)..."
-                            className={`w-full p-4 bg-white border rounded-xl text-xs sm:text-sm font-medium text-slate-700 placeholder:text-slate-300 min-h-[140px] outline-none transition-all shadow-sm ${
-                              journalSubmitted
-                                ? 'border-emerald-200 bg-emerald-50/20 text-slate-500 cursor-not-allowed'
-                                : 'border-slate-200 focus:border-rose-400 focus:ring-4 focus:ring-rose-100/50'
-                            }`}
-                          />
-                          
-                          <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
-                            <span className={`text-xs font-bold ${reflectionText.trim().length >= 20 ? 'text-emerald-600' : 'text-slate-400'}`}>
-                              {reflectionText.trim().length >= 20 ? `✓ ${reflectionText.length} characters` : `${reflectionText.length} / 20 min`}
-                            </span>
-                            
-                            <div className="flex gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => setReflectionMode('private')}
-                                disabled={journalSubmitted}
-                                className={`px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all ${
-                                  reflectionMode === 'private'
-                                    ? 'bg-slate-900 border-slate-900 text-white shadow-sm'
-                                    : 'border-slate-200 text-slate-400 hover:border-slate-300'
-                                } ${journalSubmitted ? 'opacity-60 cursor-not-allowed' : ''}`}
-                              >
-                                Private
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setReflectionMode('community')}
-                                disabled={journalSubmitted}
-                                className={`px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all ${
-                                  reflectionMode === 'community'
-                                    ? 'bg-slate-900 border-slate-900 text-white shadow-sm'
-                                    : 'border-slate-200 text-slate-400 hover:border-slate-300'
-                                } ${journalSubmitted ? 'opacity-60 cursor-not-allowed' : ''}`}
-                              >
-                                Community
-                              </button>
-                            </div>
-                          </div>
-                          <p className="text-[10px] text-slate-400 leading-relaxed font-medium pt-2 border-t border-slate-100/60">
-                            {reflectionMode === 'private' 
-                              ? '🔒 Private: Only you can view this journal entry in your dashboard.' 
-                              : '👥 Community: Anonymous peer reflection shared in Gigis Circle feed.'}
-                          </p>
-
-                          {/* Only show the notice banner if it's an error; success is handled in the footer area below */}
-                          {journalNotice && journalNotice.type === 'error' && (
-                            <div className="p-3 rounded-xl flex items-center gap-2 text-xs font-bold animate-in slide-in-from-top-1 duration-200 border bg-rose-50 border-rose-200 text-rose-800">
-                              <AlertCircle size={14} className="text-rose-600 shrink-0" />
-                              <span>{journalNotice.message}</span>
-                            </div>
-                          )}
-
-                          {/* Submit / Edit button */}
-                          <div className="pt-1">
-                            {journalSubmitted ? (
-                              <div className="flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs">
-                                  <CheckCircle2 size={16} className="text-emerald-500" />
-                                  Journal saved — click Next to continue
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setJournalSubmitted(false);
-                                    setJournalNotice(null);
-                                  }}
-                                  className="px-3 py-1.5 border border-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-slate-50 transition-all"
-                                >
-                                  Edit
-                                </button>
-                              </div>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={handleJournalSave}
-                                disabled={isSubmittingJournal || reflectionText.trim().length < 20}
-                                className={`w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
-                                  reflectionText.trim().length < 20 || isSubmittingJournal
-                                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                                    : 'bg-rose-500 hover:bg-rose-600 text-white shadow-sm hover:shadow-md active:scale-[0.98]'
-                                }`}
-                              >
-                                {isSubmittingJournal ? (
-                                  <><Loader2 className="animate-spin" size={13} /> Saving...</>
-                                ) : (
-                                  <>Save Journal Entry</>
-                                )}
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-
-                  {/* 5. SUMMARY */}
-                  {currentStep === 'summary' && (
-                    <div className="space-y-6 text-center py-4 flex flex-col items-center">
-                      <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-amber-500/10 animate-float">
-                        <Trophy size={32} className="fill-white/10" />
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <h2 className="text-xl sm:text-2xl font-black text-slate-850 tracking-tight leading-tight">
-                          Fantastic work!
-                        </h2>
-                        <p className="text-xs font-semibold text-slate-400">Activity completed successfully</p>
-                      </div>
-
-                      <div className="p-6 bg-slate-50/50 rounded-2xl border border-slate-100 max-w-md w-full">
-                        <p className="text-xs sm:text-sm text-slate-650 font-medium leading-relaxed">
-                          {content.summary.text}
-                        </p>
-                      </div>
-
-                      <div className="pt-4 flex flex-col items-center w-full gap-3">
-                        {completionNotice?.success ? (
-                          <>
-                            {/* XP Earned Banner */}
-                            <div className="w-full max-w-sm p-4 rounded-2xl flex items-center gap-3 animate-in fade-in duration-300 border bg-emerald-50 border-emerald-200 text-emerald-800">
-                              <CheckCircle2 size={20} className="text-emerald-500 shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-xs font-black text-emerald-800 leading-snug">{completionNotice.success}</p>
-                                <p className="text-[10px] text-emerald-600 mt-0.5 font-semibold">Great job completing this episode!</p>
-                              </div>
-                            </div>
-
-                            {/* Next Episode CTA */}
-                            {nextEpisode ? (
-                              <div className="w-full max-w-sm space-y-2">
-                                <button
-                                  onClick={() => router.push(`/dashboard/learning-journeys/${journeyId}/episodes/${nextEpisode.id}`)}
-                                  className="w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all font-black text-xs sm:text-sm uppercase tracking-widest shadow-md text-white bg-purple-600 hover:bg-purple-700 hover:scale-[1.01] active:scale-[0.99]"
-                                >
-                                  Next Episode <ChevronRight size={16} />
-                                </button>
-                                <p className="text-[10px] text-center text-slate-400 font-semibold truncate px-2">{nextEpisode.title}</p>
-                                <button
-                                  onClick={() => router.push(`/dashboard/learning-journeys/${journeyId}`)}
-                                  className="w-full py-2 rounded-2xl flex items-center justify-center gap-2 transition-all font-black text-xs uppercase tracking-widest border border-slate-200 text-slate-500 hover:bg-slate-50"
-                                >
-                                  <ArrowLeft size={14} /> Back to Journey
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="w-full max-w-sm space-y-2">
-                                <div className="w-full p-4 rounded-2xl bg-amber-50 border border-amber-200 text-center">
-                                  <p className="text-sm font-black text-amber-800">🏆 Journey Complete!</p>
-                                  <p className="text-[10px] text-amber-600 mt-1 font-semibold">You've finished all episodes in this journey.</p>
-                                </div>
-                                <button
-                                  onClick={() => router.push(`/dashboard/learning-journeys/${journeyId}`)}
-                                  className="w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all font-black text-xs sm:text-sm uppercase tracking-widest shadow-md text-white bg-slate-800 hover:bg-slate-900 hover:scale-[1.01] active:scale-[0.99]"
-                                >
-                                  <Trophy size={16} /> Back to Journey
-                                </button>
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <>
-                            {completionNotice?.error && (
-                              <div className="w-full max-w-xs p-3 rounded-2xl flex items-start gap-2.5 text-xs font-bold animate-in fade-in duration-200 border bg-rose-50 border-rose-200 text-rose-800">
-                                <AlertCircle size={16} className="text-rose-600 shrink-0 mt-0.5" />
-                                <span className="text-left leading-relaxed">{completionNotice.error}</span>
-                              </div>
-                            )}
-                            <button
-                              onClick={handleComplete}
-                              disabled={isSubmitting}
-                              className="btn-primary w-full max-w-xs py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all font-black text-xs sm:text-sm uppercase tracking-widest shadow-md disabled:opacity-50"
-                            >
-                              {isSubmitting ? (
-                                <><Loader2 className="animate-spin" size={16} /> Submitting...</>
-                              ) : (
-                                <>Complete Episode <Trophy size={16} /></>
-                              )}
-                            </button>
-                            <p className="text-[10px] text-slate-400 font-semibold">
-                              Earn +{episode?.points || 75} XP points for your profile.
+                      {/* 1. HOOK */}
+                      {currentStep === 'hook' && (
+                        <div className="space-y-6 text-center">
+                          <h2 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-snug">
+                            Let's set the stage...
+                          </h2>
+                          <div className="p-6 bg-slate-50/50 rounded-2xl border border-slate-100 text-left relative overflow-hidden">
+                            <p className="text-sm text-slate-700 font-medium leading-relaxed whitespace-pre-line select-none relative z-10">
+                              {content.hook.text}
                             </p>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* ==================== PEER TRAINING (MENTOR) FLOW ==================== */}
-
-                  {/* A. OVERVIEW / OBJECTIVES */}
-                  {currentStep === 'overview' && (
-                    <div className="space-y-6">
-                      <div className="text-center">
-                        <h2 className="text-xl font-black text-slate-850 tracking-tight">Overview & Objectives</h2>
-                        <p className="text-xs font-semibold text-slate-400 mt-1">Foundational training overview</p>
-                      </div>
-
-                      {content.overview && (
-                        <div className="p-5 bg-slate-50/50 rounded-2xl border border-slate-100 text-left">
-                          <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Overview</h4>
-                          <p className="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed whitespace-pre-line select-none">
-                            {content.overview}
-                          </p>
+                          </div>
                         </div>
                       )}
 
-                      {content.objectives && content.objectives.length > 0 && (
-                        <div className="space-y-3">
-                          <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Key Objectives</h4>
-                          <div className="grid grid-cols-1 gap-2.5">
-                            {content.objectives.map((obj, idx) => (
-                              <div key={idx} className="flex items-start gap-3 p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
-                                <span className="w-5.5 h-5.5 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold">
-                                  ✓
+                      {/* 2. STORY */}
+                      {currentStep === 'story' && content.story?.pages && (
+                        <div className="space-y-4 flex flex-col items-center justify-center flex-1 min-h-0 w-full">
+                          <div className="text-center shrink-0">
+                            <h2 className="text-lg sm:text-xl font-black text-slate-855 tracking-tight">Flip through the story cards</h2>
+                            <p className="text-xs font-semibold text-slate-400 mt-1">Page {currentStoryPage + 1} of {content.story.pages.length}</p>
+                          </div>
+
+                          {/* Premium Story Frame */}
+                          <div className="relative h-[min(48vh,400px)] aspect-[16/9] bg-white rounded-3xl overflow-hidden shadow-premium border border-slate-100 group transition-all duration-300 hover:shadow-glow mx-auto shrink-0">
+                            {content.story.pages[currentStoryPage] ? (
+                              <img
+                                src={content.story.pages[currentStoryPage]}
+                                alt={`Story Page ${currentStoryPage + 1}`}
+                                className="w-full h-full object-cover select-none pointer-events-none"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 p-8 text-center bg-slate-50">
+                                <BookOpen size={48} className="opacity-10 mb-3" />
+                                <p className="text-sm font-bold">Image URL not specified.</p>
+                              </div>
+                            )}
+
+                            {/* Slide Flip Overlay navigation overlay */}
+                            <div className="absolute inset-0 flex justify-between p-4 items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); currentStoryPage > 0 && setCurrentStoryPage(p => p - 1); }}
+                                disabled={currentStoryPage === 0}
+                                className={`p-2.5 rounded-full bg-white/95 backdrop-blur-sm shadow-md transition-all pointer-events-auto ${currentStoryPage === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110 hover:bg-white active:scale-90'
+                                  }`}
+                              >
+                                <ChevronLeft size={16} className="text-slate-800" />
+                              </button>
+
+                              <button
+                                onClick={(e) => { e.stopPropagation(); currentStoryPage < content.story.pages.length - 1 && setCurrentStoryPage(p => p + 1); }}
+                                disabled={currentStoryPage === content.story.pages.length - 1}
+                                className={`p-2.5 rounded-full bg-white/95 backdrop-blur-sm shadow-md transition-all pointer-events-auto ${currentStoryPage === content.story.pages.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110 hover:bg-white active:scale-90'
+                                  }`}
+                              >
+                                <ChevronRight size={16} className="text-slate-800" />
+                              </button>
+                            </div>
+
+                            {/* Pagination slider dots */}
+                            <div className="absolute inset-x-0 bottom-4 flex justify-center gap-1.5 z-10 pointer-events-none">
+                              {content.story.pages.map((_, i) => (
+                                <div
+                                  key={i}
+                                  className={`h-1.5 rounded-full transition-all duration-300 ${i === currentStoryPage ? 'w-5 bg-white shadow-sm' : 'w-1.5 bg-white/60'
+                                    }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {/* 3. QUIZ */}
+                      {currentStep === 'quiz' && content.quiz?.questions && content.quiz.questions[currentQuizIndex] && (() => {
+                        const qIdx = currentQuizIndex;
+                        const q = content.quiz.questions[qIdx];
+                        const isCorrect = quizLocked[qIdx] && quizAnswers[qIdx] === q.correctIndex;
+
+                        return (
+                          <div className="space-y-4 w-full flex flex-col items-center justify-center flex-1 min-h-0">
+                            <div className="text-center shrink-0">
+                              <h2 className="text-lg sm:text-xl font-black text-slate-850 tracking-tight">Interactive Quiz</h2>
+                              <p className="text-xs font-semibold text-slate-400 mt-1">
+                                Question {qIdx + 1} of {content.quiz.questions.length}
+                              </p>
+                            </div>
+
+                            <div className="w-full max-w-xl p-5 sm:p-6 bg-white border border-slate-200 rounded-2xl shadow-sm transition-all duration-300 space-y-4 my-auto">
+                              <div className="flex items-start gap-3">
+                                <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-black uppercase ${isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-primary/10 text-primary'
+                                  }`}>
+                                  Q{qIdx + 1}
                                 </span>
-                                <span className="text-xs sm:text-sm font-bold text-slate-650 leading-relaxed">{obj}</span>
+                                <h4 className="text-sm sm:text-base font-bold text-slate-800 leading-snug">
+                                  {q.question}
+                                </h4>
+                              </div>
+
+                              <div className="grid grid-cols-1 gap-2.5 pt-1">
+                                {q.options.map((opt, optIndex) => {
+                                  const isSelected = quizAnswers[qIdx] === optIndex;
+                                  const isOptionCorrect = optIndex === q.correctIndex;
+                                  const isOptionWrong = isSelected && !isOptionCorrect;
+
+                                  let btnClass = 'border-slate-200 bg-white hover:border-slate-350 hover:bg-slate-50 text-slate-700';
+                                  if (quizLocked[qIdx]) {
+                                    if (isOptionCorrect) {
+                                      btnClass = 'border-emerald-500 bg-emerald-50 text-emerald-950 shadow-sm';
+                                    } else if (isSelected) {
+                                      btnClass = 'border-rose-300 bg-rose-50 text-rose-950 opacity-60';
+                                    } else {
+                                      btnClass = 'border-slate-100 bg-slate-50/40 opacity-40 text-slate-400';
+                                    }
+                                  } else if (isSelected && isOptionWrong) {
+                                    btnClass = 'border-rose-400 bg-rose-50 text-rose-955';
+                                  }
+
+                                  return (
+                                    <button
+                                      key={optIndex}
+                                      onClick={() => handleQuizSelect(qIdx, optIndex, q.correctIndex)}
+                                      disabled={quizLocked[qIdx]}
+                                      className={`w-full flex items-center gap-3 p-3.5 rounded-xl border font-bold text-left text-xs sm:text-sm transition-all active:scale-[0.99] hover:shadow-sm ${btnClass}`}
+                                    >
+                                      <div className={`w-5.5 h-5.5 rounded-md flex items-center justify-center text-[10px] font-black border uppercase shrink-0 ${isSelected
+                                          ? 'bg-current text-white border-transparent'
+                                          : 'bg-white border-slate-200 text-slate-400'
+                                        }`}>
+                                        {String.fromCharCode(65 + optIndex)}
+                                      </div>
+                                      <span className="flex-1 leading-snug">{opt}</span>
+                                      {quizLocked[qIdx] && isOptionCorrect && <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+
+                              {/* Quiz Answer Inline Feedback */}
+                              {quizNotice[qIdx] && (
+                                <div className={`p-3 rounded-xl flex items-center gap-2 text-xs font-bold animate-in slide-in-from-top-1 duration-200 border ${quizNotice[qIdx]?.type === 'success'
+                                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                                    : 'bg-rose-50 border-rose-200 text-rose-800'
+                                  }`}>
+                                  {quizNotice[qIdx]?.type === 'success' ? (
+                                    <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
+                                  ) : (
+                                    <AlertCircle size={14} className="text-rose-600 shrink-0" />
+                                  )}
+                                  <span>{quizNotice[qIdx]?.message}</span>
+                                </div>
+                              )}
+
+                              {/* Quiz Explanation */}
+                              {quizLocked[qIdx] && q.explanation && (
+                                <div className="p-4 bg-emerald-55 border border-emerald-100 rounded-xl flex gap-3 text-emerald-950 text-xs font-semibold animate-in slide-in-from-top-2 duration-300">
+                                  <Info size={16} className="shrink-0 text-emerald-600 mt-0.5" />
+                                  <p className="leading-relaxed">{q.explanation}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* 4. JOURNAL */}
+                      {currentStep === 'journal' && (
+                        <div className="space-y-6">
+                          <div className="text-center">
+                            <h2 className="text-xl font-black text-slate-850 tracking-tight">Learning Journal</h2>
+                            <p className="text-xs font-semibold text-slate-400 mt-1">Reflect on what you've learned to lock in your knowledge</p>
+                          </div>
+
+                          <div className={`border rounded-2xl p-5 space-y-4 transition-all duration-300 ${journalSubmitted ? 'bg-emerald-50/30 border-emerald-200' : 'bg-rose-50/10 border-rose-100'}`}>
+                            <div className="space-y-1.5">
+                              <h4 className={`text-[10px] font-black uppercase tracking-widest ${journalSubmitted ? 'text-emerald-600' : 'text-rose-500'}`}>Journal Prompt</h4>
+                              <p className="text-sm font-bold text-slate-800 leading-snug">
+                                {content.journal.prompt}
+                              </p>
+                            </div>
+
+                            <div className="space-y-3">
+                              <textarea
+                                value={reflectionText}
+                                onChange={(e) => {
+                                  setReflectionText(e.target.value);
+                                  if (journalSubmitted) {
+                                    setJournalSubmitted(false);
+                                    setJournalNotice(null);
+                                  }
+                                }}
+                                disabled={journalSubmitted}
+                                placeholder="Type your reflection here (minimum 20 characters)..."
+                                className={`w-full p-4 bg-white border rounded-xl text-xs sm:text-sm font-medium text-slate-700 placeholder:text-slate-300 min-h-[140px] outline-none transition-all shadow-sm ${journalSubmitted
+                                    ? 'border-emerald-200 bg-emerald-50/20 text-slate-500 cursor-not-allowed'
+                                    : 'border-slate-200 focus:border-rose-400 focus:ring-4 focus:ring-rose-100/50'
+                                  }`}
+                              />
+
+                              <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+                                <span className={`text-xs font-bold ${reflectionText.trim().length >= 20 ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                  {reflectionText.trim().length >= 20 ? `✓ ${reflectionText.length} characters` : `${reflectionText.length} / 20 min`}
+                                </span>
+
+                                <div className="flex gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => setReflectionMode('private')}
+                                    disabled={journalSubmitted}
+                                    className={`px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all ${reflectionMode === 'private'
+                                        ? 'bg-slate-900 border-slate-900 text-white shadow-sm'
+                                        : 'border-slate-200 text-slate-400 hover:border-slate-300'
+                                      } ${journalSubmitted ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                  >
+                                    Private
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setReflectionMode('community')}
+                                    disabled={journalSubmitted}
+                                    className={`px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all ${reflectionMode === 'community'
+                                        ? 'bg-slate-900 border-slate-900 text-white shadow-sm'
+                                        : 'border-slate-200 text-slate-400 hover:border-slate-300'
+                                      } ${journalSubmitted ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                  >
+                                    Community
+                                  </button>
+                                </div>
+                              </div>
+                              <p className="text-[10px] text-slate-400 leading-relaxed font-medium pt-2 border-t border-slate-100/60">
+                                {reflectionMode === 'private'
+                                  ? '🔒 Private: Only you can view this journal entry in your dashboard.'
+                                  : '👥 Community: Anonymous peer reflection shared in Gigis Circle feed.'}
+                              </p>
+
+                              {/* Only show the notice banner if it's an error; success is handled in the footer area below */}
+                              {journalNotice && journalNotice.type === 'error' && (
+                                <div className="p-3 rounded-xl flex items-center gap-2 text-xs font-bold animate-in slide-in-from-top-1 duration-200 border bg-rose-50 border-rose-200 text-rose-800">
+                                  <AlertCircle size={14} className="text-rose-600 shrink-0" />
+                                  <span>{journalNotice.message}</span>
+                                </div>
+                              )}
+
+                              {/* Submit / Edit button */}
+                              <div className="pt-1">
+                                {journalSubmitted ? (
+                                  <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs">
+                                      <CheckCircle2 size={16} className="text-emerald-500" />
+                                      Journal saved — click Next to continue
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setJournalSubmitted(false);
+                                        setJournalNotice(null);
+                                      }}
+                                      className="px-3 py-1.5 border border-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-slate-50 transition-all"
+                                    >
+                                      Edit
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={handleJournalSave}
+                                    disabled={isSubmittingJournal || reflectionText.trim().length < 20}
+                                    className={`w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${reflectionText.trim().length < 20 || isSubmittingJournal
+                                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                        : 'bg-rose-500 hover:bg-rose-600 text-white shadow-sm hover:shadow-md active:scale-[0.98]'
+                                      }`}
+                                  >
+                                    {isSubmittingJournal ? (
+                                      <><Loader2 className="animate-spin" size={13} /> Saving...</>
+                                    ) : (
+                                      <>Save Journal Entry</>
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+
+                      {/* 5. SUMMARY */}
+                      {currentStep === 'summary' && (
+                        <div className="space-y-6 text-center py-4 flex flex-col items-center">
+                          <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-amber-500/10 animate-float">
+                            <Trophy size={32} className="fill-white/10" />
+                          </div>
+
+                          <div className="space-y-1">
+                            <h2 className="text-xl sm:text-2xl font-black text-slate-850 tracking-tight leading-tight">
+                              Fantastic work!
+                            </h2>
+                            <p className="text-xs font-semibold text-slate-400">Activity completed successfully</p>
+                          </div>
+
+                          <div className="p-6 bg-slate-50/50 rounded-2xl border border-slate-100 max-w-md w-full">
+                            <p className="text-xs sm:text-sm text-slate-650 font-medium leading-relaxed">
+                              {content.summary.text}
+                            </p>
+                          </div>
+
+                          <div className="pt-4 flex flex-col items-center w-full gap-3">
+                            {completionNotice?.success ? (
+                              <>
+                                {/* XP Earned Banner */}
+                                <div className="w-full max-w-sm p-4 rounded-2xl flex items-center gap-3 animate-in fade-in duration-300 border bg-emerald-50 border-emerald-200 text-emerald-800">
+                                  <CheckCircle2 size={20} className="text-emerald-500 shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-black text-emerald-800 leading-snug">{completionNotice.success}</p>
+                                    <p className="text-[10px] text-emerald-600 mt-0.5 font-semibold">Great job completing this episode!</p>
+                                  </div>
+                                </div>
+
+                                {/* Next Episode CTA */}
+                                {nextEpisode ? (
+                                  <div className="w-full max-w-sm space-y-2">
+                                    <button
+                                      onClick={() => router.push(`/dashboard/learning-journeys/${journeyId}/episodes/${nextEpisode.id}`)}
+                                      className="w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all font-black text-xs sm:text-sm uppercase tracking-widest shadow-md text-white bg-purple-600 hover:bg-purple-700 hover:scale-[1.01] active:scale-[0.99]"
+                                    >
+                                      Next Episode <ChevronRight size={16} />
+                                    </button>
+                                    <p className="text-[10px] text-center text-slate-400 font-semibold truncate px-2">{nextEpisode.title}</p>
+                                    <button
+                                      onClick={() => router.push(`/dashboard/learning-journeys/${journeyId}`)}
+                                      className="w-full py-2 rounded-2xl flex items-center justify-center gap-2 transition-all font-black text-xs uppercase tracking-widest border border-slate-200 text-slate-500 hover:bg-slate-50"
+                                    >
+                                      <ArrowLeft size={14} /> Back to Journey
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="w-full max-w-sm space-y-2">
+                                    <div className="w-full p-4 rounded-2xl bg-amber-50 border border-amber-200 text-center">
+                                      <p className="text-sm font-black text-amber-800">🏆 Journey Complete!</p>
+                                      <p className="text-[10px] text-amber-600 mt-1 font-semibold">You've finished all episodes in this journey.</p>
+                                    </div>
+                                    <button
+                                      onClick={() => router.push(`/dashboard/learning-journeys/${journeyId}`)}
+                                      className="w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all font-black text-xs sm:text-sm uppercase tracking-widest shadow-md text-white bg-slate-800 hover:bg-slate-900 hover:scale-[1.01] active:scale-[0.99]"
+                                    >
+                                      <Trophy size={16} /> Back to Journey
+                                    </button>
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                {completionNotice?.error && (
+                                  <div className="w-full max-w-xs p-3 rounded-2xl flex items-start gap-2.5 text-xs font-bold animate-in fade-in duration-200 border bg-rose-50 border-rose-200 text-rose-800">
+                                    <AlertCircle size={16} className="text-rose-600 shrink-0 mt-0.5" />
+                                    <span className="text-left leading-relaxed">{completionNotice.error}</span>
+                                  </div>
+                                )}
+                                <button
+                                  onClick={handleComplete}
+                                  disabled={isSubmitting}
+                                  className="btn-primary w-full max-w-xs py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all font-black text-xs sm:text-sm uppercase tracking-widest shadow-md disabled:opacity-50"
+                                >
+                                  {isSubmitting ? (
+                                    <><Loader2 className="animate-spin" size={16} /> Submitting...</>
+                                  ) : (
+                                    <>Complete Episode <Trophy size={16} /></>
+                                  )}
+                                </button>
+                                <p className="text-[10px] text-slate-400 font-semibold">
+                                  Earn +{episode?.points || 75} XP points for your profile.
+                                </p>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* ==================== PEER TRAINING (MENTOR) FLOW ==================== */}
+
+                      {/* A. OVERVIEW / OBJECTIVES */}
+                      {currentStep === 'overview' && (
+                        <div className="space-y-6">
+                          <div className="text-center">
+                            <h2 className="text-xl font-black text-slate-850 tracking-tight">Overview & Objectives</h2>
+                            <p className="text-xs font-semibold text-slate-400 mt-1">Foundational training overview</p>
+                          </div>
+
+                          {content.overview && (
+                            <div className="p-5 bg-slate-50/50 rounded-2xl border border-slate-100 text-left">
+                              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Overview</h4>
+                              <p className="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed whitespace-pre-line select-none">
+                                {content.overview}
+                              </p>
+                            </div>
+                          )}
+
+                          {content.objectives && content.objectives.length > 0 && (
+                            <div className="space-y-3">
+                              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Key Objectives</h4>
+                              <div className="grid grid-cols-1 gap-2.5">
+                                {content.objectives.map((obj, idx) => (
+                                  <div key={idx} className="flex items-start gap-3 p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
+                                    <span className="w-5.5 h-5.5 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold">
+                                      ✓
+                                    </span>
+                                    <span className="text-xs sm:text-sm font-bold text-slate-650 leading-relaxed">{obj}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* B. NON NEGOTIABLE WARNING */}
+                      {currentStep === 'non-negotiable' && content.nonNegotiable && (
+                        <div className="space-y-6 text-center py-4 flex flex-col items-center">
+                          <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center shadow-lg shadow-rose-500/5 animate-float">
+                            <ShieldAlert size={32} />
+                          </div>
+
+                          <div className="space-y-1">
+                            <h2 className="text-xl sm:text-2xl font-black text-slate-850 tracking-tight">Crucial Mentor Guidelines</h2>
+                            <p className="text-xs font-semibold text-slate-400">Safety & boundaries check</p>
+                          </div>
+
+                          <div className="bg-rose-50/20 border border-dashed border-rose-200 rounded-2xl p-6 text-left max-w-lg w-full relative">
+                            <p className="text-xs sm:text-sm text-rose-950 font-bold leading-relaxed relative z-10 select-none">
+                              {content.nonNegotiable}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      {/* C. MODULES */}
+                      {currentStep === 'modules' && content.modules && content.modules[currentModuleIndex] && (() => {
+                        const m = content.modules[currentModuleIndex];
+                        return (
+                          <div className="space-y-4 w-full flex flex-col items-center justify-center flex-1 min-h-0">
+                            <div className="text-center shrink-0">
+                              <h2 className="text-lg sm:text-xl font-black text-slate-850 tracking-tight">Training Modules</h2>
+                              <p className="text-xs font-semibold text-slate-400 mt-1">
+                                Module {currentModuleIndex + 1} of {content.modules.length}
+                              </p>
+                            </div>
+
+                            <div className="w-full max-w-xl p-6 bg-white border border-slate-200 rounded-2xl shadow-sm transition-all duration-300 group my-auto">
+                              <div className="flex items-start gap-4">
+                                <span className="w-8 h-8 rounded-lg bg-primary/10 text-primary font-black text-sm flex items-center justify-center shrink-0">
+                                  {m.id}
+                                </span>
+                                <div className="space-y-2 flex-1 min-w-0">
+                                  <h4 className="text-sm sm:text-base font-black text-slate-850 leading-snug">
+                                    {m.title}
+                                  </h4>
+                                  <p className="text-xs sm:text-sm font-medium text-slate-650 leading-relaxed select-text">
+                                    {m.detail}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* D. SAFE PROTOCOL */}
+                      {currentStep === 'safe-protocol' && content.safeProtocol && content.safeProtocol[currentSafeProtocolIndex] && (() => {
+                        const sp = content.safeProtocol[currentSafeProtocolIndex];
+                        return (
+                          <div className="space-y-4 w-full flex flex-col items-center justify-center flex-1 min-h-0">
+                            <div className="text-center shrink-0">
+                              <h2 className="text-lg sm:text-xl font-black text-slate-850 tracking-tight">The SAFE Protocol</h2>
+                              <p className="text-xs font-semibold text-slate-400 mt-1">
+                                Step {currentSafeProtocolIndex + 1} of {content.safeProtocol.length}
+                              </p>
+                            </div>
+
+                            <div className="w-full max-w-xl bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col relative overflow-hidden my-auto">
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-rose-50 text-rose-600 border border-rose-100 self-start mb-3">
+                                {sp.step}
+                              </span>
+                              <h4 className="text-xs sm:text-sm font-black text-slate-800 leading-snug">{sp.action}</h4>
+                              <div className="bg-slate-55 p-4 rounded-xl border border-slate-200 mt-4 flex-1">
+                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Example script:</span>
+                                <p className="text-xs font-semibold text-slate-650 leading-relaxed italic">
+                                  "{sp.example}"
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* E. PRACTICE SCENARIO */}
+                      {currentStep === 'practice' && content.practice && (
+                        <div className="space-y-6">
+                          <div className="text-center">
+                            <h2 className="text-xl font-black text-slate-850 tracking-tight">{content.practice.title}</h2>
+                            <p className="text-xs font-semibold text-slate-400 mt-1">Review the case details and prepare your response mentally</p>
+                          </div>
+
+                          <div className="p-5 bg-amber-50/10 border border-amber-200 rounded-2xl space-y-3">
+                            <h4 className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Case Scenario</h4>
+                            <p className="text-sm sm:text-base font-bold text-slate-800 leading-relaxed select-none italic">
+                              "{content.practice.prompt}"
+                            </p>
+                          </div>
+                          <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex gap-3 text-slate-505 text-xs font-semibold">
+                            <Info size={16} className={`${theme.accent} shrink-0`} />
+                            <p>Consider how you would set emotional boundaries while validating their distress. Avoid rescue language.</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* F. PEER REFLECTION */}
+                      {currentStep === 'reflection' && (
+                        <div className="space-y-6">
+                          <div className="text-center">
+                            <h2 className="text-xl font-black text-slate-855 tracking-tight">
+                              {content.reflection?.title || content.activity?.title || 'Certification Reflection'}
+                            </h2>
+                            <p className="text-xs font-semibold text-slate-400 mt-1">Submit your reflection write-up to complete this block</p>
+                          </div>
+
+                          <div className="bg-rose-50/10 border border-rose-100 rounded-2xl p-5 space-y-4">
+                            <div className="space-y-1.5">
+                              <h4 className="text-[10px] font-black text-rose-500 uppercase tracking-widest">Question prompt</h4>
+                              <p className="text-sm font-bold text-slate-800 leading-relaxed select-text">
+                                {content.reflection?.prompt || content.activity?.fields?.join(', ') || 'Write a brief summary of how you would apply this lesson.'}
+                              </p>
+                            </div>
+
+                            <div className="space-y-3">
+                              <textarea
+                                value={reflectionText}
+                                onChange={(e) => setReflectionText(e.target.value)}
+                                placeholder="Type your reflection here (minimum 30 characters)..."
+                                className="w-full p-4 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-700 placeholder:text-slate-300 min-h-[140px] outline-none focus:border-rose-350 focus:ring-4 focus:ring-rose-350/5 transition-all shadow-sm"
+                              />
+                              <div className="flex justify-between items-center text-xs font-bold">
+                                <span className={reflectionText.trim().length >= 30 ? 'text-emerald-600' : 'text-slate-400'}>
+                                  Characters: {reflectionText.length} / 30 min
+                                </span>
+
+                                <span className="px-3 py-1 bg-slate-100 text-slate-500 border border-slate-200 rounded-full text-[9px] font-black uppercase tracking-widest">
+                                  Private Submission
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* G. KNOWLEDGE CHECK */}
+                      {currentStep === 'knowledge-check' && content.check && (
+                        <div className="space-y-6">
+                          <div className="text-center">
+                            <h2 className="text-xl font-black text-slate-850 tracking-tight">Self-Assessment Questionnaire</h2>
+                            <p className="text-xs font-semibold text-slate-400 mt-1">Read and answer these prompts mentally to test your understanding</p>
+                          </div>
+
+                          <div className="space-y-3 mt-4">
+                            {content.check.map((item, idx) => (
+                              <div key={idx} className="flex gap-4 p-5 bg-white border border-slate-100 rounded-2xl items-start shadow-sm">
+                                <span className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5 text-xs font-black">
+                                  Q{idx + 1}
+                                </span>
+                                <p className="text-xs sm:text-sm font-bold text-slate-700 leading-relaxed flex-1 select-text">
+                                  {item}
+                                </p>
                               </div>
                             ))}
                           </div>
                         </div>
                       )}
-                    </div>
-                  )}
 
-                  {/* B. NON NEGOTIABLE WARNING */}
-                  {currentStep === 'non-negotiable' && content.nonNegotiable && (
-                    <div className="space-y-6 text-center py-4 flex flex-col items-center">
-                      <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center shadow-lg shadow-rose-500/5 animate-float">
-                        <ShieldAlert size={32} />
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <h2 className="text-xl sm:text-2xl font-black text-slate-850 tracking-tight">Crucial Mentor Guidelines</h2>
-                        <p className="text-xs font-semibold text-slate-400">Safety & boundaries check</p>
-                      </div>
-
-                      <div className="bg-rose-50/20 border border-dashed border-rose-200 rounded-2xl p-6 text-left max-w-lg w-full relative">
-                        <p className="text-xs sm:text-sm text-rose-950 font-bold leading-relaxed relative z-10 select-none">
-                          {content.nonNegotiable}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                          {/* C. MODULES */}
-                  {currentStep === 'modules' && content.modules && content.modules[currentModuleIndex] && (() => {
-                    const m = content.modules[currentModuleIndex];
-                    return (
-                      <div className="space-y-4 w-full flex flex-col items-center justify-center flex-1 min-h-0">
-                        <div className="text-center shrink-0">
-                          <h2 className="text-lg sm:text-xl font-black text-slate-850 tracking-tight">Training Modules</h2>
-                          <p className="text-xs font-semibold text-slate-400 mt-1">
-                            Module {currentModuleIndex + 1} of {content.modules.length}
-                          </p>
-                        </div>
-
-                        <div className="w-full max-w-xl p-6 bg-white border border-slate-200 rounded-2xl shadow-sm transition-all duration-300 group my-auto">
-                          <div className="flex items-start gap-4">
-                            <span className="w-8 h-8 rounded-lg bg-primary/10 text-primary font-black text-sm flex items-center justify-center shrink-0">
-                              {m.id}
-                            </span>
-                            <div className="space-y-2 flex-1 min-w-0">
-                              <h4 className="text-sm sm:text-base font-black text-slate-850 leading-snug">
-                                {m.title}
-                              </h4>
-                              <p className="text-xs sm:text-sm font-medium text-slate-650 leading-relaxed select-text">
-                                {m.detail}
-                              </p>
-                            </div>
+                      {/* H. PEER COMPLETE */}
+                      {currentStep === 'complete' && (
+                        <div className="space-y-6 text-center py-4 flex flex-col items-center">
+                          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-650 rounded-2xl flex items-center justify-center text-white shadow-lg animate-float">
+                            <Trophy size={32} className="fill-white/10" />
                           </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
 
-                  {/* D. SAFE PROTOCOL */}
-                  {currentStep === 'safe-protocol' && content.safeProtocol && content.safeProtocol[currentSafeProtocolIndex] && (() => {
-                    const sp = content.safeProtocol[currentSafeProtocolIndex];
-                    return (
-                      <div className="space-y-4 w-full flex flex-col items-center justify-center flex-1 min-h-0">
-                        <div className="text-center shrink-0">
-                          <h2 className="text-lg sm:text-xl font-black text-slate-850 tracking-tight">The SAFE Protocol</h2>
-                          <p className="text-xs font-semibold text-slate-400 mt-1">
-                            Step {currentSafeProtocolIndex + 1} of {content.safeProtocol.length}
-                          </p>
-                        </div>
+                          <div className="space-y-1">
+                            <h2 className="text-xl sm:text-2xl font-black text-slate-850 tracking-tight leading-tight">
+                              Training Block Complete!
+                            </h2>
+                            <p className="text-xs font-semibold text-slate-400">Certification requirements completed</p>
+                          </div>
 
-                        <div className="w-full max-w-xl bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col relative overflow-hidden my-auto">
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-rose-50 text-rose-600 border border-rose-100 self-start mb-3">
-                            {sp.step}
-                          </span>
-                          <h4 className="text-xs sm:text-sm font-black text-slate-800 leading-snug">{sp.action}</h4>
-                          <div className="bg-slate-55 p-4 rounded-xl border border-slate-200 mt-4 flex-1">
-                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Example script:</span>
-                            <p className="text-xs font-semibold text-slate-650 leading-relaxed italic">
-                              "{sp.example}"
+                          <div className="p-6 bg-slate-50/50 rounded-2xl border border-slate-100 max-w-md w-full">
+                            <p className="text-xs sm:text-sm text-slate-605 font-medium leading-relaxed">
+                              You have reviewed all the training materials and submitted your reflection. Click below to save your progress.
                             </p>
                           </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
 
-                  {/* E. PRACTICE SCENARIO */}
-                  {currentStep === 'practice' && content.practice && (
-                    <div className="space-y-6">
-                      <div className="text-center">
-                        <h2 className="text-xl font-black text-slate-850 tracking-tight">{content.practice.title}</h2>
-                        <p className="text-xs font-semibold text-slate-400 mt-1">Review the case details and prepare your response mentally</p>
-                      </div>
-
-                      <div className="p-5 bg-amber-50/10 border border-amber-200 rounded-2xl space-y-3">
-                        <h4 className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Case Scenario</h4>
-                        <p className="text-sm sm:text-base font-bold text-slate-800 leading-relaxed select-none italic">
-                          "{content.practice.prompt}"
-                        </p>
-                      </div>
-                      <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex gap-3 text-slate-505 text-xs font-semibold">
-                        <Info size={16} className={`${theme.accent} shrink-0`} />
-                        <p>Consider how you would set emotional boundaries while validating their distress. Avoid rescue language.</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* F. PEER REFLECTION */}
-                  {currentStep === 'reflection' && (
-                    <div className="space-y-6">
-                      <div className="text-center">
-                        <h2 className="text-xl font-black text-slate-855 tracking-tight">
-                          {content.reflection?.title || content.activity?.title || 'Certification Reflection'}
-                        </h2>
-                        <p className="text-xs font-semibold text-slate-400 mt-1">Submit your reflection write-up to complete this block</p>
-                      </div>
-
-                      <div className="bg-rose-50/10 border border-rose-100 rounded-2xl p-5 space-y-4">
-                        <div className="space-y-1.5">
-                          <h4 className="text-[10px] font-black text-rose-500 uppercase tracking-widest">Question prompt</h4>
-                          <p className="text-sm font-bold text-slate-800 leading-relaxed select-text">
-                            {content.reflection?.prompt || content.activity?.fields?.join(', ') || 'Write a brief summary of how you would apply this lesson.'}
-                          </p>
-                        </div>
-
-                        <div className="space-y-3">
-                          <textarea
-                            value={reflectionText}
-                            onChange={(e) => setReflectionText(e.target.value)}
-                            placeholder="Type your reflection here (minimum 30 characters)..."
-                            className="w-full p-4 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-700 placeholder:text-slate-300 min-h-[140px] outline-none focus:border-rose-350 focus:ring-4 focus:ring-rose-350/5 transition-all shadow-sm"
-                          />
-                          <div className="flex justify-between items-center text-xs font-bold">
-                            <span className={reflectionText.trim().length >= 30 ? 'text-emerald-600' : 'text-slate-400'}>
-                              Characters: {reflectionText.length} / 30 min
-                            </span>
-                            
-                            <span className="px-3 py-1 bg-slate-100 text-slate-500 border border-slate-200 rounded-full text-[9px] font-black uppercase tracking-widest">
-                              Private Submission
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* G. KNOWLEDGE CHECK */}
-                  {currentStep === 'knowledge-check' && content.check && (
-                    <div className="space-y-6">
-                      <div className="text-center">
-                        <h2 className="text-xl font-black text-slate-850 tracking-tight">Self-Assessment Questionnaire</h2>
-                        <p className="text-xs font-semibold text-slate-400 mt-1">Read and answer these prompts mentally to test your understanding</p>
-                      </div>
-
-                      <div className="space-y-3 mt-4">
-                        {content.check.map((item, idx) => (
-                          <div key={idx} className="flex gap-4 p-5 bg-white border border-slate-100 rounded-2xl items-start shadow-sm">
-                            <span className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5 text-xs font-black">
-                              Q{idx + 1}
-                            </span>
-                            <p className="text-xs sm:text-sm font-bold text-slate-700 leading-relaxed flex-1 select-text">
-                              {item}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* H. PEER COMPLETE */}
-                  {currentStep === 'complete' && (
-                    <div className="space-y-6 text-center py-4 flex flex-col items-center">
-                      <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-650 rounded-2xl flex items-center justify-center text-white shadow-lg animate-float">
-                        <Trophy size={32} className="fill-white/10" />
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <h2 className="text-xl sm:text-2xl font-black text-slate-850 tracking-tight leading-tight">
-                          Training Block Complete!
-                        </h2>
-                        <p className="text-xs font-semibold text-slate-400">Certification requirements completed</p>
-                      </div>
-
-                      <div className="p-6 bg-slate-50/50 rounded-2xl border border-slate-100 max-w-md w-full">
-                        <p className="text-xs sm:text-sm text-slate-605 font-medium leading-relaxed">
-                          You have reviewed all the training materials and submitted your reflection. Click below to save your progress.
-                        </p>
-                      </div>
-
-                      <div className="pt-4 flex flex-col items-center w-full">
-                        {completionNotice && (
-                          <div className={`w-full max-w-xs mb-4 p-3 rounded-2xl flex items-start gap-2.5 text-xs font-bold animate-in fade-in duration-200 border ${
-                            completionNotice.success
-                              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                              : 'bg-rose-50 border-rose-200 text-rose-800'
-                          }`}>
-                            {completionNotice.success ? (
-                              <CheckCircle2 size={16} className="text-emerald-600 shrink-0 mt-0.5" />
-                            ) : (
-                              <AlertCircle size={16} className="text-rose-600 shrink-0 mt-0.5" />
+                          <div className="pt-4 flex flex-col items-center w-full">
+                            {completionNotice && (
+                              <div className={`w-full max-w-xs mb-4 p-3 rounded-2xl flex items-start gap-2.5 text-xs font-bold animate-in fade-in duration-200 border ${completionNotice.success
+                                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                                  : 'bg-rose-50 border-rose-200 text-rose-800'
+                                }`}>
+                                {completionNotice.success ? (
+                                  <CheckCircle2 size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                                ) : (
+                                  <AlertCircle size={16} className="text-rose-600 shrink-0 mt-0.5" />
+                                )}
+                                <span className="text-left leading-relaxed">{completionNotice.success || completionNotice.error}</span>
+                              </div>
                             )}
-                            <span className="text-left leading-relaxed">{completionNotice.success || completionNotice.error}</span>
+                            <button
+                              onClick={handleComplete}
+                              disabled={isSubmitting || !!completionNotice?.success}
+                              className="btn-primary w-full max-w-xs py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all font-black text-xs sm:text-sm uppercase tracking-widest shadow-md disabled:opacity-50"
+                            >
+                              {isSubmitting ? (
+                                <>
+                                  <Loader2 className="animate-spin" size={16} /> Submitting...
+                                </>
+                              ) : completionNotice?.success ? (
+                                <>
+                                  Success! Redirecting...
+                                </>
+                              ) : (
+                                <>
+                                  Save & Complete Training <Trophy size={16} />
+                                </>
+                              )}
+                            </button>
+                            <p className="text-[10px] text-slate-400 mt-3 font-semibold">
+                              Your progress will be logged towards your mentor certification.
+                            </p>
                           </div>
-                        )}
-                        <button
-                          onClick={handleComplete}
-                          disabled={isSubmitting || !!completionNotice?.success}
-                          className="btn-primary w-full max-w-xs py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all font-black text-xs sm:text-sm uppercase tracking-widest shadow-md disabled:opacity-50"
-                        >
-                          {isSubmitting ? (
-                            <>
-                              <Loader2 className="animate-spin" size={16} /> Submitting...
-                            </>
-                          ) : completionNotice?.success ? (
-                            <>
-                              Success! Redirecting...
-                            </>
-                          ) : (
-                            <>
-                              Save & Complete Training <Trophy size={16} />
-                            </>
-                          )}
-                        </button>
-                        <p className="text-[10px] text-slate-400 mt-3 font-semibold">
-                          Your progress will be logged towards your mentor certification.
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                        </div>
+                      )}
 
                     </div>
                   </div>
@@ -1575,11 +1564,10 @@ export default function EpisodePlayerPage() {
             <button
               onClick={handlePrev}
               disabled={currentStepIndex === 0 && currentStoryPage === 0}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl border text-xs font-black uppercase tracking-widest transition-all ${
-                currentStepIndex === 0 && currentStoryPage === 0
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl border text-xs font-black uppercase tracking-widest transition-all ${currentStepIndex === 0 && currentStoryPage === 0
                   ? 'border-slate-100 text-slate-300 bg-slate-50/20 cursor-not-allowed'
                   : 'border-slate-200 text-slate-650 bg-white hover:bg-slate-50 hover:shadow-sm active:scale-95'
-              }`}
+                }`}
             >
               <ChevronLeft size={16} /> Back
             </button>
@@ -1593,13 +1581,12 @@ export default function EpisodePlayerPage() {
                   <div
                     key={idx}
                     onClick={() => handleSidebarClick(idx)}
-                    className={`h-2 rounded-full cursor-pointer transition-all duration-300 ${
-                      isCurr
+                    className={`h-2 rounded-full cursor-pointer transition-all duration-300 ${isCurr
                         ? `w-8 bg-gradient-to-r ${theme.gradient} shadow-sm`
                         : isDone
-                        ? 'w-2 bg-emerald-500'
-                        : 'w-2 bg-slate-200 hover:bg-slate-300'
-                    }`}
+                          ? 'w-2 bg-emerald-500'
+                          : 'w-2 bg-slate-200 hover:bg-slate-300'
+                      }`}
                     title={getStepMeta(s)?.label || s}
                   />
                 );
@@ -1628,11 +1615,10 @@ export default function EpisodePlayerPage() {
               <button
                 onClick={handleComplete}
                 disabled={isSubmitting || !canProceed()}
-                className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all text-white bg-slate-900 shadow-sm ${
-                  !canProceed() || isSubmitting
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all text-white bg-slate-900 shadow-sm ${!canProceed() || isSubmitting
                     ? 'opacity-40 cursor-not-allowed bg-slate-300 shadow-none'
                     : 'hover:scale-[1.02] hover:bg-purple-700 active:scale-[0.98]'
-                }`}
+                  }`}
               >
                 {isSubmitting ? (
                   <><Loader2 className="animate-spin" size={14} /> Saving</>
@@ -1644,11 +1630,10 @@ export default function EpisodePlayerPage() {
               <button
                 onClick={handleNext}
                 disabled={!canProceed()}
-                className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all text-white bg-purple-600 shadow-sm ${
-                  !canProceed()
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all text-white bg-purple-600 shadow-sm ${!canProceed()
                     ? 'opacity-40 cursor-not-allowed bg-slate-300 shadow-none'
                     : 'hover:scale-[1.02] hover:bg-purple-700 active:scale-[0.98]'
-                }`}
+                  }`}
               >
                 Next <ChevronRight size={16} />
               </button>
@@ -1657,7 +1642,7 @@ export default function EpisodePlayerPage() {
 
         </main>
 
-              {/* Right Sidebar Checklist Panel (Desktop fixed) */}
+        {/* Right Sidebar Checklist Panel (Desktop fixed) */}
         <aside className="hidden md:flex w-72 border-l border-slate-200 flex-col bg-white overflow-hidden z-10 shrink-0">
           <div className="p-4 border-b border-slate-200 bg-slate-50/50 shrink-0">
             <h3 className="text-xs font-black uppercase tracking-wider text-slate-500">Episode Contents</h3>
@@ -1668,7 +1653,7 @@ export default function EpisodePlayerPage() {
               </div>
             )}
           </div>
-          
+
           <div className="flex-1 overflow-y-auto p-3 space-y-2">
             {steps.map((stepName, idx) => {
               const meta = getStepMeta(stepName);
@@ -1685,13 +1670,12 @@ export default function EpisodePlayerPage() {
                   <div className="space-y-0.5 w-full">
                     <div
                       onClick={(e) => handleStepHeaderClick(idx, stepName, e)}
-                      className={`w-full flex items-center justify-between py-2 px-3 rounded-lg cursor-pointer transition-all ${
-                        isCurrent
+                      className={`w-full flex items-center justify-between py-2 px-3 rounded-lg cursor-pointer transition-all ${isCurrent
                           ? 'bg-slate-100/90 text-slate-900 font-bold border-l-4 border-purple-600'
                           : isUnlocked
-                          ? 'text-slate-700 hover:bg-slate-100'
-                          : 'text-slate-400 cursor-not-allowed bg-slate-50/30'
-                      }`}
+                            ? 'text-slate-700 hover:bg-slate-100'
+                            : 'text-slate-400 cursor-not-allowed bg-slate-50/30'
+                        }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         {hasSubItems ? (
@@ -1707,7 +1691,7 @@ export default function EpisodePlayerPage() {
                         ) : (
                           <div className="w-4 h-4 shrink-0" />
                         )}
-                        
+
                         <Icon size={14} className={isCurrent ? 'text-purple-600' : 'text-slate-400'} />
                         <span className="text-[13px] truncate">{meta.label}</span>
                       </div>
@@ -1731,16 +1715,14 @@ export default function EpisodePlayerPage() {
                             <button
                               key={sub.index}
                               onClick={() => handleSubClick(stepName, sub.index)}
-                              className={`w-full flex items-center justify-between text-left py-1.5 px-2.5 rounded-md text-[11px] font-semibold transition-colors ${
-                                isSubActive
+                              className={`w-full flex items-center justify-between text-left py-1.5 px-2.5 rounded-md text-[11px] font-semibold transition-colors ${isSubActive
                                   ? 'bg-purple-50 text-purple-700 font-bold'
                                   : 'text-slate-500 hover:bg-slate-55 hover:text-slate-800'
-                              }`}
+                                }`}
                             >
                               <span className="truncate pr-2 flex items-center gap-1.5">
-                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${
-                                  isSubActive ? 'bg-purple-600' : 'bg-slate-300'
-                                }`} />
+                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${isSubActive ? 'bg-purple-600' : 'bg-slate-300'
+                                  }`} />
                                 {sub.label}
                               </span>
                               {isSubCompleted && (
@@ -1767,7 +1749,7 @@ export default function EpisodePlayerPage() {
           {sidebarOpen && (
             <>
               {/* Backdrop */}
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.4 }}
                 exit={{ opacity: 0 }}
@@ -1785,7 +1767,7 @@ export default function EpisodePlayerPage() {
                 <div className="flex flex-col mb-6 gap-2">
                   <div className="flex items-center justify-between">
                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Episode Contents</p>
-                    <button 
+                    <button
                       onClick={() => setSidebarOpen(false)}
                       className="text-slate-400 hover:text-slate-700 p-1 rounded-full hover:bg-slate-50 transition-colors"
                     >
@@ -1817,13 +1799,12 @@ export default function EpisodePlayerPage() {
                           {/* Step Header Row Mobile */}
                           <div
                             onClick={(e) => handleStepHeaderClick(idx, stepName, e)}
-                            className={`w-full flex items-center justify-between py-2 px-3 rounded-lg cursor-pointer transition-all ${
-                              isCurrent
+                            className={`w-full flex items-center justify-between py-2 px-3 rounded-lg cursor-pointer transition-all ${isCurrent
                                 ? 'bg-slate-100/90 text-slate-900 font-bold border-l-4 border-purple-600'
                                 : isUnlocked
-                                ? 'text-slate-700 hover:bg-slate-100'
-                                : 'text-slate-400 cursor-not-allowed bg-slate-50/30'
-                            }`}
+                                  ? 'text-slate-700 hover:bg-slate-100'
+                                  : 'text-slate-400 cursor-not-allowed bg-slate-50/30'
+                              }`}
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
                               {hasSubItems ? (
@@ -1839,7 +1820,7 @@ export default function EpisodePlayerPage() {
                               ) : (
                                 <div className="w-4 h-4 shrink-0" />
                               )}
-                              
+
                               <Icon size={14} className={isCurrent ? 'text-purple-600' : 'text-slate-400'} />
                               <span className="text-[13px] truncate">{meta.label}</span>
                             </div>
@@ -1864,16 +1845,14 @@ export default function EpisodePlayerPage() {
                                   <button
                                     key={sub.index}
                                     onClick={() => handleSubClick(stepName, sub.index)}
-                                    className={`w-full flex items-center justify-between text-left py-1.5 px-2.5 rounded-md text-[12px] font-semibold transition-colors ${
-                                      isSubActive
+                                    className={`w-full flex items-center justify-between text-left py-1.5 px-2.5 rounded-md text-[12px] font-semibold transition-colors ${isSubActive
                                         ? 'bg-purple-50 text-purple-700 font-bold'
                                         : 'text-slate-505 hover:bg-slate-50 hover:text-slate-800'
-                                    }`}
+                                      }`}
                                   >
                                     <span className="truncate pr-2 flex items-center gap-1.5">
-                                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${
-                                        isSubActive ? 'bg-purple-600' : 'bg-slate-300'
-                                      }`} />
+                                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${isSubActive ? 'bg-purple-600' : 'bg-slate-300'
+                                        }`} />
                                       {sub.label}
                                     </span>
                                     {isSubCompleted && (

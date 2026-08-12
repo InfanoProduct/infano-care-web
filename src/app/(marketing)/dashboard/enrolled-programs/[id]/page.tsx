@@ -153,8 +153,6 @@ export default function EnrolledProgramDetailsPage() {
                 </div>
                 <h2 className={`text-2xl font-black mt-2 tracking-tight text-slate-900`}>{enrollment.program.title} Program</h2>
                 <p className="text-xs font-bold text-slate-650 mt-1 flex flex-wrap items-center gap-1.5">
-                  <span>{enrollment.program.classRange}</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
                   <span>Enrolled {new Date(enrollment.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
                   <span>1:1 Private Mentoring</span>

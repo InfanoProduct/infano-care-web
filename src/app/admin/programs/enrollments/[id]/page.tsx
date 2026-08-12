@@ -160,10 +160,7 @@ export default function EnrollmentDetailPage({ params }: { params: Promise<{ id:
               <span className="text-slate-600 font-medium">{enrollment.program.title}</span>
             </div>
 
-            <div className="flex flex-col gap-1 p-3 bg-secondary/30 rounded-2xl border border-border/20">
-              <span className="text-xs text-muted-foreground/80 font-normal">Target cohort</span>
-              <span className="text-slate-600 font-medium">{enrollment.program.classRange}</span>
-            </div>
+
 
             <div className="flex flex-col gap-1 p-3 bg-secondary/30 rounded-2xl border border-border/20">
               <span className="text-xs text-muted-foreground/80 font-normal">Program publishing status</span>

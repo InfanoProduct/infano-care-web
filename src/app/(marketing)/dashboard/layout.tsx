@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import {
   ShieldCheck, LogOut, LayoutDashboard, Calendar, Compass, User,
   Sparkles, CreditCard, BookOpen, Layers, GraduationCap, Menu, X,
-  ChevronLeft, ChevronRight, Package, MessageSquare
+  ChevronLeft, ChevronRight, Package, MessageSquare, Video
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
@@ -185,8 +185,8 @@ export default function CustomerDashboardLayout({
     );
   }
 
-  // Episode Isolation check: bypass dashboard shell for cleaner full-screen player experience
-  if (pathname.includes('/episodes/')) {
+  // Episode & Course Player Isolation check: bypass dashboard shell for cleaner full-screen player experience
+  if (pathname.includes('/episodes/') || (pathname.includes('/dashboard/courses/') && !pathname.endsWith('/courses') && !pathname.includes('/explore'))) {
     return <div className="min-h-screen bg-background overflow-hidden">{children}</div>;
   }
 
@@ -202,6 +202,8 @@ export default function CustomerDashboardLayout({
   ] : [
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
     { href: '/dashboard/enrolled-programs', label: 'Enrolled Programs', icon: Layers },
+    { href: '/dashboard/courses', label: 'Explore Courses', icon: Video, matchPrefix: true },
+    { href: '/dashboard/my-courses', label: 'My Courses', icon: BookOpen, matchPrefix: true },
     { href: '/dashboard/orders', label: 'My Orders', icon: Package },
     ...(!isTeen ? [{ href: '/dashboard/expert-sessions', label: 'My Consultations', icon: Calendar }] : []),
     ...(!isTeen ? [{ href: '/dashboard/resources', label: 'Library', icon: BookOpen }] : []),

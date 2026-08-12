@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-  X, Plus, Trash2, Type, ImageIcon, 
-  MessageSquare, HelpCircle, Save, ArrowLeft, 
+import {
+  X, Plus, Trash2, Type, ImageIcon,
+  MessageSquare, HelpCircle, Save, ArrowLeft,
   BarChart3, ChevronRight, ChevronLeft,
   CheckCircle2, Info, Upload, Loader2
 } from 'lucide-react';
@@ -35,7 +35,7 @@ interface CurriculumContent {
   journal: { prompt: string };
   quiz: { questions: QuizQuestion[] };
   summary: { text: string };
-  
+
   // Peer Training Format
   overview?: string;
   objectives?: string[];
@@ -62,7 +62,7 @@ const DEFAULT_CONTENT: CurriculumContent = {
   journal: { prompt: '' },
   quiz: { questions: [] },
   summary: { text: '' },
-  
+
   overview: '',
   objectives: [],
   modules: [],
@@ -127,7 +127,7 @@ const normalizeContent = (content: any): CurriculumContent => {
     parsed.forEach((item: any) => {
       const type = item.type?.toLowerCase();
       const itemContent = item.content;
-      
+
       if (type === 'hook' || type === 'text') {
         if (!result.hook.text) result.hook.text = itemContent?.text || itemContent || '';
         else if (!result.summary.text) result.summary.text = itemContent?.text || itemContent || '';
@@ -152,9 +152,9 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
   const [activeTab, setActiveTab] = useState<keyof CurriculumContent>('hook');
   const [uploadingPages, setUploadingPages] = useState<Record<number, boolean>>({});
 
-  const isUpdating = initialContent && 
-    (typeof initialContent === 'string' ? initialContent !== '[]' && initialContent !== '{}' && initialContent !== '' 
-     : (Array.isArray(initialContent) ? initialContent.length > 0 : Object.keys(initialContent || {}).length > 0));
+  const isUpdating = initialContent &&
+    (typeof initialContent === 'string' ? initialContent !== '[]' && initialContent !== '{}' && initialContent !== ''
+      : (Array.isArray(initialContent) ? initialContent.length > 0 : Object.keys(initialContent || {}).length > 0));
 
   const tabs: { id: keyof CurriculumContent; label: string; icon: any; color: string }[] = [
     { id: 'hook', label: 'Hook', icon: Type, color: 'blue' },
@@ -171,7 +171,7 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
   };
 
   const isSegmentComplete = (id: keyof CurriculumContent) => {
-    switch(id) {
+    switch (id) {
       case 'hook': return (content.hook?.text?.length || 0) > 5;
       case 'story': return (content.story?.pages?.length || 0) > 0;
       case 'journal': return (content.journal?.prompt?.length || 0) > 5;
@@ -197,7 +197,7 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
     try {
       setUploadingPages(prev => ({ ...prev, [index]: true }));
       const response = await LearningApiService.uploadFile(file, 'learning-journey/images');
-      
+
       const newPages = [...content.story.pages];
       newPages[index] = response.url;
       updateSegment('story', { pages: newPages });
@@ -222,8 +222,8 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
             <p className="text-muted-foreground font-medium">Episode: <span className="text-primary font-bold">{episodeTitle}</span></p>
           </div>
         </div>
-        <button 
-          onClick={() => onSave(content)} 
+        <button
+          onClick={() => onSave(content)}
           className="btn-primary flex items-center gap-2 shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all py-3 px-6"
         >
           <Save size={20} /> {isUpdating ? 'Save Curriculum' : 'Publish Curriculum'}
@@ -239,20 +239,18 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               const isDone = isSegmentComplete(tab.id);
-              
+
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-3 p-4 rounded-2xl transition-all group relative mb-2 ${
-                    isActive 
-                      ? 'bg-primary text-white shadow-lg shadow-primary/20 translate-x-2' 
+                  className={`w-full flex items-center gap-3 p-4 rounded-2xl transition-all group relative mb-2 ${isActive
+                      ? 'bg-primary text-white shadow-lg shadow-primary/20 translate-x-2'
                       : 'hover:bg-slate-50 text-slate-500 hover:text-slate-800'
-                  }`}
+                    }`}
                 >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-                    isActive ? 'bg-white/20' : 'bg-slate-100 text-slate-500'
-                  }`}>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isActive ? 'bg-white/20' : 'bg-slate-100 text-slate-500'
+                    }`}>
                     <Icon size={18} />
                   </div>
                   <div className="flex-1 text-left">
@@ -277,7 +275,7 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                 <span className="text-white/40 font-bold">/ {tabs.length}</span>
               </div>
               <div className="mt-4 h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                <div 
+                <div
                   className="h-full bg-primary transition-all duration-1000 ease-out"
                   style={{ width: `${(tabs.filter(t => isSegmentComplete(t.id)).length / tabs.length) * 100}%` }}
                 />
@@ -313,7 +311,7 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-2">Introductory Narrative</label>
-                  <textarea 
+                  <textarea
                     value={content.hook.text}
                     onChange={(e) => updateSegment('hook', { text: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-3xl p-8 min-h-[300px] outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/30 transition-all font-medium text-lg leading-relaxed text-slate-700 placeholder:text-slate-300"
@@ -330,7 +328,7 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                     <div key={i} className="group relative bg-slate-50 border border-slate-200 rounded-3xl p-4 transition-all hover:border-primary/30 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 flex flex-col">
                       <div className="aspect-[3/4] rounded-2xl bg-slate-200 overflow-hidden mb-4 relative shadow-inner shrink-0">
                         {page ? (
-                          <img src={page} alt={`Page ${i+1}`} className="w-full h-full object-cover" />
+                          <img src={page} alt={`Page ${i + 1}`} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 p-6 text-center">
                             <ImageIcon size={32} className="mb-2 opacity-20" />
@@ -341,11 +339,11 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                           {i + 1}
                         </div>
                         <div className="flex gap-1 absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button 
+                          <button
                             onClick={() => {
                               if (i === 0) return;
                               const newPages = [...content.story.pages];
-                              [newPages[i-1], newPages[i]] = [newPages[i], newPages[i-1]];
+                              [newPages[i - 1], newPages[i]] = [newPages[i], newPages[i - 1]];
                               updateSegment('story', { pages: newPages });
                             }}
                             className="p-1.5 rounded-lg bg-white/90 backdrop-blur-sm text-slate-400 hover:text-primary shadow-sm"
@@ -353,11 +351,11 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                           >
                             <ChevronLeft size={14} className="rotate-90" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => {
                               if (i === content.story.pages.length - 1) return;
                               const newPages = [...content.story.pages];
-                              [newPages[i+1], newPages[i]] = [newPages[i], newPages[i+1]];
+                              [newPages[i + 1], newPages[i]] = [newPages[i], newPages[i + 1]];
                               updateSegment('story', { pages: newPages });
                             }}
                             className="p-1.5 rounded-lg bg-white/90 backdrop-blur-sm text-slate-400 hover:text-primary shadow-sm"
@@ -365,7 +363,7 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                           >
                             <ChevronLeft size={14} className="-rotate-90" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => {
                               const newPages = [...content.story.pages];
                               newPages.splice(i, 1);
@@ -378,7 +376,7 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                         </div>
                       </div>
                       <div className="flex gap-2 mt-auto">
-                        <input 
+                        <input
                           type="text"
                           value={page}
                           onChange={(e) => {
@@ -400,10 +398,9 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
                             disabled={uploadingPages[i]}
                           />
-                          <button 
-                            className={`p-3 rounded-xl border border-slate-200 transition-all ${
-                              uploadingPages[i] ? 'bg-slate-50 text-slate-400' : 'bg-white text-slate-500 hover:text-primary hover:border-primary/30'
-                            }`}
+                          <button
+                            className={`p-3 rounded-xl border border-slate-200 transition-all ${uploadingPages[i] ? 'bg-slate-50 text-slate-400' : 'bg-white text-slate-500 hover:text-primary hover:border-primary/30'
+                              }`}
                             disabled={uploadingPages[i]}
                           >
                             {uploadingPages[i] ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
@@ -412,8 +409,8 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                       </div>
                     </div>
                   ))}
-                  
-                  <button 
+
+                  <button
                     onClick={() => updateSegment('story', { pages: [...content.story.pages, ''] })}
                     className="h-full min-h-[300px] rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-4 text-slate-400 hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-all group"
                   >
@@ -438,7 +435,7 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-2">Reflection Prompt</label>
-                  <textarea 
+                  <textarea
                     value={content.journal.prompt}
                     onChange={(e) => updateSegment('journal', { prompt: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-3xl p-8 min-h-[200px] outline-none focus:ring-4 focus:ring-rose-500/5 focus:border-rose-500/30 transition-all font-bold text-xl leading-relaxed text-rose-600 placeholder:text-rose-200"
@@ -460,7 +457,7 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                           </span>
                           <h4 className="font-black text-slate-800 uppercase tracking-tight">Question Configuration</h4>
                         </div>
-                        <button 
+                        <button
                           onClick={() => {
                             const newQuestions = [...content.quiz.questions];
                             newQuestions.splice(qIndex, 1);
@@ -471,11 +468,11 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                           <Trash2 size={20} />
                         </button>
                       </div>
-                      
+
                       <div className="space-y-6">
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">The Question</label>
-                          <input 
+                          <input
                             type="text"
                             value={q.question}
                             onChange={(e) => {
@@ -490,22 +487,20 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {q.options.map((opt, optIndex) => (
-                            <div key={optIndex} className={`flex items-center gap-3 p-2 rounded-2xl border transition-all ${
-                              q.correctIndex === optIndex ? 'bg-emerald-50 border-emerald-500/30' : 'bg-white border-slate-100'
-                            }`}>
-                              <button 
+                            <div key={optIndex} className={`flex items-center gap-3 p-2 rounded-2xl border transition-all ${q.correctIndex === optIndex ? 'bg-emerald-50 border-emerald-500/30' : 'bg-white border-slate-100'
+                              }`}>
+                              <button
                                 onClick={() => {
                                   const newQuestions = [...content.quiz.questions];
                                   newQuestions[qIndex] = { ...q, correctIndex: optIndex };
                                   updateSegment('quiz', { questions: newQuestions });
                                 }}
-                                className={`w-8 h-8 rounded-xl border-2 flex items-center justify-center transition-all shrink-0 ${
-                                  q.correctIndex === optIndex ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-white border-slate-200 hover:border-slate-300'
-                                }`}
+                                className={`w-8 h-8 rounded-xl border-2 flex items-center justify-center transition-all shrink-0 ${q.correctIndex === optIndex ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-white border-slate-200 hover:border-slate-300'
+                                  }`}
                               >
                                 {q.correctIndex === optIndex ? <CheckCircle2 size={16} /> : <span className="text-[10px] font-black text-slate-400">{String.fromCharCode(65 + optIndex)}</span>}
                               </button>
-                              <input 
+                              <input
                                 type="text"
                                 value={opt}
                                 onChange={(e) => {
@@ -519,7 +514,7 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                                 placeholder={`Option ${optIndex + 1}`}
                               />
                               {q.options.length > 2 && (
-                                <button 
+                                <button
                                   onClick={() => {
                                     const newQuestions = [...content.quiz.questions];
                                     const newOpts = [...q.options];
@@ -535,7 +530,7 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                             </div>
                           ))}
                           {q.options.length < 4 && (
-                            <button 
+                            <button
                               onClick={() => {
                                 const newQuestions = [...content.quiz.questions];
                                 newQuestions[qIndex] = { ...q, options: [...q.options, ''] };
@@ -550,7 +545,7 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
 
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Educational Explanation</label>
-                          <textarea 
+                          <textarea
                             value={q.explanation}
                             onChange={(e) => {
                               const newQuestions = [...content.quiz.questions];
@@ -564,8 +559,8 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                       </div>
                     </div>
                   ))}
-                  
-                  <button 
+
+                  <button
                     onClick={() => updateSegment('quiz', { questions: [...content.quiz.questions, { question: '', options: ['', ''], correctIndex: 0, explanation: '' }] })}
                     className="w-full py-8 border-2 border-dashed border-slate-200 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 text-slate-400 hover:text-emerald-500 hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all group"
                   >
@@ -590,7 +585,7 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-2">Concluding Narrative</label>
-                  <textarea 
+                  <textarea
                     value={content.summary.text}
                     onChange={(e) => updateSegment('summary', { text: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-3xl p-8 min-h-[300px] outline-none focus:ring-4 focus:ring-slate-500/5 focus:border-slate-500/30 transition-all font-medium text-lg leading-relaxed text-slate-700 placeholder:text-slate-300"
@@ -603,12 +598,11 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
 
           {/* Footer Controls */}
           <div className="px-8 py-6 border-t border-slate-100 flex items-center justify-between bg-slate-50/30">
-            <button 
+            <button
               onClick={handlePrev}
               disabled={activeTabIndex === 0}
-              className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${
-                activeTabIndex === 0 ? 'text-slate-300' : 'text-slate-500 hover:bg-slate-100'
-              }`}
+              className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeTabIndex === 0 ? 'text-slate-300' : 'text-slate-500 hover:bg-slate-100'
+                }`}
             >
               <ChevronLeft size={18} /> Previous Step
             </button>
@@ -617,12 +611,11 @@ export function ActivityEditor({ episodeId, episodeTitle, initialContent, onSave
                 <div key={tab.id} className={`w-2 h-2 rounded-full transition-all duration-500 ${i === activeTabIndex ? 'w-8 bg-primary' : 'bg-slate-200'}`} />
               ))}
             </div>
-            <button 
+            <button
               onClick={handleNext}
               disabled={activeTabIndex === tabs.length - 1}
-              className={`flex items-center gap-2 px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${
-                activeTabIndex === tabs.length - 1 ? 'text-slate-300' : 'bg-white border border-slate-200 text-slate-800 hover:shadow-lg hover:shadow-slate-200/50 hover:-translate-y-0.5'
-              }`}
+              className={`flex items-center gap-2 px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeTabIndex === tabs.length - 1 ? 'text-slate-300' : 'bg-white border border-slate-200 text-slate-800 hover:shadow-lg hover:shadow-slate-200/50 hover:-translate-y-0.5'
+                }`}
             >
               Next Step <ChevronRight size={18} />
             </button>

@@ -31,6 +31,7 @@ export default function CustomerDashboardLayout({
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [certificationStatus, setCertificationStatus] = useState<string>('loading');
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [hasEnrollments, setHasEnrollments] = useState<boolean>(false);
 
   useEffect(() => {
     if (!isAuthenticated || !user) return;
@@ -43,6 +44,19 @@ export default function CustomerDashboardLayout({
       }
     };
     fetchPeerStatus();
+  }, [isAuthenticated, user]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !user || user.role === 'EXPERT') return;
+    const fetchEnrollments = async () => {
+      try {
+        const res = await apiClient.get<any[]>('/lms/my-courses');
+        setHasEnrollments(Array.isArray(res) && res.length > 0);
+      } catch (err) {
+        console.warn('Failed to fetch enrollments for sidebar list:', err);
+      }
+    };
+    fetchEnrollments();
   }, [isAuthenticated, user]);
 
   // Sync profile photo in layout header
@@ -186,14 +200,14 @@ export default function CustomerDashboardLayout({
   }
 
   // Episode & Course Player Isolation check: bypass dashboard shell for cleaner full-screen player experience
-  if (pathname.includes('/episodes/') || (pathname.includes('/dashboard/courses/') && !pathname.endsWith('/courses') && !pathname.includes('/explore'))) {
+  if (pathname.includes('/episodes/') || (pathname.includes('/dashboard/courses/') && !pathname.endsWith('/courses') && !pathname.includes('/explore') && !pathname.includes('/overview'))) {
     return <div className="min-h-screen bg-background overflow-hidden">{children}</div>;
   }
 
   const isTeen = user.role === 'TEEN' || (user.role === 'PEER' && user.contentTier && user.contentTier !== 'ADULT');
 
   // Navigation Items
-  const menuItems = user.role === 'EXPERT' ? [
+  const baseMenuItems = user.role === 'EXPERT' ? [
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
     { href: '/dashboard/program-sessions', label: 'Program Sessions', icon: Layers, matchPrefix: true },
     { href: '/dashboard/expert-consultations', label: 'My Consultations', icon: Calendar },
@@ -213,7 +227,23 @@ export default function CustomerDashboardLayout({
     { href: '/dashboard/profile', label: 'Profile', icon: User },
   ];
 
+  const menuItems = user.role === 'EXPERT'
+    ? baseMenuItems
+    : baseMenuItems.filter(item => {
+      if (item.href === '/dashboard/my-courses') {
+        return hasEnrollments;
+      }
+      return true;
+    });
+
   const isLinkActive = (item: { href: string; label: string; icon: any; matchPrefix?: boolean }) => {
+    if (item.href === '/dashboard/my-courses') {
+      return pathname === '/dashboard/my-courses' ||
+        (pathname.startsWith('/dashboard/courses/') && !pathname.startsWith('/dashboard/courses/explore/'));
+    }
+    if (item.href === '/dashboard/courses') {
+      return pathname === '/dashboard/courses' || pathname.startsWith('/dashboard/courses/explore/');
+    }
     if (item.matchPrefix) {
       return pathname === item.href || pathname.startsWith(item.href + '/');
     }
@@ -434,11 +464,10 @@ export default function CustomerDashboardLayout({
               ) : (
                 <Link
                   href="/dashboard/peer-training"
-                  className={`flex items-center gap-2.5 px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-md active:scale-95 ${
-                    pathname.startsWith('/dashboard/peer-training')
-                      ? 'bg-[#3B1C71] text-white ring-2 ring-purple-300 shadow-purple-200'
-                      : 'bg-[#431872] hover:bg-[#3B1C71] text-white shadow-purple-900/10'
-                  }`}
+                  className={`flex items-center gap-2.5 px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-md active:scale-95 ${pathname.startsWith('/dashboard/peer-training')
+                    ? 'bg-[#3B1C71] text-white ring-2 ring-purple-300 shadow-purple-200'
+                    : 'bg-[#431872] hover:bg-[#3B1C71] text-white shadow-purple-900/10'
+                    }`}
                 >
                   <Sparkles size={18} className="text-white shrink-0" />
                   <span>Peer Training</span>

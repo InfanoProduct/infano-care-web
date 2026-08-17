@@ -14,12 +14,14 @@ export default function MarketingLayout({
 }) {
   const pathname = usePathname();
   const cleanPathname = pathname ? pathname.replace(/^\/en-(us|uk)/, '') : '';
+  const isHomePage = cleanPathname === '' || cleanPathname === '/';
   const isDashboard = cleanPathname.startsWith('/peerline/dashboard') || cleanPathname.startsWith('/dashboard');
   const isProgramDetail = cleanPathname.startsWith('/programs/') && cleanPathname !== '/programs' && cleanPathname !== '/programs/';
   const isLogin = cleanPathname === '/login' || cleanPathname === '/login/';
   const isPortal = isDashboard || isProgramDetail || isLogin;
   const isPurchaseSuccess = cleanPathname.startsWith('/purchase-success');
   const hideWidgets = cleanPathname.startsWith('/checkout') || cleanPathname.startsWith('/gigi-the-awkward-age-book') || isPurchaseSuccess || cleanPathname.startsWith('/webinar');
+  const showWhatsAppWidget = (isHomePage || isDashboard) && !hideWidgets;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -34,7 +36,7 @@ export default function MarketingLayout({
       {!isPortal && !isPurchaseSuccess && !cleanPathname.startsWith('/webinar') && <MarketingFooter />}
 
       {/* Floating WhatsApp Button */}
-      {!hideWidgets && (
+      {showWhatsAppWidget && (
         <Link
           href="https://wa.me/919243019243"
           target="_blank"

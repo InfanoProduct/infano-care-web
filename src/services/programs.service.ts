@@ -26,10 +26,37 @@ export interface Program {
   enrolledCount?: number;
 }
 
+export interface ProgramBatch {
+  id: string;
+  programId: string;
+  name: string;
+  description?: string;
+  maxCapacity: number;
+  startDate?: string | null;
+  endDate?: string | null;
+  status: 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | string;
+  expertId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  expert?: {
+    id: string;
+    username: string;
+    email: string;
+    profile?: {
+      displayName: string;
+      avatarUrl?: string | null;
+    };
+  } | null;
+  _count?: {
+    enrollments: number;
+  };
+}
+
 export interface ProgramEnrollment {
   id: string;
   userId: string;
   programId: string;
+  batchId?: string | null;
   status: string;
   pricePaid: number;
   guestName?: string | null;
@@ -37,6 +64,7 @@ export interface ProgramEnrollment {
   createdAt: string;
   updatedAt: string;
   program: Program;
+  batch?: ProgramBatch | null;
   user: {
     id?: string;
     role?: string;
@@ -200,5 +228,26 @@ export const ProgramsService = {
    */
   async getUserDemos(): Promise<{ success: boolean; data: DemoSession[] }> {
     return apiClient.get<{ success: boolean; data: DemoSession[] }>('/programs/me/demos');
+  },
+
+  /* Batch Management API Methods */
+  async getProgramBatches(programId: string): Promise<{ success: boolean; data: ProgramBatch[] }> {
+    return apiClient.get<{ success: boolean; data: ProgramBatch[] }>(`/admin/programs/${programId}/batches`);
+  },
+
+  async getAllBatches(): Promise<{ success: boolean; data: ProgramBatch[] }> {
+    return apiClient.get<{ success: boolean; data: ProgramBatch[] }>('/admin/programs/batches/all');
+  },
+
+  async createBatch(programId: string, data: Partial<ProgramBatch>): Promise<{ success: boolean; message: string; data: ProgramBatch }> {
+    return apiClient.post<{ success: boolean; message: string; data: ProgramBatch }>(`/admin/programs/${programId}/batches`, data);
+  },
+
+  async updateBatch(batchId: string, data: Partial<ProgramBatch>): Promise<{ success: boolean; message: string; data: ProgramBatch }> {
+    return apiClient.patch<{ success: boolean; message: string; data: ProgramBatch }>(`/admin/programs/batches/${batchId}`, data);
+  },
+
+  async deleteBatch(batchId: string): Promise<{ success: boolean; message: string }> {
+    return apiClient.delete<{ success: boolean; message: string }>(`/admin/programs/batches/${batchId}`);
   }
 };

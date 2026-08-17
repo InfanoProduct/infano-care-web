@@ -94,6 +94,7 @@ export default function ExpertProgramSessionDetail({ params }: { params: Promise
       const scheduledAt = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
       await apiClient.post('/expert/sessions', {
         userId: details.enrollment.userId,
+        batchId: details.enrollment.batchId || undefined,
         programId: details.enrollment.programId,
         sessionNumber,
         scheduledAt,
@@ -159,8 +160,13 @@ export default function ExpertProgramSessionDetail({ params }: { params: Promise
           <ArrowLeft size={18} />
         </button>
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-slate-800">
-            {studentName}'s Sessions
+          <h1 className="text-2xl font-black tracking-tight text-slate-800 flex items-center gap-2">
+            <span>{studentName}'s Sessions</span>
+            {enrollment.batch && (
+              <span className="text-xs bg-indigo-50 border border-indigo-200 text-indigo-700 px-3 py-1 rounded-full font-bold">
+                {enrollment.batch.name}
+              </span>
+            )}
           </h1>
           <p className="text-slate-500 text-xs font-semibold mt-0.5 flex items-center gap-3 flex-wrap">
             <span>Program: <span className="font-extrabold text-indigo-600">{enrollment.program.title}</span></span>

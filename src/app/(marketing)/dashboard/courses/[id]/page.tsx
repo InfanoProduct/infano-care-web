@@ -457,12 +457,26 @@ export default function CoursePlayerPage() {
                           </div>
 
                           <div className="flex flex-col sm:flex-row gap-3">
-                            {!isChapterCompleted(activeChapter.id) && (
+                            {!isChapterCompleted(activeChapter.id) ? (
                               <button
                                 onClick={() => handleMarkComplete(quizState.score, quizState.answers)}
                                 className="px-7 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white rounded-2xl font-black shadow-[0_4px_15px_rgba(16,185,129,0.2)] hover:shadow-[0_4px_20px_rgba(16,185,129,0.3)] transition-all flex items-center gap-2 hover:-translate-y-0.5 cursor-pointer"
                               >
-                                <CheckCircle2 size={17} /> Mark Complete
+                                <CheckCircle2 size={17} /> Complete & Continue
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  const currentIndex = flatChapters.findIndex(c => c.id === activeChapter.id);
+                                  if (currentIndex >= 0 && currentIndex < flatChapters.length - 1) {
+                                    const nextChapter = flatChapters[currentIndex + 1];
+                                    setActiveChapter(nextChapter);
+                                    if (nextChapter.moduleId) setExpandedModules(prev => ({ ...prev, [nextChapter.moduleId]: true }));
+                                  }
+                                }}
+                                className="px-7 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white rounded-2xl font-black shadow-[0_4px_15px_rgba(109,40,217,0.3)] transition-all flex items-center gap-2 hover:-translate-y-0.5 cursor-pointer"
+                              >
+                                Next Chapter →
                               </button>
                             )}
                             <button
@@ -477,6 +491,20 @@ export default function CoursePlayerPage() {
                               className="px-7 py-3 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 rounded-2xl font-black transition-all flex items-center gap-2 hover:-translate-y-0.5 cursor-pointer"
                             >
                               <FileText size={17} /> Review Answers
+                            </button>
+                            <button
+                              onClick={() => setQuizState({
+                                currentQuestionIndex: 0,
+                                selectedOptionIndex: -1,
+                                isSubmitted: false,
+                                score: 0,
+                                isCompleted: false,
+                                answers: [],
+                                isReviewMode: false,
+                              })}
+                              className="px-5 py-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 rounded-2xl font-bold text-xs transition-all flex items-center gap-1.5 hover:-translate-y-0.5 cursor-pointer"
+                            >
+                              ↺ Retake Quiz
                             </button>
                           </div>
                         </div>
@@ -532,7 +560,7 @@ export default function CoursePlayerPage() {
                               <h4 className="font-extrabold text-amber-850 mb-1.5 flex items-center gap-2">
                                 <span className="text-amber-500">💡</span> Explanation
                               </h4>
-                              <p className="text-slate-650 text-xs sm:text-sm leading-relaxed">
+                              <p className="text-slate-655 text-xs sm:text-sm leading-relaxed">
                                 {activeChapter.assessment.questions[quizState.currentQuestionIndex].explanation}
                               </p>
                             </div>
@@ -558,19 +586,21 @@ export default function CoursePlayerPage() {
                             ) : (
                               <button
                                 onClick={() => {
-                                  setQuizState(prev => {
-                                    const next = prev.currentQuestionIndex + 1;
-                                    if (next < activeChapter.assessment.questions.length) {
-                                      return {
-                                        ...prev,
-                                        currentQuestionIndex: next,
-                                        selectedOptionIndex: prev.isReviewMode ? prev.answers[next] : -1,
-                                        isSubmitted: prev.isReviewMode,
-                                      };
-                                    } else {
-                                      return { ...prev, isCompleted: true, isReviewMode: false };
+                                  const next = quizState.currentQuestionIndex + 1;
+                                  if (next < activeChapter.assessment.questions.length) {
+                                    setQuizState(prev => ({
+                                      ...prev,
+                                      currentQuestionIndex: next,
+                                      selectedOptionIndex: prev.isReviewMode ? prev.answers[next] : -1,
+                                      isSubmitted: prev.isReviewMode,
+                                    }));
+                                  } else {
+                                    // Finished quiz: auto-complete and save progress
+                                    if (!quizState.isReviewMode) {
+                                      handleMarkComplete(quizState.score, quizState.answers);
                                     }
-                                  });
+                                    setQuizState(prev => ({ ...prev, isCompleted: true, isReviewMode: false }));
+                                  }
                                 }}
                                 className="px-7 py-3 bg-slate-900 text-white hover:bg-slate-800 rounded-2xl font-black shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer"
                               >
@@ -623,24 +653,43 @@ export default function CoursePlayerPage() {
                     </>
                   )}
 
-                  {/* Mark complete — always visible */}
-                  <button
-                    onClick={() => {
-                      if (activeChapter.type === "ASSESSMENT") {
-                        handleMarkComplete(quizState.score, quizState.answers);
-                      } else {
-                        handleMarkComplete();
-                      }
-                    }}
-                    disabled={isChapterCompleted(activeChapter.id) && activeChapter.type !== "ASSESSMENT"}
-                    className={`ml-auto flex items-center gap-2 px-5 py-2 rounded-full text-[12px] font-extrabold transition-all border ${isChapterCompleted(activeChapter.id)
-                        ? "bg-emerald-50 border-emerald-200 text-emerald-700 cursor-default"
-                        : "bg-gradient-to-r from-violet-500 to-purple-600 border-transparent text-white shadow-sm hover:from-violet-600 hover:to-purple-700 active:scale-95"
-                      }`}
-                  >
-                    <CheckCircle2 size={13} className={!isChapterCompleted(activeChapter.id) ? "animate-pulse" : ""} />
-                    {isChapterCompleted(activeChapter.id) ? "✓ Completed" : "Mark Complete"}
-                  </button>
+                  {/* Mark complete button */}
+                  {activeChapter.type === "ASSESSMENT" ? (
+                    isChapterCompleted(activeChapter.id) ? (
+                      <div className="ml-auto flex items-center gap-2 px-5 py-2 rounded-full text-[12px] font-extrabold bg-emerald-50 border border-emerald-200 text-emerald-700 cursor-default">
+                        <CheckCircle2 size={13} />
+                        <span>✓ Quiz Completed (Score: {quizState.score}/{activeChapter.assessment?.questions?.length || 0})</span>
+                      </div>
+                    ) : quizState.isCompleted ? (
+                      <button
+                        onClick={() => handleMarkComplete(quizState.score, quizState.answers)}
+                        className="ml-auto flex items-center gap-2 px-5 py-2 rounded-full text-[12px] font-extrabold transition-all border bg-gradient-to-r from-emerald-500 to-green-600 border-transparent text-white shadow-sm hover:from-emerald-600 hover:to-green-700 active:scale-95 cursor-pointer"
+                      >
+                        <CheckCircle2 size={13} className="animate-pulse" />
+                        <span>Complete & Save Quiz</span>
+                      </button>
+                    ) : (
+                      <div
+                        title="You must answer all quiz questions above before marking this chapter as complete."
+                        className="ml-auto flex items-center gap-2 px-4 py-2 rounded-full text-[12px] font-bold bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed select-none"
+                      >
+                        <Lock size={13} />
+                        <span>Complete Quiz to Finish</span>
+                      </div>
+                    )
+                  ) : (
+                    <button
+                      onClick={() => handleMarkComplete()}
+                      disabled={isChapterCompleted(activeChapter.id)}
+                      className={`ml-auto flex items-center gap-2 px-5 py-2 rounded-full text-[12px] font-extrabold transition-all border ${isChapterCompleted(activeChapter.id)
+                          ? "bg-emerald-50 border-emerald-200 text-emerald-700 cursor-default"
+                          : "bg-gradient-to-r from-violet-500 to-purple-600 border-transparent text-white shadow-sm hover:from-violet-600 hover:to-purple-700 active:scale-95"
+                        }`}
+                    >
+                      <CheckCircle2 size={13} className={!isChapterCompleted(activeChapter.id) ? "animate-pulse" : ""} />
+                      {isChapterCompleted(activeChapter.id) ? "✓ Completed" : "Mark Complete"}
+                    </button>
+                  )}
                 </div>
               </div>
 

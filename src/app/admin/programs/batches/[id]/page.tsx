@@ -121,12 +121,12 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
     }
   };
 
-  // Open schedule session modal
-  const handleOpenScheduleSessionModal = (existingSession?: any) => {
+  // Open schedule session modal for a predefined curriculum session
+  const handleOpenScheduleSessionModal = (sessionNumber: number, existingSession?: any) => {
+    setSessionFormNumber(sessionNumber);
     if (existingSession) {
       setSessionModalMode('edit');
       setEditingSessionId(existingSession.id);
-      setSessionFormNumber(existingSession.sessionNumber || 1);
       if (existingSession.scheduledAt) {
         const d = new Date(existingSession.scheduledAt);
         setSessionFormDate(d.toISOString().split('T')[0]);
@@ -137,8 +137,6 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
     } else {
       setSessionModalMode('create');
       setEditingSessionId(null);
-      const nextNum = (batch?.expertSessions?.length || 0) + 1;
-      setSessionFormNumber(nextNum);
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       setSessionFormDate(tomorrow.toISOString().split('T')[0]);
@@ -295,18 +293,11 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
         {/* Top Action Buttons */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => handleOpenScheduleSessionModal()}
-            className="px-4 py-2.5 bg-primary text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
-          >
-            <Video size={15} />
-            <span>Schedule Session</span>
-          </button>
-          <button
             onClick={() => setShowAddStudentModal(true)}
-            className="px-4 py-2.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 text-xs font-bold rounded-xl shadow-sm transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+            className="px-5 py-2.5 bg-primary text-white text-xs font-black rounded-xl shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
           >
             <UserPlus size={15} />
-            <span>Add Student</span>
+            <span>Add / Assign Student</span>
           </button>
         </div>
       </div>
@@ -384,21 +375,21 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
         {/* Sessions Summary Card */}
         <div className="bg-white rounded-3xl p-6 border border-border/40 shadow-sm hover:shadow-md transition-all space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Live Sessions</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Curriculum & Schedule</span>
             <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <Video size={16} />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-black text-slate-800">{scheduledSessions.length}</span>
-            <span className="text-xs font-bold text-slate-400">Scheduled</span>
+            <span className="text-xs font-bold text-slate-400">/ {curriculumList.length} Scheduled</span>
           </div>
           <div className="flex items-center gap-3 text-[11px] font-bold">
             <span className="text-emerald-600 flex items-center gap-1">
-              <CheckCircle2 size={12} /> {scheduledSessions.filter((s: any) => s.status === 'COMPLETED').length} Completed
+              <CheckCircle2 size={12} /> {scheduledSessions.filter((s: any) => s.status === 'COMPLETED').length} Done
             </span>
-            <span className="text-indigo-600 flex items-center gap-1">
-              <Clock size={12} /> {scheduledSessions.filter((s: any) => s.status === 'SCHEDULED').length} Upcoming
+            <span className="text-amber-600 flex items-center gap-1">
+              <Clock size={12} /> {Math.max(curriculumList.length - scheduledSessions.length, 0)} Pending
             </span>
           </div>
         </div>
@@ -430,7 +421,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
               }`}
             >
               <Video size={15} />
-              <span>Sessions & Live Schedule ({scheduledSessions.length})</span>
+              <span>Predefined Curriculum Sessions ({scheduledSessions.length}/{curriculumList.length})</span>
             </button>
           </div>
 
@@ -601,70 +592,75 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
           <div className="p-6 sm:p-8 space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
-                <h3 className="text-lg font-black text-slate-800">Scheduled Sessions for {batch.name}</h3>
+                <h3 className="text-lg font-black text-slate-800">Predefined Curriculum & Live Schedules</h3>
                 <p className="text-xs text-muted-foreground font-semibold mt-0.5">
-                  Manage live Google Meet links, session timestamps, and completion statuses.
+                  Predefined sessions for <span className="font-bold text-slate-700">{batch.program?.title}</span>. Schedule each session date, time, and Google Meet link.
                 </p>
               </div>
 
-              <button
-                onClick={() => handleOpenScheduleSessionModal()}
-                className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl shadow-md transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
-              >
-                <Plus size={15} />
-                <span>Add Scheduled Session</span>
-              </button>
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-slate-100 px-3.5 py-2 rounded-xl">
+                <span>{scheduledSessions.length} of {curriculumList.length} Sessions Scheduled</span>
+              </div>
             </div>
 
-            {scheduledSessions.length === 0 ? (
+            {curriculumList.length === 0 ? (
               <div className="p-12 text-center space-y-4 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
                 <div className="w-14 h-14 bg-purple-50 text-purple-600 rounded-3xl flex items-center justify-center mx-auto shadow-sm">
                   <Video size={28} />
                 </div>
                 <div className="max-w-md mx-auto">
-                  <h4 className="text-base font-extrabold text-slate-800">No live sessions scheduled yet</h4>
+                  <h4 className="text-base font-extrabold text-slate-800">No curriculum sessions found</h4>
                   <p className="text-xs text-muted-foreground font-semibold mt-1">
-                    Schedule live dates and meeting links for the mentor and enrolled students.
+                    Please configure curriculum sessions for this program in the Learning Programs manager.
                   </p>
                 </div>
-                <button
-                  onClick={() => handleOpenScheduleSessionModal()}
-                  className="px-5 py-2.5 bg-primary text-white text-xs font-bold rounded-xl shadow-md transition-all hover:scale-105 active:scale-95 inline-flex items-center gap-2"
-                >
-                  <Plus size={15} />
-                  <span>Schedule First Session</span>
-                </button>
               </div>
             ) : (
               <div className="space-y-4">
-                {scheduledSessions.map((session: any, index: number) => {
-                  const isPast = new Date(session.scheduledAt).getTime() < Date.now();
-                  const curriculumMatch = curriculumList[session.sessionNumber ? session.sessionNumber - 1 : index];
+                {curriculumList.map((curriculumSession: any, index: number) => {
+                  const sessionNumber = index + 1;
+                  const scheduledSession = scheduledSessions.find(
+                    (s: any) => s.sessionNumber === sessionNumber
+                  );
+                  const isScheduled = !!scheduledSession;
+                  const isCompleted = scheduledSession?.status === 'COMPLETED';
+                  const isCancelled = scheduledSession?.status === 'CANCELLED';
+                  const isPast = scheduledSession?.scheduledAt && new Date(scheduledSession.scheduledAt).getTime() < Date.now();
 
                   return (
                     <div
-                      key={session.id}
-                      className={`p-6 rounded-3xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm hover:shadow-md ${
-                        session.status === 'COMPLETED'
+                      key={sessionNumber}
+                      className={`p-6 rounded-3xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xs hover:shadow-md ${
+                        isCompleted
                           ? 'bg-emerald-50/40 border-emerald-200'
-                          : session.status === 'CANCELLED'
+                          : isCancelled
                             ? 'bg-rose-50/40 border-rose-200'
-                            : 'bg-white border-border/50'
+                            : isScheduled
+                              ? 'bg-indigo-50/20 border-indigo-200'
+                              : 'bg-white border-border/50 hover:border-primary/30'
                       }`}
                     >
-                      <div className="space-y-2">
+                      <div className="space-y-2 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-xs font-black px-3 py-1 bg-primary/10 text-primary rounded-xl">
-                            Session {session.sessionNumber || index + 1}
+                            Session {sessionNumber}
                           </span>
-                          <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
-                            session.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
-                            session.status === 'CANCELLED' ? 'bg-rose-100 text-rose-800 border-rose-300' :
-                            'bg-indigo-50 text-indigo-700 border-indigo-200'
-                          }`}>
-                            {session.status}
-                          </span>
-                          {isPast && session.status === 'SCHEDULED' && (
+
+                          {isScheduled ? (
+                            <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
+                              isCompleted ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                              isCancelled ? 'bg-rose-100 text-rose-800 border-rose-300' :
+                              'bg-indigo-100 text-indigo-800 border-indigo-300'
+                            }`}>
+                              {scheduledSession.status}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200">
+                              Not Scheduled
+                            </span>
+                          )}
+
+                          {isPast && isScheduled && !isCompleted && !isCancelled && (
                             <span className="text-[10px] font-extrabold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
                               Past Scheduled Time
                             </span>
@@ -672,96 +668,110 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
                         </div>
 
                         <h4 className="text-base font-extrabold text-slate-800">
-                          {curriculumMatch?.title || `Session ${session.sessionNumber || index + 1} Live Class`}
+                          {curriculumSession.title || `Session ${sessionNumber}`}
                         </h4>
-                        {curriculumMatch?.description && (
-                          <p className="text-xs text-muted-foreground font-medium line-clamp-2 max-w-2xl">
-                            {curriculumMatch.description}
+                        {curriculumSession.description && (
+                          <p className="text-xs text-muted-foreground font-medium line-clamp-2 max-w-3xl">
+                            {curriculumSession.description}
                           </p>
                         )}
 
-                        <div className="flex items-center gap-4 text-xs font-bold text-slate-600 flex-wrap pt-1">
-                          <span className="flex items-center gap-1.5">
-                            <Calendar size={14} className="text-primary" />
-                            {new Date(session.scheduledAt).toLocaleDateString('en-IN', {
-                              weekday: 'short',
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric'
-                            })}
-                          </span>
-                          <span className="flex items-center gap-1.5">
-                            <Clock size={14} className="text-primary" />
-                            {new Date(session.scheduledAt).toLocaleTimeString('en-IN', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              hour12: true
-                            })}
-                          </span>
-                          {session.expert && (
-                            <span className="flex items-center gap-1.5 text-purple-700 font-extrabold">
-                              <Award size={14} />
-                              Mentor: {session.expert.profile?.displayName || session.expert.username}
+                        {isScheduled && (
+                          <div className="flex items-center gap-4 text-xs font-bold text-slate-600 flex-wrap pt-1.5">
+                            <span className="flex items-center gap-1.5">
+                              <Calendar size={14} className="text-primary" />
+                              {new Date(scheduledSession.scheduledAt).toLocaleDateString('en-IN', {
+                                weekday: 'short',
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric'
+                              })}
                             </span>
-                          )}
-                        </div>
+                            <span className="flex items-center gap-1.5">
+                              <Clock size={14} className="text-primary" />
+                              {new Date(scheduledSession.scheduledAt).toLocaleTimeString('en-IN', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                              })}
+                            </span>
+                            {scheduledSession.expert && (
+                              <span className="flex items-center gap-1.5 text-purple-700 font-extrabold">
+                                <Award size={14} />
+                                Mentor: {scheduledSession.expert.profile?.displayName || scheduledSession.expert.username}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
 
-                      {/* Session Action Controls */}
+                      {/* Action Controls */}
                       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 shrink-0">
-                        {session.meetLink ? (
-                          <a
-                            href={session.meetLink.startsWith('http') ? session.meetLink : `https://${session.meetLink}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-extrabold rounded-xl border border-indigo-200 text-xs shadow-xs transition-all flex items-center gap-1.5"
-                          >
-                            <GoogleMeetIcon size={14} />
-                            <span>Join Meet</span>
-                            <ExternalLink size={12} />
-                          </a>
+                        {isScheduled ? (
+                          <>
+                            {scheduledSession.meetLink ? (
+                              <a
+                                href={scheduledSession.meetLink.startsWith('http') ? scheduledSession.meetLink : `https://${scheduledSession.meetLink}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-extrabold rounded-xl border border-indigo-200 text-xs shadow-xs transition-all flex items-center gap-1.5"
+                              >
+                                <GoogleMeetIcon size={14} />
+                                <span>Join Meet</span>
+                                <ExternalLink size={12} />
+                              </a>
+                            ) : (
+                              <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200">
+                                No Meet Link
+                              </span>
+                            )}
+
+                            {scheduledSession.status === 'SCHEDULED' ? (
+                              <button
+                                disabled={updatingSessionStatusId === scheduledSession.id}
+                                onClick={() => handleQuickUpdateSessionStatus(scheduledSession.id, 'COMPLETED')}
+                                className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-xl border border-emerald-200 text-xs transition-all flex items-center gap-1 cursor-pointer"
+                                title="Mark as completed"
+                              >
+                                <Check size={14} />
+                                <span>Done</span>
+                              </button>
+                            ) : (
+                              <button
+                                disabled={updatingSessionStatusId === scheduledSession.id}
+                                onClick={() => handleQuickUpdateSessionStatus(scheduledSession.id, 'SCHEDULED')}
+                                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl border border-slate-300 text-xs transition-all cursor-pointer"
+                                title="Re-open session"
+                              >
+                                Reopen
+                              </button>
+                            )}
+
+                            <button
+                              onClick={() => handleOpenScheduleSessionModal(sessionNumber, scheduledSession)}
+                              className="p-2 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl border border-slate-200 transition-all cursor-pointer"
+                              title="Reschedule / Edit Meet Link"
+                            >
+                              <Edit size={14} />
+                            </button>
+
+                            <button
+                              onClick={() => handleDeleteSession(scheduledSession.id)}
+                              className="p-2 bg-slate-50 hover:bg-rose-50 hover:text-rose-600 text-slate-500 rounded-xl border border-slate-200 transition-all cursor-pointer"
+                              title="Unschedule Session"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </>
                         ) : (
-                          <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200">
-                            No Meet Link
-                          </span>
-                        )}
-
-                        {session.status === 'SCHEDULED' ? (
                           <button
-                            disabled={updatingSessionStatusId === session.id}
-                            onClick={() => handleQuickUpdateSessionStatus(session.id, 'COMPLETED')}
-                            className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-xl border border-emerald-200 text-xs transition-all flex items-center gap-1"
-                            title="Mark as completed"
+                            onClick={() => handleOpenScheduleSessionModal(sessionNumber)}
+                            className="px-4 py-2.5 bg-primary text-white text-xs font-bold rounded-xl shadow-md transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5 cursor-pointer"
                           >
-                            <Check size={14} />
-                            <span>Done</span>
-                          </button>
-                        ) : (
-                          <button
-                            disabled={updatingSessionStatusId === session.id}
-                            onClick={() => handleQuickUpdateSessionStatus(session.id, 'SCHEDULED')}
-                            className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl border border-slate-300 text-xs transition-all"
-                            title="Re-open session"
-                          >
-                            Reopen
+                            <Calendar size={14} />
+                            <span>Schedule Session</span>
                           </button>
                         )}
-
-                        <button
-                          onClick={() => handleOpenScheduleSessionModal(session)}
-                          className="p-2 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl border border-slate-200 transition-all"
-                          title="Edit Session"
-                        >
-                          <Edit size={14} />
-                        </button>
-
-                        <button
-                          onClick={() => handleDeleteSession(session.id)}
-                          className="p-2 bg-slate-50 hover:bg-rose-50 hover:text-rose-600 text-slate-500 rounded-xl border border-slate-200 transition-all"
-                          title="Delete Session"
-                        >
-                          <Trash2 size={14} />
-                        </button>
                       </div>
                     </div>
                   );
@@ -846,7 +856,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
         </div>
       )}
 
-      {/* MODAL 2: Schedule / Edit Session */}
+      {/* MODAL 2: Schedule / Edit Predefined Session */}
       {showSessionModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-border/40 animate-in zoom-in-95 duration-200 space-y-6">
@@ -857,9 +867,11 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
                 </div>
                 <div>
                   <h3 className="text-lg font-black text-slate-800">
-                    {sessionModalMode === 'create' ? 'Schedule Live Session' : 'Edit Session Details'}
+                    {sessionModalMode === 'create' ? `Schedule Session ${sessionFormNumber}` : `Edit Session ${sessionFormNumber}`}
                   </h3>
-                  <p className="text-xs text-muted-foreground font-semibold">Cohort: {batch.name}</p>
+                  <p className="text-xs text-primary font-bold">
+                    {curriculumList[sessionFormNumber - 1]?.title || `Session ${sessionFormNumber}`}
+                  </p>
                 </div>
               </div>
               <button
@@ -871,32 +883,16 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
             </div>
 
             <form onSubmit={handleSessionSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Session Number *</label>
-                  <input
-                    type="number"
-                    min={1}
-                    required
-                    value={sessionFormNumber}
-                    onChange={(e) => setSessionFormNumber(Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  />
+              {curriculumList[sessionFormNumber - 1]?.description && (
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">
+                    Curriculum Topic
+                  </span>
+                  <p className="text-xs text-slate-600 font-medium">
+                    {curriculumList[sessionFormNumber - 1].description}
+                  </p>
                 </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Session Status *</label>
-                  <select
-                    value={sessionFormStatus}
-                    onChange={(e) => setSessionFormStatus(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
-                  >
-                    <option value="SCHEDULED">Scheduled</option>
-                    <option value="COMPLETED">Completed</option>
-                    <option value="CANCELLED">Cancelled</option>
-                  </select>
-                </div>
-              </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -919,6 +915,19 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Session Status *</label>
+                <select
+                  value={sessionFormStatus}
+                  onChange={(e) => setSessionFormStatus(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
+                >
+                  <option value="SCHEDULED">Scheduled</option>
+                  <option value="COMPLETED">Completed</option>
+                  <option value="CANCELLED">Cancelled</option>
+                </select>
               </div>
 
               <div>
@@ -948,7 +957,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
                   className="px-5 py-2.5 bg-primary text-white font-bold rounded-xl text-xs shadow-md transition-all hover:scale-105 active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
                 >
                   {sessionSubmitting && <Loader2 className="animate-spin" size={14} />}
-                  <span>{sessionModalMode === 'create' ? 'Schedule Session' : 'Save Changes'}</span>
+                  <span>{sessionModalMode === 'create' ? 'Save Schedule' : 'Save Changes'}</span>
                 </button>
               </div>
             </form>

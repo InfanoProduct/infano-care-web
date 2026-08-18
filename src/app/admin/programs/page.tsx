@@ -14,6 +14,7 @@ import ImageUploader from '@/components/upload/ImageUploader';
 import { blogService } from '@/services/blog.service';
 import { useAuthStore } from '@/store/auth-store';
 import { ParentService } from '@/services/parent.service';
+import { apiClient } from '@/lib/api-client';
 
 // Helper functions for human-friendly questionnaire labels
 const getConfidenceLabel = (val: string) => {
@@ -191,10 +192,25 @@ export default function ProgramsManagement() {
 
   const loadExperts = async () => {
     try {
-      const data = await ParentService.getExperts();
-      setExperts(data);
+      const res: any = await apiClient.get('/admin/experts');
+      const list = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+      const normalized = list.map((e: any) => ({
+        id: e.id,
+        displayName: e.profile?.displayName || e.displayName || e.username || 'Expert',
+        specialisation: e.profile?.specialisation || e.specialisation || '',
+        email: e.email || '',
+        phone: e.phone || '',
+        ...e
+      }));
+      setExperts(normalized);
     } catch (error) {
-      console.error('Failed to load experts:', error);
+      console.error('Failed to load experts from admin endpoint, trying parent endpoint:', error);
+      try {
+        const data = await ParentService.getExperts();
+        setExperts(data || []);
+      } catch (err) {
+        console.error('Failed to load experts:', err);
+      }
     }
   };
 
@@ -2326,7 +2342,7 @@ export default function ProgramsManagement() {
                   <option value="">No Assigned Expert</option>
                   {experts.map((exp) => (
                     <option key={exp.id} value={exp.id}>
-                      {exp.profile?.displayName || exp.username} ({exp.email || exp.phone})
+                      {exp.displayName || exp.profile?.displayName || exp.username || 'Expert'} {exp.specialisation ? `(${exp.specialisation})` : (exp.email || exp.phone ? `(${exp.email || exp.phone})` : '')}
                     </option>
                   ))}
                 </select>

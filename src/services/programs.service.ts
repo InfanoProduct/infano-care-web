@@ -250,6 +250,10 @@ export const ProgramsService = {
     return apiClient.get<{ success: boolean; data: ProgramBatch[] }>('/admin/programs/batches/all');
   },
 
+  async getBatchById(batchId: string): Promise<{ success: boolean; data: any }> {
+    return apiClient.get<{ success: boolean; data: any }>(`/admin/programs/batches/${batchId}`);
+  },
+
   async createBatch(programId: string, data: Partial<ProgramBatch>): Promise<{ success: boolean; message: string; data: ProgramBatch }> {
     return apiClient.post<{ success: boolean; message: string; data: ProgramBatch }>(`/admin/programs/${programId}/batches`, data);
   },
@@ -260,5 +264,17 @@ export const ProgramsService = {
 
   async deleteBatch(batchId: string): Promise<{ success: boolean; message: string }> {
     return apiClient.delete<{ success: boolean; message: string }>(`/admin/programs/batches/${batchId}`);
+  },
+
+  async scheduleBatchSession(batchId: string, data: { scheduledAt: string; sessionNumber?: number; meetLink?: string; expertId?: string }): Promise<{ success: boolean; message: string; data: any }> {
+    return apiClient.post<{ success: boolean; message: string; data: any }>(`/admin/programs/batches/${batchId}/sessions`, data);
+  },
+
+  async updateBatchSession(batchId: string, sessionId: string, data: { scheduledAt?: string; meetLink?: string; status?: string; sessionNumber?: number }): Promise<{ success: boolean; message: string; data: any }> {
+    return apiClient.patch<{ success: boolean; message: string; data: any }>(`/admin/programs/batches/${batchId}/sessions/${sessionId}`, data);
+  },
+
+  async deleteBatchSession(batchId: string, sessionId: string): Promise<{ success: boolean; message: string }> {
+    return apiClient.delete<{ success: boolean; message: string }>(`/admin/programs/batches/${batchId}/sessions/${sessionId}`);
   }
 };

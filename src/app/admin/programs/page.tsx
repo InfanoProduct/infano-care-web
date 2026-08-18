@@ -1583,7 +1583,14 @@ export default function ProgramsManagement() {
                       </div>
 
                       <div>
-                        <h3 className="text-xl font-black text-slate-800 tracking-tight">{b.name}</h3>
+                        <button
+                          onClick={() => router.push(`/admin/programs/batches/${b.id}`)}
+                          className="text-left group/title"
+                        >
+                          <h3 className="text-xl font-black text-slate-800 tracking-tight group-hover/title:text-primary transition-colors flex items-center gap-1.5">
+                            <span>{b.name}</span>
+                          </h3>
+                        </button>
                         {b.description && (
                           <p className="text-xs text-muted-foreground font-medium mt-1 line-clamp-2">{b.description}</p>
                         )}
@@ -1626,24 +1633,34 @@ export default function ProgramsManagement() {
                     </div>
 
                     {/* Actions */}
-                    {isAdmin && (
-                      <div className="pt-4 border-t border-border/30 flex justify-end gap-2 shrink-0">
-                        <button
-                          onClick={() => handleOpenEditBatchModal(b)}
-                          className="px-3.5 py-1.5 bg-secondary hover:bg-primary/10 hover:text-primary transition-all rounded-xl text-xs font-bold text-slate-700 flex items-center gap-1.5 border border-border/50"
-                        >
-                          <Edit size={14} />
-                          <span>Edit</span>
-                        </button>
-                        <button
-                          onClick={() => handleDeleteBatch(b.id)}
-                          className="p-1.5 bg-secondary hover:bg-rose-500/10 hover:text-rose-500 transition-all rounded-xl text-slate-500 border border-border/50"
-                          title="Delete Batch"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    )}
+                    <div className="pt-4 border-t border-border/30 flex items-center justify-between gap-2 shrink-0">
+                      <button
+                        onClick={() => router.push(`/admin/programs/batches/${b.id}`)}
+                        className="px-3.5 py-1.5 bg-primary/10 hover:bg-primary hover:text-white text-primary transition-all rounded-xl text-xs font-black flex items-center gap-1.5 shadow-xs"
+                      >
+                        <Eye size={14} />
+                        <span>View Details</span>
+                      </button>
+
+                      {isAdmin && (
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleOpenEditBatchModal(b)}
+                            className="px-3 py-1.5 bg-secondary hover:bg-slate-200 transition-all rounded-xl text-xs font-bold text-slate-700 flex items-center gap-1 border border-border/50"
+                          >
+                            <Edit size={13} />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteBatch(b.id)}
+                            className="p-1.5 bg-secondary hover:bg-rose-500/10 hover:text-rose-500 transition-all rounded-xl text-slate-500 border border-border/50"
+                            title="Delete Batch"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })}

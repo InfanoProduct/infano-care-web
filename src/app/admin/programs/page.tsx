@@ -225,7 +225,10 @@ export default function ProgramsManagement() {
   useEffect(() => {
     if (activeTab === 'programs') loadPrograms();
     if (activeTab === 'batches') loadBatches();
-    if (activeTab === 'enrollments') loadEnrollments();
+    if (activeTab === 'enrollments') {
+      loadEnrollments();
+      loadBatches();
+    }
     if (activeTab === 'demos') loadDemos();
   }, [activeTab]);
 
@@ -370,6 +373,29 @@ export default function ProgramsManagement() {
       handleCheckPhone();
     } else {
       handleAddStudentSubmit(e);
+    }
+  };
+
+  const [updatingEnrollmentBatchId, setUpdatingEnrollmentBatchId] = useState<string | null>(null);
+
+  const handleAssignBatch = async (enrollmentId: string, batchId: string) => {
+    setUpdatingEnrollmentBatchId(enrollmentId);
+    try {
+      const targetBatchId = batchId === '' ? null : batchId;
+      const updated = await ProgramsService.updateEnrollment(enrollmentId, {
+        batchId: targetBatchId
+      });
+      toast.success(targetBatchId ? 'Batch assigned successfully!' : 'Batch unassigned');
+      setEnrollments(prev => prev.map(e => e.id === enrollmentId ? {
+        ...e,
+        batchId: updated.batchId,
+        batch: updated.batch
+      } : e));
+    } catch (error: any) {
+      console.error('Failed to assign batch:', error);
+      toast.error(error.response?.data?.message || 'Failed to update batch assignment');
+    } finally {
+      setUpdatingEnrollmentBatchId(null);
     }
   };
 
@@ -1763,14 +1789,51 @@ export default function ProgramsManagement() {
 
                         {/* Batch Info */}
                         <td className="p-6">
-                          {enrollment.batch ? (
-                            <span className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
-                              <Users size={12} className="shrink-0 text-indigo-500" />
-                              {enrollment.batch.name}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground/50 italic font-semibold">Unassigned</span>
-                          )}
+                          {(() => {
+                            const programBatches = batches.filter(
+                              b => b.programId === enrollment.programId || 
+                                   b.programId === (enrollment as any).program?.id ||
+                                   (enrollment.program && b.program?.title === enrollment.program?.title)
+                            );
+                            const currentBatchId = enrollment.batchId || enrollment.batch?.id || '';
+                            const isUpdating = updatingEnrollmentBatchId === enrollment.id;
+
+                            return (
+                              <div className="flex items-center gap-2">
+                                <div className="relative min-w-[170px] max-w-[230px]">
+                                  <select
+                                    disabled={isUpdating}
+                                    value={currentBatchId}
+                                    onChange={(e) => handleAssignBatch(enrollment.id, e.target.value)}
+                                    className={`w-full text-xs font-bold py-2 px-3 pr-8 rounded-xl border transition-all cursor-pointer outline-none shadow-xs ${
+                                      currentBatchId
+                                        ? 'bg-indigo-50/90 hover:bg-indigo-100/80 text-indigo-800 border-indigo-200 font-extrabold'
+                                        : 'bg-slate-50 hover:bg-slate-100 text-slate-500 border-slate-200'
+                                    } ${isUpdating ? 'opacity-50 cursor-wait' : ''}`}
+                                  >
+                                    <option value="">-- Unassigned --</option>
+                                    {programBatches.map(b => {
+                                      const expertName = b.expert?.profile?.displayName || b.expert?.username;
+                                      return (
+                                        <option key={b.id} value={b.id}>
+                                          {b.name} {expertName ? `(${expertName})` : ''}
+                                        </option>
+                                      );
+                                    })}
+                                  </select>
+                                  {isUpdating ? (
+                                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                                      <Loader2 size={13} className="animate-spin text-primary" />
+                                    </div>
+                                  ) : (
+                                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                      <Users size={13} />
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </td>
 
                         {/* Tier & Price */}

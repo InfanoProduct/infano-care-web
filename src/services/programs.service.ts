@@ -38,6 +38,10 @@ export interface ProgramBatch {
   expertId?: string | null;
   createdAt: string;
   updatedAt: string;
+  program?: {
+    id: string;
+    title: string;
+  };
   expert?: {
     id: string;
     username: string;
@@ -159,6 +163,13 @@ export const ProgramsService = {
    */
   async updateEnrollmentStatus(id: string, status: string): Promise<ProgramEnrollment> {
     return apiClient.patch<ProgramEnrollment>(`/admin/programs/enrollments/${id}`, { status });
+  },
+
+  /**
+   * Updates enrollment details such as assigned batch or status
+   */
+  async updateEnrollment(id: string, payload: { status?: string; batchId?: string | null }): Promise<ProgramEnrollment> {
+    return apiClient.patch<ProgramEnrollment>(`/admin/programs/enrollments/${id}`, payload);
   },
 
   /**

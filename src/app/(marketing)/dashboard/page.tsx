@@ -564,12 +564,25 @@ export default function CustomerDashboardOverview() {
                                 required
                                 min={(() => {
                                   const today = new Date();
-                                  const tomorrow = new Date(today);
-                                  tomorrow.setDate(today.getDate() + 1);
-                                  return tomorrow.toISOString().split('T')[0];
+                                  const yyyy = today.getFullYear();
+                                  const mm = String(today.getMonth() + 1).padStart(2, '0');
+                                  const dd = String(today.getDate()).padStart(2, '0');
+                                  return `${yyyy}-${mm}-${dd}`;
+                                })()}
+                                max={(() => {
+                                  const today = new Date();
+                                  const maxD = new Date(today);
+                                  maxD.setDate(today.getDate() + 7);
+                                  const yyyy = maxD.getFullYear();
+                                  const mm = String(maxD.getMonth() + 1).padStart(2, '0');
+                                  const dd = String(maxD.getDate()).padStart(2, '0');
+                                  return `${yyyy}-${mm}-${dd}`;
                                 })()}
                                 value={demoSlotDate}
-                                onChange={e => setDemoSlotDate(e.target.value)}
+                                onChange={e => {
+                                  setDemoSlotDate(e.target.value);
+                                  setDemoSlotTime('');
+                                }}
                                 className="w-full px-3 py-2 bg-slate-50 border border-slate-205 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
                               />
                             </div>
@@ -583,24 +596,36 @@ export default function CustomerDashboardOverview() {
                                 className="w-full px-3 py-2.5 bg-slate-50 border border-slate-205 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
                               >
                                 <option value="">Select Time</option>
-                                <option value="09:00 AM - 09:30 AM">09:00 AM - 09:30 AM</option>
-                                <option value="09:30 AM - 10:00 AM">09:30 AM - 10:00 AM</option>
-                                <option value="10:00 AM - 10:30 AM">10:00 AM - 10:30 AM</option>
-                                <option value="10:30 AM - 11:00 AM">10:30 AM - 11:00 AM</option>
-                                <option value="11:00 AM - 11:30 AM">11:00 AM - 11:30 AM</option>
-                                <option value="11:30 AM - 12:00 PM">11:30 AM - 12:00 PM</option>
-                                <option value="12:00 PM - 12:30 PM">12:00 PM - 12:30 PM</option>
-                                <option value="12:30 PM - 01:00 PM">12:30 PM - 01:00 PM</option>
-                                <option value="02:00 PM - 02:30 PM">02:00 PM - 02:30 PM</option>
-                                <option value="02:30 PM - 03:00 PM">02:30 PM - 03:00 PM</option>
-                                <option value="03:00 PM - 03:30 PM">03:00 PM - 03:30 PM</option>
-                                <option value="03:30 PM - 04:00 PM">03:30 PM - 04:00 PM</option>
-                                <option value="04:00 PM - 04:30 PM">04:00 PM - 04:30 PM</option>
-                                <option value="04:30 PM - 05:00 PM">04:30 PM - 05:00 PM</option>
-                                <option value="05:00 PM - 05:30 PM">05:00 PM - 05:30 PM</option>
-                                <option value="05:30 PM - 06:00 PM">05:30 PM - 06:00 PM</option>
-                                <option value="06:00 PM - 06:30 PM">06:00 PM - 06:30 PM</option>
-                                <option value="06:30 PM - 07:00 PM">06:30 PM - 07:00 PM</option>
+                                {(() => {
+                                  const allSlots = [
+                                    "09:00 AM - 09:30 AM", "09:30 AM - 10:00 AM",
+                                    "10:00 AM - 10:30 AM", "10:30 AM - 11:00 AM",
+                                    "11:00 AM - 11:30 AM", "11:30 AM - 12:00 PM",
+                                    "12:00 PM - 12:30 PM", "12:30 PM - 01:00 PM",
+                                    "02:00 PM - 02:30 PM", "02:30 PM - 03:00 PM",
+                                    "03:00 PM - 03:30 PM", "03:30 PM - 04:00 PM",
+                                    "04:00 PM - 04:30 PM", "04:30 PM - 05:00 PM",
+                                    "05:00 PM - 05:30 PM", "05:30 PM - 06:00 PM",
+                                    "06:00 PM - 06:30 PM", "06:30 PM - 07:00 PM"
+                                  ];
+                                  const today = new Date();
+                                  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                                  const isToday = demoSlotDate === todayStr;
+                                  
+                                  const slots = isToday ? allSlots.filter(slot => {
+                                    const startTime = slot.split(' - ')[0].trim();
+                                    const [timePart, modifier] = startTime.split(' ');
+                                    let [hours, minutes] = timePart.split(':').map(Number);
+                                    if (modifier === 'PM' && hours !== 12) hours += 12;
+                                    if (modifier === 'AM' && hours === 12) hours = 0;
+                                    const thresholdMinutes = (today.getHours() * 60 + today.getMinutes()) + 90;
+                                    return (hours * 60 + minutes) >= thresholdMinutes;
+                                  }) : allSlots;
+
+                                  return slots.map(slot => (
+                                    <option key={slot} value={slot}>{slot}</option>
+                                  ));
+                                })()}
                               </select>
                             </div>
                           </div>

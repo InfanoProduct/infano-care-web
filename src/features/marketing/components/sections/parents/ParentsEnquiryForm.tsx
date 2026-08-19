@@ -574,19 +574,31 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
 
       {/* ─── PHASE 2: RECOMMENDATION & CONTACT FORM ─── */}
       {phase === 'recommendation' && (() => {
-        // Generate list of 4 months (current month + next 3 months)
+        // Restrict dates to current date and next 7 days
         const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const maxDate = new Date(today);
+        maxDate.setDate(today.getDate() + 7);
+        maxDate.setHours(23, 59, 59, 999);
+
+        // Generate list of months covering the next 7 days
         const availableMonths = [];
-        for (let i = 0; i < 4; i++) {
-          const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
+        const currentMonthDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        availableMonths.push({
+          label: currentMonthDate.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }),
+          month: currentMonthDate.getMonth(),
+          year: currentMonthDate.getFullYear(),
+        });
+        if (maxDate.getMonth() !== today.getMonth() || maxDate.getFullYear() !== today.getFullYear()) {
+          const nextMonthDate = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
           availableMonths.push({
-            label: d.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }),
-            month: d.getMonth(),
-            year: d.getFullYear(),
+            label: nextMonthDate.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }),
+            month: nextMonthDate.getMonth(),
+            year: nextMonthDate.getFullYear(),
           });
         }
 
-        const currentSelectedMonth = availableMonths[selectedMonthIndex];
+        const currentSelectedMonth = availableMonths[selectedMonthIndex] || availableMonths[0];
 
         // Helper to generate calendar days for selected month
         const getCalendarDays = () => {
@@ -609,12 +621,14 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
           // Add real days
           for (let i = 1; i <= totalDays; i++) {
             const d = new Date(year, month, i);
-            // Disable past days and current day for the current month
-            const isPast = year === today.getFullYear() && month === today.getMonth() && i <= today.getDate();
+            d.setHours(0, 0, 0, 0);
+            const isPast = d < today;
+            const isAfterMax = d > maxDate;
+            const isDisabled = isPast || isAfterMax;
             daysList.push({
               date: d,
               dayNum: i,
-              isPast,
+              isPast: isDisabled,
             });
           }
           
@@ -624,24 +638,52 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
         const calendarDays = getCalendarDays();
 
         // Time slot options
-        const TIME_SLOTS = [
-          { value: '10:00 AM - 10:30 AM', label: '10:00 AM - 10:30 AM', period: 'Morning' },
-          { value: '10:30 AM - 11:00 AM', label: '10:30 AM - 11:00 AM', period: 'Morning' },
-          { value: '11:00 AM - 11:30 AM', label: '11:00 AM - 11:30 AM', period: 'Morning' },
-          { value: '11:30 AM - 12:00 PM', label: '11:30 AM - 12:00 PM', period: 'Morning' },
-          { value: '12:00 PM - 12:30 PM', label: '12:00 PM - 12:30 PM', period: 'Afternoon' },
-          { value: '12:30 PM - 01:00 PM', label: '12:30 PM - 01:00 PM', period: 'Afternoon' },
-          { value: '02:00 PM - 02:30 PM', label: '02:00 PM - 02:30 PM', period: 'Afternoon' },
-          { value: '02:30 PM - 03:00 PM', label: '02:30 PM - 03:00 PM', period: 'Afternoon' },
-          { value: '03:00 PM - 03:30 PM', label: '03:00 PM - 03:30 PM', period: 'Afternoon' },
-          { value: '03:30 PM - 04:00 PM', label: '03:30 PM - 04:00 PM', period: 'Afternoon' },
-          { value: '04:00 PM - 04:30 PM', label: '04:00 PM - 04:30 PM', period: 'Evening' },
-          { value: '04:30 PM - 05:00 PM', label: '04:30 PM - 05:00 PM', period: 'Evening' },
-          { value: '05:00 PM - 05:30 PM', label: '05:00 PM - 05:30 PM', period: 'Evening' },
-          { value: '05:30 PM - 06:00 PM', label: '05:30 PM - 06:00 PM', period: 'Evening' },
-          { value: '06:00 PM - 06:30 PM', label: '06:00 PM - 06:30 PM', period: 'Evening' },
-          { value: '06:30 PM - 07:00 PM', label: '06:30 PM - 07:00 PM', period: 'Evening' },
+        const ALL_TIME_SLOTS = [
+          { value: '09:00 AM - 09:30 AM', label: '09:00 AM - 09:30 AM', period: 'Morning', startTime: '09:00 AM' },
+          { value: '09:30 AM - 10:00 AM', label: '09:30 AM - 10:00 AM', period: 'Morning', startTime: '09:30 AM' },
+          { value: '10:00 AM - 10:30 AM', label: '10:00 AM - 10:30 AM', period: 'Morning', startTime: '10:00 AM' },
+          { value: '10:30 AM - 11:00 AM', label: '10:30 AM - 11:00 AM', period: 'Morning', startTime: '10:30 AM' },
+          { value: '11:00 AM - 11:30 AM', label: '11:00 AM - 11:30 AM', period: 'Morning', startTime: '11:00 AM' },
+          { value: '11:30 AM - 12:00 PM', label: '11:30 AM - 12:00 PM', period: 'Morning', startTime: '11:30 AM' },
+          { value: '12:00 PM - 12:30 PM', label: '12:00 PM - 12:30 PM', period: 'Afternoon', startTime: '12:00 PM' },
+          { value: '12:30 PM - 01:00 PM', label: '12:30 PM - 01:00 PM', period: 'Afternoon', startTime: '12:30 PM' },
+          { value: '01:00 PM - 01:30 PM', label: '01:00 PM - 01:30 PM', period: 'Afternoon', startTime: '01:00 PM' },
+          { value: '01:30 PM - 02:00 PM', label: '01:30 PM - 02:00 PM', period: 'Afternoon', startTime: '01:30 PM' },
+          { value: '02:00 PM - 02:30 PM', label: '02:00 PM - 02:30 PM', period: 'Afternoon', startTime: '02:00 PM' },
+          { value: '02:30 PM - 03:00 PM', label: '02:30 PM - 03:00 PM', period: 'Afternoon', startTime: '02:30 PM' },
+          { value: '03:00 PM - 03:30 PM', label: '03:00 PM - 03:30 PM', period: 'Afternoon', startTime: '03:00 PM' },
+          { value: '03:30 PM - 04:00 PM', label: '03:30 PM - 04:00 PM', period: 'Afternoon', startTime: '03:30 PM' },
+          { value: '04:00 PM - 04:30 PM', label: '04:00 PM - 04:30 PM', period: 'Evening', startTime: '04:00 PM' },
+          { value: '04:30 PM - 05:00 PM', label: '04:30 PM - 05:00 PM', period: 'Evening', startTime: '04:30 PM' },
+          { value: '05:00 PM - 05:30 PM', label: '05:00 PM - 05:30 PM', period: 'Evening', startTime: '05:00 PM' },
+          { value: '05:30 PM - 06:00 PM', label: '05:30 PM - 06:00 PM', period: 'Evening', startTime: '05:30 PM' },
+          { value: '06:00 PM - 06:30 PM', label: '06:00 PM - 06:30 PM', period: 'Evening', startTime: '06:00 PM' },
+          { value: '06:30 PM - 07:00 PM', label: '06:30 PM - 07:00 PM', period: 'Evening', startTime: '06:30 PM' },
+          { value: '07:00 PM - 07:30 PM', label: '07:00 PM - 07:30 PM', period: 'Evening', startTime: '07:00 PM' },
+          { value: '07:30 PM - 08:00 PM', label: '07:30 PM - 08:00 PM', period: 'Evening', startTime: '07:30 PM' },
         ];
+
+        const getAvailableTimeSlots = () => {
+          if (!selectedDay) return [];
+          const isToday = selectedDay.getDate() === today.getDate() &&
+                          selectedDay.getMonth() === today.getMonth() &&
+                          selectedDay.getFullYear() === today.getFullYear();
+          if (!isToday) return ALL_TIME_SLOTS;
+
+          const now = new Date();
+          // First slot is 1.5 hours (90 minutes) late from current time
+          const thresholdMinutes = (now.getHours() * 60 + now.getMinutes()) + 90;
+
+          return ALL_TIME_SLOTS.filter(s => {
+            const [timePart, modifier] = s.startTime.split(' ');
+            let [hours, minutes] = timePart.split(':').map(Number);
+            if (modifier === 'PM' && hours !== 12) hours += 12;
+            if (modifier === 'AM' && hours === 12) hours = 0;
+            return (hours * 60 + minutes) >= thresholdMinutes;
+          });
+        };
+
+        const availableTimeSlots = getAvailableTimeSlots();
 
         return (
           <motion.div
@@ -841,7 +883,7 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                         </span>
                         <button
                           type="button"
-                          disabled={selectedMonthIndex === 3}
+                          disabled={selectedMonthIndex >= availableMonths.length - 1}
                           onClick={() => {
                             setSelectedMonthIndex(prev => prev + 1);
                             setSelectedDay(null);
@@ -921,10 +963,15 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                           <div className="bg-white border border-slate-100/80 rounded-xl p-3 text-center">
                             <p className="text-xs text-slate-400 italic">Select a date to unlock available time slots.</p>
                           </div>
+                        ) : availableTimeSlots.length === 0 ? (
+                          <div className="bg-white border border-slate-100/80 rounded-xl p-3 text-center">
+                            <p className="text-xs text-slate-400 italic">No available slots left for today.</p>
+                          </div>
                         ) : (
                           <div className="bg-white border border-slate-100/80 rounded-xl p-2.5 space-y-2">
                             {(['Morning', 'Afternoon', 'Evening'] as const).map((period) => {
-                              const periodSlots = TIME_SLOTS.filter(s => s.period === period);
+                              const periodSlots = availableTimeSlots.filter(s => s.period === period);
+                              if (periodSlots.length === 0) return null;
                               return (
                                 <div key={period} className="space-y-0.5">
                                   <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{period} Slots</p>

@@ -78,19 +78,24 @@ export function DateTimePickerModal({
   const firstDayIndex = new Date(year, month, 1).getDay();
   const prevMonthDays = new Date(year, month, 0).getDate();
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const maxDate = new Date(today);
+  maxDate.setDate(today.getDate() + 7);
+  maxDate.setHours(23, 59, 59, 999);
+
   const handlePrevMonth = () => {
-    const today = new Date();
     if (year > today.getFullYear() || (year === today.getFullYear() && month > today.getMonth())) {
       setCurrentDate(new Date(year, month - 1, 1));
     }
   };
 
   const handleNextMonth = () => {
-    setCurrentDate(new Date(year, month + 1, 1));
+    if (year < maxDate.getFullYear() || (year === maxDate.getFullYear() && month < maxDate.getMonth())) {
+      setCurrentDate(new Date(year, month + 1, 1));
+    }
   };
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
 
   // Generate calendar grid array
   const calendarCells = [];
@@ -182,8 +187,8 @@ export function DateTimePickerModal({
     if (!isToday) return TIME_SLOTS;
     
     const now = new Date();
-    const currentHours = now.getHours();
-    const currentMinutes = now.getMinutes();
+    // First slot is 1.5 hours (90 minutes) late from current time
+    const thresholdMinutes = (now.getHours() * 60 + now.getMinutes()) + 90;
     
     return TIME_SLOTS.filter(time => {
       const [timePart, modifier] = time.split(' ');
@@ -191,7 +196,8 @@ export function DateTimePickerModal({
       if (modifier === 'PM' && hours !== 12) hours += 12;
       if (modifier === 'AM' && hours === 12) hours = 0;
       
-      return (hours > currentHours) || (hours === currentHours && minutes > currentMinutes + 15);
+      const slotMinutes = hours * 60 + minutes;
+      return slotMinutes >= thresholdMinutes;
     });
   };
 
@@ -255,7 +261,8 @@ export function DateTimePickerModal({
                     <button
                       type="button"
                       onClick={handleNextMonth}
-                      className="p-1 rounded-full border border-slate-100 hover:bg-slate-50 text-slate-600 transition-colors"
+                      className="p-1 rounded-full border border-slate-100 hover:bg-slate-50 text-slate-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      disabled={year === maxDate.getFullYear() && month === maxDate.getMonth()}
                     >
                       <ChevronRight size={16} />
                     </button>
@@ -276,8 +283,9 @@ export function DateTimePickerModal({
                   {calendarCells.map((cell, idx) => {
                     const isToday = cell.date.getTime() === today.getTime();
                     const isBeforeToday = cell.date < today;
+                    const isAfterMaxDate = cell.date > maxDate;
                     const isSelected = selectedDate && cell.date.getTime() === selectedDate.getTime();
-                    const isActive = !isBeforeToday && cell.isCurrentMonth;
+                    const isActive = !isBeforeToday && !isAfterMaxDate && cell.isCurrentMonth;
 
                     return (
                       <button

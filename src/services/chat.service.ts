@@ -82,7 +82,7 @@ export const ChatService = {
         } else if (isNetworkError) {
           errorContent = 'Network error. Please try again.';
         } else {
-          errorContent = 'Server error. Please try again.';
+          errorContent = "I'm having a little trouble connecting right now 🌸 Please give me a moment and try again! 💙";
         }
 
         const fallback: SendMessageResponse = {

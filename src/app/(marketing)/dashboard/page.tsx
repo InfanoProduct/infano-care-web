@@ -639,24 +639,40 @@ export default function CustomerDashboardOverview() {
                                 className="w-full px-3 py-2.5 bg-slate-50 border border-slate-205 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
                               >
                                 <option value="">Select Time</option>
-                                <option value="09:00 AM - 09:30 AM">09:00 AM - 09:30 AM</option>
-                                <option value="09:30 AM - 10:00 AM">09:30 AM - 10:00 AM</option>
-                                <option value="10:00 AM - 10:30 AM">10:00 AM - 10:30 AM</option>
-                                <option value="10:30 AM - 11:00 AM">10:30 AM - 11:00 AM</option>
-                                <option value="11:00 AM - 11:30 AM">11:00 AM - 11:30 AM</option>
-                                <option value="11:30 AM - 12:00 PM">11:30 AM - 12:00 PM</option>
-                                <option value="12:00 PM - 12:30 PM">12:00 PM - 12:30 PM</option>
-                                <option value="12:30 PM - 01:00 PM">12:30 PM - 01:00 PM</option>
-                                <option value="02:00 PM - 02:30 PM">02:00 PM - 02:30 PM</option>
-                                <option value="02:30 PM - 03:00 PM">02:30 PM - 03:00 PM</option>
-                                <option value="03:00 PM - 03:30 PM">03:00 PM - 03:30 PM</option>
-                                <option value="03:30 PM - 04:00 PM">03:30 PM - 04:00 PM</option>
-                                <option value="04:00 PM - 04:30 PM">04:00 PM - 04:30 PM</option>
-                                <option value="04:30 PM - 05:00 PM">04:30 PM - 05:00 PM</option>
-                                <option value="05:00 PM - 05:30 PM">05:00 PM - 05:30 PM</option>
-                                <option value="05:30 PM - 06:00 PM">05:30 PM - 06:00 PM</option>
-                                <option value="06:00 PM - 06:30 PM">06:00 PM - 06:30 PM</option>
-                                <option value="06:30 PM - 07:00 PM">06:30 PM - 07:00 PM</option>
+                                {(() => {
+                                  const allSlots = [
+                                    "09:00 AM - 09:30 AM", "09:30 AM - 10:00 AM", "10:00 AM - 10:30 AM",
+                                    "10:30 AM - 11:00 AM", "11:00 AM - 11:30 AM", "11:30 AM - 12:00 PM",
+                                    "12:00 PM - 12:30 PM", "12:30 PM - 01:00 PM", "02:00 PM - 02:30 PM",
+                                    "02:30 PM - 03:00 PM", "03:00 PM - 03:30 PM", "03:30 PM - 04:00 PM",
+                                    "04:00 PM - 04:30 PM", "04:30 PM - 05:00 PM", "05:00 PM - 05:30 PM",
+                                    "05:30 PM - 06:00 PM", "06:00 PM - 06:30 PM", "06:30 PM - 07:00 PM"
+                                  ];
+                                  const now = new Date();
+                                  const yyyy = now.getFullYear();
+                                  const mm = String(now.getMonth() + 1).padStart(2, '0');
+                                  const dd = String(now.getDate()).padStart(2, '0');
+                                  const todayStr = `${yyyy}-${mm}-${dd}`;
+                                  const isToday = demoSlotDate === todayStr;
+
+                                  const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+                                  const minAllowedMinutes = currentTotalMinutes + 90;
+
+                                  return allSlots
+                                    .filter(slot => {
+                                      if (!isToday) return true;
+                                      const [startTime] = slot.split(' - ');
+                                      const [timePart, modifier] = startTime.split(' ');
+                                      let [hours, minutes] = timePart.split(':').map(Number);
+                                      if (modifier === 'PM' && hours !== 12) hours += 12;
+                                      if (modifier === 'AM' && hours === 12) hours = 0;
+                                      const slotMinutes = hours * 60 + minutes;
+                                      return slotMinutes >= minAllowedMinutes;
+                                    })
+                                    .map(slot => (
+                                      <option key={slot} value={slot}>{slot}</option>
+                                    ));
+                                })()}
                               </select>
                             </div>
                           </div>

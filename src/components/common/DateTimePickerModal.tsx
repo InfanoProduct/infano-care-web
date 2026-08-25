@@ -182,8 +182,8 @@ export function DateTimePickerModal({
     if (!isToday) return TIME_SLOTS;
     
     const now = new Date();
-    const currentHours = now.getHours();
-    const currentMinutes = now.getMinutes();
+    const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+    const minAllowedMinutes = currentTotalMinutes + 90; // First slot must be at least 1 hr 30 min from current time
     
     return TIME_SLOTS.filter(time => {
       const [timePart, modifier] = time.split(' ');
@@ -191,7 +191,8 @@ export function DateTimePickerModal({
       if (modifier === 'PM' && hours !== 12) hours += 12;
       if (modifier === 'AM' && hours === 12) hours = 0;
       
-      return (hours > currentHours) || (hours === currentHours && minutes > currentMinutes + 15);
+      const slotTotalMinutes = hours * 60 + minutes;
+      return slotTotalMinutes >= minAllowedMinutes;
     });
   };
 

@@ -979,33 +979,64 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                           </div>
                         ) : (
                           <div className="bg-white border border-slate-100/80 rounded-xl p-2.5 space-y-2">
-                            {(['Morning', 'Afternoon', 'Evening'] as const).map((period) => {
-                              const periodSlots = TIME_SLOTS.filter(s => s.period === period);
-                              return (
-                                <div key={period} className="space-y-0.5">
-                                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{period} Slots</p>
-                                  <div className="flex flex-wrap gap-1">
-                                    {periodSlots.map((slot) => {
-                                      const isSlotSelected = selectedTime === slot.value;
-                                      return (
-                                        <button
-                                          key={slot.value}
-                                          type="button"
-                                          onClick={() => setSelectedTime(slot.value)}
-                                          className={`px-2 py-0.5 rounded text-xs font-semibold transition-all border ${
-                                            isSlotSelected
-                                              ? 'bg-primary text-white border-primary shadow-sm shadow-primary/5'
-                                              : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-                                          }`}
-                                        >
-                                          {slot.label}
-                                        </button>
-                                      );
-                                    })}
+                            {(() => {
+                              const now = new Date();
+                              const isToday = selectedDay ? (
+                                selectedDay.getDate() === now.getDate() &&
+                                selectedDay.getMonth() === now.getMonth() &&
+                                selectedDay.getFullYear() === now.getFullYear()
+                              ) : false;
+                              const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+                              const minAllowedMinutes = currentTotalMinutes + 90;
+
+                              const validSlots = TIME_SLOTS.filter(s => {
+                                if (!isToday) return true;
+                                const [startTime] = s.value.split(' - ');
+                                const [timePart, modifier] = startTime.split(' ');
+                                let [hours, minutes] = timePart.split(':').map(Number);
+                                if (modifier === 'PM' && hours !== 12) hours += 12;
+                                if (modifier === 'AM' && hours === 12) hours = 0;
+                                const slotMinutes = hours * 60 + minutes;
+                                return slotMinutes >= minAllowedMinutes;
+                              });
+
+                              if (validSlots.length === 0) {
+                                return (
+                                  <div className="text-center py-4 text-xs text-slate-400 font-medium">
+                                    No more slots available for today with the 1h 30m preparation window. Please select tomorrow.
                                   </div>
-                                </div>
-                              );
-                            })}
+                                );
+                              }
+
+                              return (['Morning', 'Afternoon', 'Evening'] as const).map((period) => {
+                                const periodSlots = validSlots.filter(s => s.period === period);
+                                if (periodSlots.length === 0) return null;
+                                return (
+                                  <div key={period} className="space-y-0.5">
+                                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{period} Slots</p>
+                                    <div className="flex flex-wrap gap-1">
+                                      {periodSlots.map((slot) => {
+                                        const isSlotSelected = selectedTime === slot.value;
+                                        return (
+                                          <button
+                                            key={slot.value}
+                                            type="button"
+                                            onClick={() => setSelectedTime(slot.value)}
+                                            className={`px-2 py-0.5 rounded text-xs font-semibold transition-all border ${
+                                              isSlotSelected
+                                                ? 'bg-primary text-white border-primary shadow-sm shadow-primary/5'
+                                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                                            }`}
+                                          >
+                                            {slot.label}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                );
+                              });
+                            })()}
                           </div>
                         )}
                       </div>

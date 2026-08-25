@@ -272,7 +272,10 @@ export function GigiChatWidget() {
     cleanPathname.startsWith('/dashboard/peer-training') ||
     cleanPathname.startsWith('/checkout') ||
     cleanPathname.startsWith('/gigi-the-awkward-age-book') ||
-    cleanPathname.startsWith('/webinar');
+    cleanPathname.startsWith('/webinar') ||
+    cleanPathname.startsWith('/parents') ||
+    cleanPathname.startsWith('/programs') ||
+    cleanPathname.startsWith('/program-enrollment');
 
   if (!mounted || isExcludedPage) return null;
 

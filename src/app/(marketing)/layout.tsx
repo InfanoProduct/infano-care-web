@@ -19,7 +19,14 @@ export default function MarketingLayout({
   const isLogin = cleanPathname === '/login' || cleanPathname === '/login/';
   const isPortal = isDashboard || isProgramDetail || isLogin;
   const isPurchaseSuccess = cleanPathname.startsWith('/purchase-success');
-  const hideWidgets = cleanPathname.startsWith('/checkout') || cleanPathname.startsWith('/gigi-the-awkward-age-book') || isPurchaseSuccess || cleanPathname.startsWith('/webinar');
+  const hideWidgets =
+    cleanPathname.startsWith('/checkout') ||
+    cleanPathname.startsWith('/gigi-the-awkward-age-book') ||
+    isPurchaseSuccess ||
+    cleanPathname.startsWith('/webinar') ||
+    cleanPathname.startsWith('/parents') ||
+    cleanPathname.startsWith('/programs') ||
+    cleanPathname.startsWith('/program-enrollment');
 
   return (
     <div className="flex flex-col min-h-screen">

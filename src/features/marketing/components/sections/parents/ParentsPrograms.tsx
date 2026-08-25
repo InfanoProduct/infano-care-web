@@ -168,6 +168,12 @@ function ProgramCard({ program, index }: { program: Program; index: number }) {
       <div className="p-8 md:p-9 flex flex-col flex-1 relative z-10">
         <div className="flex flex-col md:flex-row md:items-start justify-between mb-6 md:mb-8 relative z-10 gap-5 md:gap-4">
           <div className="flex flex-col gap-2 md:gap-1.5 flex-1">
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-white/95 border border-slate-200/80 rounded-full text-[10px] font-black text-slate-800 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                Live 1:1 Demo • ₹29
+              </div>
+            </div>
             <div className="flex items-start gap-2 md:gap-3">
               <h3 className={`text-2xl md:text-3xl font-bold tracking-tight ${styles.text}`}>
                 {program.title}
@@ -205,13 +211,21 @@ function ProgramCard({ program, index }: { program: Program; index: number }) {
           </div>
         )}
 
-        <Link
-          href={`/programs/${program.slug || program.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`}
-          className={`w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-2xl text-white font-semibold  transition-all ${styles.btnBg} relative z-10`}
-        >
-          <span>Enroll Now</span>
-          <ArrowRight size={14} className="transition-transform group-hover:translate-x-1 duration-300" />
-        </Link>
+        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+          <Link
+            href={`/programs/${program.slug || program.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`}
+            className={`flex-1 inline-flex items-center justify-center gap-2 py-4 px-6 rounded-2xl text-white font-extrabold text-xs uppercase tracking-wider transition-all ${styles.btnBg} relative z-10 shadow-md`}
+          >
+            <span>Book Demo Session • ₹29</span>
+            <ArrowRight size={14} className="transition-transform group-hover:translate-x-1 duration-300" />
+          </Link>
+          <Link
+            href={`/programs/${program.slug || program.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`}
+            className="inline-flex items-center justify-center py-4 px-6 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-extrabold text-xs uppercase tracking-wider transition-all shadow-xs"
+          >
+            <span>Full Curriculum</span>
+          </Link>
+        </div>
       </div>
     </motion.div>
   );

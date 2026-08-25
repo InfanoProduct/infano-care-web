@@ -856,8 +856,8 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
               <div className="lg:col-span-7 w-full">
                 <form onSubmit={handleBookDemo} className="bg-slate-50/50 p-4 sm:p-5 rounded-3xl border border-slate-100/60 shadow-sm flex flex-col gap-4">
                   <div className="text-center border-b border-slate-200/60 pb-2.5">
-                    <h5 className="text-lg font-bold text-slate-800">Book Complimentary Demo Session</h5>
-                    <p className="text-xs font-medium text-slate-400 mt-0.5">Select a premium slot to experience a 15-minute live mentorship demo.</p>
+                    <h5 className="text-lg font-bold text-slate-800">Book Demo Session (₹29)</h5>
+                    <p className="text-xs font-medium text-slate-400 mt-0.5">Select a preferred slot to experience a 1:1 live mentorship demo session for ₹29.</p>
                   </div>
 
                   {/* Format Preference consolidated inside Booking Card */}

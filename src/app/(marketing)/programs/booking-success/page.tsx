@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle2, ArrowRight, Mail, Phone } from 'lucide-react';
+import { isAnalyticsEnabled } from '@/components/common/Analytics';
 
 // Pure React Canvas Confetti effect
 function CanvasConfetti() {
@@ -132,17 +133,65 @@ function BookingSuccessContent() {
   const programTitle = searchParams.get('program') || 'our Program';
   const slotDate = searchParams.get('date') || '';
   const slotTime = searchParams.get('time') || '';
+  const amount = searchParams.get('amount') || '29';
+  const paymentId = searchParams.get('paymentId') || '';
 
-  // Push generate_lead event to dataLayer
+  const purchaseTrackFired = useRef(false);
+
+  // Push purchase & generate_lead events to dataLayer (GA4 & Meta Pixel compatible)
   useEffect(() => {
-    const targetProgramName = programTitle && programTitle !== 'our Program' ? programTitle : 'The Unfiltered Journey';
-    const windowObj = window as any;
-    windowObj.dataLayer = windowObj.dataLayer || [];
-    windowObj.dataLayer.push({
-      event: "generate_lead",
-      content_name: targetProgramName
-    });
-  }, [programTitle]);
+    if (typeof window !== 'undefined' && !purchaseTrackFired.current) {
+      purchaseTrackFired.current = true;
+      const targetProgramName = programTitle && programTitle !== 'our Program' ? programTitle : 'The Unfiltered Journey';
+      const parsedAmount = parseFloat(amount) || 29;
+      const txId = paymentId || `demo_txn_${Date.now()}`;
+      const itemId = `demo_${targetProgramName.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`;
+
+      const windowObj = window as any;
+      windowObj.dataLayer = windowObj.dataLayer || [];
+
+      // Clear any stale ecommerce data first (GA4 standard requirement)
+      windowObj.dataLayer.push({ ecommerce: null });
+
+      const purchaseData = {
+        event: 'purchase',
+
+        // Flat fields — Meta Pixel / Google Ads read these
+        value: parsedAmount,
+        currency: 'INR',
+        transaction_id: txId,
+        content_ids: [itemId],
+        content_name: `${targetProgramName} - Demo Session`,
+        content_type: 'product',
+
+        // Nested object — GA4 reads this
+        ecommerce: {
+          transaction_id: txId,
+          currency: 'INR',
+          value: parsedAmount,
+          items: [{
+            item_id: itemId,
+            item_name: `${targetProgramName} - Demo Session`,
+            item_category: 'Demo Session',
+            price: parsedAmount,
+            quantity: 1
+          }]
+        }
+      };
+
+      if (isAnalyticsEnabled()) {
+        windowObj.dataLayer.push(purchaseData);
+        windowObj.dataLayer.push({
+          event: 'generate_lead',
+          content_name: targetProgramName,
+          value: parsedAmount,
+          currency: 'INR'
+        });
+      } else {
+        console.log("Analytics disabled. Simulated dataLayer push for 'purchase' (Demo Session):", purchaseData);
+      }
+    }
+  }, [programTitle, amount, paymentId]);
 
   // Format Date for display
   const getFormattedDateTime = () => {
@@ -164,11 +213,25 @@ function BookingSuccessContent() {
 
       <div className="relative z-10 w-full max-w-[620px] bg-white rounded-[2.5rem] shadow-xl border border-slate-100 p-8 md:p-12 text-center">
         {/* Animated Check Circle Icon */}
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-50 text-emerald-500 mb-8 border border-emerald-100 shadow-sm animate-bounce">
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-50 text-emerald-500 mb-6 border border-emerald-100 shadow-sm animate-bounce">
           <CheckCircle2 size={42} strokeWidth={1.5} />
         </div>
 
-        <h1 className="text-3xl md:text-4xl font-extrabold font-heading text-slate-800 tracking-tight leading-tight mb-6">
+        {/* Payment Confirmation Pill */}
+        <div className="flex justify-center mb-4">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-50 text-emerald-750 text-xs font-black rounded-full border border-emerald-200 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span>Paid ₹{amount} INR</span>
+            {paymentId && (
+              <>
+                <span className="w-1 h-1 rounded-full bg-emerald-300" />
+                <span className="font-mono text-[10px] text-emerald-800">Ref: {paymentId.slice(0, 18)}</span>
+              </>
+            )}
+          </div>
+        </div>
+
+        <h1 className="text-3xl md:text-4xl font-extrabold font-heading text-slate-800 tracking-tight leading-tight mb-4">
           Demo Session Scheduled!
         </h1>
 

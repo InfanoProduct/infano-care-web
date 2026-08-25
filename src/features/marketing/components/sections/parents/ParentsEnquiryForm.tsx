@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Script from 'next/script';
 import { 
   ChevronRight, ChevronLeft, CheckCircle2, Loader2, Sparkles, 
   BookOpen, Users, Calendar, ShieldCheck, Heart, Award, GraduationCap,
@@ -14,6 +15,7 @@ import { AuthService } from '@/services/auth.service';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'react-hot-toast';
 import { useRegion } from '@/hooks/use-region';
+import { isAnalyticsEnabled } from '@/components/common/Analytics';
 
 // PROGRAMS_METADATA removed to ensure all program curriculum data is backend driven.
 const GRADIENTS_MAP: Record<string, string> = {
@@ -23,6 +25,27 @@ const GRADIENTS_MAP: Record<string, string> = {
   'IGNITE': 'from-violet-600 to-fuchsia-600 shadow-violet-600/10',
   'UNSTOPPABLE': 'from-amber-500 to-yellow-600 shadow-amber-500/10',
 };
+
+const TIME_SLOTS_DATA: { label: string; value: string; period: 'Morning' | 'Afternoon' | 'Evening' }[] = [
+  { label: '09:00 AM', value: '09:00 AM - 09:30 AM', period: 'Morning' },
+  { label: '09:30 AM', value: '09:30 AM - 10:00 AM', period: 'Morning' },
+  { label: '10:00 AM', value: '10:00 AM - 10:30 AM', period: 'Morning' },
+  { label: '10:30 AM', value: '10:30 AM - 11:00 AM', period: 'Morning' },
+  { label: '11:00 AM', value: '11:00 AM - 11:30 AM', period: 'Morning' },
+  { label: '11:30 AM', value: '11:30 AM - 12:00 PM', period: 'Morning' },
+  { label: '12:00 PM', value: '12:00 PM - 12:30 PM', period: 'Afternoon' },
+  { label: '12:30 PM', value: '12:30 PM - 01:00 PM', period: 'Afternoon' },
+  { label: '02:00 PM', value: '02:00 PM - 02:30 PM', period: 'Afternoon' },
+  { label: '02:30 PM', value: '02:30 PM - 03:00 PM', period: 'Afternoon' },
+  { label: '03:00 PM', value: '03:00 PM - 03:30 PM', period: 'Afternoon' },
+  { label: '03:30 PM', value: '03:30 PM - 04:00 PM', period: 'Afternoon' },
+  { label: '04:00 PM', value: '04:00 PM - 04:30 PM', period: 'Afternoon' },
+  { label: '04:30 PM', value: '04:30 PM - 05:00 PM', period: 'Afternoon' },
+  { label: '05:00 PM', value: '05:00 PM - 05:30 PM', period: 'Evening' },
+  { label: '05:30 PM', value: '05:30 PM - 06:00 PM', period: 'Evening' },
+  { label: '06:00 PM', value: '06:00 PM - 06:30 PM', period: 'Evening' },
+  { label: '06:30 PM', value: '06:30 PM - 07:00 PM', period: 'Evening' },
+];
 
 // Definition of 7 empathetic questions
 const QUESTIONS = [
@@ -331,7 +354,7 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
       : (normalizedMobile.length === 10 ? '+91' + normalizedMobile : '+' + normalizedMobile);
 
     try {
-      await ProgramsService.bookDemoSession({
+      const result = await ProgramsService.bookDemoSession({
         parentName,
         phone: finalPhone,
         email: email || null,
@@ -347,12 +370,135 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
         slotTime: selectedTime
       });
 
-      setPhase('success');
+      const razorpayInfo = result.razorpay;
+
+      if (typeof (window as any).Razorpay !== 'undefined' && razorpayInfo?.orderId && !razorpayInfo.orderId.startsWith('demo_mock_')) {
+        const options = {
+          key: razorpayInfo.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+          amount: (razorpayInfo.amount || 29) * 100,
+          currency: razorpayInfo.currency || 'INR',
+          name: 'Infano Care',
+          description: `Demo Session Consultation (${programFormats.join(', ') || 'Learning Program'})`,
+          order_id: razorpayInfo.orderId,
+          handler: async function (response: any) {
+            try {
+              setIsSubmitting(true);
+              await ProgramsService.verifyDemoPayment({
+                razorpayOrderId: response.razorpay_order_id || razorpayInfo.orderId,
+                razorpayPaymentId: response.razorpay_payment_id || '',
+                razorpaySignature: response.razorpay_signature || ''
+              });
+
+              // Fire DataLayer Purchase Event
+              if (typeof window !== 'undefined') {
+                const windowObj = window as any;
+                windowObj.dataLayer = windowObj.dataLayer || [];
+                windowObj.dataLayer.push({ ecommerce: null });
+                const purchaseData = {
+                  event: 'purchase',
+                  value: 29,
+                  currency: 'INR',
+                  transaction_id: response.razorpay_payment_id || `demo_txn_${Date.now()}`,
+                  content_ids: ['demo_learning_program'],
+                  content_name: `Demo Session - ${programFormats.join(', ') || 'Learning Program'}`,
+                  content_type: 'product',
+                  ecommerce: {
+                    transaction_id: response.razorpay_payment_id || `demo_txn_${Date.now()}`,
+                    currency: 'INR',
+                    value: 29,
+                    items: [{
+                      item_id: 'demo_session',
+                      item_name: `Demo Session - ${programFormats.join(', ') || 'Learning Program'}`,
+                      item_category: 'Demo Session',
+                      price: 29,
+                      quantity: 1
+                    }]
+                  }
+                };
+
+                if (isAnalyticsEnabled()) {
+                  windowObj.dataLayer.push(purchaseData);
+                } else {
+                  console.log("Analytics disabled. Simulated dataLayer push for 'purchase' (Demo Session):", purchaseData);
+                }
+              }
+
+              setPhase('success');
+            } catch (err: any) {
+              setError(err.message || 'Payment verification failed. Please contact support.');
+              toast.error('Payment verification issue');
+            } finally {
+              setIsSubmitting(false);
+            }
+          },
+          prefill: {
+            name: parentName,
+            email: email || undefined,
+            contact: finalPhone
+          },
+          modal: {
+            ondismiss: () => {
+              setIsSubmitting(false);
+              toast('Payment cancelled. You can complete booking whenever ready.');
+            }
+          }
+        };
+
+        const rzp = new (window as any).Razorpay(options);
+        rzp.on('payment.failed', function (resp: any) {
+          setError(resp.error?.description || 'Payment failed. Please try again.');
+          setIsSubmitting(false);
+        });
+        rzp.open();
+      } else {
+        // Fallback / mock mode
+        if (razorpayInfo?.orderId) {
+          await ProgramsService.verifyDemoPayment({
+            razorpayOrderId: razorpayInfo.orderId,
+            razorpayPaymentId: 'pay_mock_' + Date.now(),
+            razorpaySignature: 'mock_signature'
+          });
+        }
+
+        if (typeof window !== 'undefined') {
+          const windowObj = window as any;
+          windowObj.dataLayer = windowObj.dataLayer || [];
+          windowObj.dataLayer.push({ ecommerce: null });
+          const purchaseData = {
+            event: 'purchase',
+            value: 29,
+            currency: 'INR',
+            transaction_id: `demo_mock_${Date.now()}`,
+            content_ids: ['demo_learning_program'],
+            content_name: `Demo Session - ${programFormats.join(', ') || 'Learning Program'}`,
+            content_type: 'product',
+            ecommerce: {
+              transaction_id: `demo_mock_${Date.now()}`,
+              currency: 'INR',
+              value: 29,
+              items: [{
+                item_id: 'demo_session',
+                item_name: `Demo Session - ${programFormats.join(', ') || 'Learning Program'}`,
+                item_category: 'Demo Session',
+                price: 29,
+                quantity: 1
+              }]
+            }
+          };
+          if (isAnalyticsEnabled()) {
+            windowObj.dataLayer.push(purchaseData);
+          } else {
+            console.log("Analytics disabled. Simulated dataLayer push for 'purchase' (Demo Session):", purchaseData);
+          }
+        }
+
+        setPhase('success');
+        setIsSubmitting(false);
+      }
     } catch (err: any) {
       console.error(err);
-      setError(err.response?.data?.message || 'Something went wrong. Please try again.');
+      setError(err.response?.data?.message || err.message || 'Something went wrong. Please try again.');
       toast.error('Failed to book demo session');
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -842,8 +988,8 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
               <div className="lg:col-span-7 w-full">
                 <form onSubmit={handleBookDemo} className="bg-slate-50/50 p-4 sm:p-5 rounded-3xl border border-slate-100/60 shadow-sm flex flex-col gap-4">
                   <div className="text-center border-b border-slate-200/60 pb-2.5">
-                    <h5 className="text-lg font-bold text-slate-800">Book Complimentary Demo Session</h5>
-                    <p className="text-xs font-medium text-slate-400 mt-0.5">Select a premium slot to experience a 15-minute live mentorship demo.</p>
+                    <h5 className="text-lg font-bold text-slate-800">Book Demo Session (₹29)</h5>
+                    <p className="text-xs font-medium text-slate-400 mt-0.5">Select a preferred slot to experience a 1:1 live mentorship demo session for ₹29.</p>
                   </div>
 
                   {/* Format Preference consolidated inside Booking Card */}
@@ -963,40 +1109,66 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                           <div className="bg-white border border-slate-100/80 rounded-xl p-3 text-center">
                             <p className="text-xs text-slate-400 italic">Select a date to unlock available time slots.</p>
                           </div>
-                        ) : availableTimeSlots.length === 0 ? (
-                          <div className="bg-white border border-slate-100/80 rounded-xl p-3 text-center">
-                            <p className="text-xs text-slate-400 italic">No available slots left for today.</p>
-                          </div>
                         ) : (
                           <div className="bg-white border border-slate-100/80 rounded-xl p-2.5 space-y-2">
-                            {(['Morning', 'Afternoon', 'Evening'] as const).map((period) => {
-                              const periodSlots = availableTimeSlots.filter(s => s.period === period);
-                              if (periodSlots.length === 0) return null;
-                              return (
-                                <div key={period} className="space-y-0.5">
-                                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{period} Slots</p>
-                                  <div className="flex flex-wrap gap-1">
-                                    {periodSlots.map((slot) => {
-                                      const isSlotSelected = selectedTime === slot.value;
-                                      return (
-                                        <button
-                                          key={slot.value}
-                                          type="button"
-                                          onClick={() => setSelectedTime(slot.value)}
-                                          className={`px-2 py-0.5 rounded text-xs font-semibold transition-all border ${
-                                            isSlotSelected
-                                              ? 'bg-primary text-white border-primary shadow-sm shadow-primary/5'
-                                              : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-                                          }`}
-                                        >
-                                          {slot.label}
-                                        </button>
-                                      );
-                                    })}
+                            {(() => {
+                              const now = new Date();
+                              const isToday = selectedDay ? (
+                                selectedDay.getDate() === now.getDate() &&
+                                selectedDay.getMonth() === now.getMonth() &&
+                                selectedDay.getFullYear() === now.getFullYear()
+                              ) : false;
+                              const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+                              const minAllowedMinutes = currentTotalMinutes + 90;
+
+                              const validSlots = TIME_SLOTS_DATA.filter(s => {
+                                if (!isToday) return true;
+                                const [startTime] = s.value.split(' - ');
+                                const [timePart, modifier] = startTime.split(' ');
+                                let [hours, minutes] = timePart.split(':').map(Number);
+                                if (modifier === 'PM' && hours !== 12) hours += 12;
+                                if (modifier === 'AM' && hours === 12) hours = 0;
+                                const slotMinutes = hours * 60 + minutes;
+                                return slotMinutes >= minAllowedMinutes;
+                              });
+
+                              if (validSlots.length === 0) {
+                                return (
+                                  <div className="text-center py-4 text-xs text-slate-400 font-medium">
+                                    No more slots available for today with the 1h 30m preparation window. Please select tomorrow.
                                   </div>
-                                </div>
-                              );
-                            })}
+                                );
+                              }
+
+                              return (['Morning', 'Afternoon', 'Evening'] as const).map((period) => {
+                                const periodSlots = validSlots.filter(s => s.period === period);
+                                if (periodSlots.length === 0) return null;
+                                return (
+                                  <div key={period} className="space-y-0.5">
+                                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{period} Slots</p>
+                                    <div className="flex flex-wrap gap-1">
+                                      {periodSlots.map((slot) => {
+                                        const isSlotSelected = selectedTime === slot.value;
+                                        return (
+                                          <button
+                                            key={slot.value}
+                                            type="button"
+                                            onClick={() => setSelectedTime(slot.value)}
+                                            className={`px-2 py-0.5 rounded text-xs font-semibold transition-all border ${
+                                              isSlotSelected
+                                                ? 'bg-primary text-white border-primary shadow-sm shadow-primary/5'
+                                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                                            }`}
+                                          >
+                                            {slot.label}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                );
+                              });
+                            })()}
                           </div>
                         )}
                       </div>
@@ -1057,13 +1229,16 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full btn-primary py-3 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 group text-white bg-primary font-semibold text-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-75"
+                      className="w-full btn-primary py-3.5 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 group text-white bg-primary font-bold text-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-75 cursor-pointer"
                     >
                       {isSubmitting ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Processing Payment...</span>
+                        </>
                       ) : (
                         <>
-                          Book Free Demo
+                          Pay ₹29 & Book Demo Session
                           <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                         </>
                       )}
@@ -1120,9 +1295,14 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
             </div>
 
             <div className="space-y-3">
-              <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Demo Booked Successfully!</h3>
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-200/60 mb-1">
+                <span>Paid ₹29</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>Confirmed Booking</span>
+              </div>
+              <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Demo Session Booked!</h3>
               <p className="text-sm text-slate-500 font-medium max-w-md mx-auto leading-relaxed">
-                Congratulations! You have taken a beautiful step for your child. Our certified senior guides will reach out to you at <span className="text-primary font-bold">{phone}</span> within the next 24 hours to schedule her complimentary demo.
+                Thank you for your booking. Our certified senior education guides will connect with you at <span className="text-primary font-bold">{phone}</span> to conduct your live 1:1 demo session.
               </p>
             </div>
 

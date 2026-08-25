@@ -738,7 +738,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                 <Calendar size={22} />
               </div>
               <h4 className="font-extrabold text-slate-800 text-sm">No demo sessions booked yet</h4>
-              <p className="text-slate-505 font-semibold text-xs mt-1">Explore our programs and request a free demo session consultation.</p>
+              <p className="text-slate-505 font-semibold text-xs mt-1">Explore our programs and schedule an interactive demo session consultation.</p>
             </div>
           ) : (
             <div className="grid gap-4">
@@ -760,7 +760,12 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                         <Calendar size={20} />
                       </div>
                       <div className="space-y-1.5 flex-1 min-w-0">
-                        <h4 className="font-black text-slate-900 text-base truncate leading-snug group-hover:text-primary transition-colors">{progName}</h4>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="font-black text-slate-900 text-base truncate leading-snug group-hover:text-primary transition-colors">{progName}</h4>
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            Paid ₹{demo.amount || 29}
+                          </span>
+                        </div>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-xs font-bold text-slate-500">{demo.slotDate || 'Date TBD'}</span>
                           <span className="w-1 h-1 rounded-full bg-slate-300" />

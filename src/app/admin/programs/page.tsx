@@ -8,12 +8,13 @@ import {
   ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { ProgramsService, Program, ProgramEnrollment, DemoSession, ProgramSession } from '@/services/programs.service';
+import { ProgramsService, Program, ProgramEnrollment, DemoSession, ProgramSession, ProgramBatch } from '@/services/programs.service';
 import { toast } from 'react-hot-toast';
 import ImageUploader from '@/components/upload/ImageUploader';
 import { blogService } from '@/services/blog.service';
 import { useAuthStore } from '@/store/auth-store';
 import { ParentService } from '@/services/parent.service';
+import { apiClient } from '@/lib/api-client';
 
 // Helper functions for human-friendly questionnaire labels
 const getConfidenceLabel = (val: string) => {
@@ -104,18 +105,20 @@ export default function ProgramsManagement() {
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'OPS_MANAGER';
 
   // Tabs
-  const [activeTab, setActiveTab] = useState<'programs' | 'enrollments' | 'demos'>('programs');
+  const [activeTab, setActiveTab] = useState<'programs' | 'batches' | 'enrollments' | 'demos'>('programs');
 
   // Data States
   const [programs, setPrograms] = useState<Program[]>([]);
   const [enrollments, setEnrollments] = useState<ProgramEnrollment[]>([]);
   const [demos, setDemos] = useState<DemoSession[]>([]);
+  const [batches, setBatches] = useState<ProgramBatch[]>([]);
   const [experts, setExperts] = useState<any[]>([]);
 
   // UI Loading States
   const [loadingPrograms, setLoadingPrograms] = useState(true);
   const [loadingEnrollments, setLoadingEnrollments] = useState(false);
   const [loadingDemos, setLoadingDemos] = useState(false);
+  const [loadingBatches, setLoadingBatches] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   // Search & Filter
@@ -124,7 +127,22 @@ export default function ProgramsManagement() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [demoSearch, setDemoSearch] = useState('');
   const [demoStatusFilter, setDemoStatusFilter] = useState('ALL');
+  const [batchSearch, setBatchSearch] = useState('');
+  const [batchProgramFilter, setBatchProgramFilter] = useState('ALL');
 
+  // Batch Modal State
+  const [showBatchModal, setShowBatchModal] = useState(false);
+  const [batchModalMode, setBatchModalMode] = useState<'create' | 'edit'>('create');
+  const [editingBatchId, setEditingBatchId] = useState<string | null>(null);
+  const [batchFormProgramId, setBatchFormProgramId] = useState('');
+  const [batchFormName, setBatchFormName] = useState('');
+  const [batchFormDescription, setBatchFormDescription] = useState('');
+  const [batchFormCapacity, setBatchFormCapacity] = useState(20);
+  const [batchFormStartDate, setBatchFormStartDate] = useState('');
+  const [batchFormEndDate, setBatchFormEndDate] = useState('');
+  const [batchFormStatus, setBatchFormStatus] = useState('UPCOMING');
+  const [batchFormExpertId, setBatchFormExpertId] = useState('');
+  const [batchSubmitting, setBatchSubmitting] = useState(false);
 
   // Selected Enrollment Modal State
   const [selectedEnrollment, setSelectedEnrollment] = useState<ProgramEnrollment | null>(null);
@@ -137,6 +155,8 @@ export default function ProgramsManagement() {
   const [addStudentEmail, setAddStudentEmail] = useState('');
   const [addStudentRole, setAddStudentRole] = useState<'PARENT' | 'TEEN'>('PARENT');
   const [addStudentProgramId, setAddStudentProgramId] = useState('');
+  const [addStudentBatchId, setAddStudentBatchId] = useState('');
+  const [programBatches, setProgramBatches] = useState<ProgramBatch[]>([]);
   const [addStudentPricePaid, setAddStudentPricePaid] = useState('');
   const [addStudentSubmitting, setAddStudentSubmitting] = useState(false);
   const [enrollStep, setEnrollStep] = useState<1 | 2>(1);
@@ -172,10 +192,25 @@ export default function ProgramsManagement() {
 
   const loadExperts = async () => {
     try {
-      const data = await ParentService.getExperts();
-      setExperts(data);
+      const res: any = await apiClient.get('/admin/experts');
+      const list = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+      const normalized = list.map((e: any) => ({
+        id: e.id,
+        displayName: e.profile?.displayName || e.displayName || e.username || 'Expert',
+        specialisation: e.profile?.specialisation || e.specialisation || '',
+        email: e.email || '',
+        phone: e.phone || '',
+        ...e
+      }));
+      setExperts(normalized);
     } catch (error) {
-      console.error('Failed to load experts:', error);
+      console.error('Failed to load experts from admin endpoint, trying parent endpoint:', error);
+      try {
+        const data = await ParentService.getExperts();
+        setExperts(data || []);
+      } catch (err) {
+        console.error('Failed to load experts:', err);
+      }
     }
   };
 
@@ -183,14 +218,42 @@ export default function ProgramsManagement() {
     loadPrograms();
     loadEnrollments();
     loadDemos();
+    loadBatches();
     loadExperts();
   }, []);
 
   useEffect(() => {
     if (activeTab === 'programs') loadPrograms();
-    if (activeTab === 'enrollments') loadEnrollments();
+    if (activeTab === 'batches') loadBatches();
+    if (activeTab === 'enrollments') {
+      loadEnrollments();
+      loadBatches();
+    }
     if (activeTab === 'demos') loadDemos();
   }, [activeTab]);
+
+  useEffect(() => {
+    if (addStudentProgramId) {
+      ProgramsService.getProgramBatches(addStudentProgramId)
+        .then(res => setProgramBatches(res.data || []))
+        .catch(() => setProgramBatches([]));
+    } else {
+      setProgramBatches([]);
+    }
+  }, [addStudentProgramId]);
+
+  const loadBatches = async () => {
+    setLoadingBatches(true);
+    try {
+      const res = await ProgramsService.getAllBatches();
+      setBatches(res.data || []);
+    } catch (error) {
+      console.error('Failed to load batches:', error);
+      toast.error('Failed to load batches');
+    } finally {
+      setLoadingBatches(false);
+    }
+  };
 
   const loadPrograms = async () => {
     setLoadingPrograms(true);
@@ -274,6 +337,7 @@ export default function ProgramsManagement() {
         email: addStudentEmail || undefined,
         role: addStudentRole,
         programId: addStudentProgramId,
+        batchId: addStudentBatchId || undefined,
         pricePaid: addStudentPricePaid !== '' ? parseFloat(addStudentPricePaid) : undefined
       };
 
@@ -287,12 +351,14 @@ export default function ProgramsManagement() {
         setAddStudentEmail('');
         setAddStudentRole('PARENT');
         setAddStudentProgramId('');
+        setAddStudentBatchId('');
         setAddStudentPricePaid('');
         setEnrollStep(1);
         setExistingUserData(null);
 
-        // Reload enrollments
+        // Reload enrollments and batches
         loadEnrollments();
+        loadBatches();
       }
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.message || 'Failed to enroll student.');
@@ -307,6 +373,101 @@ export default function ProgramsManagement() {
       handleCheckPhone();
     } else {
       handleAddStudentSubmit(e);
+    }
+  };
+
+  const [updatingEnrollmentBatchId, setUpdatingEnrollmentBatchId] = useState<string | null>(null);
+
+  const handleAssignBatch = async (enrollmentId: string, batchId: string) => {
+    setUpdatingEnrollmentBatchId(enrollmentId);
+    try {
+      const targetBatchId = batchId === '' ? null : batchId;
+      const updated = await ProgramsService.updateEnrollment(enrollmentId, {
+        batchId: targetBatchId
+      });
+      toast.success(targetBatchId ? 'Batch assigned successfully!' : 'Batch unassigned');
+      setEnrollments(prev => prev.map(e => e.id === enrollmentId ? {
+        ...e,
+        batchId: updated.batchId,
+        batch: updated.batch
+      } : e));
+    } catch (error: any) {
+      console.error('Failed to assign batch:', error);
+      toast.error(error.response?.data?.message || 'Failed to update batch assignment');
+    } finally {
+      setUpdatingEnrollmentBatchId(null);
+    }
+  };
+
+  const handleOpenCreateBatchModal = (programId?: string) => {
+    setBatchModalMode('create');
+    setEditingBatchId(null);
+    setBatchFormProgramId(programId || (programs[0]?.id || ''));
+    setBatchFormName('');
+    setBatchFormDescription('');
+    setBatchFormCapacity(20);
+    setBatchFormStartDate('');
+    setBatchFormEndDate('');
+    setBatchFormStatus('UPCOMING');
+    setBatchFormExpertId('');
+    setShowBatchModal(true);
+  };
+
+  const handleOpenEditBatchModal = (b: ProgramBatch) => {
+    setBatchModalMode('edit');
+    setEditingBatchId(b.id);
+    setBatchFormProgramId(b.programId);
+    setBatchFormName(b.name);
+    setBatchFormDescription(b.description || '');
+    setBatchFormCapacity(b.maxCapacity || 20);
+    setBatchFormStartDate(b.startDate ? b.startDate.split('T')[0] : '');
+    setBatchFormEndDate(b.endDate ? b.endDate.split('T')[0] : '');
+    setBatchFormStatus(b.status || 'UPCOMING');
+    setBatchFormExpertId(b.expertId || '');
+    setShowBatchModal(true);
+  };
+
+  const handleBatchSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!batchFormProgramId || !batchFormName.trim()) {
+      toast.error('Please select a program and enter a batch name.');
+      return;
+    }
+    setBatchSubmitting(true);
+    try {
+      const payload = {
+        name: batchFormName.trim(),
+        description: batchFormDescription,
+        maxCapacity: Number(batchFormCapacity),
+        startDate: batchFormStartDate || undefined,
+        endDate: batchFormEndDate || undefined,
+        status: batchFormStatus,
+        expertId: batchFormExpertId || undefined
+      };
+      if (batchModalMode === 'create') {
+        await ProgramsService.createBatch(batchFormProgramId, payload);
+        toast.success('Program Batch created successfully!');
+      } else if (editingBatchId) {
+        await ProgramsService.updateBatch(editingBatchId, payload);
+        toast.success('Program Batch updated successfully!');
+      }
+      setShowBatchModal(false);
+      loadBatches();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to save batch');
+    } finally {
+      setBatchSubmitting(false);
+    }
+  };
+
+  const handleDeleteBatch = async (batchId: string) => {
+    if (!confirm('Are you sure you want to delete this batch?')) return;
+    try {
+      await ProgramsService.deleteBatch(batchId);
+      toast.success('Batch deleted');
+      loadBatches();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to delete batch');
     }
   };
 
@@ -524,6 +685,16 @@ export default function ProgramsManagement() {
     const matchesStatus = demoStatusFilter === 'ALL' || d.status === demoStatusFilter;
 
     return matchesSearch && matchesStatus;
+  });
+
+  const filteredBatches = batches.filter(b => {
+    const searchString = batchSearch.toLowerCase();
+    const matchesSearch =
+      b.name.toLowerCase().includes(searchString) ||
+      (b as any).program?.title?.toLowerCase().includes(searchString) ||
+      (b.description || '').toLowerCase().includes(searchString);
+    const matchesProgram = batchProgramFilter === 'ALL' || b.programId === batchProgramFilter;
+    return matchesSearch && matchesProgram;
   });
 
   // Get custom gradient based on program title
@@ -1046,6 +1217,19 @@ export default function ProgramsManagement() {
         </button>
 
         <button
+          onClick={() => setActiveTab('batches')}
+          className={`pb-4 text-lg font-black tracking-tight relative transition-all ${activeTab === 'batches'
+            ? 'text-primary'
+            : 'text-muted-foreground hover:text-foreground'
+            }`}
+        >
+          {activeTab === 'batches' && (
+            <span className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />
+          )}
+          Program Batches ({batches.length})
+        </button>
+
+        <button
           onClick={() => setActiveTab('enrollments')}
           className={`pb-4 text-lg font-black tracking-tight relative transition-all ${activeTab === 'enrollments'
             ? 'text-primary'
@@ -1325,6 +1509,166 @@ export default function ProgramsManagement() {
         </div>
       )}
 
+      {/* Tab 2: Program Batches */}
+      {activeTab === 'batches' && (
+        <div className="space-y-6">
+          {/* Filters & Actions Bar */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/50 backdrop-blur-md border border-border/50 rounded-2xl p-4 shadow-sm">
+            <div className="flex items-center gap-4 bg-secondary/50 rounded-xl px-4 py-2 border border-border/50 w-full md:max-w-md">
+              <Search className="text-muted-foreground shrink-0" size={18} />
+              <input
+                type="text"
+                placeholder="Search batch name or program title..."
+                value={batchSearch}
+                onChange={(e) => setBatchSearch(e.target.value)}
+                className="bg-transparent border-none outline-none w-full text-sm font-semibold placeholder:text-muted-foreground/60 text-foreground"
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-4 self-start md:self-auto">
+              <div className="flex items-center gap-3 shrink-0">
+                <Filter className="text-muted-foreground" size={16} />
+                <span className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Program:</span>
+                <select
+                  value={batchProgramFilter}
+                  onChange={(e) => setBatchProgramFilter(e.target.value)}
+                  className="bg-secondary/50 rounded-xl px-3 py-1.5 border border-border/50 font-bold text-xs outline-none cursor-pointer"
+                >
+                  <option value="ALL">All Programs</option>
+                  {programs.map((p) => (
+                    <option key={p.id} value={p.id}>{p.title}</option>
+                  ))}
+                </select>
+              </div>
+
+              {isAdmin && (
+                <button
+                  onClick={() => handleOpenCreateBatchModal()}
+                  className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl shadow-md text-white bg-primary text-xs font-bold transition-all hover:scale-105 active:scale-95"
+                >
+                  <Plus size={16} />
+                  <span>Create Batch</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {loadingBatches ? (
+            <div className="min-h-[40vh] flex flex-col items-center justify-center gap-4">
+              <Loader2 className="animate-spin text-primary" size={48} />
+              <p className="font-bold text-muted-foreground">Loading program batches...</p>
+            </div>
+          ) : filteredBatches.length === 0 ? (
+            <div className="glass-card rounded-[2rem] p-12 text-center text-muted-foreground font-bold border border-border/30">
+              No batches found matching your search. Create a new batch to get started!
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredBatches.map((b) => {
+                const enrolledCount = b._count?.enrollments || 0;
+                const capacityPercent = Math.min(Math.round((enrolledCount / (b.maxCapacity || 1)) * 100), 100);
+                return (
+                  <div key={b.id} className="bg-white rounded-[2rem] border border-border/40 p-6 shadow-xl space-y-4 hover:shadow-2xl transition-all relative overflow-hidden flex flex-col justify-between">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary px-3 py-1 rounded-full">
+                          {(b as any).program?.title || 'Program'}
+                        </span>
+                        <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${
+                          b.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                          b.status === 'COMPLETED' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                          'bg-amber-50 text-amber-700 border-amber-200'
+                        }`}>
+                          {b.status}
+                        </span>
+                      </div>
+
+                      <div>
+                        <button
+                          onClick={() => router.push(`/admin/programs/batches/${b.id}`)}
+                          className="text-left group/title"
+                        >
+                          <h3 className="text-xl font-black text-slate-800 tracking-tight group-hover/title:text-primary transition-colors flex items-center gap-1.5">
+                            <span>{b.name}</span>
+                          </h3>
+                        </button>
+                        {b.description && (
+                          <p className="text-xs text-muted-foreground font-medium mt-1 line-clamp-2">{b.description}</p>
+                        )}
+                      </div>
+
+                      {/* Capacity Progress Bar */}
+                      <div className="space-y-1.5 pt-2">
+                        <div className="flex justify-between text-xs font-bold">
+                          <span className="text-slate-600 flex items-center gap-1">
+                            <Users size={14} className="text-primary" />
+                            Enrolled Students
+                          </span>
+                          <span className="text-slate-800 font-black">{enrolledCount} / {b.maxCapacity}</span>
+                        </div>
+                        <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full transition-all duration-500 ${
+                              capacityPercent >= 100 ? 'bg-rose-500' : capacityPercent >= 80 ? 'bg-amber-500' : 'bg-primary'
+                            }`}
+                            style={{ width: `${capacityPercent}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Assigned Expert & Dates */}
+                      <div className="pt-2 flex flex-col gap-2 text-xs font-semibold text-slate-600 border-t border-border/30">
+                        {b.expert && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-slate-400 font-bold text-[11px]">Expert:</span>
+                            <span className="font-extrabold text-slate-800">{b.expert.profile?.displayName || b.expert.username}</span>
+                          </div>
+                        )}
+                        {b.startDate && (
+                          <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                            <Calendar size={12} className="text-primary shrink-0" />
+                            <span>Starts: {new Date(b.startDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="pt-4 border-t border-border/30 flex items-center justify-between gap-2 shrink-0">
+                      <button
+                        onClick={() => router.push(`/admin/programs/batches/${b.id}`)}
+                        className="px-3.5 py-1.5 bg-primary/10 hover:bg-primary hover:text-white text-primary transition-all rounded-xl text-xs font-black flex items-center gap-1.5 shadow-xs"
+                      >
+                        <Eye size={14} />
+                        <span>View Details</span>
+                      </button>
+
+                      {isAdmin && (
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleOpenEditBatchModal(b)}
+                            className="px-3 py-1.5 bg-secondary hover:bg-slate-200 transition-all rounded-xl text-xs font-bold text-slate-700 flex items-center gap-1 border border-border/50"
+                          >
+                            <Edit size={13} />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteBatch(b.id)}
+                            className="p-1.5 bg-secondary hover:bg-rose-500/10 hover:text-rose-500 transition-all rounded-xl text-slate-500 border border-border/50"
+                            title="Delete Batch"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Tab 2: Enrollments */}
       {activeTab === 'enrollments' && (
         <div className="space-y-6">
@@ -1401,6 +1745,7 @@ export default function ProgramsManagement() {
                     <tr className="bg-primary/5 border-b border-border/30 text-xs font-black uppercase tracking-widest text-muted-foreground/80">
                       <th className="p-6">Student Information</th>
                       <th className="p-6">Enrolled Package</th>
+                      <th className="p-6">Assigned Batch</th>
                       {isAdmin && <th className="p-6">Tier & Fee Paid</th>}
                       <th className="p-6">Date Enrolled</th>
                       <th className="p-6">Status</th>
@@ -1456,8 +1801,56 @@ export default function ProgramsManagement() {
                             <span className="font-extrabold text-foreground bg-secondary px-3 py-1 rounded-xl border border-border/60 text-sm">
                               {enrollment.program.title}
                             </span>
-
                           </div>
+                        </td>
+
+                        {/* Batch Info */}
+                        <td className="p-6">
+                          {(() => {
+                            const programBatches = batches.filter(
+                              b => b.programId === enrollment.programId || 
+                                   b.programId === (enrollment as any).program?.id ||
+                                   (enrollment.program && b.program?.title === enrollment.program?.title)
+                            );
+                            const currentBatchId = enrollment.batchId || enrollment.batch?.id || '';
+                            const isUpdating = updatingEnrollmentBatchId === enrollment.id;
+
+                            return (
+                              <div className="flex items-center gap-2">
+                                <div className="relative min-w-[170px] max-w-[230px]">
+                                  <select
+                                    disabled={isUpdating}
+                                    value={currentBatchId}
+                                    onChange={(e) => handleAssignBatch(enrollment.id, e.target.value)}
+                                    className={`w-full text-xs font-bold py-2 px-3 pr-8 rounded-xl border transition-all cursor-pointer outline-none shadow-xs ${
+                                      currentBatchId
+                                        ? 'bg-indigo-50/90 hover:bg-indigo-100/80 text-indigo-800 border-indigo-200 font-extrabold'
+                                        : 'bg-slate-50 hover:bg-slate-100 text-slate-500 border-slate-200'
+                                    } ${isUpdating ? 'opacity-50 cursor-wait' : ''}`}
+                                  >
+                                    <option value="">-- Unassigned --</option>
+                                    {programBatches.map(b => {
+                                      const expertName = b.expert?.profile?.displayName || b.expert?.username;
+                                      return (
+                                        <option key={b.id} value={b.id}>
+                                          {b.name} {expertName ? `(${expertName})` : ''}
+                                        </option>
+                                      );
+                                    })}
+                                  </select>
+                                  {isUpdating ? (
+                                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                                      <Loader2 size={13} className="animate-spin text-primary" />
+                                    </div>
+                                  ) : (
+                                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                      <Users size={13} />
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </td>
 
                         {/* Tier & Price */}
@@ -1590,7 +1983,7 @@ export default function ProgramsManagement() {
                       <th className="p-6">Cohort Range</th>
                       <th className="p-6">Curriculum Suggested</th>
                       <th className="p-6">Scheduled Slot</th>
-                      <th className="p-6">Date Requested</th>
+                      <th className="p-6">Payment</th>
                       <th className="p-6">Status</th>
                       <th className="p-6 text-right">Actions</th>
                     </tr>
@@ -1667,15 +2060,22 @@ export default function ProgramsManagement() {
                           )}
                         </td>
 
-                        {/* Date Requested */}
+                        {/* Payment Details */}
                         <td className="p-6">
-                          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
-                            <Calendar size={14} className="text-muted-foreground/70" />
-                            {new Date(demo.createdAt).toLocaleDateString('en-IN', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric'
-                            })}
+                          <div className="flex flex-col gap-1">
+                            <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md inline-flex items-center gap-1.5 border w-fit ${
+                              demo.paymentStatus === 'COMPLETED'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : 'bg-amber-50 text-amber-700 border-amber-200'
+                            }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${demo.paymentStatus === 'COMPLETED' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                              {demo.paymentStatus === 'COMPLETED' ? `Paid ₹${demo.amount || 29}` : 'Pending ₹29'}
+                            </span>
+                            {demo.razorpayPaymentId && (
+                              <span className="text-[10px] font-mono text-muted-foreground/80 truncate max-w-[120px]" title={demo.razorpayPaymentId}>
+                                {demo.razorpayPaymentId}
+                              </span>
+                            )}
                           </div>
                         </td>
 
@@ -1849,7 +2249,10 @@ export default function ProgramsManagement() {
                     <select
                       required
                       value={addStudentProgramId}
-                      onChange={(e) => setAddStudentProgramId(e.target.value)}
+                      onChange={(e) => {
+                        setAddStudentProgramId(e.target.value);
+                        setAddStudentBatchId('');
+                      }}
                       className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-750 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm cursor-pointer"
                     >
                       <option value="">Select a Program</option>
@@ -1862,6 +2265,27 @@ export default function ProgramsManagement() {
                     {existingUserData?.exists && addStudentProgramId && existingUserData.enrolledProgramIds.includes(addStudentProgramId) && (
                       <p className="text-red-500 text-xs font-semibold mt-1">
                         This user is already enrolled in the selected program.
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Assign Batch (Optional)</label>
+                    <select
+                      value={addStudentBatchId}
+                      onChange={(e) => setAddStudentBatchId(e.target.value)}
+                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-750 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm cursor-pointer"
+                    >
+                      <option value="">No Batch Assigned Yet</option>
+                      {programBatches.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.name} ({b._count?.enrollments || 0}/{b.maxCapacity} students) - {b.status}
+                        </option>
+                      ))}
+                    </select>
+                    {programBatches.length === 0 && addStudentProgramId && (
+                      <p className="text-[11px] text-amber-600 font-medium mt-1">
+                        No batches created for this program yet. Create a batch in the "Program Batches" tab.
                       </p>
                     )}
                   </div>
@@ -1906,6 +2330,153 @@ export default function ProgramsManagement() {
         </div>
       )}
 
+      {/* --- CREATE / EDIT BATCH MODAL --- */}
+      {showBatchModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[250] flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] border border-border/30 shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto flex flex-col p-8 gap-6 animate-in zoom-in-95 duration-300">
+            <div className="flex justify-between items-start border-b border-border/30 pb-5">
+              <div>
+                <span className="inline-flex items-center gap-1 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest mb-2">
+                  <Users size={12} />
+                  Cohort Batch Management
+                </span>
+                <h2 className="text-2.5xl font-black tracking-tight text-slate-800">
+                  {batchModalMode === 'create' ? 'Create New Batch' : 'Edit Batch Details'}
+                </h2>
+              </div>
+              <button
+                onClick={() => setShowBatchModal(false)}
+                className="p-2 hover:bg-secondary rounded-full transition-all border border-border/50 shadow-sm"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleBatchSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Program Package *</label>
+                <select
+                  required
+                  disabled={batchModalMode === 'edit'}
+                  value={batchFormProgramId}
+                  onChange={(e) => setBatchFormProgramId(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm cursor-pointer disabled:opacity-60"
+                >
+                  <option value="">Select a Program</option>
+                  {programs.map((p) => (
+                    <option key={p.id} value={p.id}>{p.title}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Batch Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Batch 1, Weekend Morning Batch"
+                  value={batchFormName}
+                  onChange={(e) => setBatchFormName(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Description (Optional)</label>
+                <textarea
+                  rows={2}
+                  placeholder="e.g. Cohort schedule timings or cohort guidelines"
+                  value={batchFormDescription}
+                  onChange={(e) => setBatchFormDescription(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm resize-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Max Capacity *</label>
+                  <input
+                    type="number"
+                    min={1}
+                    required
+                    value={batchFormCapacity}
+                    onChange={(e) => setBatchFormCapacity(Number(e.target.value))}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Batch Status *</label>
+                  <select
+                    value={batchFormStatus}
+                    onChange={(e) => setBatchFormStatus(e.target.value)}
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm cursor-pointer"
+                  >
+                    <option value="UPCOMING">Upcoming</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="COMPLETED">Completed</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Assigned Expert / Mentor (Optional)</label>
+                <select
+                  value={batchFormExpertId}
+                  onChange={(e) => setBatchFormExpertId(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm cursor-pointer"
+                >
+                  <option value="">No Assigned Expert</option>
+                  {experts.map((exp) => (
+                    <option key={exp.id} value={exp.id}>
+                      {exp.displayName || exp.profile?.displayName || exp.username || 'Expert'} {exp.specialisation ? `(${exp.specialisation})` : (exp.email || exp.phone ? `(${exp.email || exp.phone})` : '')}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">Start Date (Optional)</label>
+                  <input
+                    type="date"
+                    value={batchFormStartDate}
+                    onChange={(e) => setBatchFormStartDate(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5 font-heading">End Date (Optional)</label>
+                  <input
+                    type="date"
+                    value={batchFormEndDate}
+                    onChange={(e) => setBatchFormEndDate(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="border-t border-border/30 pt-4 flex justify-end gap-3 mt-4 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowBatchModal(false)}
+                  className="px-5 py-2.5 bg-secondary text-muted-foreground font-bold rounded-xl transition-all border border-border/50 text-xs shadow-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={batchSubmitting}
+                  className="px-5 py-2.5 bg-primary text-white font-bold rounded-xl shadow-md flex items-center gap-1.5 text-xs transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+                >
+                  {batchSubmitting && <Loader2 className="animate-spin" size={14} />}
+                  <span>{batchSubmitting ? 'Saving...' : 'Save Batch'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -20,6 +20,7 @@ import { motion } from 'framer-motion';
 import { ShopService } from '@/services/shop.service';
 import { LearningService, LearningJourney, UserProgress } from '@/services/learning.service';
 import Script from 'next/script';
+import { isAnalyticsEnabled } from '@/components/common/Analytics';
 
 // Same STYLES_MAP as ParentsPrograms.tsx for exact match
 const STYLES_MAP: Record<string, any> = {
@@ -247,16 +248,140 @@ export default function CustomerDashboardOverview() {
 
       const result = await ProgramsService.bookDemoSession(bookingData);
       if (result.success) {
-        setDemoSuccess(true);
-        toast.success('Demo session booked successfully!');
-        loadDashboardData();
+        const razorpayInfo = result.razorpay;
+
+        if (typeof (window as any).Razorpay !== 'undefined' && razorpayInfo?.orderId && !razorpayInfo.orderId.startsWith('demo_mock_')) {
+          const options = {
+            key: razorpayInfo.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+            amount: (razorpayInfo.amount || 29) * 100,
+            currency: razorpayInfo.currency || 'INR',
+            name: 'Infano Care',
+            description: `Demo Session Booking: ${demoModalProg.title}`,
+            order_id: razorpayInfo.orderId,
+            handler: async function (response: any) {
+              try {
+                setDemoSubmitting(true);
+                await ProgramsService.verifyDemoPayment({
+                  razorpayOrderId: response.razorpay_order_id || razorpayInfo.orderId,
+                  razorpayPaymentId: response.razorpay_payment_id || '',
+                  razorpaySignature: response.razorpay_signature || ''
+                });
+
+                // Fire DataLayer Purchase Event
+                if (typeof window !== 'undefined') {
+                  const windowObj = window as any;
+                  windowObj.dataLayer = windowObj.dataLayer || [];
+                  windowObj.dataLayer.push({ ecommerce: null });
+                  const purchaseData = {
+                    event: 'purchase',
+                    value: 29,
+                    currency: 'INR',
+                    transaction_id: response.razorpay_payment_id || `demo_txn_${Date.now()}`,
+                    content_ids: [`demo_${demoModalProg.id || 'program'}`],
+                    content_name: `${demoModalProg.title} - Demo Session`,
+                    content_type: 'product',
+                    ecommerce: {
+                      transaction_id: response.razorpay_payment_id || `demo_txn_${Date.now()}`,
+                      currency: 'INR',
+                      value: 29,
+                      items: [{
+                        item_id: `demo_${demoModalProg.id || 'program'}`,
+                        item_name: `${demoModalProg.title} - Demo Session`,
+                        item_category: 'Demo Session',
+                        price: 29,
+                        quantity: 1
+                      }]
+                    }
+                  };
+
+                  if (isAnalyticsEnabled()) {
+                    windowObj.dataLayer.push(purchaseData);
+                  } else {
+                    console.log("Analytics disabled. Simulated dataLayer push for 'purchase' (Demo Session):", purchaseData);
+                  }
+                }
+
+                setDemoSuccess(true);
+                toast.success('Demo session booked successfully! (Paid ₹29)');
+                loadDashboardData();
+              } catch (err: any) {
+                toast.error(err.message || 'Payment verification failed. Please contact support.');
+              } finally {
+                setDemoSubmitting(false);
+              }
+            },
+            prefill: {
+              name: demoName,
+              email: demoEmail || undefined,
+              contact: demoPhone
+            },
+            modal: {
+              ondismiss: () => {
+                setDemoSubmitting(false);
+                toast('Payment cancelled. You can complete your booking when ready.');
+              }
+            }
+          };
+
+          const rzp = new (window as any).Razorpay(options);
+          rzp.on('payment.failed', function (resp: any) {
+            toast.error(resp.error?.description || 'Payment failed. Please try again.');
+            setDemoSubmitting(false);
+          });
+          rzp.open();
+        } else {
+          // Fallback / mock mode
+          if (razorpayInfo?.orderId) {
+            await ProgramsService.verifyDemoPayment({
+              razorpayOrderId: razorpayInfo.orderId,
+              razorpayPaymentId: 'pay_mock_' + Date.now(),
+              razorpaySignature: 'mock_signature'
+            });
+          }
+
+          if (typeof window !== 'undefined') {
+            const windowObj = window as any;
+            windowObj.dataLayer = windowObj.dataLayer || [];
+            windowObj.dataLayer.push({ ecommerce: null });
+            const purchaseData = {
+              event: 'purchase',
+              value: 29,
+              currency: 'INR',
+              transaction_id: `demo_mock_${Date.now()}`,
+              content_ids: [`demo_${demoModalProg.id || 'program'}`],
+              content_name: `${demoModalProg.title} - Demo Session`,
+              content_type: 'product',
+              ecommerce: {
+                transaction_id: `demo_mock_${Date.now()}`,
+                currency: 'INR',
+                value: 29,
+                items: [{
+                  item_id: `demo_${demoModalProg.id || 'program'}`,
+                  item_name: `${demoModalProg.title} - Demo Session`,
+                  item_category: 'Demo Session',
+                  price: 29,
+                  quantity: 1
+                }]
+              }
+            };
+            if (isAnalyticsEnabled()) {
+              windowObj.dataLayer.push(purchaseData);
+            } else {
+              console.log("Analytics disabled. Simulated dataLayer push for 'purchase' (Demo Session):", purchaseData);
+            }
+          }
+
+          setDemoSuccess(true);
+          toast.success('Demo session booked successfully!');
+          loadDashboardData();
+          setDemoSubmitting(false);
+        }
       } else {
         throw new Error('Booking failed');
       }
 
     } catch (err: any) {
       toast.error(err.message || 'Failed to book demo session.');
-    } finally {
       setDemoSubmitting(false);
     }
   };
@@ -598,33 +723,37 @@ export default function CustomerDashboardOverview() {
                                 <option value="">Select Time</option>
                                 {(() => {
                                   const allSlots = [
-                                    "09:00 AM - 09:30 AM", "09:30 AM - 10:00 AM",
-                                    "10:00 AM - 10:30 AM", "10:30 AM - 11:00 AM",
-                                    "11:00 AM - 11:30 AM", "11:30 AM - 12:00 PM",
-                                    "12:00 PM - 12:30 PM", "12:30 PM - 01:00 PM",
-                                    "02:00 PM - 02:30 PM", "02:30 PM - 03:00 PM",
-                                    "03:00 PM - 03:30 PM", "03:30 PM - 04:00 PM",
-                                    "04:00 PM - 04:30 PM", "04:30 PM - 05:00 PM",
-                                    "05:00 PM - 05:30 PM", "05:30 PM - 06:00 PM",
-                                    "06:00 PM - 06:30 PM", "06:30 PM - 07:00 PM"
+                                    "09:00 AM - 09:30 AM", "09:30 AM - 10:00 AM", "10:00 AM - 10:30 AM",
+                                    "10:30 AM - 11:00 AM", "11:00 AM - 11:30 AM", "11:30 AM - 12:00 PM",
+                                    "12:00 PM - 12:30 PM", "12:30 PM - 01:00 PM", "02:00 PM - 02:30 PM",
+                                    "02:30 PM - 03:00 PM", "03:00 PM - 03:30 PM", "03:30 PM - 04:00 PM",
+                                    "04:00 PM - 04:30 PM", "04:30 PM - 05:00 PM", "05:00 PM - 05:30 PM",
+                                    "05:30 PM - 06:00 PM", "06:00 PM - 06:30 PM", "06:30 PM - 07:00 PM"
                                   ];
-                                  const today = new Date();
-                                  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                                  const now = new Date();
+                                  const yyyy = now.getFullYear();
+                                  const mm = String(now.getMonth() + 1).padStart(2, '0');
+                                  const dd = String(now.getDate()).padStart(2, '0');
+                                  const todayStr = `${yyyy}-${mm}-${dd}`;
                                   const isToday = demoSlotDate === todayStr;
-                                  
-                                  const slots = isToday ? allSlots.filter(slot => {
-                                    const startTime = slot.split(' - ')[0].trim();
-                                    const [timePart, modifier] = startTime.split(' ');
-                                    let [hours, minutes] = timePart.split(':').map(Number);
-                                    if (modifier === 'PM' && hours !== 12) hours += 12;
-                                    if (modifier === 'AM' && hours === 12) hours = 0;
-                                    const thresholdMinutes = (today.getHours() * 60 + today.getMinutes()) + 90;
-                                    return (hours * 60 + minutes) >= thresholdMinutes;
-                                  }) : allSlots;
 
-                                  return slots.map(slot => (
-                                    <option key={slot} value={slot}>{slot}</option>
-                                  ));
+                                  const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+                                  const minAllowedMinutes = currentTotalMinutes + 90;
+
+                                  return allSlots
+                                    .filter(slot => {
+                                      if (!isToday) return true;
+                                      const [startTime] = slot.split(' - ');
+                                      const [timePart, modifier] = startTime.split(' ');
+                                      let [hours, minutes] = timePart.split(':').map(Number);
+                                      if (modifier === 'PM' && hours !== 12) hours += 12;
+                                      if (modifier === 'AM' && hours === 12) hours = 0;
+                                      const slotMinutes = hours * 60 + minutes;
+                                      return slotMinutes >= minAllowedMinutes;
+                                    })
+                                    .map(slot => (
+                                      <option key={slot} value={slot}>{slot}</option>
+                                    ));
                                 })()}
                               </select>
                             </div>
@@ -633,9 +762,9 @@ export default function CustomerDashboardOverview() {
                           <button
                             type="submit"
                             disabled={demoSubmitting}
-                            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-lg shadow-sm flex items-center justify-center gap-2 text-xs transition-all active:scale-95 disabled:opacity-70 mt-3 cursor-pointer"
+                            className="w-full bg-primary hover:bg-primary/95 text-white font-bold py-3 rounded-lg shadow-sm flex items-center justify-center gap-2 text-xs transition-all active:scale-95 disabled:opacity-70 mt-3 cursor-pointer"
                           >
-                            {demoSubmitting ? <Loader2 size={16} className="animate-spin" /> : <><ArrowRight size={14} /> Book Free Demo</>}
+                            {demoSubmitting ? <Loader2 size={16} className="animate-spin" /> : <><ArrowRight size={14} /> Pay ₹29 & Book Demo Session</>}
                           </button>
                         </form>
                       </>
@@ -1146,7 +1275,7 @@ export default function CustomerDashboardOverview() {
                           onClick={() => handleBookDemoClick(program)}
                           className={`w-full inline-flex items-center justify-center gap-2 py-3.5 px-5 rounded-full text-white font-extrabold text-xs transition-all ${styles.btnBg} relative z-10 cursor-pointer active:scale-95 shadow-md`}
                         >
-                          <span>Book Free Demo</span>
+                          <span>Book Demo Session • ₹29</span>
                           <ArrowRight size={14} className="transition-transform group-hover:translate-x-1 duration-300" />
                         </button>
                       </div>

@@ -134,14 +134,18 @@ export default function MyCoursesPage() {
                 totalChapters > 0
                   ? Math.round((completedChapters / totalChapters) * 100)
                   : 0;
+              const totalModules = course.modules?.length || 0;
+              const hoursLeft = course.timeDuration
+                ? Math.ceil(((100 - progressPct) / 100) * (course.timeDuration / 60))
+                : null;
 
               return (
                 <Link
                   key={enrollment.id}
-                  href={`/dashboard/courses/${course.id}`}
+                  href={`/dashboard/courses/${course.id}/overview`}
                   className="block group"
                 >
-                  <div className="bg-white rounded-[24px] border border-slate-100 shadow-[0_4px_20px_rgba(74,30,127,0.05)] hover:shadow-[0_8px_32px_rgba(74,30,127,0.12)] transition-all duration-300 overflow-hidden">
+                  <div className="bg-white rounded-[22px] border border-slate-100 shadow-[0_4px_20px_rgba(74,30,127,0.05)] hover:shadow-[0_8px_32px_rgba(74,30,127,0.12)] transition-all duration-300 overflow-hidden">
 
                     {/* ── Thumbnail ── */}
                     <div className="relative h-48 overflow-hidden bg-gradient-to-br from-primary/10 via-primary/5 to-slate-50">
@@ -156,54 +160,65 @@ export default function MyCoursesPage() {
                           <Video size={56} />
                         </div>
                       )}
+                      {/* Subtle gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
 
-                      {/* Dark gradient overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-
-                      {/* Continue pill — top right — uses primary on hover */}
-                      <div className="absolute top-3.5 right-3.5 z-10 flex items-center gap-1.5 bg-white/90 backdrop-blur text-primary text-xs font-black px-3.5 py-2 rounded-full shadow-md border border-primary/10 group-hover:bg-primary group-hover:text-white transition-all duration-200">
-                        <PlayCircle size={14} />
-                        Continue
-                      </div>
-
-                      {/* Progress overlay — bottom of image */}
-                      <div className="absolute bottom-0 left-0 right-0 px-4 pb-3.5 pt-2">
-                        <div className="flex justify-between text-[11px] font-black text-white uppercase tracking-wider mb-2">
-                          <span>{progressPct}% Completed</span>
-                          <span>{completedChapters}/{totalChapters} Lessons</span>
-                        </div>
-                        {/* Progress bar using primary color to match sidebar */}
-                        <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-primary rounded-full transition-all duration-1000 shadow-[0_0_8px_rgba(74,30,127,0.5)]"
-                            style={{ width: `${progressPct}%` }}
-                          />
-                        </div>
+                      {/* Top meta row */}
+                      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-3.5 pt-3.5">
+                        {course.category && (
+                          <span className="bg-white/90 backdrop-blur-sm text-primary text-[11px] font-black px-3 py-1 rounded-full shadow-sm border border-primary/10">
+                            {course.category}
+                          </span>
+                        )}
+                        {hoursLeft !== null && hoursLeft > 0 && (
+                          <span className="ml-auto bg-black/40 backdrop-blur-sm text-white text-[11px] font-bold px-2.5 py-1 rounded-full">
+                            {hoursLeft}h left
+                          </span>
+                        )}
                       </div>
                     </div>
 
                     {/* ── Card Body ── */}
-                    <div className="p-4">
-                      <h3 className="font-extrabold text-[16px] text-slate-800 line-clamp-1 group-hover:text-primary transition-colors mb-3">
+                    <div className="p-4 pb-3">
+                      <h3 className="font-extrabold text-[15px] text-slate-800 line-clamp-2 group-hover:text-primary transition-colors leading-snug mb-2">
                         {course.title}
                       </h3>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 mb-3">
                         <div className="flex -space-x-2">
-                          <div className="w-7 h-7 rounded-full bg-pink-100 border-2 border-white flex items-center justify-center text-[11px] shadow-sm">
-                            👩‍🏫
-                          </div>
-                          <div className="w-7 h-7 rounded-full bg-blue-100 border-2 border-white flex items-center justify-center text-[11px] shadow-sm">
-                            👨‍⚕️
-                          </div>
+                          <div className="w-6 h-6 rounded-full bg-pink-100 border-2 border-white flex items-center justify-center text-[10px] shadow-sm">👩‍🏫</div>
+                          <div className="w-6 h-6 rounded-full bg-blue-100 border-2 border-white flex items-center justify-center text-[10px] shadow-sm">👨‍⚕️</div>
                         </div>
-                        <span className="text-[13px] font-bold text-slate-400">
-                          Expert Led
-                        </span>
-                        <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-primary font-bold text-[12px]">
-                          Resume <Play className="w-3 h-3" fill="currentColor" />
-                        </div>
+                        <span className="text-[12px] font-bold text-slate-400">Expert Led</span>
+                        {totalModules > 0 && (
+                          <span className="ml-auto text-[11px] font-bold text-slate-400">{totalModules} modules</span>
+                        )}
                       </div>
                     </div>
+
+                    {/* ── Progress + Continue row ── */}
+                    <div className="px-4 pb-4 pt-1 border-t border-slate-50">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-[12px] font-bold text-slate-500">Progress: <span className="text-slate-700">{progressPct}%</span></span>
+                        <span className="ml-auto text-[11px] font-semibold text-slate-400">{completedChapters}/{totalChapters} lessons</span>
+                      </div>
+                      {/* Green progress bar */}
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-emerald-400 to-green-500 rounded-full transition-all duration-700 shadow-[0_0_6px_rgba(52,211,153,0.4)]"
+                            style={{ width: `${progressPct}%` }}
+                          />
+                        </div>
+                        <button
+                          onClick={(e) => { e.preventDefault(); router.push(`/dashboard/courses/${course.id}/overview`); }}
+                          className="shrink-0 flex items-center gap-1.5 bg-white border border-slate-200 hover:border-primary hover:text-primary text-slate-600 text-[12px] font-extrabold px-4 py-1.5 rounded-full transition-all duration-200 shadow-sm hover:shadow-md group-hover:border-primary group-hover:text-primary"
+                        >
+                          <PlayCircle size={13} />
+                          Continue
+                        </button>
+                      </div>
+                    </div>
+
                   </div>
                 </Link>
               );

@@ -2,26 +2,32 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ProgramsService, ProgramEnrollment } from '@/services/programs.service';
-import { ArrowLeft, Users, Phone, Mail, Award, CreditCard, Calendar, Loader2, AlertCircle, ShieldAlert } from 'lucide-react';
+import { ProgramsService, ProgramEnrollment, ProgramBatch } from '@/services/programs.service';
+import { ArrowLeft, Users, Phone, Mail, Award, CreditCard, Calendar, Loader2, AlertCircle, ShieldAlert, Check } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export default function EnrollmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = React.use(params);
   const router = useRouter();
   const [enrollment, setEnrollment] = useState<ProgramEnrollment | null>(null);
+  const [batches, setBatches] = useState<ProgramBatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [updatingBatch, setUpdatingBatch] = useState(false);
 
   const fetchEnrollment = async () => {
     try {
-      const enrollments = await ProgramsService.getAdminEnrollments();
+      const [enrollments, allBatchesRes] = await Promise.all([
+        ProgramsService.getAdminEnrollments(),
+        ProgramsService.getAllBatches().catch(() => ({ success: false, data: [] }))
+      ]);
       const match = enrollments.find(e => e.id === resolvedParams.id);
       if (match) {
         setEnrollment(match);
       } else {
         toast.error('Enrollment not found');
       }
+      setBatches(allBatchesRes.data || []);
     } catch (error) {
       console.error(error);
       toast.error('Failed to load enrollment details');
@@ -33,6 +39,27 @@ export default function EnrollmentDetailPage({ params }: { params: Promise<{ id:
   useEffect(() => {
     fetchEnrollment();
   }, [resolvedParams.id]);
+
+  const handleAssignBatch = async (batchId: string) => {
+    if (!enrollment) return;
+    setUpdatingBatch(true);
+    try {
+      const targetBatchId = batchId === '' ? null : batchId;
+      const updated = await ProgramsService.updateEnrollment(enrollment.id, {
+        batchId: targetBatchId
+      });
+      toast.success(targetBatchId ? 'Batch assigned successfully!' : 'Batch unassigned');
+      setEnrollment(prev => prev ? {
+        ...prev,
+        batchId: updated.batchId,
+        batch: updated.batch
+      } : null);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update batch assignment');
+    } finally {
+      setUpdatingBatch(false);
+    }
+  };
 
   const handleUpdateStatus = async (newStatus: string) => {
     if (!enrollment) return;
@@ -179,6 +206,56 @@ export default function EnrollmentDetailPage({ params }: { params: Promise<{ id:
                 <span>•</span>
                 <span className="text-primary/90">₹{enrollment.pricePaid.toLocaleString()}</span>
               </span>
+            </div>
+
+            {/* Assigned Batch Selector */}
+            <div className="flex flex-col gap-2 p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-indigo-950 font-bold flex items-center gap-1.5">
+                  <Users size={14} className="text-indigo-600" />
+                  Assigned Batch & Mentor
+                </span>
+                {enrollment.batch && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full">
+                    {enrollment.batch.status || 'Active'}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 mt-1">
+                <select
+                  disabled={updatingBatch}
+                  value={enrollment.batchId || enrollment.batch?.id || ''}
+                  onChange={(e) => handleAssignBatch(e.target.value)}
+                  className={`w-full text-xs font-bold py-2 px-3 rounded-xl border transition-all cursor-pointer outline-none bg-white ${
+                    enrollment.batch
+                      ? 'border-indigo-300 text-indigo-900 shadow-sm font-extrabold'
+                      : 'border-slate-300 text-slate-600 shadow-sm'
+                  } ${updatingBatch ? 'opacity-50 cursor-wait' : ''}`}
+                >
+                  <option value="">-- No Assigned Batch (Unassigned) --</option>
+                  {batches
+                    .filter(b => b.programId === enrollment.programId || b.programId === enrollment.program?.id || b.program?.title === enrollment.program?.title)
+                    .map(b => {
+                      const expName = b.expert?.profile?.displayName || b.expert?.username;
+                      return (
+                        <option key={b.id} value={b.id}>
+                          {b.name} {expName ? `(Mentor: ${expName})` : ''} [Max: {b.maxCapacity}]
+                        </option>
+                      );
+                    })}
+                </select>
+                {updatingBatch && <Loader2 size={16} className="animate-spin text-primary shrink-0" />}
+              </div>
+
+              {enrollment.batch?.expert && (
+                <p className="text-[11px] text-indigo-700 font-medium mt-0.5">
+                  Mentor:{' '}
+                  <span className="font-bold text-indigo-950">
+                    {enrollment.batch.expert.profile?.displayName || enrollment.batch.expert.username}
+                  </span>
+                </p>
+              )}
             </div>
           </div>
         </div>

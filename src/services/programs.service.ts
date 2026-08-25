@@ -26,10 +26,41 @@ export interface Program {
   enrolledCount?: number;
 }
 
+export interface ProgramBatch {
+  id: string;
+  programId: string;
+  name: string;
+  description?: string;
+  maxCapacity: number;
+  startDate?: string | null;
+  endDate?: string | null;
+  status: 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | string;
+  expertId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  program?: {
+    id: string;
+    title: string;
+  };
+  expert?: {
+    id: string;
+    username: string;
+    email: string;
+    profile?: {
+      displayName: string;
+      avatarUrl?: string | null;
+    };
+  } | null;
+  _count?: {
+    enrollments: number;
+  };
+}
+
 export interface ProgramEnrollment {
   id: string;
   userId: string;
   programId: string;
+  batchId?: string | null;
   status: string;
   pricePaid: number;
   guestName?: string | null;
@@ -37,6 +68,7 @@ export interface ProgramEnrollment {
   createdAt: string;
   updatedAt: string;
   program: Program;
+  batch?: ProgramBatch | null;
   user: {
     id?: string;
     role?: string;
@@ -67,6 +99,13 @@ export interface DemoSession {
   slotDate: string | null;
   slotTime: string | null;
   status: string;
+  amount?: number;
+  paymentStatus?: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED' | string;
+  paymentMethod?: 'ONLINE' | 'COD' | string;
+  razorpayOrderId?: string | null;
+  razorpayPaymentId?: string | null;
+  razorpaySignature?: string | null;
+  userId?: string | null;
   isReadyToEnroll: boolean;
   comment: string | null;
   meetLink?: string | null;
@@ -134,6 +173,13 @@ export const ProgramsService = {
   },
 
   /**
+   * Updates enrollment details such as assigned batch or status
+   */
+  async updateEnrollment(id: string, payload: { status?: string; batchId?: string | null }): Promise<ProgramEnrollment> {
+    return apiClient.patch<ProgramEnrollment>(`/admin/programs/enrollments/${id}`, payload);
+  },
+
+  /**
    * Manually creates an enrollment in the admin panel
    */
   async adminCreateEnrollment(data: any): Promise<{ success: boolean; enrollment: ProgramEnrollment }> {
@@ -165,7 +211,7 @@ export const ProgramsService = {
   /**
    * Updates the status of a demo session request (e.g. PENDING, CONTACTED, SCHEDULED, COMPLETED, CANCELLED)
    */
-  async updateDemoStatus(id: string, payload: { status?: string; isReadyToEnroll?: boolean; comment?: string; meetLink?: string; slotDate?: string; slotTime?: string }): Promise<DemoSession> {
+  async updateDemoStatus(id: string, payload: { status?: string; isReadyToEnroll?: boolean; comment?: string; meetLink?: string; slotDate?: string; slotTime?: string; paymentStatus?: string; amount?: number }): Promise<DemoSession> {
     return apiClient.patch<DemoSession>(`/admin/programs/demos/${id}`, payload);
   },
 
@@ -177,8 +223,15 @@ export const ProgramsService = {
   /**
    * Submits/books a new demo session request
    */
-  async bookDemoSession(data: Partial<DemoSession>): Promise<{ success: boolean; data: DemoSession }> {
-    return apiClient.post<{ success: boolean; data: DemoSession }>('/programs/demo/book', data);
+  async bookDemoSession(data: Partial<DemoSession>): Promise<{ success: boolean; data: DemoSession; razorpay?: { orderId: string; amount: number; currency: string; keyId: string } }> {
+    return apiClient.post<{ success: boolean; data: DemoSession; razorpay?: { orderId: string; amount: number; currency: string; keyId: string } }>('/programs/demo/book', data);
+  },
+
+  /**
+   * Verifies Razorpay payment for demo session booking
+   */
+  async verifyDemoPayment(data: { razorpayOrderId: string; razorpayPaymentId?: string; razorpaySignature?: string }): Promise<{ success: boolean; message: string; demo: DemoSession }> {
+    return apiClient.post<{ success: boolean; message: string; demo: DemoSession }>('/programs/demo/verify', data);
   },
 
   /**
@@ -200,5 +253,42 @@ export const ProgramsService = {
    */
   async getUserDemos(): Promise<{ success: boolean; data: DemoSession[] }> {
     return apiClient.get<{ success: boolean; data: DemoSession[] }>('/programs/me/demos');
+  },
+
+  /* Batch Management API Methods */
+  async getProgramBatches(programId: string): Promise<{ success: boolean; data: ProgramBatch[] }> {
+    return apiClient.get<{ success: boolean; data: ProgramBatch[] }>(`/admin/programs/${programId}/batches`);
+  },
+
+  async getAllBatches(): Promise<{ success: boolean; data: ProgramBatch[] }> {
+    return apiClient.get<{ success: boolean; data: ProgramBatch[] }>('/admin/programs/batches/all');
+  },
+
+  async getBatchById(batchId: string): Promise<{ success: boolean; data: any }> {
+    return apiClient.get<{ success: boolean; data: any }>(`/admin/programs/batches/${batchId}`);
+  },
+
+  async createBatch(programId: string, data: Partial<ProgramBatch>): Promise<{ success: boolean; message: string; data: ProgramBatch }> {
+    return apiClient.post<{ success: boolean; message: string; data: ProgramBatch }>(`/admin/programs/${programId}/batches`, data);
+  },
+
+  async updateBatch(batchId: string, data: Partial<ProgramBatch>): Promise<{ success: boolean; message: string; data: ProgramBatch }> {
+    return apiClient.patch<{ success: boolean; message: string; data: ProgramBatch }>(`/admin/programs/batches/${batchId}`, data);
+  },
+
+  async deleteBatch(batchId: string): Promise<{ success: boolean; message: string }> {
+    return apiClient.delete<{ success: boolean; message: string }>(`/admin/programs/batches/${batchId}`);
+  },
+
+  async scheduleBatchSession(batchId: string, data: { scheduledAt: string; sessionNumber?: number; meetLink?: string; expertId?: string }): Promise<{ success: boolean; message: string; data: any }> {
+    return apiClient.post<{ success: boolean; message: string; data: any }>(`/admin/programs/batches/${batchId}/sessions`, data);
+  },
+
+  async updateBatchSession(batchId: string, sessionId: string, data: { scheduledAt?: string; meetLink?: string; status?: string; sessionNumber?: number }): Promise<{ success: boolean; message: string; data: any }> {
+    return apiClient.patch<{ success: boolean; message: string; data: any }>(`/admin/programs/batches/${batchId}/sessions/${sessionId}`, data);
+  },
+
+  async deleteBatchSession(batchId: string, sessionId: string): Promise<{ success: boolean; message: string }> {
+    return apiClient.delete<{ success: boolean; message: string }>(`/admin/programs/batches/${batchId}/sessions/${sessionId}`);
   }
 };

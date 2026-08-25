@@ -17,9 +17,8 @@ const navLinks = [
   { name: 'Parents', href: '/parents' },
   { name: 'Circle', href: '/the-support-circle' },
   { name: 'Book', href: '/gigi-the-awkward-age-book' },
-  // { name: 'Impact', href: '/impact' },
   { name: 'Blog', href: '/blog' },
-  { name: 'Webinar', href: '/webinar/decoding-her-silence' },
+  { name: 'Course', href: '/course' },
   { name: 'About', href: '/about' },
 ];
 

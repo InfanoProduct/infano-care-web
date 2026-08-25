@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Script from 'next/script';
 import { 
   ChevronRight, ChevronLeft, CheckCircle2, Loader2, Sparkles, 
   BookOpen, Users, Calendar, ShieldCheck, Heart, Award, GraduationCap,
@@ -331,7 +332,7 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
       : (normalizedMobile.length === 10 ? '+91' + normalizedMobile : '+' + normalizedMobile);
 
     try {
-      await ProgramsService.bookDemoSession({
+      const result = await ProgramsService.bookDemoSession({
         parentName,
         phone: finalPhone,
         email: email || null,
@@ -347,12 +348,67 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
         slotTime: selectedTime
       });
 
-      setPhase('success');
+      const razorpayInfo = result.razorpay;
+
+      if (typeof (window as any).Razorpay !== 'undefined' && razorpayInfo?.orderId && !razorpayInfo.orderId.startsWith('demo_mock_')) {
+        const options = {
+          key: razorpayInfo.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+          amount: (razorpayInfo.amount || 29) * 100,
+          currency: razorpayInfo.currency || 'INR',
+          name: 'Infano Care',
+          description: `Demo Session Consultation (${programFormats.join(', ') || 'Learning Program'})`,
+          order_id: razorpayInfo.orderId,
+          handler: async function (response: any) {
+            try {
+              setIsSubmitting(true);
+              await ProgramsService.verifyDemoPayment({
+                razorpayOrderId: response.razorpay_order_id || razorpayInfo.orderId,
+                razorpayPaymentId: response.razorpay_payment_id || '',
+                razorpaySignature: response.razorpay_signature || ''
+              });
+              setPhase('success');
+            } catch (err: any) {
+              setError(err.message || 'Payment verification failed. Please contact support.');
+              toast.error('Payment verification issue');
+            } finally {
+              setIsSubmitting(false);
+            }
+          },
+          prefill: {
+            name: parentName,
+            email: email || undefined,
+            contact: finalPhone
+          },
+          modal: {
+            ondismiss: () => {
+              setIsSubmitting(false);
+              toast('Payment cancelled. You can complete booking whenever ready.');
+            }
+          }
+        };
+
+        const rzp = new (window as any).Razorpay(options);
+        rzp.on('payment.failed', function (resp: any) {
+          setError(resp.error?.description || 'Payment failed. Please try again.');
+          setIsSubmitting(false);
+        });
+        rzp.open();
+      } else {
+        // Fallback / mock mode
+        if (razorpayInfo?.orderId) {
+          await ProgramsService.verifyDemoPayment({
+            razorpayOrderId: razorpayInfo.orderId,
+            razorpayPaymentId: 'pay_mock_' + Date.now(),
+            razorpaySignature: 'mock_signature'
+          });
+        }
+        setPhase('success');
+        setIsSubmitting(false);
+      }
     } catch (err: any) {
       console.error(err);
-      setError(err.response?.data?.message || 'Something went wrong. Please try again.');
+      setError(err.response?.data?.message || err.message || 'Something went wrong. Please try again.');
       toast.error('Failed to book demo session');
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -1010,13 +1066,16 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full btn-primary py-3 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 group text-white bg-primary font-semibold text-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-75"
+                      className="w-full btn-primary py-3.5 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 group text-white bg-primary font-bold text-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-75 cursor-pointer"
                     >
                       {isSubmitting ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Processing Payment...</span>
+                        </>
                       ) : (
                         <>
-                          Book Free Demo
+                          Pay ₹29 & Book Demo Session
                           <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                         </>
                       )}
@@ -1073,9 +1132,14 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
             </div>
 
             <div className="space-y-3">
-              <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Demo Booked Successfully!</h3>
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-200/60 mb-1">
+                <span>Paid ₹29</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>Confirmed Booking</span>
+              </div>
+              <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Demo Session Booked!</h3>
               <p className="text-sm text-slate-500 font-medium max-w-md mx-auto leading-relaxed">
-                Congratulations! You have taken a beautiful step for your child. Our certified senior guides will reach out to you at <span className="text-primary font-bold">{phone}</span> within the next 24 hours to schedule her complimentary demo.
+                Thank you for your booking. Our certified senior education guides will connect with you at <span className="text-primary font-bold">{phone}</span> to conduct your live 1:1 demo session.
               </p>
             </div>
 

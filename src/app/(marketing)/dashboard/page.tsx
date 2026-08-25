@@ -247,16 +247,72 @@ export default function CustomerDashboardOverview() {
 
       const result = await ProgramsService.bookDemoSession(bookingData);
       if (result.success) {
-        setDemoSuccess(true);
-        toast.success('Demo session booked successfully!');
-        loadDashboardData();
+        const razorpayInfo = result.razorpay;
+
+        if (typeof (window as any).Razorpay !== 'undefined' && razorpayInfo?.orderId && !razorpayInfo.orderId.startsWith('demo_mock_')) {
+          const options = {
+            key: razorpayInfo.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+            amount: (razorpayInfo.amount || 29) * 100,
+            currency: razorpayInfo.currency || 'INR',
+            name: 'Infano Care',
+            description: `Demo Session Booking: ${demoModalProg.title}`,
+            order_id: razorpayInfo.orderId,
+            handler: async function (response: any) {
+              try {
+                setDemoSubmitting(true);
+                await ProgramsService.verifyDemoPayment({
+                  razorpayOrderId: response.razorpay_order_id || razorpayInfo.orderId,
+                  razorpayPaymentId: response.razorpay_payment_id || '',
+                  razorpaySignature: response.razorpay_signature || ''
+                });
+                setDemoSuccess(true);
+                toast.success('Demo session booked successfully! (Paid ₹29)');
+                loadDashboardData();
+              } catch (err: any) {
+                toast.error(err.message || 'Payment verification failed. Please contact support.');
+              } finally {
+                setDemoSubmitting(false);
+              }
+            },
+            prefill: {
+              name: demoName,
+              email: demoEmail || undefined,
+              contact: demoPhone
+            },
+            modal: {
+              ondismiss: () => {
+                setDemoSubmitting(false);
+                toast('Payment cancelled. You can complete your booking when ready.');
+              }
+            }
+          };
+
+          const rzp = new (window as any).Razorpay(options);
+          rzp.on('payment.failed', function (resp: any) {
+            toast.error(resp.error?.description || 'Payment failed. Please try again.');
+            setDemoSubmitting(false);
+          });
+          rzp.open();
+        } else {
+          // Fallback / mock mode
+          if (razorpayInfo?.orderId) {
+            await ProgramsService.verifyDemoPayment({
+              razorpayOrderId: razorpayInfo.orderId,
+              razorpayPaymentId: 'pay_mock_' + Date.now(),
+              razorpaySignature: 'mock_signature'
+            });
+          }
+          setDemoSuccess(true);
+          toast.success('Demo session booked successfully!');
+          loadDashboardData();
+          setDemoSubmitting(false);
+        }
       } else {
         throw new Error('Booking failed');
       }
 
     } catch (err: any) {
       toast.error(err.message || 'Failed to book demo session.');
-    } finally {
       setDemoSubmitting(false);
     }
   };
@@ -608,9 +664,9 @@ export default function CustomerDashboardOverview() {
                           <button
                             type="submit"
                             disabled={demoSubmitting}
-                            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-lg shadow-sm flex items-center justify-center gap-2 text-xs transition-all active:scale-95 disabled:opacity-70 mt-3 cursor-pointer"
+                            className="w-full bg-primary hover:bg-primary/95 text-white font-bold py-3 rounded-lg shadow-sm flex items-center justify-center gap-2 text-xs transition-all active:scale-95 disabled:opacity-70 mt-3 cursor-pointer"
                           >
-                            {demoSubmitting ? <Loader2 size={16} className="animate-spin" /> : <><ArrowRight size={14} /> Book Free Demo</>}
+                            {demoSubmitting ? <Loader2 size={16} className="animate-spin" /> : <><ArrowRight size={14} /> Pay ₹29 & Book Demo Session</>}
                           </button>
                         </form>
                       </>
@@ -1121,7 +1177,7 @@ export default function CustomerDashboardOverview() {
                           onClick={() => handleBookDemoClick(program)}
                           className={`w-full inline-flex items-center justify-center gap-2 py-3.5 px-5 rounded-full text-white font-extrabold text-xs transition-all ${styles.btnBg} relative z-10 cursor-pointer active:scale-95 shadow-md`}
                         >
-                          <span>Book Free Demo</span>
+                          <span>Book Demo Session • ₹29</span>
                           <ArrowRight size={14} className="transition-transform group-hover:translate-x-1 duration-300" />
                         </button>
                       </div>

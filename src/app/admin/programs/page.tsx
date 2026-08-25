@@ -1983,7 +1983,7 @@ export default function ProgramsManagement() {
                       <th className="p-6">Cohort Range</th>
                       <th className="p-6">Curriculum Suggested</th>
                       <th className="p-6">Scheduled Slot</th>
-                      <th className="p-6">Date Requested</th>
+                      <th className="p-6">Payment</th>
                       <th className="p-6">Status</th>
                       <th className="p-6 text-right">Actions</th>
                     </tr>
@@ -2060,15 +2060,22 @@ export default function ProgramsManagement() {
                           )}
                         </td>
 
-                        {/* Date Requested */}
+                        {/* Payment Details */}
                         <td className="p-6">
-                          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
-                            <Calendar size={14} className="text-muted-foreground/70" />
-                            {new Date(demo.createdAt).toLocaleDateString('en-IN', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric'
-                            })}
+                          <div className="flex flex-col gap-1">
+                            <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md inline-flex items-center gap-1.5 border w-fit ${
+                              demo.paymentStatus === 'COMPLETED'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : 'bg-amber-50 text-amber-700 border-amber-200'
+                            }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${demo.paymentStatus === 'COMPLETED' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                              {demo.paymentStatus === 'COMPLETED' ? `Paid ₹${demo.amount || 29}` : 'Pending ₹29'}
+                            </span>
+                            {demo.razorpayPaymentId && (
+                              <span className="text-[10px] font-mono text-muted-foreground/80 truncate max-w-[120px]" title={demo.razorpayPaymentId}>
+                                {demo.razorpayPaymentId}
+                              </span>
+                            )}
                           </div>
                         </td>
 

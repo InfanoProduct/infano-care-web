@@ -132,6 +132,8 @@ function BookingSuccessContent() {
   const programTitle = searchParams.get('program') || 'our Program';
   const slotDate = searchParams.get('date') || '';
   const slotTime = searchParams.get('time') || '';
+  const amount = searchParams.get('amount') || '29';
+  const paymentId = searchParams.get('paymentId') || '';
 
   // Push generate_lead event to dataLayer
   useEffect(() => {
@@ -140,9 +142,11 @@ function BookingSuccessContent() {
     windowObj.dataLayer = windowObj.dataLayer || [];
     windowObj.dataLayer.push({
       event: "generate_lead",
-      content_name: targetProgramName
+      content_name: targetProgramName,
+      value: parseFloat(amount) || 29,
+      currency: "INR"
     });
-  }, [programTitle]);
+  }, [programTitle, amount]);
 
   // Format Date for display
   const getFormattedDateTime = () => {
@@ -164,11 +168,25 @@ function BookingSuccessContent() {
 
       <div className="relative z-10 w-full max-w-[620px] bg-white rounded-[2.5rem] shadow-xl border border-slate-100 p-8 md:p-12 text-center">
         {/* Animated Check Circle Icon */}
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-50 text-emerald-500 mb-8 border border-emerald-100 shadow-sm animate-bounce">
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-50 text-emerald-500 mb-6 border border-emerald-100 shadow-sm animate-bounce">
           <CheckCircle2 size={42} strokeWidth={1.5} />
         </div>
 
-        <h1 className="text-3xl md:text-4xl font-extrabold font-heading text-slate-800 tracking-tight leading-tight mb-6">
+        {/* Payment Confirmation Pill */}
+        <div className="flex justify-center mb-4">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-50 text-emerald-750 text-xs font-black rounded-full border border-emerald-200 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span>Paid ₹{amount} INR</span>
+            {paymentId && (
+              <>
+                <span className="w-1 h-1 rounded-full bg-emerald-300" />
+                <span className="font-mono text-[10px] text-emerald-800">Ref: {paymentId.slice(0, 18)}</span>
+              </>
+            )}
+          </div>
+        </div>
+
+        <h1 className="text-3xl md:text-4xl font-extrabold font-heading text-slate-800 tracking-tight leading-tight mb-4">
           Demo Session Scheduled!
         </h1>
 

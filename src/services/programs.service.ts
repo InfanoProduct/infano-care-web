@@ -99,6 +99,13 @@ export interface DemoSession {
   slotDate: string | null;
   slotTime: string | null;
   status: string;
+  amount?: number;
+  paymentStatus?: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED' | string;
+  paymentMethod?: 'ONLINE' | 'COD' | string;
+  razorpayOrderId?: string | null;
+  razorpayPaymentId?: string | null;
+  razorpaySignature?: string | null;
+  userId?: string | null;
   isReadyToEnroll: boolean;
   comment: string | null;
   meetLink?: string | null;
@@ -204,7 +211,7 @@ export const ProgramsService = {
   /**
    * Updates the status of a demo session request (e.g. PENDING, CONTACTED, SCHEDULED, COMPLETED, CANCELLED)
    */
-  async updateDemoStatus(id: string, payload: { status?: string; isReadyToEnroll?: boolean; comment?: string; meetLink?: string; slotDate?: string; slotTime?: string }): Promise<DemoSession> {
+  async updateDemoStatus(id: string, payload: { status?: string; isReadyToEnroll?: boolean; comment?: string; meetLink?: string; slotDate?: string; slotTime?: string; paymentStatus?: string; amount?: number }): Promise<DemoSession> {
     return apiClient.patch<DemoSession>(`/admin/programs/demos/${id}`, payload);
   },
 
@@ -216,8 +223,15 @@ export const ProgramsService = {
   /**
    * Submits/books a new demo session request
    */
-  async bookDemoSession(data: Partial<DemoSession>): Promise<{ success: boolean; data: DemoSession }> {
-    return apiClient.post<{ success: boolean; data: DemoSession }>('/programs/demo/book', data);
+  async bookDemoSession(data: Partial<DemoSession>): Promise<{ success: boolean; data: DemoSession; razorpay?: { orderId: string; amount: number; currency: string; keyId: string } }> {
+    return apiClient.post<{ success: boolean; data: DemoSession; razorpay?: { orderId: string; amount: number; currency: string; keyId: string } }>('/programs/demo/book', data);
+  },
+
+  /**
+   * Verifies Razorpay payment for demo session booking
+   */
+  async verifyDemoPayment(data: { razorpayOrderId: string; razorpayPaymentId?: string; razorpaySignature?: string }): Promise<{ success: boolean; message: string; demo: DemoSession }> {
+    return apiClient.post<{ success: boolean; message: string; demo: DemoSession }>('/programs/demo/verify', data);
   },
 
   /**

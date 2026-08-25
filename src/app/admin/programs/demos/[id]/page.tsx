@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProgramsService, DemoSession } from '@/services/programs.service';
-import { ArrowLeft, Users, Phone, Mail, Award, Calendar, Clock, Loader2, AlertCircle, Sparkles, Check, ShieldAlert, Video } from 'lucide-react';
+import { ArrowLeft, Users, Phone, Mail, Award, Calendar, Clock, Loader2, AlertCircle, Sparkles, Check, ShieldAlert, Video, CreditCard, CheckCircle2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 // Helper functions for human-friendly questionnaire labels
@@ -122,6 +122,17 @@ export default function DemoDetailPage({ params }: { params: Promise<{ id: strin
       toast.success(`Demo status updated to ${statusOption.toLowerCase()}`);
     } catch (error) {
       toast.error('Failed to update status');
+    }
+  };
+
+  const handleUpdatePaymentStatus = async (newPaymentStatus: string) => {
+    if (!demo) return;
+    try {
+      const updated = await ProgramsService.updateDemoStatus(demo.id, { paymentStatus: newPaymentStatus });
+      setDemo(updated);
+      toast.success(`Payment status updated to ${newPaymentStatus}`);
+    } catch (error) {
+      toast.error('Failed to update payment status');
     }
   };
 
@@ -265,6 +276,82 @@ export default function DemoDetailPage({ params }: { params: Promise<{ id: strin
               ) : (
                 <span className="text-muted-foreground/60 font-medium">No slot requested</span>
               )}
+            </div>
+          </div>
+        </div>
+
+        {/* Payment & Transaction Information Card */}
+        <div className="bg-white border border-border/30 rounded-[2.5rem] shadow-xl p-8 space-y-6">
+          <div className="flex items-center justify-between border-b border-border/30 pb-3">
+            <h2 className="text-lg font-medium text-slate-600 flex items-center gap-2">
+              <CreditCard size={20} className="text-primary/80" />
+              Payment & Fee Details
+            </h2>
+            <span className={`text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full border ${
+              demo.paymentStatus === 'COMPLETED'
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : 'bg-amber-50 text-amber-700 border-amber-200'
+            }`}>
+              {demo.paymentStatus === 'COMPLETED' ? 'PAID' : 'PENDING'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1 p-3 bg-secondary/30 rounded-2xl border border-border/20">
+              <span className="text-xs text-muted-foreground/80 font-normal">Demo Fee Amount</span>
+              <span className="text-base font-extrabold text-slate-800">₹{demo.amount || 29} INR</span>
+            </div>
+
+            <div className="flex flex-col gap-1 p-3 bg-secondary/30 rounded-2xl border border-border/20">
+              <span className="text-xs text-muted-foreground/80 font-normal">Payment Method</span>
+              <span className="text-slate-600 font-medium">{demo.paymentMethod || 'ONLINE (Razorpay)'}</span>
+            </div>
+
+            {demo.razorpayOrderId && (
+              <div className="flex flex-col gap-1 p-3 bg-secondary/30 rounded-2xl border border-border/20">
+                <span className="text-xs text-muted-foreground/80 font-normal">Razorpay Order ID</span>
+                <span className="font-mono text-xs text-slate-700 truncate" title={demo.razorpayOrderId}>
+                  {demo.razorpayOrderId}
+                </span>
+              </div>
+            )}
+
+            {demo.razorpayPaymentId && (
+              <div className="flex flex-col gap-1 p-3 bg-secondary/30 rounded-2xl border border-border/20">
+                <span className="text-xs text-muted-foreground/80 font-normal">Razorpay Payment ID</span>
+                <span className="font-mono text-xs text-slate-700 truncate" title={demo.razorpayPaymentId}>
+                  {demo.razorpayPaymentId}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Admin Override Payment Status */}
+          <div className="pt-2 flex items-center justify-between gap-3 border-t border-border/20">
+            <span className="text-xs text-muted-foreground font-medium">Quick Override Payment Status:</span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => handleUpdatePaymentStatus('COMPLETED')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  demo.paymentStatus === 'COMPLETED'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
+                }`}
+              >
+                Mark Paid
+              </button>
+              <button
+                type="button"
+                onClick={() => handleUpdatePaymentStatus('PENDING')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  demo.paymentStatus === 'PENDING'
+                    ? 'bg-amber-600 text-white shadow-xs'
+                    : 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200'
+                }`}
+              >
+                Mark Pending
+              </button>
             </div>
           </div>
         </div>

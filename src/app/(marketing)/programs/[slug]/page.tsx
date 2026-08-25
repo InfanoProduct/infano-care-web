@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Script from 'next/script';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
@@ -322,6 +323,7 @@ export default function ProgramDetailsPage() {
 
     try {
       setSubmitting(true);
+      setFormError(null);
       const bookingData = {
         parentName,
         phone: getFullNormalizedPhone(),
@@ -340,14 +342,67 @@ export default function ProgramDetailsPage() {
 
       const result = await ProgramsService.bookDemoSession(bookingData);
       if (result.success) {
-        setFormError(null);
-        router.push(`/programs/booking-success?name=${encodeURIComponent(parentName)}&program=${encodeURIComponent(program?.title || '')}&date=${encodeURIComponent(slotDate)}&time=${encodeURIComponent(slotTime)}`);
+        const razorpayInfo = result.razorpay;
+        const normalizedPhone = getFullNormalizedPhone();
+
+        // If Razorpay order is available and script loaded
+        if (typeof (window as any).Razorpay !== 'undefined' && razorpayInfo?.orderId && !razorpayInfo.orderId.startsWith('demo_mock_')) {
+          const options = {
+            key: razorpayInfo.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+            amount: (razorpayInfo.amount || 29) * 100,
+            currency: razorpayInfo.currency || 'INR',
+            name: 'Infano Care',
+            description: `Demo Session Booking: ${program?.title || 'Program'}`,
+            order_id: razorpayInfo.orderId,
+            handler: async function (response: any) {
+              try {
+                setSubmitting(true);
+                await ProgramsService.verifyDemoPayment({
+                  razorpayOrderId: response.razorpay_order_id || razorpayInfo.orderId,
+                  razorpayPaymentId: response.razorpay_payment_id || '',
+                  razorpaySignature: response.razorpay_signature || ''
+                });
+                router.push(`/programs/booking-success?name=${encodeURIComponent(parentName)}&program=${encodeURIComponent(program?.title || '')}&date=${encodeURIComponent(slotDate)}&time=${encodeURIComponent(slotTime)}&amount=29&paymentId=${encodeURIComponent(response.razorpay_payment_id || '')}`);
+              } catch (err: any) {
+                setFormError(err.message || 'Payment verification failed. If money was deducted, please contact support.');
+                setSubmitting(false);
+              }
+            },
+            prefill: {
+              name: parentName,
+              email: email || undefined,
+              contact: normalizedPhone
+            },
+            modal: {
+              ondismiss: () => {
+                setSubmitting(false);
+                setFormError('Payment was cancelled. You can complete booking whenever ready.');
+              }
+            }
+          };
+
+          const rzp = new (window as any).Razorpay(options);
+          rzp.on('payment.failed', function (resp: any) {
+            setFormError(resp.error?.description || 'Payment failed. Please try again.');
+            setSubmitting(false);
+          });
+          rzp.open();
+        } else {
+          // Fallback / mock mode payment completion
+          if (razorpayInfo?.orderId) {
+            await ProgramsService.verifyDemoPayment({
+              razorpayOrderId: razorpayInfo.orderId,
+              razorpayPaymentId: 'pay_mock_' + Date.now(),
+              razorpaySignature: 'mock_signature'
+            });
+          }
+          router.push(`/programs/booking-success?name=${encodeURIComponent(parentName)}&program=${encodeURIComponent(program?.title || '')}&date=${encodeURIComponent(slotDate)}&time=${encodeURIComponent(slotTime)}&amount=29&paymentId=pay_mock_${Date.now()}`);
+        }
       } else {
-        throw new Error('Booking failed');
+        throw new Error('Booking initialization failed');
       }
     } catch (err: any) {
       setFormError(err.message || 'An unexpected error occurred while saving your booking. Please try again.');
-    } finally {
       setSubmitting(false);
     }
   };
@@ -729,10 +784,10 @@ export default function ProgramDetailsPage() {
                           {submitting ? (
                             <>
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              <span>Saving...</span>
+                              <span>Processing (₹29)...</span>
                             </>
                           ) : (
-                            <span>Book Free Demo</span>
+                            <span>Pay ₹29 & Book Demo Session</span>
                           )}
                         </button>
                       </div>
@@ -748,6 +803,7 @@ export default function ProgramDetailsPage() {
 
       </div>
 
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
     </div>
   );
 }

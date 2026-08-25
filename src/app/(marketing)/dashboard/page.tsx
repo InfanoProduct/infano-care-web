@@ -20,6 +20,7 @@ import { motion } from 'framer-motion';
 import { ShopService } from '@/services/shop.service';
 import { LearningService, LearningJourney, UserProgress } from '@/services/learning.service';
 import Script from 'next/script';
+import { isAnalyticsEnabled } from '@/components/common/Analytics';
 
 // Same STYLES_MAP as ParentsPrograms.tsx for exact match
 const STYLES_MAP: Record<string, any> = {
@@ -265,6 +266,41 @@ export default function CustomerDashboardOverview() {
                   razorpayPaymentId: response.razorpay_payment_id || '',
                   razorpaySignature: response.razorpay_signature || ''
                 });
+
+                // Fire DataLayer Purchase Event
+                if (typeof window !== 'undefined') {
+                  const windowObj = window as any;
+                  windowObj.dataLayer = windowObj.dataLayer || [];
+                  windowObj.dataLayer.push({ ecommerce: null });
+                  const purchaseData = {
+                    event: 'purchase',
+                    value: 29,
+                    currency: 'INR',
+                    transaction_id: response.razorpay_payment_id || `demo_txn_${Date.now()}`,
+                    content_ids: [`demo_${demoModalProg.id || 'program'}`],
+                    content_name: `${demoModalProg.title} - Demo Session`,
+                    content_type: 'product',
+                    ecommerce: {
+                      transaction_id: response.razorpay_payment_id || `demo_txn_${Date.now()}`,
+                      currency: 'INR',
+                      value: 29,
+                      items: [{
+                        item_id: `demo_${demoModalProg.id || 'program'}`,
+                        item_name: `${demoModalProg.title} - Demo Session`,
+                        item_category: 'Demo Session',
+                        price: 29,
+                        quantity: 1
+                      }]
+                    }
+                  };
+
+                  if (isAnalyticsEnabled()) {
+                    windowObj.dataLayer.push(purchaseData);
+                  } else {
+                    console.log("Analytics disabled. Simulated dataLayer push for 'purchase' (Demo Session):", purchaseData);
+                  }
+                }
+
                 setDemoSuccess(true);
                 toast.success('Demo session booked successfully! (Paid ₹29)');
                 loadDashboardData();
@@ -302,6 +338,39 @@ export default function CustomerDashboardOverview() {
               razorpaySignature: 'mock_signature'
             });
           }
+
+          if (typeof window !== 'undefined') {
+            const windowObj = window as any;
+            windowObj.dataLayer = windowObj.dataLayer || [];
+            windowObj.dataLayer.push({ ecommerce: null });
+            const purchaseData = {
+              event: 'purchase',
+              value: 29,
+              currency: 'INR',
+              transaction_id: `demo_mock_${Date.now()}`,
+              content_ids: [`demo_${demoModalProg.id || 'program'}`],
+              content_name: `${demoModalProg.title} - Demo Session`,
+              content_type: 'product',
+              ecommerce: {
+                transaction_id: `demo_mock_${Date.now()}`,
+                currency: 'INR',
+                value: 29,
+                items: [{
+                  item_id: `demo_${demoModalProg.id || 'program'}`,
+                  item_name: `${demoModalProg.title} - Demo Session`,
+                  item_category: 'Demo Session',
+                  price: 29,
+                  quantity: 1
+                }]
+              }
+            };
+            if (isAnalyticsEnabled()) {
+              windowObj.dataLayer.push(purchaseData);
+            } else {
+              console.log("Analytics disabled. Simulated dataLayer push for 'purchase' (Demo Session):", purchaseData);
+            }
+          }
+
           setDemoSuccess(true);
           toast.success('Demo session booked successfully!');
           loadDashboardData();

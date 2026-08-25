@@ -15,6 +15,7 @@ import { AuthService } from '@/services/auth.service';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'react-hot-toast';
 import { useRegion } from '@/hooks/use-region';
+import { isAnalyticsEnabled } from '@/components/common/Analytics';
 
 // PROGRAMS_METADATA removed to ensure all program curriculum data is backend driven.
 const GRADIENTS_MAP: Record<string, string> = {
@@ -366,6 +367,41 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                 razorpayPaymentId: response.razorpay_payment_id || '',
                 razorpaySignature: response.razorpay_signature || ''
               });
+
+              // Fire DataLayer Purchase Event
+              if (typeof window !== 'undefined') {
+                const windowObj = window as any;
+                windowObj.dataLayer = windowObj.dataLayer || [];
+                windowObj.dataLayer.push({ ecommerce: null });
+                const purchaseData = {
+                  event: 'purchase',
+                  value: 29,
+                  currency: 'INR',
+                  transaction_id: response.razorpay_payment_id || `demo_txn_${Date.now()}`,
+                  content_ids: ['demo_learning_program'],
+                  content_name: `Demo Session - ${programFormats.join(', ') || 'Learning Program'}`,
+                  content_type: 'product',
+                  ecommerce: {
+                    transaction_id: response.razorpay_payment_id || `demo_txn_${Date.now()}`,
+                    currency: 'INR',
+                    value: 29,
+                    items: [{
+                      item_id: 'demo_session',
+                      item_name: `Demo Session - ${programFormats.join(', ') || 'Learning Program'}`,
+                      item_category: 'Demo Session',
+                      price: 29,
+                      quantity: 1
+                    }]
+                  }
+                };
+
+                if (isAnalyticsEnabled()) {
+                  windowObj.dataLayer.push(purchaseData);
+                } else {
+                  console.log("Analytics disabled. Simulated dataLayer push for 'purchase' (Demo Session):", purchaseData);
+                }
+              }
+
               setPhase('success');
             } catch (err: any) {
               setError(err.message || 'Payment verification failed. Please contact support.');
@@ -402,6 +438,39 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
             razorpaySignature: 'mock_signature'
           });
         }
+
+        if (typeof window !== 'undefined') {
+          const windowObj = window as any;
+          windowObj.dataLayer = windowObj.dataLayer || [];
+          windowObj.dataLayer.push({ ecommerce: null });
+          const purchaseData = {
+            event: 'purchase',
+            value: 29,
+            currency: 'INR',
+            transaction_id: `demo_mock_${Date.now()}`,
+            content_ids: ['demo_learning_program'],
+            content_name: `Demo Session - ${programFormats.join(', ') || 'Learning Program'}`,
+            content_type: 'product',
+            ecommerce: {
+              transaction_id: `demo_mock_${Date.now()}`,
+              currency: 'INR',
+              value: 29,
+              items: [{
+                item_id: 'demo_session',
+                item_name: `Demo Session - ${programFormats.join(', ') || 'Learning Program'}`,
+                item_category: 'Demo Session',
+                price: 29,
+                quantity: 1
+              }]
+            }
+          };
+          if (isAnalyticsEnabled()) {
+            windowObj.dataLayer.push(purchaseData);
+          } else {
+            console.log("Analytics disabled. Simulated dataLayer push for 'purchase' (Demo Session):", purchaseData);
+          }
+        }
+
         setPhase('success');
         setIsSubmitting(false);
       }

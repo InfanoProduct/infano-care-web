@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle2, ArrowRight, Mail, Phone } from 'lucide-react';
+import { isAnalyticsEnabled } from '@/components/common/Analytics';
 
 // Pure React Canvas Confetti effect
 function CanvasConfetti() {
@@ -135,18 +136,62 @@ function BookingSuccessContent() {
   const amount = searchParams.get('amount') || '29';
   const paymentId = searchParams.get('paymentId') || '';
 
-  // Push generate_lead event to dataLayer
+  const purchaseTrackFired = useRef(false);
+
+  // Push purchase & generate_lead events to dataLayer (GA4 & Meta Pixel compatible)
   useEffect(() => {
-    const targetProgramName = programTitle && programTitle !== 'our Program' ? programTitle : 'The Unfiltered Journey';
-    const windowObj = window as any;
-    windowObj.dataLayer = windowObj.dataLayer || [];
-    windowObj.dataLayer.push({
-      event: "generate_lead",
-      content_name: targetProgramName,
-      value: parseFloat(amount) || 29,
-      currency: "INR"
-    });
-  }, [programTitle, amount]);
+    if (typeof window !== 'undefined' && !purchaseTrackFired.current) {
+      purchaseTrackFired.current = true;
+      const targetProgramName = programTitle && programTitle !== 'our Program' ? programTitle : 'The Unfiltered Journey';
+      const parsedAmount = parseFloat(amount) || 29;
+      const txId = paymentId || `demo_txn_${Date.now()}`;
+      const itemId = `demo_${targetProgramName.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`;
+
+      const windowObj = window as any;
+      windowObj.dataLayer = windowObj.dataLayer || [];
+
+      // Clear any stale ecommerce data first (GA4 standard requirement)
+      windowObj.dataLayer.push({ ecommerce: null });
+
+      const purchaseData = {
+        event: 'purchase',
+
+        // Flat fields — Meta Pixel / Google Ads read these
+        value: parsedAmount,
+        currency: 'INR',
+        transaction_id: txId,
+        content_ids: [itemId],
+        content_name: `${targetProgramName} - Demo Session`,
+        content_type: 'product',
+
+        // Nested object — GA4 reads this
+        ecommerce: {
+          transaction_id: txId,
+          currency: 'INR',
+          value: parsedAmount,
+          items: [{
+            item_id: itemId,
+            item_name: `${targetProgramName} - Demo Session`,
+            item_category: 'Demo Session',
+            price: parsedAmount,
+            quantity: 1
+          }]
+        }
+      };
+
+      if (isAnalyticsEnabled()) {
+        windowObj.dataLayer.push(purchaseData);
+        windowObj.dataLayer.push({
+          event: 'generate_lead',
+          content_name: targetProgramName,
+          value: parsedAmount,
+          currency: 'INR'
+        });
+      } else {
+        console.log("Analytics disabled. Simulated dataLayer push for 'purchase' (Demo Session):", purchaseData);
+      }
+    }
+  }, [programTitle, amount, paymentId]);
 
   // Format Date for display
   const getFormattedDateTime = () => {

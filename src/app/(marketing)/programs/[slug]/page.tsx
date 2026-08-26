@@ -534,17 +534,19 @@ export default function ProgramDetailsPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 col-span-2 md:col-span-1">
-                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${theme.bullet}`}>
-                    <Shield size={18} />
+                {Array.isArray(program.consultations) && program.consultations.length > 0 && (
+                  <div className="flex items-center gap-3 col-span-2 md:col-span-1">
+                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${theme.bullet}`}>
+                      <Shield size={18} />
+                    </div>
+                    <div>
+                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Consultations</h5>
+                      <p className="text-slate-800 font-bold text-sm">
+                        {program.consultations.length} Free Consultation{program.consultations.length !== 1 ? 's' : ''}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Consultations</h5>
-                    <p className="text-slate-800 font-bold text-sm">
-                      {Array.isArray(program.consultations) ? program.consultations.length : 0} Free Consultation{(Array.isArray(program.consultations) ? program.consultations.length : 0) !== 1 ? 's' : ''}
-                    </p>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>

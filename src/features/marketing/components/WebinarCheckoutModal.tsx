@@ -42,7 +42,7 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
   useEffect(() => {
     if (user) {
       const nameVal = user.profile?.displayName || user.username || '';
-      // If name contains @ (e.g. email username like Admin@Infano.Care), do not prefill
+      // If name contains @ (e.g. email-based username), do not prefill
       if (nameVal && !nameVal.includes('@')) {
         setParentName(nameVal);
       } else {

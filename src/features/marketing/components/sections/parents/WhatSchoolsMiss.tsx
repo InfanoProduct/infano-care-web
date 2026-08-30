@@ -63,7 +63,7 @@ const STATS = [
 
 export function WhatSchoolsMiss() {
   return (
-    <section className="py-24 bg-[#FFFCFA] text-slate-900 relative overflow-hidden border-t border-slate-100/50">
+    <section className="py-10 md:py-24 bg-[#FFFCFA] text-slate-900 relative overflow-hidden border-t border-slate-100/50">
       {/* Background Orbs */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-40">
         <div className="absolute top-[10%] left-[-5%] w-[45%] h-[45%] bg-rose-200/20 rounded-full blur-[130px]" />
@@ -73,7 +73,7 @@ export function WhatSchoolsMiss() {
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
 
         {/* Header Block */}
-        <div className="w-full mb-20 text-left">
+        <div className="w-full md:mb-20 mb-10 text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/5 border border-primary/10 rounded-full mb-8">
             <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">The Problem We're Solving</span>
           </div>
@@ -103,7 +103,7 @@ export function WhatSchoolsMiss() {
         </div>
 
         {/* 6 Grid Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10 mb-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10 mb-10 md:mb-20">
           {CARDS.map((card, i) => (
             <motion.div
               key={i}
@@ -111,15 +111,15 @@ export function WhatSchoolsMiss() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className={`group p-10 ${card.color} backdrop-blur-xl rounded-2xl border border-white shadow-xl shadow-slate-200/20 hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 flex items-start gap-8`}
+              className={`group p-8 md:p-10 ${card.color} backdrop-blur-xl rounded-2xl border border-white shadow-xl shadow-slate-200/20 hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 flex flex-col justify-start`}
             >
-              <div className={`w-14 h-14 ${card.iconBg} rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-sm`}>
-                {card.icon}
+              <div className="flex items-center gap-4 mb-4">
+                <div className={`w-12 h-12 md:w-14 md:h-14 ${card.iconBg} rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-sm`}>
+                  {card.icon}
+                </div>
+                <h4 className="text-xl font-bold text-slate-900 tracking-tight">{card.num}. {card.title}</h4>
               </div>
-              <div>
-                <h4 className="text-xl font-bold text-slate-900 mb-3 tracking-tight">{card.num}. {card.title}</h4>
-                <p className="text-slate-500 leading-relaxed font-medium">{card.text}</p>
-              </div>
+              <p className="text-slate-500 leading-relaxed font-medium">{card.text}</p>
             </motion.div>
           ))}
         </div>
@@ -130,7 +130,7 @@ export function WhatSchoolsMiss() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="relative rounded-3xl overflow-hidden mb-20 bg-primary border border-violet-950 p-10 md:p-12 text-center shadow-2xl"
+          className="relative rounded-3xl overflow-hidden mb-10 md:mb-20 bg-primary border border-violet-950 p-8 md:p-12 text-center shadow-2xl"
         >
           {/* Inner Glows */}
           <div className="absolute top-[-50%] left-[-20%] w-[60%] h-[100%] bg-primary/20 rounded-full blur-[100px] pointer-events-none" />
@@ -147,7 +147,7 @@ export function WhatSchoolsMiss() {
         </motion.div>
 
         {/* 4 Stats Column Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10 border-t border-slate-100 pt-16">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10 border-t border-slate-100 pt-8 md:pt-16">
           {STATS.map((stat, i) => (
             <motion.div
               key={i}

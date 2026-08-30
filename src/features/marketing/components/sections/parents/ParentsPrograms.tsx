@@ -134,7 +134,9 @@ function ProgramCard({ program, index }: { program: Program; index: number }) {
     ];
   const programIncludesItems = [
     `${program.sessionsList?.length || 0} Sessions by trained experts`,
-    `${consultationsCount} Consultation`,
+    ...(consultationsCount > 0
+      ? [`${consultationsCount} free consultation${consultationsCount > 1 ? 's' : ''}`]
+      : []),
     ...remainingFeatures
   ];
 
@@ -260,7 +262,7 @@ export function ParentsPrograms() {
   }, []);
 
   return (
-    <section id="programs-showcase" className="py-24 bg-white text-slate-900 relative overflow-hidden border-t border-slate-100/60">
+    <section id="programs-showcase" className="py-10 md:py-24 bg-white text-slate-900 relative overflow-hidden border-t border-slate-100/60">
       {/* Dynamic Background Glowing Orbs */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-30">
         <div className="absolute top-[20%] right-[-10%] w-[50%] h-[50%] bg-violet-200/30 rounded-full blur-[140px]" />
@@ -270,7 +272,7 @@ export function ParentsPrograms() {
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
 
         {/* Header Block */}
-        <div className="w-full mb-16 text-left">
+        <div className="w-full mb-8 md:mb-16 text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/5 border border-primary/10 rounded-full mb-8">
             <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Our Curriculum</span>
           </div>

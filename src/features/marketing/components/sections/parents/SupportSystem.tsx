@@ -115,7 +115,7 @@ const PILLARS: Pillar[] = [
 
 export function SupportSystem() {
   return (
-    <section className="py-24 bg-gradient-to-b from-white to-[#FFFCFA] text-slate-900 relative overflow-hidden border-t border-slate-100/50">
+    <section className="py-10 md:py-24 bg-gradient-to-b from-white to-[#FFFCFA] text-slate-900 relative overflow-hidden border-t border-slate-100/50">
       {/* Background Graphic Elements for Depth */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-40">
         <div className="absolute top-[25%] left-[-10%] w-[45%] h-[40%] bg-emerald-100/20 rounded-full blur-[140px]" />
@@ -125,7 +125,7 @@ export function SupportSystem() {
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
 
         {/* Header Block */}
-        <div className="w-full mb-20 text-left">
+        <div className="w-full mb-8 md:mb-20 text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/5 border border-primary/10 rounded-full mb-8">
             <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Support Ecosystem</span>
           </div>

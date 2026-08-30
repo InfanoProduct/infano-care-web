@@ -13,7 +13,7 @@ const SCHEDULE = [
 
 export function DaughterExperience() {
   return (
-    <section className="py-24 bg-[#FFFCFA] text-slate-900 relative overflow-hidden">
+    <section className="py-10 md:py-24 bg-[#FFFCFA] text-slate-900 relative overflow-hidden">
       {/* Background Graphic */}
       <div className="absolute top-0 left-0 w-full h-full opacity-30 pointer-events-none">
         <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[150px]" />
@@ -21,7 +21,7 @@ export function DaughterExperience() {
       </div>
 
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
           <div>
             <motion.span
               initial={{ opacity: 0 }}

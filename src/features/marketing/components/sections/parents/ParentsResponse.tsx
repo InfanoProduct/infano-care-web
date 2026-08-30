@@ -36,13 +36,13 @@ const RESPONSES = [
 
 export function ParentsResponse() {
   return (
-    <section className="py-20 bg-[#FFFCFA] relative overflow-hidden">
+    <section className="py-10 md:py-20 bg-[#FFFCFA] relative overflow-hidden">
       {/* Background Graphic Elements for Glass Effect */}
       <div className="absolute top-1/4 right-0 w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] -z-10" />
       <div className="absolute bottom-1/4 left-0 w-[30%] h-[30%] bg-accent/5 rounded-full blur-[100px] -z-10" />
 
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-24 relative z-10">
-        <div className="text-center max-w-3xl mx-auto mb-20">
+        <div className="text-center max-w-3xl mx-auto mb-8 md:mb-20">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

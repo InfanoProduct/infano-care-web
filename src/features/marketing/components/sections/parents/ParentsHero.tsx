@@ -62,7 +62,7 @@ export function ParentsHero() {
   };
 
   return (
-    <section className="relative pt-28 pb-24  lg:pb-28 overflow-hidden bg-[#FFFCFA]">
+    <section className="relative pt-10 md:pt-28 pb-16  lg:pb-28 overflow-hidden bg-[#FFFCFA]">
       {/* Background Graphic Elements */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px]" />

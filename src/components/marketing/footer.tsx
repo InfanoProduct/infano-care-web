@@ -94,7 +94,7 @@ const socialLinks = [
 export function MarketingFooter() {
   const pathname = usePathname();
   return (
-    <footer className="relative bg-[#FAF9FF] pt-20 pb-10 overflow-hidden">
+    <footer className="relative bg-[#FAF9FF] pt-6 md:pt-16 lg:pt-20 pb-10 overflow-hidden">
       {/* Background Graphics */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px]" />
@@ -110,17 +110,17 @@ export function MarketingFooter() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="bg-[#ff1f56] rounded-[3rem] p-8 md:p-16 mb-20 border border-white/10 backdrop-blur-sm flex flex-col lg:flex-row items-center justify-between gap-10 shadow-[0_40px_80px_-20px_rgba(255,31,86,0.4)]"
+          className="bg-[#ff1f56] rounded-[2rem] md:rounded-[3rem] p-6 md:p-16 mb-12 md:mb-20 border border-white/10 backdrop-blur-sm flex flex-col lg:flex-row items-center justify-between gap-6 md:gap-10 shadow-[0_40px_80px_-20px_rgba(255,31,86,0.4)]"
         >
           <div className="max-w-2xl text-center lg:text-left">
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+            <h2 className="text-2xl md:text-5xl font-bold text-white mb-3 md:mb-4 tracking-tight">
               Build the skills to <span className="">bloom with confidence.</span>
             </h2>
-            <p className="text-white/80 text-lg">
+            <p className="text-white/80 text-base md:text-lg">
               Join 10,000+ girls and families on the journey to holistic wellness.
             </p>
           </div>
-          <Link href="/contact" className=" bg-white text-pink-500 hover:text-pink-600 font-semibold item-center justify-center  flex flex-row px-10 py-5 rounded-full transition-all duration-300 group whitespace-nowrap ">
+          <Link href="/contact" className="bg-white text-pink-500 hover:text-pink-600 font-semibold items-center justify-center flex flex-row px-8 md:px-10 py-4 md:py-5 rounded-full transition-all duration-300 group whitespace-nowrap shadow-md">
             Get Started Now <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1" size={20} />
           </Link>
         </motion.div>

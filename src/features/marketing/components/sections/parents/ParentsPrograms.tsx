@@ -173,7 +173,7 @@ function ProgramCard({ program, index }: { program: Program; index: number }) {
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-white/95 border border-slate-200/80 rounded-full text-[10px] font-black text-slate-800 shadow-2xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                Live 1:1 Demo • ₹29
+                Live 1:1 Demo • ₹9
               </div>
             </div>
             <div className="flex items-start gap-2 md:gap-3">
@@ -218,7 +218,7 @@ function ProgramCard({ program, index }: { program: Program; index: number }) {
             href={`/programs/${program.slug || program.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`}
             className={`flex-1 inline-flex items-center justify-center gap-2 py-4 px-6 rounded-2xl text-white font-extrabold text-xs uppercase tracking-wider transition-all ${styles.btnBg} relative z-10 shadow-md`}
           >
-            <span>Book Demo Session • ₹29</span>
+            <span>Book Demo Session • ₹9</span>
             <ArrowRight size={14} className="transition-transform group-hover:translate-x-1 duration-300" />
           </Link>
           <Link

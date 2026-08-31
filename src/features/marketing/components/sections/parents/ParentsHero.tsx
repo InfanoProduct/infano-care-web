@@ -100,7 +100,7 @@ export function ParentsHero() {
               style={{ animationDelay: '300ms' }}
             >
               <Link href="/programs/the-unfiltered-journey" className="btn-primary w-full text-sm px-8 py-3.5 group shadow-lg shadow-primary/20 text-center sm:w-auto font-bold">
-                Book a Demo -  Rs 29/- <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1" size={18} />
+                Book a Demo -  Rs 9/- <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1" size={18} />
               </Link>
             </div>
           </div>

@@ -299,7 +299,7 @@ export default function DemoDetailPage({ params }: { params: Promise<{ id: strin
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1 p-3 bg-secondary/30 rounded-2xl border border-border/20">
               <span className="text-xs text-muted-foreground/80 font-normal">Demo Fee Amount</span>
-              <span className="text-base font-extrabold text-slate-800">₹{demo.amount || 29} INR</span>
+              <span className="text-base font-extrabold text-slate-800">₹{demo.amount || 9} INR</span>
             </div>
 
             <div className="flex flex-col gap-1 p-3 bg-secondary/30 rounded-2xl border border-border/20">

@@ -253,7 +253,7 @@ export default function CustomerDashboardOverview() {
         if (typeof (window as any).Razorpay !== 'undefined' && razorpayInfo?.orderId && !razorpayInfo.orderId.startsWith('demo_mock_')) {
           const options = {
             key: razorpayInfo.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-            amount: (razorpayInfo.amount || 29) * 100,
+            amount: (razorpayInfo.amount || 9) * 100,
             currency: razorpayInfo.currency || 'INR',
             name: 'Infano Care',
             description: `Demo Session Booking: ${demoModalProg.title}`,
@@ -274,7 +274,7 @@ export default function CustomerDashboardOverview() {
                   windowObj.dataLayer.push({ ecommerce: null });
                   const purchaseData = {
                     event: 'purchase',
-                    value: 29,
+                    value: 9,
                     currency: 'INR',
                     transaction_id: response.razorpay_payment_id || `demo_txn_${Date.now()}`,
                     content_ids: [`demo_${demoModalProg.id || 'program'}`],
@@ -283,12 +283,12 @@ export default function CustomerDashboardOverview() {
                     ecommerce: {
                       transaction_id: response.razorpay_payment_id || `demo_txn_${Date.now()}`,
                       currency: 'INR',
-                      value: 29,
+                      value: 9,
                       items: [{
                         item_id: `demo_${demoModalProg.id || 'program'}`,
                         item_name: `${demoModalProg.title} - Demo Session`,
                         item_category: 'Demo Session',
-                        price: 29,
+                        price: 9,
                         quantity: 1
                       }]
                     }
@@ -302,7 +302,7 @@ export default function CustomerDashboardOverview() {
                 }
 
                 setDemoSuccess(true);
-                toast.success('Demo session booked successfully! (Paid ₹29)');
+                toast.success('Demo session booked successfully! (Paid ₹9)');
                 loadDashboardData();
               } catch (err: any) {
                 toast.error(err.message || 'Payment verification failed. Please contact support.');
@@ -345,7 +345,7 @@ export default function CustomerDashboardOverview() {
             windowObj.dataLayer.push({ ecommerce: null });
             const purchaseData = {
               event: 'purchase',
-              value: 29,
+              value: 9,
               currency: 'INR',
               transaction_id: `demo_mock_${Date.now()}`,
               content_ids: [`demo_${demoModalProg.id || 'program'}`],
@@ -354,12 +354,12 @@ export default function CustomerDashboardOverview() {
               ecommerce: {
                 transaction_id: `demo_mock_${Date.now()}`,
                 currency: 'INR',
-                value: 29,
+                value: 9,
                 items: [{
                   item_id: `demo_${demoModalProg.id || 'program'}`,
                   item_name: `${demoModalProg.title} - Demo Session`,
                   item_category: 'Demo Session',
-                  price: 29,
+                  price: 9,
                   quantity: 1
                 }]
               }
@@ -764,7 +764,7 @@ export default function CustomerDashboardOverview() {
                             disabled={demoSubmitting}
                             className="w-full bg-primary hover:bg-primary/95 text-white font-bold py-3 rounded-lg shadow-sm flex items-center justify-center gap-2 text-xs transition-all active:scale-95 disabled:opacity-70 mt-3 cursor-pointer"
                           >
-                            {demoSubmitting ? <Loader2 size={16} className="animate-spin" /> : <><ArrowRight size={14} /> Pay ₹29 & Book Demo Session</>}
+                            {demoSubmitting ? <Loader2 size={16} className="animate-spin" /> : <><ArrowRight size={14} /> Pay ₹9 & Book Demo Session</>}
                           </button>
                         </form>
                       </>
@@ -1275,7 +1275,7 @@ export default function CustomerDashboardOverview() {
                           onClick={() => handleBookDemoClick(program)}
                           className={`w-full inline-flex items-center justify-center gap-2 py-3.5 px-5 rounded-full text-white font-extrabold text-xs transition-all ${styles.btnBg} relative z-10 cursor-pointer active:scale-95 shadow-md`}
                         >
-                          <span>Book Demo Session • ₹29</span>
+                          <span>Book Demo Session • ₹9</span>
                           <ArrowRight size={14} className="transition-transform group-hover:translate-x-1 duration-300" />
                         </button>
                       </div>

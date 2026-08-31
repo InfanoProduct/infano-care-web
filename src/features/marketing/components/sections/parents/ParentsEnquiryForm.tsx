@@ -375,7 +375,7 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
       if (typeof (window as any).Razorpay !== 'undefined' && razorpayInfo?.orderId && !razorpayInfo.orderId.startsWith('demo_mock_')) {
         const options = {
           key: razorpayInfo.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-          amount: (razorpayInfo.amount || 29) * 100,
+          amount: (razorpayInfo.amount || 9) * 100,
           currency: razorpayInfo.currency || 'INR',
           name: 'Infano Care',
           description: `Demo Session Consultation (${programFormats.join(', ') || 'Learning Program'})`,
@@ -396,7 +396,7 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                 windowObj.dataLayer.push({ ecommerce: null });
                 const purchaseData = {
                   event: 'purchase',
-                  value: 29,
+                  value: 9,
                   currency: 'INR',
                   transaction_id: response.razorpay_payment_id || `demo_txn_${Date.now()}`,
                   content_ids: ['demo_learning_program'],
@@ -405,12 +405,12 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                   ecommerce: {
                     transaction_id: response.razorpay_payment_id || `demo_txn_${Date.now()}`,
                     currency: 'INR',
-                    value: 29,
+                    value: 9,
                     items: [{
                       item_id: 'demo_session',
                       item_name: `Demo Session - ${programFormats.join(', ') || 'Learning Program'}`,
                       item_category: 'Demo Session',
-                      price: 29,
+                      price: 9,
                       quantity: 1
                     }]
                   }
@@ -466,7 +466,7 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
           windowObj.dataLayer.push({ ecommerce: null });
           const purchaseData = {
             event: 'purchase',
-            value: 29,
+            value: 9,
             currency: 'INR',
             transaction_id: `demo_mock_${Date.now()}`,
             content_ids: ['demo_learning_program'],
@@ -475,12 +475,12 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
             ecommerce: {
               transaction_id: `demo_mock_${Date.now()}`,
               currency: 'INR',
-              value: 29,
+              value: 9,
               items: [{
                 item_id: 'demo_session',
                 item_name: `Demo Session - ${programFormats.join(', ') || 'Learning Program'}`,
                 item_category: 'Demo Session',
-                price: 29,
+                price: 9,
                 quantity: 1
               }]
             }
@@ -988,8 +988,8 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
               <div className="lg:col-span-7 w-full">
                 <form onSubmit={handleBookDemo} className="bg-slate-50/50 p-4 sm:p-5 rounded-3xl border border-slate-100/60 shadow-sm flex flex-col gap-4">
                   <div className="text-center border-b border-slate-200/60 pb-2.5">
-                    <h5 className="text-lg font-bold text-slate-800">Book Demo Session (₹29)</h5>
-                    <p className="text-xs font-medium text-slate-400 mt-0.5">Select a preferred slot to experience a 1:1 live mentorship demo session for ₹29.</p>
+                    <h5 className="text-lg font-bold text-slate-800">Book Demo Session (₹9)</h5>
+                    <p className="text-xs font-medium text-slate-400 mt-0.5">Select a preferred slot to experience a 1:1 live mentorship demo session for ₹9.</p>
                   </div>
 
                   {/* Format Preference consolidated inside Booking Card */}
@@ -1238,7 +1238,7 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
                         </>
                       ) : (
                         <>
-                          Pay ₹29 & Book Demo Session
+                          Pay ₹9 & Book Demo Session
                           <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                         </>
                       )}
@@ -1296,7 +1296,7 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
 
             <div className="space-y-3">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-200/60 mb-1">
-                <span>Paid ₹29</span>
+                <span>Paid ₹9</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 <span>Confirmed Booking</span>
               </div>

@@ -12,6 +12,7 @@ interface DateTimePickerModalProps {
   onSelect: (date: string, time: string) => void;
   initialDate?: string;
   initialTime?: string;
+  maxDays?: number;
 }
 
 const TIME_SLOTS = [
@@ -22,17 +23,34 @@ const TIME_SLOTS = [
   '09:00 PM', '09:30 PM', '10:00 PM', '10:30 PM', '11:00 PM', '11:30 PM'
 ];
 
+function parseLocalDate(dateStr?: string): Date | null {
+  if (!dateStr) return null;
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const [y, m, d] = parts.map(Number);
+    if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+      const parsed = new Date(y, m - 1, d);
+      parsed.setHours(0, 0, 0, 0);
+      return parsed;
+    }
+  }
+  const parsed = new Date(dateStr);
+  parsed.setHours(0, 0, 0, 0);
+  return isNaN(parsed.getTime()) ? null : parsed;
+}
+
 export function DateTimePickerModal({
   isOpen,
   onClose,
   onSelect,
   initialDate,
   initialTime,
+  maxDays = 7,
 }: DateTimePickerModalProps) {
   const [mounted, setMounted] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(
-    initialDate ? new Date(initialDate) : null
+    parseLocalDate(initialDate)
   );
   const [confirmingTime, setConfirmingTime] = useState<string | null>(null);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
@@ -95,19 +113,27 @@ export function DateTimePickerModal({
   const firstDayIndex = new Date(year, month, 1).getDay();
   const prevMonthDays = new Date(year, month, 0).getDate();
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const maxDate = new Date(today);
+  maxDate.setDate(today.getDate() + maxDays);
+  maxDate.setHours(23, 59, 59, 999);
+
+  const canGoPrev = year > today.getFullYear() || (year === today.getFullYear() && month > today.getMonth());
+  const canGoNext = year < maxDate.getFullYear() || (year === maxDate.getFullYear() && month < maxDate.getMonth());
+
   const handlePrevMonth = () => {
-    const today = new Date();
-    if (year > today.getFullYear() || (year === today.getFullYear() && month > today.getMonth())) {
+    if (canGoPrev) {
       setCurrentDate(new Date(year, month - 1, 1));
     }
   };
 
   const handleNextMonth = () => {
-    setCurrentDate(new Date(year, month + 1, 1));
+    if (canGoNext) {
+      setCurrentDate(new Date(year, month + 1, 1));
+    }
   };
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
 
   // Generate calendar grid array
   const calendarCells = [];
@@ -286,14 +312,17 @@ export function DateTimePickerModal({
                   type="button"
                   onClick={handlePrevMonth}
                   className="p-1 rounded-full border border-slate-100 hover:bg-slate-50 text-slate-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                  disabled={year === today.getFullYear() && month === today.getMonth()}
+                  disabled={!canGoPrev}
+                  aria-label="Previous month"
                 >
                   <ChevronLeft size={16} />
                 </button>
                 <button
                   type="button"
                   onClick={handleNextMonth}
-                  className="p-1 rounded-full border border-slate-100 hover:bg-slate-50 text-slate-600 transition-colors"
+                  className="p-1 rounded-full border border-slate-100 hover:bg-slate-50 text-slate-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  disabled={!canGoNext}
+                  aria-label="Next month"
                 >
                   <ChevronRight size={16} />
                 </button>
@@ -314,8 +343,9 @@ export function DateTimePickerModal({
               {calendarCells.map((cell, idx) => {
                 const isToday = cell.date.getTime() === today.getTime();
                 const isBeforeToday = cell.date < today;
+                const isAfterMax = cell.date > maxDate;
                 const isSelected = selectedDate && cell.date.getTime() === selectedDate.getTime();
-                const isActive = !isBeforeToday && cell.isCurrentMonth;
+                const isActive = !isBeforeToday && !isAfterMax && cell.isCurrentMonth;
 
                 return (
                   <button
@@ -325,12 +355,12 @@ export function DateTimePickerModal({
                     onClick={() => handleDateSelect(cell.date)}
                     className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all relative mx-auto ${
                       !cell.isCurrentMonth
-                        ? 'text-slate-350 pointer-events-none'
+                        ? 'text-slate-200 pointer-events-none'
                         : isSelected
                         ? 'bg-primary text-white font-extrabold shadow-sm'
                         : isActive
                         ? 'text-primary bg-primary/5 hover:bg-primary/10 font-bold'
-                        : 'text-slate-400 cursor-not-allowed'
+                        : 'text-slate-300 cursor-not-allowed bg-transparent font-normal'
                     }`}
                   >
                     {cell.day}

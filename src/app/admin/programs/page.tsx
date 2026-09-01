@@ -2069,7 +2069,7 @@ export default function ProgramsManagement() {
                                 : 'bg-amber-50 text-amber-700 border-amber-200'
                             }`}>
                               <span className={`w-1.5 h-1.5 rounded-full ${demo.paymentStatus === 'COMPLETED' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                              {demo.paymentStatus === 'COMPLETED' ? `Paid ₹${demo.amount || 29}` : 'Pending ₹29'}
+                              {demo.paymentStatus === 'COMPLETED' ? `Paid ₹${demo.amount || 9}` : 'Pending ₹9'}
                             </span>
                             {demo.razorpayPaymentId && (
                               <span className="text-[10px] font-mono text-muted-foreground/80 truncate max-w-[120px]" title={demo.razorpayPaymentId}>

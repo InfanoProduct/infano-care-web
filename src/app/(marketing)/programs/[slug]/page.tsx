@@ -349,7 +349,7 @@ export default function ProgramDetailsPage() {
         if (typeof (window as any).Razorpay !== 'undefined' && razorpayInfo?.orderId && !razorpayInfo.orderId.startsWith('demo_mock_')) {
           const options = {
             key: razorpayInfo.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-            amount: (razorpayInfo.amount || 29) * 100,
+            amount: (razorpayInfo.amount || 9) * 100,
             currency: razorpayInfo.currency || 'INR',
             name: 'Infano Care',
             description: `Demo Session Booking: ${program?.title || 'Program'}`,
@@ -362,7 +362,7 @@ export default function ProgramDetailsPage() {
                   razorpayPaymentId: response.razorpay_payment_id || '',
                   razorpaySignature: response.razorpay_signature || ''
                 });
-                router.push(`/programs/booking-success?name=${encodeURIComponent(parentName)}&program=${encodeURIComponent(program?.title || '')}&date=${encodeURIComponent(slotDate)}&time=${encodeURIComponent(slotTime)}&amount=29&paymentId=${encodeURIComponent(response.razorpay_payment_id || '')}`);
+                router.push(`/programs/booking-success?name=${encodeURIComponent(parentName)}&program=${encodeURIComponent(program?.title || '')}&date=${encodeURIComponent(slotDate)}&time=${encodeURIComponent(slotTime)}&amount=9&paymentId=${encodeURIComponent(response.razorpay_payment_id || '')}`);
               } catch (err: any) {
                 setFormError(err.message || 'Payment verification failed. If money was deducted, please contact support.');
                 setSubmitting(false);
@@ -396,7 +396,7 @@ export default function ProgramDetailsPage() {
               razorpaySignature: 'mock_signature'
             });
           }
-          router.push(`/programs/booking-success?name=${encodeURIComponent(parentName)}&program=${encodeURIComponent(program?.title || '')}&date=${encodeURIComponent(slotDate)}&time=${encodeURIComponent(slotTime)}&amount=29&paymentId=pay_mock_${Date.now()}`);
+          router.push(`/programs/booking-success?name=${encodeURIComponent(parentName)}&program=${encodeURIComponent(program?.title || '')}&date=${encodeURIComponent(slotDate)}&time=${encodeURIComponent(slotTime)}&amount=9&paymentId=pay_mock_${Date.now()}`);
         }
       } else {
         throw new Error('Booking initialization failed');
@@ -786,10 +786,10 @@ export default function ProgramDetailsPage() {
                           {submitting ? (
                             <>
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              <span>Processing (₹29)...</span>
+                              <span>Processing (₹9)...</span>
                             </>
                           ) : (
-                            <span>Pay ₹29 & Book Demo Session</span>
+                            <span>Pay ₹9 & Book Demo Session</span>
                           )}
                         </button>
                       </div>

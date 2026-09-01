@@ -1,38 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Clock, X, CheckCircle2, Loader2, ArrowRight } from 'lucide-react';
+import { Calendar, Clock, X, CheckCircle2, Loader2, ArrowRight, User } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import toast from 'react-hot-toast';
 
-const PEER_MENTORS = [
-  {
-    id: 1,
-    name: "Aisha Sharma",
-    image: "https://images.unsplash.com/photo-1621592484082-2d05b1290d73?auto=format&fit=crop&q=80&w=400&h=400",
-    supports: ["Anxiety", "Academic Stress", "Peer Pressure"],
-    about: "Aisha is a 12th grader who has navigated the pressure of board exams. She loves painting and helping younger girls manage school stress.",
-  },
-  {
-    id: 2,
-    name: "Priya Patel",
-    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=400&h=400",
-    supports: ["Body Image", "Relationships", "Self-Esteem"],
-    about: "Priya is passionate about body positivity. She dances in her free time and is always ready for a heartfelt conversation about self-worth.",
-  },
-  {
-    id: 3,
-    name: "Rhea Singh",
-    image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=400&h=400",
-    supports: ["Bullying", "Confidence", "Friendships"],
-    about: "Rhea is a debate champion who knows how to stand up for herself. She helps girls find their voice and build strong, healthy boundaries.",
-  }
-];
+interface PeerMentor {
+  id: string;
+  name: string;
+  headline?: string;
+  image?: string;
+  topics?: string[];
+  bio?: string;
+  about?: string;
+}
 
 export function PeerMentorsSection() {
-  const [selectedMentor, setSelectedMentor] = useState<typeof PEER_MENTORS[0] | null>(null);
+  const [mentors, setMentors] = useState<PeerMentor[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedMentor, setSelectedMentor] = useState<PeerMentor | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   
@@ -43,6 +31,22 @@ export function PeerMentorsSection() {
     date: '',
     time: 'Morning (9AM - 12PM)'
   });
+
+  useEffect(() => {
+    async function fetchMentors() {
+      try {
+        const res: any = await apiClient.get('/peerline/mentor/search');
+        if (res?.mentors && Array.isArray(res.mentors)) {
+          setMentors(res.mentors);
+        }
+      } catch (err) {
+        setMentors([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchMentors();
+  }, []);
 
   const handleConnect = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,61 +112,89 @@ export function PeerMentorsSection() {
         </div>
 
         {/* Mentor Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {PEER_MENTORS.map((mentor, index) => (
-            <motion.div
-              key={mentor.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-slate-50 rounded-[2rem] border border-slate-100 overflow-hidden flex flex-col group hover:shadow-xl hover:shadow-primary/5 transition-all duration-300"
-            >
-              {/* Image & Header */}
-              <div className="p-6 pb-0 flex items-center gap-5 relative">
-                <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-sm shrink-0 relative z-10">
-                  <Image 
-                    src={mentor.image} 
-                    alt={mentor.name} 
-                    fill 
-                    className="object-cover group-hover:scale-110 transition-transform duration-500" 
-                  />
-                </div>
-                <div className="relative z-10 flex flex-col">
-                  <h3 className="text-2xl font-bold font-heading text-slate-900 tracking-tight leading-tight">{mentor.name}</h3>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Trained Peer</p>
-                </div>
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-bl-full -z-0 transition-colors group-hover:bg-primary/20" />
-              </div>
-
-              {/* Tags */}
-              <div className="px-6 pt-4 flex flex-wrap gap-2">
-                {mentor.supports.map(tag => (
-                  <span key={tag} className="px-3 py-1 bg-white border border-slate-200 text-slate-600 text-[10px] font-bold uppercase tracking-wider rounded-full">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              {/* Bio */}
-              <div className="p-6 flex-grow">
-                <p className="text-slate-500 text-sm leading-relaxed font-medium">
-                  "{mentor.about}"
-                </p>
-              </div>
-
-              {/* Action */}
-              <div className="p-6 pt-0 mt-auto">
-                <button 
-                  onClick={() => setSelectedMentor(mentor)}
-                  className="w-full py-4 bg-white border-2 border-slate-900 text-slate-900 rounded-xl font-bold hover:bg-slate-900 hover:text-white transition-colors flex items-center justify-center gap-2 group/btn"
+        {loading ? (
+          <div className="flex justify-center items-center py-16">
+            <Loader2 className="animate-spin text-primary" size={32} />
+          </div>
+        ) : mentors.length === 0 ? (
+          <div className="text-center py-12 bg-slate-50 rounded-3xl border border-slate-100 max-w-lg mx-auto p-8">
+            <User className="mx-auto text-slate-400 mb-3" size={40} />
+            <h3 className="text-lg font-bold text-slate-800 mb-1">No Peer Mentors Available</h3>
+            <p className="text-sm text-slate-500">
+              There are currently no certified peer mentors listed. Check back soon or apply to become one!
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {mentors.map((mentor, index) => {
+              const initial = mentor.name?.trim()?.charAt(0)?.toUpperCase() || 'P';
+              const topics = mentor.topics || [];
+              const bio = mentor.bio || mentor.about || mentor.headline || 'Certified Peer Mentor dedicated to supportive, empathetic listening.';
+              return (
+                <motion.div
+                  key={mentor.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-slate-50 rounded-[2rem] border border-slate-100 overflow-hidden flex flex-col group hover:shadow-xl hover:shadow-primary/5 transition-all duration-300"
                 >
-                  Connect <ArrowRight size={18} className="transition-transform group-hover/btn:translate-x-1" />
-                </button>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+                  {/* Image & Header */}
+                  <div className="p-6 pb-0 flex items-center gap-5 relative">
+                    <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-sm shrink-0 relative z-10 bg-primary/10 flex items-center justify-center">
+                      {mentor.image ? (
+                        <Image 
+                          src={mentor.image} 
+                          alt={mentor.name} 
+                          fill 
+                          className="object-cover group-hover:scale-110 transition-transform duration-500" 
+                        />
+                      ) : (
+                        <span className="text-2xl font-bold text-primary">{initial}</span>
+                      )}
+                    </div>
+                    <div className="relative z-10 flex flex-col">
+                      <h3 className="text-xl font-bold font-heading text-slate-900 tracking-tight leading-tight">{mentor.name}</h3>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Certified Peer</p>
+                    </div>
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-bl-full -z-0 transition-colors group-hover:bg-primary/20" />
+                  </div>
+
+                  {/* Tags */}
+                  {topics.length > 0 && (
+                    <div className="px-6 pt-4 flex flex-wrap gap-2">
+                      {topics.map((tag: any) => {
+                        const tagName = typeof tag === 'string' ? tag : tag?.name || '';
+                        return (
+                          <span key={tagName} className="px-3 py-1 bg-white border border-slate-200 text-slate-600 text-[10px] font-bold uppercase tracking-wider rounded-full">
+                            {tagName}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Bio */}
+                  <div className="p-6 flex-grow">
+                    <p className="text-slate-500 text-sm leading-relaxed font-medium line-clamp-3">
+                      "{bio}"
+                    </p>
+                  </div>
+
+                  {/* Action */}
+                  <div className="p-6 pt-0 mt-auto">
+                    <button 
+                      onClick={() => setSelectedMentor(mentor)}
+                      className="w-full py-4 bg-white border-2 border-slate-900 text-slate-900 rounded-xl font-bold hover:bg-slate-900 hover:text-white transition-colors flex items-center justify-center gap-2 group/btn"
+                    >
+                      Connect <ArrowRight size={18} className="transition-transform group-hover/btn:translate-x-1" />
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Connection Popup Modal */}
@@ -191,8 +223,12 @@ export function PeerMentorsSection() {
                 >
                   <X size={16} />
                 </button>
-                <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border-2 border-white shadow-sm">
-                   <Image src={selectedMentor.image} alt={selectedMentor.name} width={48} height={48} className="object-cover w-full h-full" />
+                <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border-2 border-white shadow-sm bg-primary/10 flex items-center justify-center">
+                  {selectedMentor.image ? (
+                    <Image src={selectedMentor.image} alt={selectedMentor.name} width={48} height={48} className="object-cover w-full h-full" />
+                  ) : (
+                    <span className="text-lg font-bold text-primary">{selectedMentor.name?.charAt(0)?.toUpperCase() || 'P'}</span>
+                  )}
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 leading-tight">Connect with {selectedMentor.name.split(' ')[0]}</h3>

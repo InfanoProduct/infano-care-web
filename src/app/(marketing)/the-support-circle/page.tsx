@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { ArrowRight, ShieldAlert, Heart, Zap, Briefcase, Users, Star, Activity, Rocket } from 'lucide-react';
 import Image from 'next/image';
 import { PeerBanner } from '@/features/marketing/components/sections/the-circle/PeerBanner';
-import { PeerMentorsSection } from '@/features/marketing/components/sections/the-circle/PeerMentorsSection';
 import { ExpertShowcase } from '@/features/marketing/components/sections/the-circle/ExpertShowcase';
 import { Metadata } from 'next';
 
@@ -430,8 +429,6 @@ export default function TheCirclePage() {
         </div>
       </section>
 
-      {/* Section 6.3.5 — Trained Peer Mentors */}
-      {/* <PeerMentorsSection /> */}
 
       {/* Section 6.3.8 — Verified Experts Showcase & Booking */}
       <ExpertShowcase />

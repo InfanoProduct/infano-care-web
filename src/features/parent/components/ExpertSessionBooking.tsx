@@ -763,7 +763,7 @@ export function ExpertSessionBooking({ initialTab }: { initialTab?: 'browse' | '
                         <div className="flex items-center gap-2 flex-wrap">
                           <h4 className="font-black text-slate-900 text-base truncate leading-snug group-hover:text-primary transition-colors">{progName}</h4>
                           <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            Paid ₹{demo.amount || 29}
+                            Paid ₹{demo.amount || 9}
                           </span>
                         </div>
                         <div className="flex items-center gap-2 mt-1">

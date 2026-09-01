@@ -133,7 +133,7 @@ function BookingSuccessContent() {
   const programTitle = searchParams.get('program') || 'our Program';
   const slotDate = searchParams.get('date') || '';
   const slotTime = searchParams.get('time') || '';
-  const amount = searchParams.get('amount') || '29';
+  const amount = searchParams.get('amount') || '9';
   const paymentId = searchParams.get('paymentId') || '';
 
   const purchaseTrackFired = useRef(false);
@@ -143,7 +143,7 @@ function BookingSuccessContent() {
     if (typeof window !== 'undefined' && !purchaseTrackFired.current) {
       purchaseTrackFired.current = true;
       const targetProgramName = programTitle && programTitle !== 'our Program' ? programTitle : 'The Unfiltered Journey';
-      const parsedAmount = parseFloat(amount) || 29;
+      const parsedAmount = parseFloat(amount) || 9;
       const txId = paymentId || `demo_txn_${Date.now()}`;
       const itemId = `demo_${targetProgramName.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`;
 

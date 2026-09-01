@@ -17,9 +17,9 @@ const OPTIONS = [
   },
   {
     title: 'Direct Family Access',
-    desc: "Enrol directly or book a live 1:1 demo session for ₹29. Includes full curriculum access and the parent dashboard.",
+    desc: "Enrol directly or book a live 1:1 demo session for ₹9. Includes full curriculum access and the parent dashboard.",
     icon: <Home size={32} />,
-    linkText: 'Enrol / Book Demo (₹29)',
+    linkText: 'Enrol / Book Demo (₹9)',
     href: '/programs/the-unfiltered-journey',
     color: 'bg-primary/10',
     borderColor: 'border-primary/20',

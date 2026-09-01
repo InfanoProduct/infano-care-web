@@ -308,6 +308,27 @@ export default function ProgramDetailsPage() {
         setFormError("Please select a date for your consultation slot.");
         return false;
       }
+      const parts = slotDate.split('-');
+      if (parts.length === 3) {
+        const [y, m, d] = parts.map(Number);
+        const selected = new Date(y, m - 1, d);
+        selected.setHours(0, 0, 0, 0);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const maxD = new Date(today);
+        maxD.setDate(today.getDate() + 7);
+        maxD.setHours(23, 59, 59, 999);
+
+        if (selected < today) {
+          setFormError("Cannot select a past date for demo booking.");
+          return false;
+        }
+        if (selected > maxD) {
+          setFormError("Demo sessions can only be booked up to 7 days in advance.");
+          return false;
+        }
+      }
       if (!slotTime) {
         setFormError("Please select a time for your consultation slot.");
         return false;

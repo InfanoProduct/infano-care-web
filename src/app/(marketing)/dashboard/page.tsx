@@ -223,6 +223,27 @@ export default function CustomerDashboardOverview() {
       toast.error('Please select a date for your demo.');
       return;
     }
+    const parts = demoSlotDate.split('-');
+    if (parts.length === 3) {
+      const [y, m, d] = parts.map(Number);
+      const selected = new Date(y, m - 1, d);
+      selected.setHours(0, 0, 0, 0);
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const maxD = new Date(today);
+      maxD.setDate(today.getDate() + 7);
+      maxD.setHours(23, 59, 59, 999);
+
+      if (selected < today) {
+        toast.error('Cannot select a past date for demo booking.');
+        return;
+      }
+      if (selected > maxD) {
+        toast.error('Demo sessions can only be booked up to 7 days in advance.');
+        return;
+      }
+    }
     if (!demoSlotTime) {
       toast.error('Please select a time slot.');
       return;

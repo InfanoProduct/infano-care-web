@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
 import { ShopService, Book } from '@/services/shop.service';
 import { useRegion } from '@/hooks/use-region';
 import { BookHero } from '@/features/marketing/components/sections/the-book/BookHero';
@@ -18,26 +17,41 @@ import { FloatingBuyWidget } from '@/features/marketing/components/sections/the-
 import { LivePurchasePrompt } from '@/features/marketing/components/sections/the-book/LivePurchasePrompt';
 import { isAnalyticsEnabled } from '@/components/common/Analytics';
 
+const DEFAULT_BOOK: Book = {
+  id: 'gigi-the-awkward-age',
+  title: 'Gigi — The Awkward Age',
+  description: "India's first illustrated guidebook addressing female puberty with scientific clarity, body-positivity, and self-love. 230 pages of empathetic stories, practical prompts, and expert-backed guidance for girls aged 10–17.",
+  price: 499,
+  priceUS: 19.99,
+  priceUK: 14.99,
+  imageUrl: '/Page-1.png',
+  stock: 100,
+  isActive: true,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString()
+};
+
 export function TheBookClient() {
-  const [book, setBook] = useState<Book | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [book, setBook] = useState<Book>(DEFAULT_BOOK);
   const { region, currencyCode, bookPrice } = useRegion();
 
   useEffect(() => {
+    let isMounted = true;
     const loadData = async () => {
       try {
         const books = await ShopService.getBooks();
-        if (books && books.length > 0) {
+        if (isMounted && books && books.length > 0) {
           const targetBook = books.find(b => b.isActive) || books[0];
           setBook(targetBook);
         }
       } catch (error) {
         console.error('Failed to load book data:', error);
-      } finally {
-        setLoading(false);
       }
     };
     loadData();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -60,14 +74,6 @@ export function TheBookClient() {
       });
     }
   }, [book, region, currencyCode, bookPrice]);
-
-  if (loading || !book) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="animate-spin text-primary" size={48} />
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col min-h-screen">

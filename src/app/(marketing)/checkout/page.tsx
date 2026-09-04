@@ -98,8 +98,18 @@ function CheckoutContent() {
     formatPrice
   } = useRegion();
 
-  const [book, setBook] = useState<Book | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [book, setBook] = useState<Book | null>({
+    id: bookId || 'default',
+    title: 'Gigi — The Awkward Age',
+    description: 'A story of Every Adolescent Girl',
+    price: 499,
+    priceUS: 19.99,
+    priceUK: 14.99,
+    imageUrl: '/Page-1.png',
+    stock: 100,
+    isActive: true
+  });
+  const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});

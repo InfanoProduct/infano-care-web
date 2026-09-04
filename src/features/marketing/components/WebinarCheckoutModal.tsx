@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Script from 'next/script';
 import { ShopService } from '@/services/shop.service';
 import { useAuthStore } from '@/store/auth-store';
+import { useRegion } from '@/hooks/use-region';
 import { Loader2, X, ShieldCheck, AlertCircle, Sparkles, CheckCircle2, User, Mail, Phone, Ticket, Heart, ArrowRight } from 'lucide-react';
 import { isAnalyticsEnabled } from '@/components/common/Analytics';
 
@@ -26,6 +27,7 @@ const COUNTRIES = [
 export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarCheckoutModalProps) {
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
+  const { region, currencyCode } = useRegion();
 
   const [parentName, setParentName] = useState('');
   const [email, setEmail] = useState('');
@@ -146,6 +148,8 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
         pincode: '000000',
         paymentMethod: 'ONLINE' as const,
         userId: user?.id,
+        country: region,
+        currency: currencyCode,
         items: [{ bookId: webinar ? webinar.id : 'webinar-decoding-silence', quantity: 1 }]
       };
 
@@ -160,8 +164,8 @@ export function WebinarCheckoutModal({ isOpen, onClose, webinar }: WebinarChecko
 
         const options = {
           key: order.razorpayKeyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-          amount: order.totalAmount * 100,
-          currency: 'INR',
+          amount: Math.round(order.totalAmount * 100),
+          currency: order.currency || currencyCode,
           name: 'Infano.care',
           description: webinar ? `${webinar.title} Registration` : 'Decoding Her Silence: Parent Webinar Registration',
           order_id: order.razorpayOrderId,

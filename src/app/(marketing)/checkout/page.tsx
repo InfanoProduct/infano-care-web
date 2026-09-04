@@ -211,7 +211,7 @@ function CheckoutContent() {
         } else {
           const books = await ShopService.getBooks();
           if (books && books.length > 0) {
-            const targetBook = books.find(b => b.id === '7e248707-c9e8-462c-a716-99f3852ef8c0') || books[0];
+            const targetBook = books.find(b => b.isActive) || books[0];
             setBook(targetBook);
           } else {
             setBook({
@@ -452,86 +452,50 @@ function CheckoutContent() {
     try {
       let order = cachedOrder;
 
-      if (!order) {
-        let finalPhone = formData.guestPhone.trim();
-        const phoneDigits = finalPhone.replace(/\D/g, '');
-        if (region === 'IN') {
-          if (phoneDigits.length === 10) {
-            finalPhone = `+91${phoneDigits}`;
-          } else if (phoneDigits.length === 12 && phoneDigits.startsWith('91')) {
-            finalPhone = `+${phoneDigits}`;
-          }
-        } else if (region === 'US') {
-          if (phoneDigits.length === 10) {
-            finalPhone = `+1${phoneDigits}`;
-          } else if (phoneDigits.length === 11 && phoneDigits.startsWith('1')) {
-            finalPhone = `+${phoneDigits}`;
-          }
-        } else if (region === 'UK') {
-          if (phoneDigits.length === 10 && !phoneDigits.startsWith('0')) {
-            finalPhone = `+44${phoneDigits}`;
-          } else if (phoneDigits.length === 11 && phoneDigits.startsWith('0')) {
-            finalPhone = `+44${phoneDigits.substring(1)}`;
-          } else if (phoneDigits.length === 12 && phoneDigits.startsWith('44')) {
-            finalPhone = `+${phoneDigits}`;
-          } else if (phoneDigits.length === 13 && phoneDigits.startsWith('440')) {
-            finalPhone = `+44${phoneDigits.substring(3)}`;
-          }
+      let finalPhone = formData.guestPhone.trim();
+      const phoneDigits = finalPhone.replace(/\D/g, '');
+      if (region === 'IN') {
+        if (phoneDigits.length === 10) {
+          finalPhone = `+91${phoneDigits}`;
+        } else if (phoneDigits.length === 12 && phoneDigits.startsWith('91')) {
+          finalPhone = `+${phoneDigits}`;
         }
+      } else if (region === 'US') {
+        if (phoneDigits.length === 10) {
+          finalPhone = `+1${phoneDigits}`;
+        } else if (phoneDigits.length === 11 && phoneDigits.startsWith('1')) {
+          finalPhone = `+${phoneDigits}`;
+        }
+      } else if (region === 'UK') {
+        if (phoneDigits.length === 10 && !phoneDigits.startsWith('0')) {
+          finalPhone = `+44${phoneDigits}`;
+        } else if (phoneDigits.length === 11 && phoneDigits.startsWith('0')) {
+          finalPhone = `+44${phoneDigits.substring(1)}`;
+        } else if (phoneDigits.length === 12 && phoneDigits.startsWith('44')) {
+          finalPhone = `+${phoneDigits}`;
+        } else if (phoneDigits.length === 13 && phoneDigits.startsWith('440')) {
+          finalPhone = `+44${phoneDigits.substring(3)}`;
+        }
+      }
 
+      if (!order) {
         const orderData = {
           ...formData,
           guestPhone: finalPhone,
           userId: user?.id,
           items: [{ bookId: book.id, quantity }],
           couponCode: region === 'IN' ? appliedCoupon?.code : undefined,
-          comments: JSON.stringify({ country: region }), // pass selected country in comments
+          country: region,
+          currency: currencyCode,
+          comments: JSON.stringify({ country: region }),
         };
         order = await ShopService.createOrder(orderData);
-        if (formData.paymentMethod === 'ONLINE' && region === 'IN') {
+        if (formData.paymentMethod === 'ONLINE') {
           setCachedOrder(order);
         }
       }
 
-      // 1. If backend returned Stripe checkout session URL, redirect to Stripe
-      if (order.stripeSessionUrl) {
-        window.location.href = order.stripeSessionUrl;
-        return;
-      }
-
-      // 2. International flow with simulated card payment
-      if (region !== 'IN') {
-        // Simulated Stripe payment delay
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        // Verify simulated order
-        await ShopService.verifyPayment({
-          razorpayOrderId: order.razorpayOrderId || `INT_MOCK_${order.id}`,
-          razorpayPaymentId: 'pay_mock_stripe',
-          razorpaySignature: 'sig_mock_stripe',
-        });
-
-        const successParams = new URLSearchParams({
-          transaction_id: order.id,
-          value: order.totalAmount.toString(),
-          quantity: quantity.toString(),
-          item_id: book.id,
-          item_name: book.title,
-          price: getBookPrice(book, region).toString(),
-          discount: '0',
-          delivery: delivery.toString(),
-          cod_charge: codCharge.toString(),
-          subtotal: (getBookPrice(book, region) * quantity).toString(),
-          payment_method: 'ONLINE',
-          image_url: book.imageUrl || '/Page-1.png'
-        });
-
-        router.push(getLocalizedLink(`/purchase-success?${successParams.toString()}`));
-        setProcessing(false);
-        return;
-      }
-
-      // 3. Indian payment gateway (Razorpay)
+      // Online payment gateway (Razorpay Multi-Currency)
       if (formData.paymentMethod === 'ONLINE' && order.razorpayOrderId) {
         if (typeof (window as any).Razorpay === 'undefined') {
           setError('Payment gateway is still loading. Please wait a few seconds and try again.');
@@ -540,8 +504,8 @@ function CheckoutContent() {
         }
         const options = {
           key: order.razorpayKeyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-          amount: order.totalAmount * 100,
-          currency: 'INR',
+          amount: Math.round(order.totalAmount * 100),
+          currency: order.currency || currencyCode,
           name: 'Infano.care',
           description: `Purchase: ${book.title}`,
           order_id: order.razorpayOrderId,
@@ -558,7 +522,7 @@ function CheckoutContent() {
                 quantity: quantity.toString(),
                 item_id: book.id,
                 item_name: book.title,
-                price: book.price.toString(),
+                price: getBookPrice(book, region).toString(),
                 discount: discountAmount.toString(),
                 delivery: delivery.toString(),
                 cod_charge: codCharge.toString(),
@@ -566,7 +530,7 @@ function CheckoutContent() {
                 payment_method: formData.paymentMethod,
                 image_url: book.imageUrl || '/Page-1.png'
               });
-              router.push(`/purchase-success?${successParams.toString()}`);
+              router.push(getLocalizedLink(`/purchase-success?${successParams.toString()}`));
             } catch (err) {
               setError('Payment verification failed.');
             } finally {
@@ -576,7 +540,7 @@ function CheckoutContent() {
           prefill: {
             name: isAuthenticated ? user?.username : formData.guestName,
             email: formData.guestEmail,
-            contact: formData.guestPhone,
+            contact: finalPhone,
           },
           modal: {
             ondismiss: () => {
@@ -601,7 +565,7 @@ function CheckoutContent() {
           quantity: quantity.toString(),
           item_id: book.id,
           item_name: book.title,
-          price: book.price.toString(),
+          price: getBookPrice(book, region).toString(),
           discount: discountAmount.toString(),
           delivery: delivery.toString(),
           cod_charge: codCharge.toString(),
@@ -609,7 +573,7 @@ function CheckoutContent() {
           payment_method: formData.paymentMethod,
           image_url: book.imageUrl || '/Page-1.png'
         });
-        router.push(`/purchase-success?${successParams.toString()}`);
+        router.push(getLocalizedLink(`/purchase-success?${successParams.toString()}`));
         setProcessing(false);
       }
     } catch (err: any) {
@@ -660,7 +624,7 @@ function CheckoutContent() {
         </div>
       )}
 
-      {region === 'IN' && <Script src="https://checkout.razorpay.com/v1/checkout.js" />}
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" />
       <div className="max-w-6xl mx-auto px-6 relative z-10">
         <Link
           href={getLocalizedLink("/gigi-the-awkward-age-book")}

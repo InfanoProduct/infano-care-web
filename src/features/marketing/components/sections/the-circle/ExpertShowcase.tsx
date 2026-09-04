@@ -9,6 +9,7 @@ import {
   Loader2, CheckCircle2, User, Mail, Phone, Info, ShieldCheck, ArrowRight
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
+import { useRegion } from '@/hooks/use-region';
 import { ParentService } from '@/services/parent.service';
 import toast from 'react-hot-toast';
 
@@ -30,6 +31,7 @@ const SPECIALISATION_FILTERS = [
 
 export function ExpertShowcase() {
   const { user } = useAuthStore();
+  const { currencyCode, formatPrice } = useRegion();
   const isLoggedIn = !!user;
 
   const [experts, setExperts] = useState<Expert[]>([]);
@@ -142,14 +144,15 @@ export function ExpertShowcase() {
     try {
       let order;
       if (isLoggedIn) {
-        order = await ParentService.bookExpertSession(selectedExpert.id, selectedSlot);
+        order = await ParentService.bookExpertSession(selectedExpert.id, selectedSlot, currencyCode);
       } else {
         order = await ParentService.bookPublicExpertSession({
           expertId: selectedExpert.id,
           scheduledAt: selectedSlot,
           name: guestName,
           phone: guestPhone,
-          email: guestEmail
+          email: guestEmail,
+          currency: currencyCode,
         });
       }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 
 export type Region = 'IN' | 'US' | 'UK';
@@ -15,9 +15,10 @@ export interface RegionMetadata {
   countryName: string;
   getLocalizedLink: (href: string) => string;
   formatPrice: (amount?: number, scale?: boolean) => string;
+  changeRegion: (newRegion: Region) => void;
 }
 
-const REGION_CONFIGS: Record<Region, Omit<RegionMetadata, 'getLocalizedLink' | 'formatPrice' | 'region'>> = {
+export const REGION_CONFIGS: Record<Region, Omit<RegionMetadata, 'getLocalizedLink' | 'formatPrice' | 'region' | 'changeRegion'>> = {
   IN: {
     currencySymbol: '₹',
     currencyCode: 'INR',
@@ -50,10 +51,34 @@ const REGION_CONFIGS: Record<Region, Omit<RegionMetadata, 'getLocalizedLink' | '
   },
 };
 
+function detectTimezoneRegion(): Region {
+  if (typeof window === 'undefined') return 'IN';
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    if (tz.startsWith('Asia/Kolkata') || tz.startsWith('Asia/Calcutta') || tz.includes('India')) {
+      return 'IN';
+    }
+    if (tz.startsWith('Europe/London') || tz.includes('London') || tz.includes('GMT')) {
+      return 'UK';
+    }
+    if (tz.startsWith('America/') || tz.startsWith('US/') || tz.includes('New_York') || tz.includes('Los_Angeles') || tz.includes('Chicago')) {
+      return 'US';
+    }
+    // Check browser languages
+    const lang = (navigator.languages ? navigator.languages.join(',') : navigator.language) || '';
+    if (lang.includes('en-GB') || lang.includes('en-UK')) return 'UK';
+    if (lang.includes('en-US')) return 'US';
+    if (lang.includes('en-IN') || lang.includes('hi')) return 'IN';
+  } catch (e) {
+    // ignore
+  }
+  return 'IN';
+}
+
 export function useRegion(): RegionMetadata {
   const pathname = usePathname() || '';
 
-  // 1. Determine base region from pathname (SSR-safe, no suspense)
+  // 1. Determine region strictly from pathname (SSR-safe)
   let baseRegion: Region = 'IN';
   const lowerPath = pathname.toLowerCase();
   if (lowerPath.startsWith('/en-us') || lowerPath.includes('/en-us')) {
@@ -64,22 +89,34 @@ export function useRegion(): RegionMetadata {
 
   const [region, setRegion] = useState<Region>(baseRegion);
 
-  // 2. Client-side hydration/mount logic to read query parameters without suspending the page
+  // 2. Hydration/mount logic for URL pathname or query parameters
   useEffect(() => {
-    let currentRegion = baseRegion;
+    let resolvedRegion = baseRegion;
+
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const rParam = params.get('__region')?.toUpperCase();
-      if (rParam === 'US' || rParam === 'UK') {
-        currentRegion = rParam as Region;
+
+      if (rParam === 'US' || rParam === 'UK' || rParam === 'IN') {
+        resolvedRegion = rParam as Region;
       }
     }
-    if (currentRegion !== region) {
-      setRegion(currentRegion);
+
+    if (resolvedRegion !== region) {
+      setRegion(resolvedRegion);
     }
   }, [pathname, baseRegion]);
 
-  const config = REGION_CONFIGS[region];
+  const changeRegion = useCallback((newRegion: Region) => {
+    setRegion(newRegion);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('infano_region', newRegion);
+      document.cookie = `infano_region=${newRegion}; path=/; max-age=31536000`;
+      window.dispatchEvent(new CustomEvent('infano-region-changed', { detail: newRegion }));
+    }
+  }, []);
+
+  const config = REGION_CONFIGS[region] || REGION_CONFIGS.IN;
 
   const getLocalizedLink = (href: string) => {
     if (region === 'IN') return href;
@@ -113,6 +150,7 @@ export function useRegion(): RegionMetadata {
     ...config,
     getLocalizedLink,
     formatPrice,
+    changeRegion,
   };
 }
 

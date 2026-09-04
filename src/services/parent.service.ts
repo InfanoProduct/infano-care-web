@@ -56,8 +56,8 @@ export const ParentService = {
     return apiClient.get<any>(`/parent/experts/${expertId}/slots`);
   },
 
-  async bookExpertSession(expertId: string, scheduledAt: string): Promise<any> {
-    return apiClient.post<any>('/parent/experts/book', { expertId, scheduledAt });
+  async bookExpertSession(expertId: string, scheduledAt: string, currency?: string, amount?: number): Promise<any> {
+    return apiClient.post<any>('/parent/experts/book', { expertId, scheduledAt, currency, amount });
   },
 
   async verifyExpertSessionPayment(data: {
@@ -103,6 +103,8 @@ export const ParentService = {
     name: string;
     phone: string;
     email: string;
+    currency?: string;
+    amount?: number;
   }): Promise<any> {
     return apiClient.post<any>('/parent/public/experts/book', data);
   },

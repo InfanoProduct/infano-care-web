@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
+import { getCurrencySymbol } from '@/lib/utils';
 
 interface UserOverviewResponse {
   user: {
@@ -714,7 +715,7 @@ export default function UserDetailPage() {
                               <span className="text-[9px] text-slate-400 font-semibold">Quantity: {item.quantity}</span>
                             </div>
                           </div>
-                          <span className="text-xs font-bold text-slate-600">₹{(item.price || 0).toLocaleString('en-IN')}</span>
+                          <span className="text-xs font-bold text-slate-600">{getCurrencySymbol(order)}{(item.price != null ? item.price : (item.book?.price || 0)).toLocaleString('en-IN')}</span>
                         </div>
                       ))}
                     </div>
@@ -724,7 +725,7 @@ export default function UserDetailPage() {
                         Address: {order.shippingAddress}, {order.city}, {order.state} - {order.pincode}
                       </span>
                       <span className="font-bold text-slate-800">
-                        Total: ₹{order.totalAmount.toLocaleString('en-IN')}
+                        Total: {getCurrencySymbol(order)}{order.totalAmount.toLocaleString('en-IN')}
                       </span>
                     </div>
                   </Link>

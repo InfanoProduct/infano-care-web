@@ -37,7 +37,6 @@ interface QuizLessonEditorProps {
   onSave: (e: React.FormEvent) => void;
   onDelete: (id: string, title: string) => void;
   onBackToCourse: () => void;
-  onSwitchType: (type: "VIDEO" | "ASSESSMENT") => void;
   isSubmitting: boolean;
 }
 
@@ -47,7 +46,6 @@ export default function QuizLessonEditor({
   onSave,
   onDelete,
   onBackToCourse,
-  onSwitchType,
   isSubmitting,
 }: QuizLessonEditorProps) {
   // Questions Handlers
@@ -169,22 +167,6 @@ export default function QuizLessonEditor({
       </div>
 
       <form onSubmit={onSave} className="space-y-6">
-        {/* Format Switcher */}
-        <div className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-border/60">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-muted-foreground uppercase">Format:</span>
-            <span className="text-xs font-black text-amber-600 flex items-center gap-1">
-              <FileQuestion size={14} /> Quiz Assessment
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => onSwitchType("VIDEO")}
-            className="text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
-          >
-            <Video size={13} /> Convert to Video Lesson
-          </button>
-        </div>
 
         {/* Lesson Title & Sequence Order */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-5">

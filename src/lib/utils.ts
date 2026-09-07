@@ -111,27 +111,77 @@ export function formatOrderId(id: string | undefined | null): string {
 
 export function getOrderCountry(order: any): string {
   if (!order) return 'IN';
+  if (order.country && typeof order.country === 'string' && order.country.trim()) {
+    const c = order.country.trim().toUpperCase();
+    if (c === 'GB') return 'UK';
+    return c;
+  }
+  if (order.currency && typeof order.currency === 'string') {
+    const cur = order.currency.trim().toUpperCase();
+    if (cur === 'USD') return 'US';
+    if (cur === 'GBP') return 'UK';
+    if (cur === 'EUR') return 'EU';
+    if (cur === 'INR') return 'IN';
+  }
   if (order.comments) {
     try {
       const commentsObj = typeof order.comments === 'string'
         ? JSON.parse(order.comments)
         : order.comments;
-      if (commentsObj && typeof commentsObj === 'object') {
-        if (commentsObj.country) {
-          return String(commentsObj.country).toUpperCase();
-        }
+      if (commentsObj && typeof commentsObj === 'object' && commentsObj.country) {
+        const c = String(commentsObj.country).trim().toUpperCase();
+        if (c === 'GB') return 'UK';
+        return c;
       }
     } catch (e) {
-      // ignore
+      if (typeof order.comments === 'string') {
+        const cleaned = order.comments.trim().toUpperCase();
+        if (cleaned === 'US' || cleaned === 'UK' || cleaned === 'GB' || cleaned === 'IN') {
+          return cleaned === 'GB' ? 'UK' : cleaned;
+        }
+      }
     }
   }
   return 'IN';
 }
 
-export function getCurrencySymbol(country: string): string {
-  switch (country) {
-    case 'US': return '$';
-    case 'UK': return '£';
-    default: return '₹';
+export function getCurrencySymbol(input?: any): string {
+  if (!input) return '₹';
+  if (typeof input === 'object') {
+    const country = getOrderCountry(input);
+    const currency = (input.currency || '').toUpperCase();
+    if (currency === 'USD' || country === 'US') return '$';
+    if (currency === 'GBP' || country === 'UK' || country === 'GB') return '£';
+    if (currency === 'EUR' || country === 'EU') return '€';
+    if (currency === 'CAD') return 'CA$';
+    if (currency === 'AUD') return 'A$';
+    if (currency === 'AED') return 'AED ';
+    return '₹';
+  }
+
+  const str = String(input).trim().toUpperCase();
+  switch (str) {
+    case 'US':
+    case 'USA':
+    case 'USD':
+      return '$';
+    case 'UK':
+    case 'GB':
+    case 'GBP':
+      return '£';
+    case 'EUR':
+    case 'EU':
+      return '€';
+    case 'CAD':
+      return 'CA$';
+    case 'AUD':
+      return 'A$';
+    case 'AED':
+      return 'AED ';
+    case 'IN':
+    case 'IND':
+    case 'INR':
+    default:
+      return '₹';
   }
 }

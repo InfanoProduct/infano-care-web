@@ -41,7 +41,6 @@ interface VideoLessonEditorProps {
   onSave: (e: React.FormEvent) => void;
   onDelete: (id: string, title: string) => void;
   onBackToCourse: () => void;
-  onSwitchType: (type: "VIDEO" | "ASSESSMENT") => void;
   isSubmitting: boolean;
 }
 
@@ -51,7 +50,6 @@ export default function VideoLessonEditor({
   onSave,
   onDelete,
   onBackToCourse,
-  onSwitchType,
   isSubmitting,
 }: VideoLessonEditorProps) {
   const [activeTab, setActiveTab] = useState<"MEDIA" | "FACTS" | "FAQS">("MEDIA");
@@ -152,22 +150,6 @@ export default function VideoLessonEditor({
       </div>
 
       <form onSubmit={onSave} className="space-y-6">
-        {/* Format Switcher */}
-        <div className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-border/60">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-muted-foreground uppercase">Format:</span>
-            <span className="text-xs font-black text-blue-600 flex items-center gap-1">
-              <Video size={14} /> Video Lesson
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => onSwitchType("ASSESSMENT")}
-            className="text-xs font-bold text-amber-600 hover:text-amber-700 bg-amber-500/10 hover:bg-amber-500/20 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
-          >
-            <FileQuestion size={13} /> Convert to Quiz Assessment
-          </button>
-        </div>
 
         {/* Lesson Title & Sequence Order */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-5">

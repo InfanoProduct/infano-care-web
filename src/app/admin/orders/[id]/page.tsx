@@ -205,7 +205,7 @@ export default function OrderDetailPage() {
   const showManualPaymentInput = isFailed || isPendingCod;
 
   const country = order ? getOrderCountry(order) : 'IN';
-  const currencySymbol = getCurrencySymbol(country);
+  const currencySymbol = order ? getCurrencySymbol(order) : '₹';
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-12">
@@ -385,7 +385,7 @@ export default function OrderDetailPage() {
                 const title = book.title || item.bookTitle || item.name || item.bookId || 'Product Item';
                 const isProgram = !!((book as any).curriculum?.length || book.classRange || book.duration || (book.title && book.title.toLowerCase().includes('program')));
                 const isbnId = (book.id || item.bookId || 'unknown').toString().slice(0, 6).toUpperCase();
-                const unitPrice = item.price || book.price || 0;
+                const unitPrice = item.price != null ? item.price : (book.price || 0);
 
                 return (
                   <div key={item.id} className="p-5 flex gap-4 items-start">

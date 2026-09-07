@@ -95,36 +95,29 @@ export default function CourseOverviewEditor({
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-5">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-black">
-            <BookOpen size={20} />
-          </div>
-          <div>
-            <h2 className="text-xl font-black text-foreground">Course Overview & Settings</h2>
-            <p className="text-xs text-muted-foreground">
-              Configure course metadata, category, pricing, banner, and student takeaways.
-            </p>
-          </div>
+      <div className="flex items-center gap-3 border-b border-border/60 pb-5">
+        <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-black shrink-0">
+          <BookOpen size={20} />
         </div>
-
-        <button
-          type="button"
-          onClick={() => onSave()}
-          disabled={isSubmitting}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-bold text-xs shadow-md shadow-primary/20 transition-all disabled:opacity-50"
-        >
-          <Save size={14} /> {isSubmitting ? "Saving..." : "Save Course Settings"}
-        </button>
+        <div>
+          <h2 className="text-xl font-black text-foreground">Course Overview & Settings</h2>
+          <p className="text-xs text-muted-foreground">
+            Configure course metadata, category, pricing, banner, and student takeaways.
+          </p>
+        </div>
       </div>
 
       <form onSubmit={onSave} className="space-y-6">
         {/* Course Title */}
         <div className="space-y-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
-            <span>Course Title <span className="text-destructive">*</span></span>
-            <span className="text-[11px] text-muted-foreground lowercase">displayed on course catalog</span>
-          </label>
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Course Title <span className="text-destructive">*</span>
+            </span>
+            <span className="text-[11px] text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
+              displayed on course catalog
+            </span>
+          </div>
           <input
             type="text"
             name="title"

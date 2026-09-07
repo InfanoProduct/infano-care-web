@@ -27,7 +27,7 @@ interface CurriculumSidebarProps {
   onSelectModule: (mod: any) => void;
   onSelectChapter: (moduleId: string, chap: any) => void;
   onAddModule: () => void;
-  onAddChapter: (moduleId: string) => void;
+  onAddChapter: (moduleId: string, type: "VIDEO" | "ASSESSMENT") => void;
   onDeleteModule: (moduleId: string, title: string) => void;
   onDeleteChapter: (chapterId: string, title: string) => void;
   onMoveModule: (index: number, direction: "UP" | "DOWN", e: React.MouseEvent) => void;
@@ -338,14 +338,21 @@ export default function CurriculumSidebar({
                     );
                   })}
 
-                  {/* Add Lesson to this module button */}
-                  <div className="p-2 pl-6">
+                  {/* Add Lesson / Quiz to this module buttons */}
+                  <div className="p-2 pl-6 flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => onAddChapter(mod.id)}
-                      className="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:text-primary/80 transition-colors"
+                      onClick={() => onAddChapter(mod.id, "VIDEO")}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700 bg-blue-500/10 hover:bg-blue-500/20 px-2 py-1 rounded-md transition-colors"
                     >
-                      <Plus size={12} /> Add Lesson / Quiz
+                      <Plus size={11} /> Video Lesson
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onAddChapter(mod.id, "ASSESSMENT")}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 hover:text-amber-800 bg-amber-500/10 hover:bg-amber-500/20 px-2 py-1 rounded-md transition-colors"
+                    >
+                      <Plus size={11} /> Quiz Assessment
                     </button>
                   </div>
                 </div>

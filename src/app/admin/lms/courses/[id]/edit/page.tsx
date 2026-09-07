@@ -6,15 +6,11 @@ import Link from "next/link";
 import {
   ArrowLeft,
   ChevronRight,
-  Eye,
-  EyeOff,
   Save,
   BookOpen,
   Layers,
   Video,
   FileQuestion,
-  CheckCircle2,
-  Sparkles,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { apiClient } from "@/lib/api-client";
@@ -23,7 +19,6 @@ import CourseOverviewEditor from "@/components/admin/lms/CourseOverviewEditor";
 import ModuleEditor from "@/components/admin/lms/ModuleEditor";
 import VideoLessonEditor from "@/components/admin/lms/VideoLessonEditor";
 import QuizLessonEditor from "@/components/admin/lms/QuizLessonEditor";
-import StudentPreviewInspector from "@/components/admin/lms/StudentPreviewInspector";
 
 export default function EditCoursePage(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
@@ -31,7 +26,6 @@ export default function EditCoursePage(props: { params: Promise<{ id: string }> 
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPreviewInspector, setShowPreviewInspector] = useState(true);
 
   // Master Course Form State
   const [formData, setFormData] = useState({
@@ -202,14 +196,14 @@ export default function EditCoursePage(props: { params: Promise<{ id: string }> 
     setActiveView("CHAPTER");
   };
 
-  const handleAddChapter = (moduleId: string) => {
+  const handleAddChapter = (moduleId: string, type: "VIDEO" | "ASSESSMENT" = "VIDEO") => {
     setActiveModuleIdForChapter(moduleId);
     const parentMod = modules.find((m) => m.id === moduleId);
     setCurrentChapter({
       id: undefined,
       title: "",
       description: "",
-      type: "VIDEO",
+      type: type,
       order: (parentMod?.chapters?.length || 0) + 1,
       thumbnailUrl: "",
       videoUrl: "",
@@ -355,7 +349,7 @@ export default function EditCoursePage(props: { params: Promise<{ id: string }> 
   }
 
   return (
-    <div className="max-w-[1600px] mx-auto space-y-5 pb-16 animate-in fade-in duration-500 px-2 sm:px-4">
+    <div className="max-w-7xl mx-auto space-y-5 pb-16 animate-in fade-in duration-500 px-2 sm:px-4">
       {/* Top Sticky Studio Control Bar */}
       <div className="bg-card rounded-2xl border border-border/70 p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-2 z-20 backdrop-blur-md bg-card/95">
         {/* Left: Back Link & Breadcrumbs */}
@@ -373,7 +367,7 @@ export default function EditCoursePage(props: { params: Promise<{ id: string }> 
             <button
               type="button"
               onClick={() => setActiveView("COURSE")}
-              className={`font-black hover:text-primary transition-colors truncate max-w-[200px] ${
+              className={`font-black hover:text-primary transition-colors truncate max-w-[240px] ${
                 activeView === "COURSE" ? "text-primary" : "text-foreground"
               }`}
             >
@@ -386,7 +380,7 @@ export default function EditCoursePage(props: { params: Promise<{ id: string }> 
                 <button
                   type="button"
                   onClick={() => handleSelectModule(activeModule)}
-                  className={`font-bold hover:text-primary transition-colors truncate max-w-[180px] ${
+                  className={`font-bold hover:text-primary transition-colors truncate max-w-[200px] ${
                     activeView === "MODULE" ? "text-primary" : "text-muted-foreground"
                   }`}
                 >
@@ -398,7 +392,7 @@ export default function EditCoursePage(props: { params: Promise<{ id: string }> 
             {activeView === "CHAPTER" && currentChapter && (
               <>
                 <ChevronRight size={13} className="text-muted-foreground shrink-0" />
-                <span className="font-bold text-primary truncate max-w-[200px]">
+                <span className="font-bold text-primary truncate max-w-[240px]">
                   {currentChapter.title || "New Lesson"}
                 </span>
               </>
@@ -406,38 +400,42 @@ export default function EditCoursePage(props: { params: Promise<{ id: string }> 
           </div>
         </div>
 
-        {/* Right: Toggle Preview & Global Save */}
+        {/* Right: Global Dynamic Save */}
         <div className="flex items-center gap-2.5 shrink-0">
           <button
             type="button"
-            onClick={() => setShowPreviewInspector((prev) => !prev)}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all ${
-              showPreviewInspector
-                ? "bg-primary/10 border-primary/40 text-primary"
-                : "bg-muted/60 border-border text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {showPreviewInspector ? <Eye size={14} /> : <EyeOff size={14} />}
-            <span className="hidden sm:inline">
-              {showPreviewInspector ? "Inspector On" : "Inspector Off"}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleSaveCourse()}
+            onClick={() => {
+              if (activeView === "COURSE") {
+                handleSaveCourse();
+              } else if (activeView === "MODULE") {
+                const e = { preventDefault: () => {} } as any;
+                handleSaveModule(e);
+              } else if (activeView === "CHAPTER") {
+                const e = { preventDefault: () => {} } as any;
+                handleSaveChapter(e);
+              }
+            }}
             disabled={isSubmitting}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-bold text-xs shadow-sm shadow-primary/20 transition-all disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-bold text-xs shadow-md shadow-primary/20 transition-all disabled:opacity-50"
           >
-            <Save size={14} /> {isSubmitting ? "Saving..." : "Save Course"}
+            <Save size={15} />
+            {isSubmitting
+              ? "Saving..."
+              : activeView === "COURSE"
+              ? "Save Course Settings"
+              : activeView === "MODULE"
+              ? "Save Module"
+              : currentChapter?.type === "VIDEO"
+              ? "Save Video Lesson"
+              : "Save Quiz Assessment"}
           </button>
         </div>
       </div>
 
-      {/* 3-Zone Studio Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Zone 1: Curriculum Hierarchy Tree (3 cols on large screen) */}
-        <div className="lg:col-span-3">
+      {/* 2-Column Split Studio Grid: Sidebar Tree + Dedicated Workspace Canvas */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left: Curriculum Hierarchy Tree (4 cols on desktop) */}
+        <div className="lg:col-span-4">
           <CurriculumSidebar
             courseTitle={formData.title}
             modules={modules}
@@ -456,12 +454,8 @@ export default function EditCoursePage(props: { params: Promise<{ id: string }> 
           />
         </div>
 
-        {/* Zone 2: Focused Workspace Canvas (6 cols if preview is on, 9 cols if preview is off) */}
-        <div
-          className={`${
-            showPreviewInspector ? "lg:col-span-6" : "lg:col-span-9"
-          } bg-card rounded-2xl border border-border/70 shadow-xs p-6 sm:p-8 min-h-[640px]`}
-        >
+        {/* Right: Focused Workspace Canvas (8 cols on desktop) */}
+        <div className="lg:col-span-8 bg-card rounded-2xl border border-border/70 shadow-xs p-6 sm:p-8 min-h-[640px]">
           {activeView === "COURSE" && (
             <CourseOverviewEditor
               formData={formData}
@@ -479,7 +473,7 @@ export default function EditCoursePage(props: { params: Promise<{ id: string }> 
               onDelete={handleDeleteModule}
               onBackToCourse={() => setActiveView("COURSE")}
               onOpenChapter={(mId, chap) =>
-                chap ? handleSelectChapter(mId, chap) : handleAddChapter(mId)
+                chap ? handleSelectChapter(mId, chap) : handleAddChapter(mId, "VIDEO")
               }
               isSubmitting={isSubmitting}
             />
@@ -494,9 +488,6 @@ export default function EditCoursePage(props: { params: Promise<{ id: string }> 
                 onSave={handleSaveChapter}
                 onDelete={handleDeleteChapter}
                 onBackToCourse={() => setActiveView("COURSE")}
-                onSwitchType={(type) =>
-                  setCurrentChapter((prev: any) => ({ ...prev, type }))
-                }
                 isSubmitting={isSubmitting}
               />
             )}
@@ -510,25 +501,10 @@ export default function EditCoursePage(props: { params: Promise<{ id: string }> 
                 onSave={handleSaveChapter}
                 onDelete={handleDeleteChapter}
                 onBackToCourse={() => setActiveView("COURSE")}
-                onSwitchType={(type) =>
-                  setCurrentChapter((prev: any) => ({ ...prev, type }))
-                }
                 isSubmitting={isSubmitting}
               />
             )}
         </div>
-
-        {/* Zone 3: Live Student Preview & Inspector (3 cols, toggleable) */}
-        {showPreviewInspector && (
-          <div className="lg:col-span-3">
-            <StudentPreviewInspector
-              activeView={activeView}
-              courseData={formData}
-              currentModule={currentModule}
-              currentChapter={currentChapter}
-            />
-          </div>
-        )}
       </div>
     </div>
   );

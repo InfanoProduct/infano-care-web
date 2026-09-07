@@ -305,7 +305,7 @@ export default function OrderDetailsPage() {
                     href="/dashboard/enrolled-programs"
                     className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-primary hover:bg-primary-dark text-white font-extrabold text-xs rounded-full shadow-md transition-all whitespace-nowrap active:scale-95"
                   >
-                    Go to Enrolled Programs <ArrowRight size={13} />
+                    Go to My Programs <ArrowRight size={13} />
                   </Link>
                 </div>
               )}

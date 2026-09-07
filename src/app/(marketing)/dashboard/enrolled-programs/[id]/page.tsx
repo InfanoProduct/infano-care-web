@@ -118,7 +118,7 @@ export default function EnrolledProgramDetailsPage() {
         className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-primary transition-colors group mb-2"
       >
         <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform duration-300" /> 
-        Back to Enrolled Programs
+        Back to My Programs
       </Link>
 
       <div className="bg-white border border-slate-100 rounded-[28px] shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">

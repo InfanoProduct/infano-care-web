@@ -514,7 +514,7 @@ export default function AdminOrdersPage() {
                       <div className="text-xs text-muted-foreground">{order.guestPhone || order.user?.phone || 'No Phone'}</div>
                     </td>
                     <td className="px-6 py-5">
-                      <div className="font-bold text-sm text-foreground">{getCurrencySymbol(getOrderCountry(order))}{order.totalAmount}</div>
+                      <div className="font-bold text-sm text-foreground">{getCurrencySymbol(order)}{order.totalAmount}</div>
                     </td>
                     <td className="px-6 py-5">
                       <div className="flex flex-col gap-1">

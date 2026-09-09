@@ -14,12 +14,14 @@ import Link from "next/link";
 import Script from "next/script";
 import { toast } from "react-hot-toast";
 import { useAuthStore } from "@/store/auth-store";
+import { useRegion } from "@/hooks/use-region";
 import { apiClient } from "@/lib/api-client";
 
 export default function MarketingCourseDetailPage() {
     const { id } = useParams();
     const router = useRouter();
     const { token, user, isAuthenticated } = useAuthStore();
+    const { currencyCode, formatPrice } = useRegion();
     const [course, setCourse] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isPurchasing, setIsPurchasing] = useState(false);
@@ -174,7 +176,8 @@ export default function MarketingCourseDetailPage() {
                 name: enrollForm.name,
                 email: enrollForm.email,
                 phone: enrollForm.phone,
-                courseId: course.id
+                courseId: course.id,
+                currency: currencyCode,
             }) as any;
 
             if (course.isFree || !purchaseRes.razorpay) {
@@ -189,8 +192,8 @@ export default function MarketingCourseDetailPage() {
 
             const options = {
                 key: keyId,
-                amount,
-                currency,
+                amount: Math.round((amount || course.price) * 100),
+                currency: currency || currencyCode,
                 name: "Infano Care",
                 description: `Enroll in ${course.title}`,
                 order_id: orderId,

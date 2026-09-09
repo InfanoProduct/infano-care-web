@@ -145,7 +145,7 @@ interface ParentsEnquiryFormProps {
 export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsEnquiryFormProps) {
   const router = useRouter();
   const [internalPhase, setInternalPhase] = useState<'role-check' | 'questions' | 'recommendation' | 'success'>('questions');
-  const { formatPrice } = useRegion();
+  const { formatPrice, currencyCode, region } = useRegion();
   
   const phase = propPhase !== undefined ? propPhase : internalPhase;
   const setPhase = (newPhase: 'role-check' | 'questions' | 'recommendation' | 'success') => {
@@ -367,7 +367,9 @@ export function ParentsEnquiryForm({ phase: propPhase, onPhaseChange }: ParentsE
         parentInvolvement: answers.parentInvolvement,
         suggestedPrograms: programFormats,
         slotDate: formattedDateStr,
-        slotTime: selectedTime
+        slotTime: selectedTime,
+        currency: currencyCode,
+        country: region,
       });
 
       const razorpayInfo = result.razorpay;

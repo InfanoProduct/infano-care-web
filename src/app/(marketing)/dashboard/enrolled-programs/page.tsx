@@ -27,7 +27,7 @@ export default function EnrolledProgramsPage() {
       const res = await ProgramsService.getUserEnrollments().catch(() => ({ success: true, data: [] }));
       setEnrollments(res.data || []);
     } catch {
-      toast.error('Failed to load enrolled programs.');
+      toast.error('Failed to load programs.');
     } finally {
       setLoading(false);
     }
@@ -48,7 +48,7 @@ export default function EnrolledProgramsPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Layers size={18} className="text-primary" /> Enrolled Programs</h1>
+          <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Layers size={18} className="text-primary" /> My Programs</h1>
           <p className="text-xs font-medium text-slate-400 mt-1">Your active program enrollments and session timeline</p>
         </div>
         <div className="bg-white border border-slate-100 rounded-xl p-10 text-center shadow-sm space-y-3.5">
@@ -68,7 +68,7 @@ export default function EnrolledProgramsPage() {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto pb-8">
       <div>
-        <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Layers size={20} className="text-primary" /> Enrolled Programs</h1>
+        <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Layers size={20} className="text-primary" /> My Programs</h1>
         <p className="text-xs font-medium text-slate-505 mt-1">Click a program to view its full session timeline and details</p>
       </div>
 

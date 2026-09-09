@@ -8,7 +8,7 @@ import {
   XCircle, Phone, Mail, AlertCircle, Receipt, ExternalLink, Send,
   Loader2
 } from 'lucide-react';
-import { formatIndianDate } from '@/lib/utils';
+import { formatIndianDate, getCurrencySymbol } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
 
@@ -216,15 +216,15 @@ export default function WebinarRegistrationDetailPage() {
             <div className="space-y-4 text-xs font-semibold text-slate-700">
               <div className="flex justify-between items-center">
                 <span className="text-slate-400">Webinar Ticket Price</span>
-                <span className="text-slate-800">₹{order.totalAmount}</span>
+                <span className="text-slate-800">{getCurrencySymbol(order)}{order.totalAmount}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-400">Taxes & Fees</span>
-                <span className="text-slate-800">₹0</span>
+                <span className="text-slate-800">{getCurrencySymbol(order)}0</span>
               </div>
               <div className="border-t border-slate-100 pt-4 flex justify-between items-center font-bold">
                 <span className="text-slate-900 font-black">Total Paid Amount</span>
-                <span className="text-primary text-sm font-black">₹{order.totalAmount}</span>
+                <span className="text-primary text-sm font-black">{getCurrencySymbol(order)}{order.totalAmount}</span>
               </div>
             </div>
 

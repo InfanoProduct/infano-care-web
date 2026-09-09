@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { FileText } from 'lucide-react';
+import { getCurrencySymbol } from '@/lib/utils';
 
 interface InvoiceModalProps {
   isOpen: boolean;
@@ -12,6 +13,8 @@ interface InvoiceModalProps {
 
 export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps) {
   if (!isOpen || !data) return null;
+
+  const currencySymbol = type === 'PROGRAM' ? '₹' : getCurrencySymbol(data);
 
   const invoiceNo = type === 'PROGRAM' 
     ? `INF-PRG-${data.id.slice(-6).toUpperCase()}` 
@@ -105,7 +108,8 @@ export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps)
     const items = data.items || [];
     
     items.forEach((item: any) => {
-      const itemTotal = item.price * item.quantity;
+      const itemPrice = item.price != null ? item.price : (item.book?.price || 0);
+      const itemTotal = itemPrice * item.quantity;
       const itemDiscount = data.subtotal > 0 ? (itemTotal / data.subtotal) * discountAmt : 0;
       const finalItemTotal = itemTotal - itemDiscount;
       
@@ -122,7 +126,7 @@ export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps)
         name: item.book?.title || item.bookTitle || 'Gigi: The Awkward Age Book',
         hsn: isProg ? '999299' : '4901',
         qty: item.quantity,
-        rate: Math.round((item.price / (1 + taxRate)) * 100) / 100,
+        rate: Math.round((itemPrice / (1 + taxRate)) * 100) / 100,
         taxableVal,
         cgstRate: gstPercent / 2,
         cgstAmt,
@@ -346,12 +350,12 @@ export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps)
                     </td>
                     <td className="py-3 px-2 text-center text-slate-500 font-semibold font-mono">{item.hsn}</td>
                     <td className="py-3 px-2 text-center font-bold text-slate-900">{item.qty}</td>
-                    <td className="py-3 px-2 text-right font-mono">₹{item.rate.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    <td className="py-3 px-2 text-right font-mono">{currencySymbol}{item.rate.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                     <td className="py-3 px-2 text-center text-slate-400 font-bold">{item.cgstRate}%</td>
-                    <td className="py-3 px-2 text-right font-mono text-slate-600">₹{item.cgstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    <td className="py-3 px-2 text-right font-mono text-slate-600">{currencySymbol}{item.cgstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                     <td className="py-3 px-2 text-center text-slate-400 font-bold">{item.sgstRate}%</td>
-                    <td className="py-3 px-2 text-right font-mono text-slate-600">₹{item.sgstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                    <td className="py-3 px-3 text-right font-black text-slate-900 font-mono">₹{item.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    <td className="py-3 px-2 text-right font-mono text-slate-600">{currencySymbol}{item.sgstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    <td className="py-3 px-3 text-right font-black text-slate-900 font-mono">{currencySymbol}{item.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                   </tr>
                 ))}
               </tbody>
@@ -363,19 +367,19 @@ export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps)
             <div className="w-72 bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-2 text-slate-600 font-semibold">
               <div className="flex justify-between text-[10px]">
                 <span>Total Taxable Value:</span>
-                <span className="font-mono text-slate-800">₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                <span className="font-mono text-slate-800">{currencySymbol}{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between text-[10px]">
                 <span>CGST Total:</span>
-                <span className="font-mono text-slate-800">₹{cgstTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                <span className="font-mono text-slate-800">{currencySymbol}{cgstTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between text-[10px]">
                 <span>SGST Total:</span>
-                <span className="font-mono text-slate-800">₹{sgstTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                <span className="font-mono text-slate-800">{currencySymbol}{sgstTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between text-xs font-black text-slate-950 pt-2 border-t border-slate-200">
                 <span>Grand Total:</span>
-                <span className="font-mono text-primary text-sm">₹{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                <span className="font-mono text-primary text-sm">{currencySymbol}{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
             </div>
           </div>

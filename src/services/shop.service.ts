@@ -52,11 +52,16 @@ export interface CreateOrderRequest {
   paymentMethod: 'ONLINE' | 'COD';
   items: OrderItem[];
   comments?: string;
+  currency?: string;
+  country?: string;
+  couponCode?: string;
+  gstNumber?: string;
 }
 
 export interface OrderResponse {
   id: string;
   totalAmount: number;
+  currency?: string;
   razorpayOrderId?: string;
   paymentMethod: string;
   stripeSessionUrl?: string;

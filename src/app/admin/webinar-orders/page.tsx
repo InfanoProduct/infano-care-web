@@ -9,7 +9,7 @@ import {
   Loader2, Eye
 } from 'lucide-react';
 import Link from 'next/link';
-import { formatIndianDate } from '@/lib/utils';
+import { formatIndianDate, getCurrencySymbol } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
 
 export default function AdminWebinarRegistrationsPage() {
@@ -243,7 +243,7 @@ export default function AdminWebinarRegistrationsPage() {
                       </td>
                       <td className="px-6 py-5">
                         <div className="font-bold text-sm text-foreground">Pass #{(reg.id || '').slice(-8).toUpperCase()}</div>
-                        <div className="text-[11px] text-muted-foreground mt-1">Amt: ₹{reg.totalAmount}</div>
+                        <div className="text-[11px] text-muted-foreground mt-1">Amt: {getCurrencySymbol(reg)}{reg.totalAmount}</div>
                       </td>
                       <td className="px-6 py-5">
                         <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold ${

@@ -100,6 +100,8 @@ export interface DemoSession {
   slotTime: string | null;
   status: string;
   amount?: number;
+  currency?: string;
+  country?: string;
   paymentStatus?: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED' | string;
   paymentMethod?: 'ONLINE' | 'COD' | string;
   razorpayOrderId?: string | null;

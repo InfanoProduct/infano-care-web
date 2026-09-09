@@ -12,6 +12,7 @@ import { ProgramsService } from '@/services/programs.service';
 import { useAuthStore } from '@/store/auth-store';
 import Link from 'next/link';
 import { InvoiceModal } from '@/components/common/InvoiceModal';
+import { getCurrencySymbol } from '@/lib/utils';
 
 export default function OrderDetailsPage() {
   const params = useParams();
@@ -94,6 +95,8 @@ export default function OrderDetailsPage() {
   }
 
   const { type, data } = order;
+
+  const currencySymbol = type === 'PROGRAM' ? '₹' : getCurrencySymbol(data);
 
   // For programs, calculate taxes (18% inclusive GST)
   const pricePaid = type === 'PROGRAM' ? data.pricePaid : 0;
@@ -224,9 +227,9 @@ export default function OrderDetailsPage() {
                             </p>
                           )}
 
-                          <div className="flex items-center justify-between pt-2">
+                            <div className="flex items-center justify-between pt-2">
                             <span className="text-xs font-bold text-slate-400">Quantity: <span className="text-slate-700 font-extrabold">{it.quantity}</span></span>
-                            <span className="font-black text-slate-900">₹{(it.price || (data.totalAmount / it.quantity)).toLocaleString('en-IN')}</span>
+                            <span className="font-black text-slate-900">{currencySymbol}{(it.price != null ? it.price : (data.totalAmount / (it.quantity || 1))).toLocaleString('en-IN')}</span>
                           </div>
                         </div>
                       </div>
@@ -302,7 +305,7 @@ export default function OrderDetailsPage() {
                     href="/dashboard/enrolled-programs"
                     className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-primary hover:bg-primary-dark text-white font-extrabold text-xs rounded-full shadow-md transition-all whitespace-nowrap active:scale-95"
                   >
-                    Go to Enrolled Programs <ArrowRight size={13} />
+                    Go to My Programs <ArrowRight size={13} />
                   </Link>
                 </div>
               )}
@@ -326,25 +329,25 @@ export default function OrderDetailsPage() {
                   <div className="flex justify-between">
                     <span>Subtotal</span>
                     <span className="text-slate-850 font-bold">
-                      ₹{type === 'PROGRAM' ? programTaxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : data.subtotal?.toLocaleString('en-IN')}
+                      {currencySymbol}{type === 'PROGRAM' ? programTaxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : data.subtotal?.toLocaleString('en-IN')}
                     </span>
                   </div>
                   {type === 'BOOK' && data.discountAmount > 0 && (
                     <div className="flex justify-between text-emerald-650">
                       <span>Discount applied</span>
-                      <span>-₹{data.discountAmount?.toLocaleString('en-IN')}</span>
+                      <span>-{currencySymbol}{data.discountAmount?.toLocaleString('en-IN')}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
                     <span>Taxable Value</span>
                     <span className="text-slate-850 font-bold">
-                      ₹{type === 'PROGRAM' ? programTaxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : data.taxableAmount?.toLocaleString('en-IN')}
+                      {currencySymbol}{type === 'PROGRAM' ? programTaxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : data.taxableAmount?.toLocaleString('en-IN')}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>GST ({type === 'PROGRAM' ? '18%' : '5%'})</span>
                     <span className="text-slate-850 font-bold">
-                      ₹{type === 'PROGRAM' ? programGstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : data.gstAmount?.toLocaleString('en-IN')}
+                      {currencySymbol}{type === 'PROGRAM' ? programGstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : data.gstAmount?.toLocaleString('en-IN')}
                     </span>
                   </div>
                 </div>
@@ -352,7 +355,7 @@ export default function OrderDetailsPage() {
                 <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
                   <span className="font-extrabold text-slate-800 text-sm">Grand Total</span>
                   <span className="font-black text-primary text-xl">
-                    ₹{type === 'PROGRAM' ? pricePaid.toLocaleString('en-IN') : data.totalAmount?.toLocaleString('en-IN')}
+                    {currencySymbol}{type === 'PROGRAM' ? pricePaid.toLocaleString('en-IN') : data.totalAmount?.toLocaleString('en-IN')}
                   </span>
                 </div>
 

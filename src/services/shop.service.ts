@@ -66,6 +66,9 @@ export interface OrderResponse {
   paymentMethod: string;
   stripeSessionUrl?: string;
   razorpayKeyId?: string;
+  // PayPal (US/UK orders)
+  paypalOrderId?: string | null;
+  paypalClientId?: string;
 }
 
 export interface Webinar {
@@ -111,6 +114,14 @@ export const ShopService = {
     razorpaySignature: string;
   }): Promise<any> {
     return apiClient.post('/shop/orders/verify', data);
+  },
+
+  /**
+   * Captures an approved PayPal order.
+   * Called by the frontend after paypal.Buttons() onApprove fires.
+   */
+  async capturePaypalOrder(data: { paypalOrderId: string }): Promise<any> {
+    return apiClient.post('/shop/orders/paypal-capture', data);
   },
 
   async getUserOrders(): Promise<any[]> {

@@ -125,6 +125,9 @@ function CheckoutContent() {
   const [paymentFailedReason, setPaymentFailedReason] = useState('');
   const rzpRef = React.useRef<any>(null);
   const [pincodeLoading, setPincodeLoading] = useState(false);
+  const [paypalReady, setPaypalReady] = useState(false);
+  const [intlPaymentMethod, setIntlPaymentMethod] = useState<'CARD' | 'PAYPAL'>('CARD');
+  const paypalContainerRef = React.useRef<HTMLDivElement>(null);
 
   const [quantity, setQuantity] = useState(1);
   const [formData, setFormData] = useState({
@@ -139,13 +142,6 @@ function CheckoutContent() {
     gstNumber: '',
   });
 
-  // Credit Card Simulated Form State
-  const [cardData, setCardData] = useState({
-    cardName: '',
-    cardNumber: '',
-    cardExpiry: '',
-    cardCvc: ''
-  });
 
   useEffect(() => {
     if (nameParam || phoneParam || emailParam || user) {
@@ -193,16 +189,6 @@ function CheckoutContent() {
       });
     }
   }, [nameParam, phoneParam, emailParam, user, region]);
-
-  // If region is US or UK, force online payment method
-  useEffect(() => {
-    if (region !== 'IN') {
-      setFormData(prev => {
-        if (prev.paymentMethod === 'ONLINE') return prev;
-        return { ...prev, paymentMethod: 'ONLINE' };
-      });
-    }
-  }, [region]);
 
   useEffect(() => {
     setCachedOrder(null);
@@ -328,25 +314,6 @@ function CheckoutContent() {
     }
   };
 
-  const handleCardInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    let formattedValue = value;
-    if (name === 'cardNumber') {
-      formattedValue = value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim().substring(0, 19);
-    } else if (name === 'cardExpiry') {
-      formattedValue = value.replace(/\D/g, '');
-      if (formattedValue.length > 2) {
-        formattedValue = `${formattedValue.substring(0, 2)} / ${formattedValue.substring(2, 4)}`;
-      }
-      formattedValue = formattedValue.substring(0, 7);
-    } else if (name === 'cardCvc') {
-      formattedValue = value.replace(/\D/g, '').substring(0, 4);
-    }
-    setCardData(prev => ({ ...prev, [name]: formattedValue }));
-    if (formErrors[name]) {
-      setFormErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
 
   const applyCoupon = async () => {
     if (!couponCode || !book) return;
@@ -388,68 +355,214 @@ function CheckoutContent() {
 
   const { subtotal, gst, delivery, codCharge, total } = calculateTotal();
 
+  // Refs for PayPal callbacks to always access the freshest data without re-rendering buttons
+  const formDataRef = React.useRef(formData);
+  const bookRef = React.useRef(book);
+  const quantityRef = React.useRef(quantity);
+  const totalRef = React.useRef(total);
+  const deliveryRef = React.useRef(delivery);
+  const subtotalRef = React.useRef(subtotal);
+  const userRef = React.useRef(user);
+  const currentOrderRef = React.useRef<any>(null);
+
+  useEffect(() => { formDataRef.current = formData; }, [formData]);
+  useEffect(() => { bookRef.current = book; }, [book]);
+  useEffect(() => { quantityRef.current = quantity; }, [quantity]);
+  useEffect(() => { totalRef.current = total; }, [total]);
+  useEffect(() => { deliveryRef.current = delivery; }, [delivery]);
+  useEffect(() => { subtotalRef.current = subtotal; }, [subtotal]);
+  useEffect(() => { userRef.current = user; }, [user]);
+
   const validateForm = () => {
+    const curForm = formDataRef.current;
     const errors: Record<string, string> = {};
-    if (!formData.guestName.trim()) errors.guestName = 'Full name is required';
+    if (!curForm.guestName.trim()) errors.guestName = 'Full name is required';
     
     // Phone Validation
-    const digits = formData.guestPhone.replace(/\D/g, '');
+    const digits = curForm.guestPhone.replace(/\D/g, '');
     if (region === 'IN') {
-      if (!formData.guestPhone.trim() || !/^\d{10}$/.test(formData.guestPhone)) {
+      if (!curForm.guestPhone.trim() || !/^\d{10}$/.test(curForm.guestPhone)) {
         errors.guestPhone = 'Valid 10-digit mobile number is required';
       }
     } else if (region === 'US') {
-      if (!formData.guestPhone.trim() || !/^\d{10}$/.test(digits)) {
+      if (!curForm.guestPhone.trim() || !/^\d{10}$/.test(digits)) {
         errors.guestPhone = 'Valid 10-digit mobile number is required';
       }
     } else if (region === 'UK') {
       const isValidUK = (digits.length === 10 && !digits.startsWith('0')) || (digits.length === 11 && digits.startsWith('0'));
-      if (!formData.guestPhone.trim() || !isValidUK) {
+      if (!curForm.guestPhone.trim() || !isValidUK) {
         errors.guestPhone = 'Valid UK phone number is required (10 or 11 digits)';
       }
     } else {
-      const cleanPhone = formData.guestPhone.replace(/[\s\-()]/g, '');
-      if (!formData.guestPhone.trim() || !/^\d{7,15}$/.test(cleanPhone)) {
+      const cleanPhone = curForm.guestPhone.replace(/[\s\-()]/g, '');
+      if (!curForm.guestPhone.trim() || !/^\d{7,15}$/.test(cleanPhone)) {
         errors.guestPhone = 'Valid phone number is required (7-15 digits)';
       }
     }
 
     // Email validation (mandatory for US/UK)
     if (region !== 'IN') {
-      if (!formData.guestEmail.trim()) {
+      if (!curForm.guestEmail.trim()) {
         errors.guestEmail = 'Email address is required for international orders';
-      } else if (!/\S+@\S+\.\S+/.test(formData.guestEmail)) {
+      } else if (!/\S+@\S+\.\S+/.test(curForm.guestEmail)) {
         errors.guestEmail = 'Please enter a valid email address';
       }
-    } else if (formData.guestEmail.trim() && !/\S+@\S+\.\S+/.test(formData.guestEmail)) {
+    } else if (curForm.guestEmail.trim() && !/\S+@\S+\.\S+/.test(curForm.guestEmail)) {
       errors.guestEmail = 'Please enter a valid email address';
     }
 
     // Pincode/Zip validation
     if (region === 'IN') {
-      if (!formData.pincode.trim() || formData.pincode.length !== 6) {
+      if (!curForm.pincode.trim() || curForm.pincode.length !== 6) {
         errors.pincode = 'Valid 6-digit pincode is required';
       }
     } else if (region === 'US') {
-      if (!formData.pincode.trim() || !/^\d{5}$/.test(formData.pincode)) {
+      if (!curForm.pincode.trim() || !/^\d{5}$/.test(curForm.pincode)) {
         errors.pincode = 'Valid 5-digit ZIP code is required';
       }
     } else if (region === 'UK') {
-      if (!formData.pincode.trim() || formData.pincode.length < 3 || formData.pincode.length > 10) {
+      if (!curForm.pincode.trim() || curForm.pincode.length < 3 || curForm.pincode.length > 10) {
         errors.pincode = 'Valid postal code is required';
       }
     }
 
-    if (!formData.shippingAddress.trim()) errors.shippingAddress = 'Street address is required';
-    if (!formData.city.trim()) errors.city = 'City is required';
-    if (!formData.state.trim()) errors.state = 'State / Region is required';
+    if (!curForm.shippingAddress.trim()) errors.shippingAddress = 'Street address is required';
+    if (!curForm.city.trim()) errors.city = 'City is required';
+    if (!curForm.state.trim()) errors.state = 'State / Region is required';
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
+  // ── PayPal Direct Smart Buttons (US / UK) ──────────────────────────────────
+  useEffect(() => {
+    if (region !== 'US' && region !== 'UK') return;
+
+    let isMounted = true;
+
+    const initPaypal = () => {
+      const paypal = (window as any).paypal;
+      if (!paypal?.Buttons || !paypalContainerRef.current) return false;
+
+      // Clear container before render to ensure no duplicate stacked buttons
+      paypalContainerRef.current.innerHTML = '';
+
+      const fundingSource = intlPaymentMethod === 'CARD'
+        ? paypal.FUNDING.CARD
+        : paypal.FUNDING.PAYPAL;
+
+      paypal.Buttons({
+        fundingSource,
+        onClick: (_data: any, actions: any) => {
+          if (!validateForm()) {
+            return actions.reject();
+          }
+          return actions.resolve();
+        },
+        createOrder: async () => {
+          setError(null);
+          try {
+            const curForm = formDataRef.current;
+            let finalPhone = curForm.guestPhone.trim();
+            const phoneDigits = finalPhone.replace(/\D/g, '');
+            if (region === 'US') {
+              if (phoneDigits.length === 10) finalPhone = `+1${phoneDigits}`;
+              else if (phoneDigits.length === 11 && phoneDigits.startsWith('1')) finalPhone = `+${phoneDigits}`;
+            } else if (region === 'UK') {
+              if (phoneDigits.length === 10 && !phoneDigits.startsWith('0')) finalPhone = `+44${phoneDigits}`;
+              else if (phoneDigits.length === 11 && phoneDigits.startsWith('0')) finalPhone = `+44${phoneDigits.substring(1)}`;
+              else if (phoneDigits.length === 12 && phoneDigits.startsWith('44')) finalPhone = `+${phoneDigits}`;
+            }
+
+            const curBook = bookRef.current;
+            if (!curBook) throw new Error('Book details not loaded');
+
+            const orderData = {
+              ...curForm,
+              guestPhone: finalPhone,
+              userId: userRef.current?.id,
+              items: [{ bookId: curBook.id, quantity: quantityRef.current }],
+              country: region,
+              currency: currencyCode,
+              comments: JSON.stringify({ country: region, method: intlPaymentMethod }),
+            };
+
+            const order = await ShopService.createOrder(orderData);
+            currentOrderRef.current = order;
+            return order.paypalOrderId;
+          } catch (err: any) {
+            setError(err.message || 'Failed to initialize payment.');
+            throw err;
+          }
+        },
+        onApprove: async (data: any) => {
+          setProcessing(true);
+          try {
+            await ShopService.capturePaypalOrder({ paypalOrderId: data.orderID });
+            const curBook = bookRef.current;
+            const order = currentOrderRef.current;
+            const successParams = new URLSearchParams({
+              transaction_id: order?.id || data.orderID,
+              value: order?.totalAmount?.toString() || totalRef.current.toString(),
+              quantity: quantityRef.current.toString(),
+              item_id: curBook?.id || '',
+              item_name: curBook?.title || '',
+              price: getBookPrice(curBook, region).toString(),
+              discount: '0',
+              delivery: deliveryRef.current.toString(),
+              cod_charge: '0',
+              subtotal: subtotalRef.current.toString(),
+              payment_method: 'ONLINE',
+              image_url: curBook?.imageUrl || '/Page-1.png'
+            });
+            router.push(getLocalizedLink(`/purchase-success?${successParams.toString()}`));
+          } catch (err: any) {
+            setError(err.message || 'Payment capture failed. Please contact support.');
+            setProcessing(false);
+          }
+        },
+        onCancel: () => {
+          setProcessing(false);
+        },
+        onError: (err: any) => {
+          console.error('[PAYPAL] Error:', err);
+          setError('Payment could not be completed. Please try again.');
+          setProcessing(false);
+        },
+        style: {
+          layout: 'vertical',
+          color: intlPaymentMethod === 'CARD' ? 'black' : 'gold',
+          shape: 'rect',
+          label: 'pay',
+          height: 48,
+        },
+      }).render(paypalContainerRef.current);
+
+      if (isMounted) setPaypalReady(true);
+      return true;
+    };
+
+    setPaypalReady(false);
+    if (initPaypal()) return;
+
+    const timer = setInterval(() => {
+      if (initPaypal()) {
+        clearInterval(timer);
+      }
+    }, 250);
+
+    return () => {
+      isMounted = false;
+      clearInterval(timer);
+    };
+  }, [region, currencyCode, intlPaymentMethod]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (region === 'US' || region === 'UK') {
+      // International orders are handled directly by PayPal Smart Buttons onClick & createOrder
+      return;
+    }
     if (!book) return;
 
     if (!validateForm()) {
@@ -470,22 +583,6 @@ function CheckoutContent() {
         } else if (phoneDigits.length === 12 && phoneDigits.startsWith('91')) {
           finalPhone = `+${phoneDigits}`;
         }
-      } else if (region === 'US') {
-        if (phoneDigits.length === 10) {
-          finalPhone = `+1${phoneDigits}`;
-        } else if (phoneDigits.length === 11 && phoneDigits.startsWith('1')) {
-          finalPhone = `+${phoneDigits}`;
-        }
-      } else if (region === 'UK') {
-        if (phoneDigits.length === 10 && !phoneDigits.startsWith('0')) {
-          finalPhone = `+44${phoneDigits}`;
-        } else if (phoneDigits.length === 11 && phoneDigits.startsWith('0')) {
-          finalPhone = `+44${phoneDigits.substring(1)}`;
-        } else if (phoneDigits.length === 12 && phoneDigits.startsWith('44')) {
-          finalPhone = `+${phoneDigits}`;
-        } else if (phoneDigits.length === 13 && phoneDigits.startsWith('440')) {
-          finalPhone = `+44${phoneDigits.substring(3)}`;
-        }
       }
 
       if (!order) {
@@ -505,8 +602,9 @@ function CheckoutContent() {
         }
       }
 
-      // Online payment gateway (Razorpay Multi-Currency)
+      // ── India Gateway routing (Razorpay or COD) ───────────────────────────
       if (formData.paymentMethod === 'ONLINE' && order.razorpayOrderId) {
+        // Razorpay popup (India)
         if (typeof (window as any).Razorpay === 'undefined') {
           setError('Payment gateway is still loading. Please wait a few seconds and try again.');
           setProcessing(false);
@@ -568,7 +666,9 @@ function CheckoutContent() {
         });
         rzpRef.current = rzp;
         rzp.open();
+
       } else {
+        // COD (or fallback) — redirect to success immediately
         const successParams = new URLSearchParams({
           transaction_id: order.id,
           value: order.totalAmount.toString(),
@@ -617,7 +717,9 @@ function CheckoutContent() {
               <button
                 onClick={() => {
                   setPaymentFailed(false);
-                  if (rzpRef.current) rzpRef.current.open();
+                  if (region === 'IN' && rzpRef.current) {
+                    rzpRef.current.open();
+                  }
                 }}
                 className="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold text-sm shadow-md transition-all active:scale-[0.98]"
               >
@@ -635,6 +737,11 @@ function CheckoutContent() {
       )}
 
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
+      {(region === 'US' || region === 'UK') && (
+        <Script
+          src={`https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || 'BAAFardVSBZ0pcgeK2NqFbZNPYxzWOeODSCXI6AdAeFC5RkY40lEj7jqFeVVDv7QnCyJzSyo_oYLShPerc'}&currency=${currencyCode}`}
+        />
+      )}
       <div className="max-w-6xl mx-auto px-6 relative z-10">
         <Link
           href={getLocalizedLink("/gigi-the-awkward-age-book")}
@@ -1078,14 +1185,52 @@ function CheckoutContent() {
                     </button>
                   </div>
                 ) : (
-                  <div className="w-full space-y-6">
-                    <div className="relative p-5 rounded-xl border-2 border-primary bg-primary/3 flex flex-col items-center gap-2.5">
-                      <CreditCard size={20} className="text-primary" />
-                      <div className="space-y-1 text-center">
-                        <div className="text-base font-bold text-primary">Pay online</div>
-                        <div className="text-xs font-medium text-slate-500">Secure checkout with major credit cards</div>
+                  <div className="w-full grid sm:grid-cols-2 gap-3.5">
+                    {/* Option 1: Credit / Debit Card */}
+                    <button
+                      type="button"
+                      id="payment-card"
+                      onClick={() => setIntlPaymentMethod('CARD')}
+                      className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 text-center cursor-pointer ${
+                        intlPaymentMethod === 'CARD'
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary/20 shadow-sm'
+                          : 'border-slate-100 hover:border-slate-200 bg-white'
+                      }`}
+                    >
+                      <CreditCard size={22} className={intlPaymentMethod === 'CARD' ? 'text-primary' : 'text-slate-400'} />
+                      <div className="space-y-1">
+                        <div className={`text-sm font-bold ${intlPaymentMethod === 'CARD' ? 'text-primary' : 'text-slate-800'}`}>
+                          Debit or Credit Card
+                        </div>
+                        <div className="text-[11px] font-medium text-slate-500">
+                          Visa, Mastercard, AMEX, Discover
+                        </div>
                       </div>
-                    </div>
+                    </button>
+
+                    {/* Option 2: PayPal */}
+                    <button
+                      type="button"
+                      id="payment-paypal"
+                      onClick={() => setIntlPaymentMethod('PAYPAL')}
+                      className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 text-center cursor-pointer ${
+                        intlPaymentMethod === 'PAYPAL'
+                          ? 'border-[#0070BA] bg-[#0070BA]/5 ring-1 ring-[#0070BA]/20 shadow-sm'
+                          : 'border-slate-100 hover:border-slate-200 bg-white'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 flex items-center justify-center font-black italic text-base ${intlPaymentMethod === 'PAYPAL' ? 'text-[#0070BA]' : 'text-slate-400'}`}>
+                        P
+                      </div>
+                      <div className="space-y-1">
+                        <div className={`text-sm font-bold ${intlPaymentMethod === 'PAYPAL' ? 'text-[#0070BA]' : 'text-slate-800'}`}>
+                          PayPal Wallet
+                        </div>
+                        <div className="text-[11px] font-medium text-slate-500">
+                          1-Click Express checkout
+                        </div>
+                      </div>
+                    </button>
                   </div>
                 )}
               </div>
@@ -1096,31 +1241,51 @@ function CheckoutContent() {
                 </div>
               )}
 
-              <div className="pt-4">
-                <button
-                  type="submit"
-                  disabled={processing || pincodeLoading}
-                  className="w-full py-4 bg-primary text-white rounded-lg font-bold text-base hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
-                >
-                  {processing ? (
-                    <>
-                      <Loader2 className="animate-spin" size={20} />
-                      Processing securely...
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingBag size={20} />
-                      {formData.paymentMethod === 'ONLINE' 
-                        ? `Pay ${formatPrice(total, false)} & place order`
-                        : `Place order via COD (${formatPrice(total, false)})`
-                      }
-                    </>
+              {/* Payment Action Button Area */}
+              {(region === 'US' || region === 'UK') ? (
+                <div className="pt-4 space-y-3">
+                  <div ref={paypalContainerRef} id="paypal-button-container" className="w-full min-h-[48px]" />
+                  {!paypalReady && (
+                    <div className="w-full py-4 bg-slate-50 border border-slate-200 text-slate-500 rounded-lg font-bold text-sm flex items-center justify-center gap-2">
+                      <Loader2 className="animate-spin text-primary" size={18} /> {intlPaymentMethod === 'CARD' ? 'Loading Card checkout...' : 'Loading PayPal checkout...'}
+                    </div>
                   )}
-                </button>
-                <p className="text-center text-slate-500 text-[10px] font-medium mt-6">
-                  By placing order, you agree to our <Link href={getLocalizedLink("/legal#terms")} className="underline underline-offset-2 hover:text-primary transition-colors">Terms</Link> and <Link href={getLocalizedLink("/legal#privacy")} className="underline underline-offset-2 hover:text-primary transition-colors">Privacy Policy</Link>.
-                </p>
-              </div>
+                  {processing && (
+                    <div className="flex items-center justify-center gap-2 py-2 text-sm font-bold text-primary">
+                      <Loader2 className="animate-spin" size={18} /> Processing payment securely...
+                    </div>
+                  )}
+                  <p className="text-center text-slate-500 text-[10px] font-medium mt-4">
+                    By placing order, you agree to our <Link href={getLocalizedLink("/legal#terms")} className="underline underline-offset-2 hover:text-primary transition-colors">Terms</Link> and <Link href={getLocalizedLink("/legal#privacy")} className="underline underline-offset-2 hover:text-primary transition-colors">Privacy Policy</Link>.
+                  </p>
+                </div>
+              ) : (
+                <div className="pt-4">
+                  <button
+                    type="submit"
+                    disabled={processing || pincodeLoading}
+                    className="w-full py-4 bg-primary text-white rounded-lg font-bold text-base hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                  >
+                    {processing ? (
+                      <>
+                        <Loader2 className="animate-spin" size={20} />
+                        Processing securely...
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingBag size={20} />
+                        {formData.paymentMethod === 'ONLINE' 
+                          ? `Pay ${formatPrice(total, false)} & place order`
+                          : `Place order via COD (${formatPrice(total, false)})`
+                        }
+                      </>
+                    )}
+                  </button>
+                  <p className="text-center text-slate-500 text-[10px] font-medium mt-6">
+                    By placing order, you agree to our <Link href={getLocalizedLink("/legal#terms")} className="underline underline-offset-2 hover:text-primary transition-colors">Terms</Link> and <Link href={getLocalizedLink("/legal#privacy")} className="underline underline-offset-2 hover:text-primary transition-colors">Privacy Policy</Link>.
+                  </p>
+                </div>
+              )}
             </form>
           </div>
         </div>

@@ -45,10 +45,10 @@ export interface CreateOrderRequest {
   guestEmail?: string;
   guestName?: string;
   guestPhone?: string;
-  shippingAddress: string;
-  city: string;
-  state: string;
-  pincode: string;
+  shippingAddress?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
   paymentMethod: 'ONLINE' | 'COD';
   items: OrderItem[];
   comments?: string;

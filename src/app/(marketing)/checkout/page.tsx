@@ -492,6 +492,18 @@ function CheckoutContent() {
             const curBook = bookRef.current;
             if (!curBook) throw new Error('Book details not loaded');
 
+            // Reuse existing pending order if buyer re-clicked or reopened popup in same session
+            if (
+              currentOrderRef.current &&
+              currentOrderRef.current.paypalOrderId &&
+              currentOrderRef.current.country === region &&
+              currentOrderRef.current.currency === currencyCode &&
+              currentOrderRef.current.totalAmount === totalRef.current
+            ) {
+              setTimeout(() => setInitiatingPayment(false), 2000);
+              return currentOrderRef.current.paypalOrderId;
+            }
+
             const orderData = {
               userId: userRef.current?.id,
               items: [{ bookId: curBook.id, quantity: quantityRef.current }],

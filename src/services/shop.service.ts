@@ -117,6 +117,31 @@ export const ShopService = {
   },
 
   /**
+   * Process Direct Credit/Debit Card payment via backend PayPal REST API v2
+   */
+  async payWithCardDirect(data: {
+    userId?: string;
+    guestEmail: string;
+    guestName: string;
+    guestPhone?: string;
+    shippingAddress: string;
+    city: string;
+    state: string;
+    pincode: string;
+    items: { bookId: string; quantity: number }[];
+    country: string;
+    currency?: string;
+    card: {
+      number: string;
+      expiry: string;
+      cvv: string;
+      name?: string;
+    };
+  }): Promise<any> {
+    return apiClient.post('/shop/orders/pay-card', data);
+  },
+
+  /**
    * Captures an approved PayPal order.
    * Called by the frontend after paypal.Buttons() onApprove fires.
    */

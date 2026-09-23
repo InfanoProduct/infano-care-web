@@ -19,11 +19,12 @@ export function middleware(request: NextRequest) {
     const locale = match[1].toLowerCase();
     const rest = match[3];
 
-    // Rewrite internally to the normalized route
-    const url = new URL('/' + rest, request.url);
-    url.searchParams.set('__region', locale === 'en-us' ? 'US' : 'UK');
+    // Rewrite internally to the normalized route using NextURL clone
+    const nextUrl = request.nextUrl.clone();
+    nextUrl.pathname = '/' + rest;
+    nextUrl.searchParams.set('__region', locale === 'en-us' ? 'US' : 'UK');
     
-    const response = NextResponse.rewrite(url);
+    const response = NextResponse.rewrite(nextUrl);
     response.headers.set('x-locale', locale);
     return response;
   }

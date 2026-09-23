@@ -196,7 +196,11 @@ export default function OrderDetailPage() {
     </div>
   );
 
-  const isFailed = order ? (order.paymentMethod === 'ONLINE' && !order.razorpayPaymentId && order.orderStatus !== 'CANCELLED') : false;
+  const isFailed = order ? (
+    (order.paymentMethod === 'ONLINE' && order.paymentStatus !== 'COMPLETED' && !order.razorpayPaymentId && !order.paypalCaptureId && order.orderStatus !== 'CANCELLED') ||
+    order.paymentStatus === 'FAILED' ||
+    order.orderStatus === 'FAILED'
+  ) : false;
   const displayOrderStatus = order ? (isFailed ? 'FAILED' : order.orderStatus) : '';
   const statusSteps = getStatusSteps(displayOrderStatus);
   const currentStepIndex = statusSteps.findIndex(s => s.id === displayOrderStatus);
@@ -263,6 +267,19 @@ export default function OrderDetailPage() {
           <div>
             <div className="flex items-center gap-3 flex-wrap">
               <h1 className="text-2xl font-bold text-slate-900">Order {formatOrderId(order.id)}</h1>
+              {(() => {
+                const isUS = country === 'US';
+                const isUK = country === 'UK' || country === 'GB';
+                const flag = isUS ? '🇺🇸' : isUK ? '🇬🇧' : '🇮🇳';
+                const label = isUS ? 'United States (USD)' : isUK ? 'United Kingdom (GBP)' : 'India (INR)';
+                const badgeClass = isUS ? 'bg-blue-50 text-blue-700 border-blue-200' : isUK ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                return (
+                  <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-md border ${badgeClass}`}>
+                    <span>{flag}</span>
+                    <span>{label}</span>
+                  </span>
+                );
+              })()}
             </div>
             <p className="text-sm text-slate-500 mt-1">Placed on {formatIndianDate(order.createdAt)}</p>
           </div>
@@ -324,14 +341,14 @@ export default function OrderDetailPage() {
             {isFailed ? <AlertCircle size={32} className="shrink-0" /> : <CreditCard size={32} className="shrink-0" />}
             <div>
               <h3 className={`font-semibold ${isFailed ? 'text-red-900' : 'text-indigo-900'}`}>
-                {isFailed ? 'Order Failed' : 'Convert to Online Payment'}
+                {isFailed ? 'Order Payment Incomplete' : 'Convert to Online Payment'}
               </h3>
               <p className="text-sm">
                 {isFailed
-                  ? 'The payment for this order was not completed successfully.'
-                  : 'Enter a valid Razorpay transaction ID to securely convert this COD order to an Online paid order.'}
+                  ? 'The payment for this order was not recorded as completed. You can verify and recover the payment using the gateway Transaction / Order ID below.'
+                  : (country !== 'IN' || order.paypalOrderId ? 'Enter a valid PayPal Transaction/Order ID to verify.' : 'Enter a valid Razorpay transaction ID to securely convert this COD order to an Online paid order.')}
               </p>
-              {isFailed && (
+              {isFailed && country === 'IN' && (
                 <button
                   onClick={convertToCod}
                   disabled={convertingToCod}
@@ -350,7 +367,7 @@ export default function OrderDetailPage() {
             <div className="flex gap-2">
               <input
                 type="text"
-                placeholder="Razorpay Txn ID (pay_...)"
+                placeholder={order.paypalOrderId || country !== 'IN' ? "PayPal / Razorpay Txn ID" : "Razorpay Txn ID (pay_...)"}
                 value={manualTxnId}
                 onChange={(e) => setManualTxnId(e.target.value)}
                 className="flex-1 px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -461,8 +478,9 @@ export default function OrderDetailPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
                 <div>
                   <p className="text-slate-500 text-xs mb-2">Payment Status</p>
-                  <span className={`inline-block px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide ${order.paymentStatus === 'COMPLETED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                    }`}>
+                  <span className={`inline-block px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide ${
+                    order.paymentStatus === 'COMPLETED' ? 'bg-green-100 text-green-700' : order.paymentStatus === 'FAILED' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                  }`}>
                     {order.paymentStatus}
                   </span>
                 </div>
@@ -470,22 +488,51 @@ export default function OrderDetailPage() {
                   <div>
                     <p className="text-slate-500 text-xs mb-2">Payment Method</p>
                     <span className="inline-block px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide bg-slate-100 text-slate-700">
-                      {order.paymentMethod}
+                      {order.paymentMethod === 'ONLINE' ? (
+                        order.paypalOrderId || order.paypalCaptureId || country !== 'IN'
+                          ? 'ONLINE · PayPal'
+                          : 'ONLINE · Razorpay'
+                      ) : (
+                        'Cash on Delivery'
+                      )}
                     </span>
                   </div>
                 )}
+                <div>
+                  <p className="text-slate-500 text-xs mb-2">Currency / Region</p>
+                  <span className="font-semibold text-xs text-slate-800">
+                    {order.currency || (country === 'US' ? 'USD' : country === 'UK' ? 'GBP' : 'INR')} ({currencySymbol})
+                  </span>
+                </div>
               </div>
+
+              {(order.paypalOrderId || order.paypalCaptureId) && (
+                <div className="grid md:grid-cols-2 gap-4 text-sm pt-4 border-t border-slate-100">
+                  {order.paypalOrderId && (
+                    <div>
+                      <p className="text-slate-500 text-xs mb-1">PayPal Order ID</p>
+                      <p className="font-mono text-slate-900 break-all">{order.paypalOrderId}</p>
+                    </div>
+                  )}
+                  {order.paypalCaptureId && (
+                    <div>
+                      <p className="text-slate-500 text-xs mb-1">PayPal Capture ID</p>
+                      <p className="font-mono text-slate-900 break-all">{order.paypalCaptureId}</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {order.razorpayOrderId && (
                 <div className="grid md:grid-cols-2 gap-4 text-sm pt-4 border-t border-slate-100">
                   <div>
                     <p className="text-slate-500 text-xs mb-1">Razorpay Order ID</p>
-                    <p className="font-mono text-slate-900">{order.razorpayOrderId}</p>
+                    <p className="font-mono text-slate-900 break-all">{order.razorpayOrderId}</p>
                   </div>
                   {order.razorpayPaymentId && (
                     <div>
-                      <p className="text-slate-500 text-xs mb-1">Payment ID</p>
-                      <p className="font-mono text-slate-900">{order.razorpayPaymentId}</p>
+                      <p className="text-slate-500 text-xs mb-1">Razorpay Payment ID</p>
+                      <p className="font-mono text-slate-900 break-all">{order.razorpayPaymentId}</p>
                     </div>
                   )}
                 </div>

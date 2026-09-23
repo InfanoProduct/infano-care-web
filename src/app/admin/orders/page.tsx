@@ -495,60 +495,82 @@ export default function AdminOrdersPage() {
                   </tr>
                 ))
               ) : orders.length > 0 ? (
-                orders.map((order) => (
-                  <tr key={order.id} className="hover:bg-slate-50/80 transition-colors group">
-                    <td className="px-6 py-5">
-                      <div className="flex items-center gap-2">
-                        <div className="font-bold text-sm text-foreground">{formatOrderId(order.id)}</div>
-                        {order.isActive === false && (
-                          <span className="bg-rose-100 text-rose-700 text-[10px] font-extrabold px-1.5 py-0.5 rounded-md uppercase tracking-wider">
-                            Inactive
+                orders.map((order) => {
+                  const c = getOrderCountry(order);
+                  const isUS = c === 'US';
+                  const isUK = c === 'UK' || c === 'GB';
+                  const flag = isUS ? '🇺🇸' : isUK ? '🇬🇧' : '🇮🇳';
+                  const label = isUS ? 'US' : isUK ? 'UK' : 'IN';
+                  const badgeClass = isUS ? 'bg-blue-50 text-blue-700 border-blue-200' : isUK ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+
+                  const isFailed = (order.paymentMethod === 'ONLINE' && order.paymentStatus !== 'COMPLETED' && !order.razorpayPaymentId && !order.paypalCaptureId && order.orderStatus !== 'CANCELLED') || order.paymentStatus === 'FAILED' || order.orderStatus === 'FAILED';
+                  const displayStatus = isFailed ? 'FAILED' : order.orderStatus;
+
+                  return (
+                    <tr key={order.id} className="hover:bg-slate-50/80 transition-colors group">
+                      <td className="px-6 py-5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <div className="font-bold text-sm text-foreground">{formatOrderId(order.id)}</div>
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-md border uppercase tracking-wider ${badgeClass}`}>
+                            <span>{flag}</span>
+                            <span>{label}</span>
                           </span>
-                        )}
-                      </div>
-                      <div className="text-[11px] text-muted-foreground mt-1">{order.items?.length || 0} Item(s)</div>
-                    </td>
-                    <td className="px-6 py-5">
-                      <div className="font-bold text-sm text-foreground">{order.guestName || order.user?.username || 'Guest'}</div>
-                      <div className="text-xs text-muted-foreground">{order.guestEmail || 'No Email'}</div>
-                      <div className="text-xs text-muted-foreground">{order.guestPhone || order.user?.phone || 'No Phone'}</div>
-                    </td>
-                    <td className="px-6 py-5">
-                      <div className="font-bold text-sm text-foreground">{getCurrencySymbol(order)}{order.totalAmount}</div>
-                    </td>
-                    <td className="px-6 py-5">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-xs font-bold">{order.paymentMethod}</span>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full w-fit ${order.paymentStatus === 'COMPLETED' ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-500'
+                          {order.isActive === false && (
+                            <span className="bg-rose-100 text-rose-700 text-[10px] font-extrabold px-1.5 py-0.5 rounded-md uppercase tracking-wider">
+                              Inactive
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-muted-foreground mt-1">{order.items?.length || 0} Item(s)</div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="font-bold text-sm text-foreground">{order.guestName || order.user?.username || 'Guest'}</div>
+                        <div className="text-xs text-muted-foreground">{order.guestEmail || 'No Email'}</div>
+                        <div className="text-xs text-muted-foreground">{order.guestPhone || order.user?.phone || 'No Phone'}</div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="font-bold text-sm text-foreground">{getCurrencySymbol(order)}{order.totalAmount}</div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs font-bold">
+                            {order.paymentMethod === 'ONLINE' ? (
+                              order.paypalOrderId || order.paypalCaptureId || isUS || isUK
+                                ? 'ONLINE · PayPal'
+                                : 'ONLINE · Razorpay'
+                            ) : (
+                              'COD'
+                            )}
+                          </span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full w-fit ${
+                            order.paymentStatus === 'COMPLETED' ? 'bg-green-100 text-green-600' : order.paymentStatus === 'FAILED' ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'
                           }`}>
-                          {order.paymentStatus}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-5">
-                      {(() => {
-                        const displayStatus = (order.paymentMethod === 'ONLINE' && !order.razorpayPaymentId && order.orderStatus !== 'CANCELLED') ? 'FAILED' : order.orderStatus;
-                        return (
+                            {order.paymentStatus}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-opacity-90">
                           <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold ${getStatusColor(displayStatus)} uppercase tracking-wider`}>
                             {getStatusIcon(displayStatus)}
                             {getStatusLabel(displayStatus)}
                           </div>
-                        );
-                      })()}
-                    </td>
-                    <td className="px-6 py-5 text-sm text-muted-foreground font-medium">
-                      {formatIndianDate(order.createdAt)}
-                    </td>
-                    <td className="px-6 py-5 text-right">
-                      <Link
-                        href={`/admin/orders/${order.id}`}
-                        className="p-2.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-primary hover:text-white transition-all inline-flex"
-                      >
-                        <Eye size={18} />
-                      </Link>
-                    </td>
-                  </tr>
-                ))
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 text-sm text-muted-foreground font-medium">
+                        {formatIndianDate(order.createdAt)}
+                      </td>
+                      <td className="px-6 py-5 text-right">
+                        <Link
+                          href={`/admin/orders/${order.id}`}
+                          className="p-2.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-primary hover:text-white transition-all inline-flex"
+                        >
+                          <Eye size={18} />
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan={7} className="px-6 py-20 text-center text-muted-foreground">

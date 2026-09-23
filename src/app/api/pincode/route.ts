@@ -69,7 +69,9 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
           success: true,
           city: place['place name'],
-          state: place['state'],
+          state: place['state abbreviation'] || place['state'],
+          stateCode: place['state abbreviation'],
+          stateName: place['state'],
         });
       }
       return NextResponse.json({ error: 'ZIP code details not found' }, { status: 404 });

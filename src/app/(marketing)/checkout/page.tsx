@@ -130,13 +130,6 @@ function CheckoutContent() {
   const [intlPaymentMethod, setIntlPaymentMethod] = useState<'CARD' | 'PAYPAL'>('CARD');
   const paypalContainerRef = React.useRef<HTMLDivElement>(null);
   const [quantity, setQuantity] = useState(1);
-  const [cardData, setCardData] = useState({
-    number: '',
-    expiry: '',
-    cvv: '',
-    name: '',
-  });
-  const [cardErrors, setCardErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     guestName: '',
     guestEmail: '',
@@ -296,12 +289,27 @@ function CheckoutContent() {
           }
           const data = await res.json();
           if (data && data.success) {
+            let matchedState = data.state || '';
+            if (region === 'US') {
+              const query = (data.stateCode || data.state || '').trim().toLowerCase();
+              const found = US_STATES.find(
+                s => s.code.toLowerCase() === query || s.name.toLowerCase() === query
+              );
+              if (found) {
+                matchedState = found.code;
+              }
+            }
             setFormData(prev => ({
               ...prev,
-              city: data.city,
-              state: data.state
+              city: data.city || prev.city,
+              state: matchedState || prev.state
             }));
-            setFormErrors(prev => ({ ...prev, pincode: '', city: '', state: '' }));
+            setFormErrors(prev => ({
+              ...prev,
+              pincode: '',
+              ...(data.city ? { city: '' } : {}),
+              ...(matchedState ? { state: '' } : {})
+            }));
           }
         } catch (err) {
           console.warn('Postal code lookup failed (network issue or timeout)');
@@ -441,89 +449,38 @@ function CheckoutContent() {
     return Object.keys(errors).length === 0;
   };
 
-  const handleCardInputChange = (field: 'number' | 'expiry' | 'cvv' | 'name', value: string) => {
-    if (field === 'number') {
-      const digitsOnly = value.replace(/\D/g, '').slice(0, 16);
-      const formatted = digitsOnly.replace(/(\d{4})(?=\d)/g, '$1 ');
-      setCardData(prev => ({ ...prev, number: formatted }));
-      if (cardErrors.number) setCardErrors(prev => ({ ...prev, number: '' }));
-    } else if (field === 'expiry') {
-      const digitsOnly = value.replace(/\D/g, '').slice(0, 4);
-      let formatted = digitsOnly;
-      if (digitsOnly.length >= 2) {
-        formatted = `${digitsOnly.slice(0, 2)}/${digitsOnly.slice(2)}`;
-      }
-      setCardData(prev => ({ ...prev, expiry: formatted }));
-      if (cardErrors.expiry) setCardErrors(prev => ({ ...prev, expiry: '' }));
-    } else if (field === 'cvv') {
-      const digitsOnly = value.replace(/\D/g, '').slice(0, 4);
-      setCardData(prev => ({ ...prev, cvv: digitsOnly }));
-      if (cardErrors.cvv) setCardErrors(prev => ({ ...prev, cvv: '' }));
-    } else if (field === 'name') {
-      setCardData(prev => ({ ...prev, name: value }));
-      if (cardErrors.name) setCardErrors(prev => ({ ...prev, name: '' }));
-    }
-  };
-
-  const validateCardData = () => {
-    const errors: Record<string, string> = {};
-    const cleanNumber = cardData.number.replace(/\D/g, '');
-    if (!cleanNumber || cleanNumber.length < 13) {
-      errors.number = 'Please enter a valid card number (13-16 digits)';
-    }
-
-    const cleanExpiry = cardData.expiry.trim();
-    if (!cleanExpiry || !/^\d{2}\/\d{2}$/.test(cleanExpiry)) {
-      errors.expiry = 'MM/YY required';
-    } else {
-      const [month, year] = cleanExpiry.split('/').map(Number);
-      const now = new Date();
-      const currentYear = now.getFullYear() % 100;
-      const currentMonth = now.getMonth() + 1;
-      if (month < 1 || month > 12) {
-        errors.expiry = 'Invalid month';
-      } else if (year < currentYear || (year === currentYear && month < currentMonth)) {
-        errors.expiry = 'Card expired';
-      }
-    }
-
-    const cleanCvv = cardData.cvv.replace(/\D/g, '');
-    if (!cleanCvv || cleanCvv.length < 3) {
-      errors.cvv = '3-4 digits required';
-    }
-
-    setCardErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  // ── PayPal Wallet 1-Click Button (for PAYPAL tab) ──────────────────────────
+  // ── PayPal Buttons (for both Debit/Credit Card and PayPal Wallet tabs) ──────────
   useEffect(() => {
     if (region !== 'US' && region !== 'UK') return;
-    if (intlPaymentMethod !== 'PAYPAL') {
-      setPaypalReady(false);
-      if (paypalContainerRef.current) {
-        paypalContainerRef.current.innerHTML = '';
-      }
-      const el = document.getElementById('paypal-button-container');
-      if (el) el.innerHTML = '';
-      return;
-    }
+
+    setPaypalReady(false);
+    const cardEl = document.getElementById('paypal-card-container');
+    const walletEl = document.getElementById('paypal-wallet-container');
+    if (cardEl) cardEl.innerHTML = '';
+    if (walletEl) walletEl.innerHTML = '';
 
     let isMounted = true;
 
     const initPaypal = () => {
       const paypal = (window as any).paypal;
-      if (!paypal?.Buttons || !paypalContainerRef.current) return false;
+      const targetContainerId = intlPaymentMethod === 'CARD' ? 'paypal-card-container' : 'paypal-wallet-container';
+      const containerEl = document.getElementById(targetContainerId);
 
-      paypalContainerRef.current.innerHTML = '';
+      if (!paypal?.Buttons || !containerEl) return false;
+
+      containerEl.innerHTML = '';
+
+      const fundingSource = intlPaymentMethod === 'CARD'
+        ? paypal.FUNDING.CARD
+        : paypal.FUNDING.PAYPAL;
+
+      const buttonStyle = intlPaymentMethod === 'CARD'
+        ? { layout: 'vertical', color: 'black', shape: 'rect', label: 'pay', height: 48 }
+        : { layout: 'vertical', color: 'gold', shape: 'rect', label: 'paypal', height: 48 };
 
       paypal.Buttons({
-        fundingSource: paypal.FUNDING.PAYPAL,
+        fundingSource,
         onClick: (_data: any, actions: any) => {
-          if (!validateForm()) {
-            setError('Please complete all required shipping and contact details above before continuing.');
-            return actions.reject();
-          }
           setError(null);
           setInitiatingPayment(true);
           return actions.resolve();
@@ -534,33 +491,17 @@ function CheckoutContent() {
           try {
             const curBook = bookRef.current;
             if (!curBook) throw new Error('Book details not loaded');
-            const curForm = formDataRef.current;
-
-            let finalPhone = curForm.guestPhone.trim();
-            const phoneDigits = finalPhone.replace(/\D/g, '');
-            if (region === 'US' && phoneDigits.length === 10) {
-              finalPhone = `+1${phoneDigits}`;
-            } else if (region === 'UK' && (phoneDigits.length === 10 || phoneDigits.length === 11)) {
-              finalPhone = phoneDigits.startsWith('0') ? `+44${phoneDigits.slice(1)}` : `+44${phoneDigits}`;
-            }
 
             const orderData = {
               userId: userRef.current?.id,
-              guestEmail: curForm.guestEmail.trim() || undefined,
-              guestName: curForm.guestName.trim() || undefined,
-              guestPhone: finalPhone || undefined,
-              shippingAddress: curForm.shippingAddress.trim(),
-              city: curForm.city.trim(),
-              state: curForm.state.trim(),
-              pincode: curForm.pincode.trim(),
               items: [{ bookId: curBook.id, quantity: quantityRef.current }],
               country: region,
               currency: currencyCode,
               paymentMethod: 'ONLINE' as const,
               comments: JSON.stringify({
                 country: region,
-                method: 'PAYPAL_WALLET',
-                flow: 'SINGLE_FORM_CHECKOUT',
+                method: intlPaymentMethod === 'CARD' ? 'PAYPAL_CARD_CHECKOUT' : 'PAYPAL_WALLET',
+                flow: 'PAYPAL_EXPRESS_CHECKOUT',
               }),
             };
 
@@ -611,14 +552,8 @@ function CheckoutContent() {
           setError('Payment could not be completed. Please ensure your shipping and billing address are in ' + countryName + '.');
           setProcessing(false);
         },
-        style: {
-          layout: 'vertical',
-          color: 'gold',
-          shape: 'rect',
-          label: 'paypal',
-          height: 48,
-        },
-      }).render(paypalContainerRef.current);
+        style: buttonStyle,
+      }).render(containerEl);
 
       if (isMounted) setPaypalReady(true);
       return true;
@@ -636,90 +571,16 @@ function CheckoutContent() {
     return () => {
       isMounted = false;
       clearInterval(timer);
-      if (paypalContainerRef.current) {
-        paypalContainerRef.current.innerHTML = '';
-      }
-      const el = document.getElementById('paypal-button-container');
-      if (el) el.innerHTML = '';
+      const cEl = document.getElementById('paypal-card-container');
+      const wEl = document.getElementById('paypal-wallet-container');
+      if (cEl) cEl.innerHTML = '';
+      if (wEl) wEl.innerHTML = '';
     };
   }, [region, currencyCode, intlPaymentMethod]);
-
-  const handleCardSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!validateForm()) {
-      setError('Please complete all required shipping and contact details above before continuing.');
-      return;
-    }
-    if (!validateCardData()) {
-      return;
-    }
-
-    setError(null);
-    setProcessing(true);
-
-    try {
-      const curBook = bookRef.current;
-      if (!curBook) throw new Error('Book details not loaded');
-      const curForm = formDataRef.current;
-
-      let finalPhone = curForm.guestPhone.trim();
-      const phoneDigits = finalPhone.replace(/\D/g, '');
-      if (region === 'US' && phoneDigits.length === 10) {
-        finalPhone = `+1${phoneDigits}`;
-      } else if (region === 'UK' && (phoneDigits.length === 10 || phoneDigits.length === 11)) {
-        finalPhone = phoneDigits.startsWith('0') ? `+44${phoneDigits.slice(1)}` : `+44${phoneDigits}`;
-      }
-
-      const payload = {
-        userId: userRef.current?.id,
-        guestEmail: curForm.guestEmail.trim(),
-        guestName: curForm.guestName.trim(),
-        guestPhone: finalPhone || undefined,
-        shippingAddress: curForm.shippingAddress.trim(),
-        city: curForm.city.trim(),
-        state: curForm.state.trim(),
-        pincode: curForm.pincode.trim(),
-        items: [{ bookId: curBook.id, quantity: quantityRef.current }],
-        country: region,
-        currency: currencyCode,
-        card: {
-          number: cardData.number,
-          expiry: cardData.expiry,
-          cvv: cardData.cvv,
-          name: cardData.name.trim() || curForm.guestName.trim(),
-        },
-      };
-
-      const order = await ShopService.payWithCardDirect(payload);
-
-      const successParams = new URLSearchParams({
-        transaction_id: order?.id || order?.paypalOrderId || 'CARD-TXN',
-        value: order?.totalAmount?.toString() || totalRef.current.toString(),
-        quantity: quantityRef.current.toString(),
-        item_id: curBook?.id || '',
-        item_name: curBook?.title || '',
-        price: getBookPrice(curBook, region).toString(),
-        discount: '0',
-        delivery: deliveryRef.current.toString(),
-        cod_charge: '0',
-        subtotal: subtotalRef.current.toString(),
-        payment_method: 'ONLINE',
-        image_url: curBook?.imageUrl || '/Page-1.png'
-      });
-      router.push(getLocalizedLink(`/purchase-success?${successParams.toString()}`));
-    } catch (err: any) {
-      console.error('[CARD DIRECT ERROR]', err);
-      setError(err?.message || 'Card payment failed. Please check your card details.');
-      setProcessing(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (region === 'US' || region === 'UK') {
-      if (intlPaymentMethod === 'CARD') {
-        return handleCardSubmit(e);
-      }
       return;
     }
     if (!book) return;
@@ -1031,205 +892,211 @@ function CheckoutContent() {
           <div className="lg:col-span-7 w-full max-w-full bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 md:p-12 shadow-2xl shadow-slate-200/50">
             <form onSubmit={handleSubmit} className="space-y-8" noValidate>
 
-              {/* Step 1: Personal Details */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
-                    01
-                  </div>
-                  <h2 className="text-base font-bold text-slate-800 tracking-tight">Personal details</h2>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">Full name <span className="text-rose-500">*</span></label>
-                    <input
-                      name="guestName"
-                      value={formData.guestName}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.guestName ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                      placeholder={region === 'US' ? 'e.g. Sarah Jenkins' : region === 'UK' ? 'e.g. Emma Watson' : 'e.g. Ananya Sharma'}
-                    />
-                    {formErrors.guestName && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.guestName}</p>}
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">Phone number <span className="text-rose-500">*</span></label>
-                    
-                    <div className="relative flex items-center">
-                      <div className="absolute left-3 flex items-center gap-2 text-slate-500 font-bold text-sm pointer-events-none border-r border-slate-200 pr-2.5">
-                        <img
-                          src={`https://flagcdn.com/w40/${isoCode}.png`}
-                          className="w-5 h-3.5 object-cover rounded-sm border border-slate-200/50 shrink-0"
-                          alt={countryName}
-                        />
-                        <span>{dialCode}</span>
-                      </div>
-                      <input
-                        name="guestPhone"
-                        value={formData.guestPhone}
-                        onChange={handleInputChange}
-                        className={`w-full pl-22 pr-4 py-3 rounded-lg bg-white border ${formErrors.guestPhone ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                        placeholder={region === 'IN' ? '10-digit mobile' : region === 'US' ? '10-digit phone' : 'Phone number'}
-                      />
-                    </div>
-                    {formErrors.guestPhone && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.guestPhone}</p>}
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                    Email address {region === 'IN' ? '(optional)' : <span className="text-rose-500">*</span>}
-                  </label>
-                  <input
-                    type="email"
-                    name="guestEmail"
-                    value={formData.guestEmail}
-                    onChange={handleInputChange}
-                    className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.guestEmail ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                    placeholder="your@email.com"
-                  />
-                  {formErrors.guestEmail && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.guestEmail}</p>}
-                </div>
-              </div>
-
-              {/* Step 2: Delivery Address */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
-                    02
-                  </div>
-                  <h2 className="text-base font-bold text-slate-800 tracking-tight">Delivery address</h2>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                      {region === 'US' ? 'ZIP Code' : region === 'UK' ? 'Postal Code' : 'Pincode'} <span className="text-rose-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        name="pincode"
-                        value={formData.pincode}
-                        onChange={handleInputChange}
-                        maxLength={region === 'IN' ? 6 : region === 'US' ? 5 : 10}
-                        className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.pincode ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                        placeholder={region === 'US' ? '5-digit ZIP (e.g. 90210)' : region === 'UK' ? 'e.g. SW1A 1AA' : '6-digit pincode'}
-                      />
-                      {pincodeLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-primary" size={16} />}
-                    </div>
-                    {formErrors.pincode && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.pincode}</p>}
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">Country</label>
-                    <div className="relative flex items-center">
-                      <div className="absolute left-3 flex items-center gap-2 pointer-events-none">
-                        <span className="text-base">{flagEmoji}</span>
-                      </div>
-                      <input
-                        readOnly
-                        className="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-50 border border-slate-200 font-bold text-slate-700 cursor-not-allowed text-sm shadow-inner"
-                        value={`${countryName} (${region})`}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                    Street Address <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    name="shippingAddress"
-                    value={formData.shippingAddress}
-                    onChange={handleInputChange}
-                    className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.shippingAddress ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                    placeholder="House/Flat number, Street address"
-                  />
-                  {formErrors.shippingAddress && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.shippingAddress}</p>}
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                      City <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      name="city"
-                      value={formData.city}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.city ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                      placeholder="City"
-                    />
-                    {formErrors.city && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.city}</p>}
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                      {region === 'US' ? 'State' : region === 'UK' ? 'County / Region' : 'State'} <span className="text-rose-500">*</span>
-                    </label>
-                    {region === 'US' ? (
-                      <select
-                        name="state"
-                        value={formData.state}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 text-sm shadow-sm`}
-                      >
-                        <option value="">Select State</option>
-                        {US_STATES.map(s => (
-                          <option key={s.code} value={s.code}>{s.name} ({s.code})</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        name="state"
-                        value={formData.state}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                        placeholder={region === 'UK' ? 'e.g. Greater London' : 'State'}
-                      />
-                    )}
-                    {formErrors.state && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.state}</p>}
-                  </div>
-                </div>
-              </div>
-
-              {/* Promo code (India only) */}
+              {/* Steps 1 & 2 + Promo code (India only — PayPal collects verified details for US/UK) */}
               {region === 'IN' && (
-                <div className="space-y-3 pt-2">
-                  <label className="text-[11px] font-bold text-slate-600 ml-0.5">Promo code</label>
-                  <div className="flex gap-2">
-                    <input
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                      placeholder="Enter code e.g. PROMO15"
-                      className="flex-1 min-w-0 px-4 py-2.5 rounded-lg bg-white border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={applyCoupon}
-                      disabled={!couponCode || validatingCoupon}
-                      className="px-5 py-2.5 bg-slate-900 text-white rounded-lg font-bold text-xs hover:bg-black transition-colors disabled:opacity-50"
-                    >
-                      {validatingCoupon ? <Loader2 className="animate-spin" size={14} /> : 'Apply'}
-                    </button>
-                  </div>
-                  {appliedCoupon && (
-                    <div className="flex items-center gap-2 px-3.5 py-2.5 bg-emerald-50 border border-emerald-200 rounded-lg">
-                      <Tag size={13} className="text-emerald-600" />
-                      <p className="text-emerald-700 text-[11px] font-bold">
-                        🎉 Code <span className="font-black">{appliedCoupon.code}</span> applied — you save ₹{discountAmount}!
-                      </p>
+                <>
+                  {/* Step 1: Personal Details */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
+                        01
+                      </div>
+                      <h2 className="text-base font-bold text-slate-800 tracking-tight">Personal details</h2>
                     </div>
-                  )}
-                </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">Full name <span className="text-rose-500">*</span></label>
+                        <input
+                          name="guestName"
+                          value={formData.guestName}
+                          onChange={handleInputChange}
+                          className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.guestName ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                          placeholder="e.g. Ananya Sharma"
+                        />
+                        {formErrors.guestName && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.guestName}</p>}
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">Phone number <span className="text-rose-500">*</span></label>
+                        
+                        <div className="relative flex items-center">
+                          <div className="absolute left-3 flex items-center gap-2 text-slate-500 font-bold text-sm pointer-events-none border-r border-slate-200 pr-2.5">
+                            <img
+                              src={`https://flagcdn.com/w40/${isoCode}.png`}
+                              className="w-5 h-3.5 object-cover rounded-sm border border-slate-200/50 shrink-0"
+                              alt={countryName}
+                            />
+                            <span>{dialCode}</span>
+                          </div>
+                          <input
+                            name="guestPhone"
+                            value={formData.guestPhone}
+                            onChange={handleInputChange}
+                            className={`w-full pl-22 pr-4 py-3 rounded-lg bg-white border ${formErrors.guestPhone ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                            placeholder="10-digit mobile"
+                          />
+                        </div>
+                        {formErrors.guestPhone && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.guestPhone}</p>}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-600 ml-0.5">
+                        Email address (optional)
+                      </label>
+                      <input
+                        type="email"
+                        name="guestEmail"
+                        value={formData.guestEmail}
+                        onChange={handleInputChange}
+                        className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.guestEmail ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                        placeholder="your@email.com"
+                      />
+                      {formErrors.guestEmail && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.guestEmail}</p>}
+                    </div>
+                  </div>
+
+                  {/* Step 2: Delivery Address */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
+                        02
+                      </div>
+                      <h2 className="text-base font-bold text-slate-800 tracking-tight">Delivery address</h2>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">
+                          Pincode <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <input
+                            name="pincode"
+                            value={formData.pincode}
+                            onChange={handleInputChange}
+                            maxLength={6}
+                            className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.pincode ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                            placeholder="6-digit pincode"
+                          />
+                          {pincodeLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-primary" size={16} />}
+                        </div>
+                        {formErrors.pincode && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.pincode}</p>}
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">Country</label>
+                        <div className="relative flex items-center">
+                          <div className="absolute left-3 flex items-center gap-2 pointer-events-none">
+                            <span className="text-base">{flagEmoji}</span>
+                          </div>
+                          <input
+                            readOnly
+                            className="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-50 border border-slate-200 font-bold text-slate-700 cursor-not-allowed text-sm shadow-inner"
+                            value={`${countryName} (${region})`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-600 ml-0.5">
+                        Street Address <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        name="shippingAddress"
+                        value={formData.shippingAddress}
+                        onChange={handleInputChange}
+                        className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.shippingAddress ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                        placeholder="House/Flat number, Street address"
+                      />
+                      {formErrors.shippingAddress && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.shippingAddress}</p>}
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">
+                          City <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          name="city"
+                          value={formData.city}
+                          onChange={handleInputChange}
+                          className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.city ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                          placeholder="City"
+                        />
+                        {formErrors.city && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.city}</p>}
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">
+                          State <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          name="state"
+                          value={formData.state}
+                          onChange={handleInputChange}
+                          className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                          placeholder="State"
+                        />
+                        {formErrors.state && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.state}</p>}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Promo code (India only) */}
+                  <div className="space-y-3 pt-2">
+                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">Promo code</label>
+                    <div className="flex gap-2">
+                      <input
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        placeholder="Enter code e.g. PROMO15"
+                        className="flex-1 min-w-0 px-4 py-2.5 rounded-lg bg-white border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={applyCoupon}
+                        disabled={!couponCode || validatingCoupon}
+                        className="px-5 py-2.5 bg-slate-900 text-white rounded-lg font-bold text-xs hover:bg-black transition-colors disabled:opacity-50"
+                      >
+                        {validatingCoupon ? <Loader2 className="animate-spin" size={14} /> : 'Apply'}
+                      </button>
+                    </div>
+                    {appliedCoupon && (
+                      <div className="flex items-center gap-2 px-3.5 py-2.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+                        <Tag size={13} className="text-emerald-600" />
+                        <p className="text-emerald-700 text-[11px] font-bold">
+                          🎉 Code <span className="font-black">{appliedCoupon.code}</span> applied — you save ₹{discountAmount}!
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
 
-              {/* Step 3: Payment Method */}
+              {/* Step 3 (or main section for intl): Payment Method */}
               <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
-                    03
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {region === 'IN' ? (
+                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
+                        03
+                      </div>
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-[#0070BA]/10 flex items-center justify-center text-[#0070BA] text-[10px] font-bold border border-[#0070BA]/20">
+                        ⚡
+                      </div>
+                    )}
+                    <h2 className="text-base font-bold text-slate-800 tracking-tight">
+                      {region === 'IN' ? 'Payment method' : 'Express Checkout'}
+                    </h2>
                   </div>
-                  <h2 className="text-base font-bold text-slate-800 tracking-tight">Payment method</h2>
+
+                  {region !== 'IN' && (
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 rounded-full border border-slate-200 text-xs font-bold text-slate-700">
+                      <span>{flagEmoji}</span>
+                      <span>Shipping to {countryName}</span>
+                    </div>
+                  )}
                 </div>
 
                 {region === 'IN' ? (
@@ -1343,108 +1210,45 @@ function CheckoutContent() {
                   </button>
                 </div>
               ) : intlPaymentMethod === 'CARD' ? (
-                <div key="intl-card-view" className="space-y-4 pt-1">
-                  <div className="p-4 sm:p-5 bg-slate-50/80 rounded-xl border border-slate-200 space-y-4 shadow-inner">
-                    <div className="flex items-center justify-between pb-1 border-b border-slate-200">
+                <div key="intl-card-view" className="pt-2 space-y-3">
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5">
+                    <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                        <CreditCard size={15} className="text-primary" /> Card details
+                        <CreditCard size={15} className="text-primary" /> Debit or Credit Card
                       </span>
                       <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
                         <Lock size={10} /> 256-bit Encrypted
                       </span>
                     </div>
-
-                    {/* Card Number */}
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                        Card number <span className="text-rose-500">*</span>
-                      </label>
-                      <div className="relative flex items-center">
-                        <input
-                          type="text"
-                          name="cardNumber"
-                          inputMode="numeric"
-                          autoComplete="cc-number"
-                          maxLength={19}
-                          value={cardData.number}
-                          onChange={(e) => handleCardInputChange('number', e.target.value)}
-                          placeholder="4000 1234 5678 9010"
-                          className={`w-full px-3.5 py-2.5 rounded-lg bg-white border ${cardErrors.number ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-xs`}
-                        />
-                        <div className="absolute right-3 pointer-events-none flex items-center gap-1.5 text-slate-400">
-                          <CreditCard size={16} />
-                        </div>
-                      </div>
-                      {cardErrors.number && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{cardErrors.number}</p>}
-                    </div>
-
-                    {/* Expiration & CVV */}
-                    <div className="grid grid-cols-2 gap-3.5">
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                          Expiration date <span className="text-rose-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          name="cardExpiry"
-                          inputMode="numeric"
-                          autoComplete="cc-exp"
-                          maxLength={5}
-                          value={cardData.expiry}
-                          onChange={(e) => handleCardInputChange('expiry', e.target.value)}
-                          placeholder="MM/YY"
-                          className={`w-full px-3.5 py-2.5 rounded-lg bg-white border ${cardErrors.expiry ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-xs`}
-                        />
-                        {cardErrors.expiry && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{cardErrors.expiry}</p>}
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                          Security code (CVV) <span className="text-rose-500">*</span>
-                        </label>
-                        <input
-                          type="password"
-                          name="cardCvv"
-                          inputMode="numeric"
-                          autoComplete="cc-csc"
-                          maxLength={4}
-                          value={cardData.cvv}
-                          onChange={(e) => handleCardInputChange('cvv', e.target.value)}
-                          placeholder="CVV"
-                          className={`w-full px-3.5 py-2.5 rounded-lg bg-white border ${cardErrors.cvv ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-xs`}
-                        />
-                        {cardErrors.cvv && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{cardErrors.cvv}</p>}
-                      </div>
-                    </div>
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      Pay directly with Visa, Mastercard, American Express, or Discover via secure PayPal guest checkout. No PayPal account needed.
+                    </p>
                   </div>
 
-                  {processing && (
-                    <div className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-primary bg-primary/5 rounded-xl border border-primary/20">
-                      <Loader2 className="animate-spin" size={18} /> Authorizing card with bank & placing order...
+                  <div id="paypal-card-container" className="w-full min-h-[48px]" />
+
+                  {!paypalReady && (
+                    <div className="w-full py-4 bg-slate-50 border border-slate-200 text-slate-500 rounded-lg font-bold text-sm flex items-center justify-center gap-2">
+                      <Loader2 className="animate-spin text-primary" size={18} /> Connecting to Secure Card Gateway...
                     </div>
                   )}
 
-                  <button
-                    type="submit"
-                    disabled={processing}
-                    className="w-full py-4 bg-primary text-white rounded-lg font-bold text-base hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 cursor-pointer"
-                  >
-                    {processing ? (
-                      <>
-                        <Loader2 className="animate-spin" size={20} />
-                        Processing card payment...
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingBag size={20} />
-                        Pay {formatPrice(total, false)} & place order
-                      </>
-                    )}
-                  </button>
+                  {initiatingPayment && (
+                    <div className="flex items-center justify-center gap-2.5 py-3 px-4 text-xs font-bold text-slate-800 bg-primary/5 border border-primary/20 rounded-xl shadow-xs animate-pulse">
+                      <Loader2 className="animate-spin text-primary shrink-0" size={16} />
+                      <span>Opening Secure Card Gateway... Please wait.</span>
+                    </div>
+                  )}
+
+                  {processing && (
+                    <div className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-primary bg-primary/5 rounded-xl border border-primary/20">
+                      <Loader2 className="animate-spin" size={18} /> Processing card payment & verifying order...
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div key="intl-paypal-view" className="pt-2 space-y-3">
-                  <div ref={paypalContainerRef} id="paypal-button-container" className="w-full min-h-[48px]" />
+                  <div id="paypal-wallet-container" className="w-full min-h-[48px]" />
 
                   {!paypalReady && (
                     <div className="w-full py-4 bg-slate-50 border border-slate-200 text-slate-500 rounded-lg font-bold text-sm flex items-center justify-center gap-2">

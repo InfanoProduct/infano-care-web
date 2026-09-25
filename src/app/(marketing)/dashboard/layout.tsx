@@ -215,6 +215,7 @@ export default function CustomerDashboardLayout({
     { href: '/dashboard/profile', label: 'Profile', icon: User },
   ] : [
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
+    { href: '/dashboard/library', label: 'eBook Library', icon: BookOpen, matchPrefix: true },
     { href: '/dashboard/enrolled-programs', label: 'My Programs', icon: Layers },
     { href: '/dashboard/courses', label: 'Explore Courses', icon: Video, matchPrefix: true },
     { href: '/dashboard/my-courses', label: 'My Courses', icon: BookOpen, matchPrefix: true },

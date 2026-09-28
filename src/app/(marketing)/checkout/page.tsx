@@ -125,7 +125,10 @@ function CheckoutContent() {
   const [paymentFailedReason, setPaymentFailedReason] = useState('');
   const rzpRef = React.useRef<any>(null);
   const [pincodeLoading, setPincodeLoading] = useState(false);
-
+  const [paypalReady, setPaypalReady] = useState(false);
+  const [initiatingPayment, setInitiatingPayment] = useState(false);
+  const [intlPaymentMethod, setIntlPaymentMethod] = useState<'CARD' | 'PAYPAL'>('CARD');
+  const paypalContainerRef = React.useRef<HTMLDivElement>(null);
   const [quantity, setQuantity] = useState(1);
   const [formData, setFormData] = useState({
     guestName: '',
@@ -139,13 +142,6 @@ function CheckoutContent() {
     gstNumber: '',
   });
 
-  // Credit Card Simulated Form State
-  const [cardData, setCardData] = useState({
-    cardName: '',
-    cardNumber: '',
-    cardExpiry: '',
-    cardCvc: ''
-  });
 
   useEffect(() => {
     if (nameParam || phoneParam || emailParam || user) {
@@ -193,16 +189,6 @@ function CheckoutContent() {
       });
     }
   }, [nameParam, phoneParam, emailParam, user, region]);
-
-  // If region is US or UK, force online payment method
-  useEffect(() => {
-    if (region !== 'IN') {
-      setFormData(prev => {
-        if (prev.paymentMethod === 'ONLINE') return prev;
-        return { ...prev, paymentMethod: 'ONLINE' };
-      });
-    }
-  }, [region]);
 
   useEffect(() => {
     setCachedOrder(null);
@@ -303,12 +289,27 @@ function CheckoutContent() {
           }
           const data = await res.json();
           if (data && data.success) {
+            let matchedState = data.state || '';
+            if (region === 'US') {
+              const query = (data.stateCode || data.state || '').trim().toLowerCase();
+              const found = US_STATES.find(
+                s => s.code.toLowerCase() === query || s.name.toLowerCase() === query
+              );
+              if (found) {
+                matchedState = found.code;
+              }
+            }
             setFormData(prev => ({
               ...prev,
-              city: data.city,
-              state: data.state
+              city: data.city || prev.city,
+              state: matchedState || prev.state
             }));
-            setFormErrors(prev => ({ ...prev, pincode: '', city: '', state: '' }));
+            setFormErrors(prev => ({
+              ...prev,
+              pincode: '',
+              ...(data.city ? { city: '' } : {}),
+              ...(matchedState ? { state: '' } : {})
+            }));
           }
         } catch (err) {
           console.warn('Postal code lookup failed (network issue or timeout)');
@@ -328,25 +329,6 @@ function CheckoutContent() {
     }
   };
 
-  const handleCardInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    let formattedValue = value;
-    if (name === 'cardNumber') {
-      formattedValue = value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim().substring(0, 19);
-    } else if (name === 'cardExpiry') {
-      formattedValue = value.replace(/\D/g, '');
-      if (formattedValue.length > 2) {
-        formattedValue = `${formattedValue.substring(0, 2)} / ${formattedValue.substring(2, 4)}`;
-      }
-      formattedValue = formattedValue.substring(0, 7);
-    } else if (name === 'cardCvc') {
-      formattedValue = value.replace(/\D/g, '').substring(0, 4);
-    }
-    setCardData(prev => ({ ...prev, [name]: formattedValue }));
-    if (formErrors[name]) {
-      setFormErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
 
   const applyCoupon = async () => {
     if (!couponCode || !book) return;
@@ -388,68 +370,231 @@ function CheckoutContent() {
 
   const { subtotal, gst, delivery, codCharge, total } = calculateTotal();
 
+  // Refs for PayPal callbacks to always access the freshest data without re-rendering buttons
+  const formDataRef = React.useRef(formData);
+  const bookRef = React.useRef(book);
+  const quantityRef = React.useRef(quantity);
+  const totalRef = React.useRef(total);
+  const deliveryRef = React.useRef(delivery);
+  const subtotalRef = React.useRef(subtotal);
+  const userRef = React.useRef(user);
+  const currentOrderRef = React.useRef<any>(null);
+
+  useEffect(() => { formDataRef.current = formData; }, [formData]);
+  useEffect(() => { bookRef.current = book; }, [book]);
+  useEffect(() => { quantityRef.current = quantity; }, [quantity]);
+  useEffect(() => { totalRef.current = total; }, [total]);
+  useEffect(() => { deliveryRef.current = delivery; }, [delivery]);
+  useEffect(() => { subtotalRef.current = subtotal; }, [subtotal]);
+  useEffect(() => { userRef.current = user; }, [user]);
+
   const validateForm = () => {
+    const curForm = formDataRef.current;
     const errors: Record<string, string> = {};
-    if (!formData.guestName.trim()) errors.guestName = 'Full name is required';
+    if (!curForm.guestName.trim()) errors.guestName = 'Full name is required';
     
     // Phone Validation
-    const digits = formData.guestPhone.replace(/\D/g, '');
+    const digits = curForm.guestPhone.replace(/\D/g, '');
     if (region === 'IN') {
-      if (!formData.guestPhone.trim() || !/^\d{10}$/.test(formData.guestPhone)) {
+      if (!curForm.guestPhone.trim() || !/^\d{10}$/.test(curForm.guestPhone)) {
         errors.guestPhone = 'Valid 10-digit mobile number is required';
       }
     } else if (region === 'US') {
-      if (!formData.guestPhone.trim() || !/^\d{10}$/.test(digits)) {
+      if (!curForm.guestPhone.trim() || !/^\d{10}$/.test(digits)) {
         errors.guestPhone = 'Valid 10-digit mobile number is required';
       }
     } else if (region === 'UK') {
       const isValidUK = (digits.length === 10 && !digits.startsWith('0')) || (digits.length === 11 && digits.startsWith('0'));
-      if (!formData.guestPhone.trim() || !isValidUK) {
+      if (!curForm.guestPhone.trim() || !isValidUK) {
         errors.guestPhone = 'Valid UK phone number is required (10 or 11 digits)';
       }
     } else {
-      const cleanPhone = formData.guestPhone.replace(/[\s\-()]/g, '');
-      if (!formData.guestPhone.trim() || !/^\d{7,15}$/.test(cleanPhone)) {
+      const cleanPhone = curForm.guestPhone.replace(/[\s\-()]/g, '');
+      if (!curForm.guestPhone.trim() || !/^\d{7,15}$/.test(cleanPhone)) {
         errors.guestPhone = 'Valid phone number is required (7-15 digits)';
       }
     }
 
     // Email validation (mandatory for US/UK)
     if (region !== 'IN') {
-      if (!formData.guestEmail.trim()) {
+      if (!curForm.guestEmail.trim()) {
         errors.guestEmail = 'Email address is required for international orders';
-      } else if (!/\S+@\S+\.\S+/.test(formData.guestEmail)) {
+      } else if (!/\S+@\S+\.\S+/.test(curForm.guestEmail)) {
         errors.guestEmail = 'Please enter a valid email address';
       }
-    } else if (formData.guestEmail.trim() && !/\S+@\S+\.\S+/.test(formData.guestEmail)) {
+    } else if (curForm.guestEmail.trim() && !/\S+@\S+\.\S+/.test(curForm.guestEmail)) {
       errors.guestEmail = 'Please enter a valid email address';
     }
 
     // Pincode/Zip validation
     if (region === 'IN') {
-      if (!formData.pincode.trim() || formData.pincode.length !== 6) {
+      if (!curForm.pincode.trim() || curForm.pincode.length !== 6) {
         errors.pincode = 'Valid 6-digit pincode is required';
       }
     } else if (region === 'US') {
-      if (!formData.pincode.trim() || !/^\d{5}$/.test(formData.pincode)) {
+      if (!curForm.pincode.trim() || !/^\d{5}$/.test(curForm.pincode)) {
         errors.pincode = 'Valid 5-digit ZIP code is required';
       }
     } else if (region === 'UK') {
-      if (!formData.pincode.trim() || formData.pincode.length < 3 || formData.pincode.length > 10) {
+      if (!curForm.pincode.trim() || curForm.pincode.length < 3 || curForm.pincode.length > 10) {
         errors.pincode = 'Valid postal code is required';
       }
     }
 
-    if (!formData.shippingAddress.trim()) errors.shippingAddress = 'Street address is required';
-    if (!formData.city.trim()) errors.city = 'City is required';
-    if (!formData.state.trim()) errors.state = 'State / Region is required';
+    if (!curForm.shippingAddress.trim()) errors.shippingAddress = 'Street address is required';
+    if (!curForm.city.trim()) errors.city = 'City is required';
+    if (!curForm.state.trim()) errors.state = 'State / Region is required';
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
+  // ── PayPal Buttons (for both Debit/Credit Card and PayPal Wallet tabs) ──────────
+  useEffect(() => {
+    if (region !== 'US' && region !== 'UK') return;
+
+    setPaypalReady(false);
+    const cardEl = document.getElementById('paypal-card-container');
+    const walletEl = document.getElementById('paypal-wallet-container');
+    if (cardEl) cardEl.innerHTML = '';
+    if (walletEl) walletEl.innerHTML = '';
+
+    let isMounted = true;
+
+    const initPaypal = () => {
+      const paypal = (window as any).paypal;
+      const targetContainerId = intlPaymentMethod === 'CARD' ? 'paypal-card-container' : 'paypal-wallet-container';
+      const containerEl = document.getElementById(targetContainerId);
+
+      if (!paypal?.Buttons || !containerEl) return false;
+
+      containerEl.innerHTML = '';
+
+      const fundingSource = intlPaymentMethod === 'CARD'
+        ? paypal.FUNDING.CARD
+        : paypal.FUNDING.PAYPAL;
+
+      const buttonStyle = intlPaymentMethod === 'CARD'
+        ? { layout: 'vertical', color: 'black', shape: 'rect', label: 'pay', height: 48 }
+        : { layout: 'vertical', color: 'gold', shape: 'rect', label: 'paypal', height: 48 };
+
+      paypal.Buttons({
+        fundingSource,
+        onClick: (_data: any, actions: any) => {
+          setError(null);
+          setInitiatingPayment(true);
+          return actions.resolve();
+        },
+        createOrder: async () => {
+          setError(null);
+          setInitiatingPayment(true);
+          try {
+            const curBook = bookRef.current;
+            if (!curBook) throw new Error('Book details not loaded');
+
+            // Reuse existing pending order if buyer re-clicked or reopened popup in same session
+            if (
+              currentOrderRef.current &&
+              currentOrderRef.current.paypalOrderId &&
+              currentOrderRef.current.country === region &&
+              currentOrderRef.current.currency === currencyCode &&
+              currentOrderRef.current.totalAmount === totalRef.current
+            ) {
+              setTimeout(() => setInitiatingPayment(false), 2000);
+              return currentOrderRef.current.paypalOrderId;
+            }
+
+            const orderData = {
+              userId: userRef.current?.id,
+              items: [{ bookId: curBook.id, quantity: quantityRef.current }],
+              country: region,
+              currency: currencyCode,
+              paymentMethod: 'ONLINE' as const,
+              comments: JSON.stringify({
+                country: region,
+                method: intlPaymentMethod === 'CARD' ? 'PAYPAL_CARD_CHECKOUT' : 'PAYPAL_WALLET',
+                flow: 'PAYPAL_EXPRESS_CHECKOUT',
+              }),
+            };
+
+            const order = await ShopService.createOrder(orderData);
+            currentOrderRef.current = order;
+            setTimeout(() => setInitiatingPayment(false), 2500);
+            return order.paypalOrderId;
+          } catch (err: any) {
+            setInitiatingPayment(false);
+            setError(err.message || 'Failed to initialize payment.');
+            throw err;
+          }
+        },
+        onApprove: async (data: any) => {
+          setInitiatingPayment(false);
+          setProcessing(true);
+          try {
+            const captureResult: any = await ShopService.capturePaypalOrder({ paypalOrderId: data.orderID });
+            const curBook = bookRef.current;
+            const order = currentOrderRef.current;
+            const successParams = new URLSearchParams({
+              transaction_id: captureResult?.id || order?.id || data.orderID,
+              value: captureResult?.totalAmount?.toString() || order?.totalAmount?.toString() || totalRef.current.toString(),
+              quantity: quantityRef.current.toString(),
+              item_id: curBook?.id || '',
+              item_name: curBook?.title || '',
+              price: getBookPrice(curBook, region).toString(),
+              discount: '0',
+              delivery: deliveryRef.current.toString(),
+              cod_charge: '0',
+              subtotal: subtotalRef.current.toString(),
+              payment_method: 'ONLINE',
+              image_url: curBook?.imageUrl || '/Page-1.png'
+            });
+            router.push(getLocalizedLink(`/purchase-success?${successParams.toString()}`));
+          } catch (err: any) {
+            setError(err.message || 'Payment capture failed. Please contact support.');
+            setProcessing(false);
+          }
+        },
+        onCancel: () => {
+          setInitiatingPayment(false);
+          setProcessing(false);
+        },
+        onError: (err: any) => {
+          console.error('[PAYPAL] Error:', err);
+          setInitiatingPayment(false);
+          setError('Payment could not be completed. Please ensure your shipping and billing address are in ' + countryName + '.');
+          setProcessing(false);
+        },
+        style: buttonStyle,
+      }).render(containerEl);
+
+      if (isMounted) setPaypalReady(true);
+      return true;
+    };
+
+    setPaypalReady(false);
+    if (initPaypal()) return;
+
+    const timer = setInterval(() => {
+      if (initPaypal()) {
+        clearInterval(timer);
+      }
+    }, 250);
+
+    return () => {
+      isMounted = false;
+      clearInterval(timer);
+      const cEl = document.getElementById('paypal-card-container');
+      const wEl = document.getElementById('paypal-wallet-container');
+      if (cEl) cEl.innerHTML = '';
+      if (wEl) wEl.innerHTML = '';
+    };
+  }, [region, currencyCode, intlPaymentMethod]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (region === 'US' || region === 'UK') {
+      return;
+    }
     if (!book) return;
 
     if (!validateForm()) {
@@ -470,22 +615,6 @@ function CheckoutContent() {
         } else if (phoneDigits.length === 12 && phoneDigits.startsWith('91')) {
           finalPhone = `+${phoneDigits}`;
         }
-      } else if (region === 'US') {
-        if (phoneDigits.length === 10) {
-          finalPhone = `+1${phoneDigits}`;
-        } else if (phoneDigits.length === 11 && phoneDigits.startsWith('1')) {
-          finalPhone = `+${phoneDigits}`;
-        }
-      } else if (region === 'UK') {
-        if (phoneDigits.length === 10 && !phoneDigits.startsWith('0')) {
-          finalPhone = `+44${phoneDigits}`;
-        } else if (phoneDigits.length === 11 && phoneDigits.startsWith('0')) {
-          finalPhone = `+44${phoneDigits.substring(1)}`;
-        } else if (phoneDigits.length === 12 && phoneDigits.startsWith('44')) {
-          finalPhone = `+${phoneDigits}`;
-        } else if (phoneDigits.length === 13 && phoneDigits.startsWith('440')) {
-          finalPhone = `+44${phoneDigits.substring(3)}`;
-        }
       }
 
       if (!order) {
@@ -505,8 +634,9 @@ function CheckoutContent() {
         }
       }
 
-      // Online payment gateway (Razorpay Multi-Currency)
+      // ── India Gateway routing (Razorpay or COD) ───────────────────────────
       if (formData.paymentMethod === 'ONLINE' && order.razorpayOrderId) {
+        // Razorpay popup (India)
         if (typeof (window as any).Razorpay === 'undefined') {
           setError('Payment gateway is still loading. Please wait a few seconds and try again.');
           setProcessing(false);
@@ -568,7 +698,9 @@ function CheckoutContent() {
         });
         rzpRef.current = rzp;
         rzp.open();
+
       } else {
+        // COD (or fallback) — redirect to success immediately
         const successParams = new URLSearchParams({
           transaction_id: order.id,
           value: order.totalAmount.toString(),
@@ -617,7 +749,9 @@ function CheckoutContent() {
               <button
                 onClick={() => {
                   setPaymentFailed(false);
-                  if (rzpRef.current) rzpRef.current.open();
+                  if (region === 'IN' && rzpRef.current) {
+                    rzpRef.current.open();
+                  }
                 }}
                 className="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold text-sm shadow-md transition-all active:scale-[0.98]"
               >
@@ -635,6 +769,12 @@ function CheckoutContent() {
       )}
 
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
+      {(region === 'US' || region === 'UK') && (
+        <Script
+          key={`paypal-sdk-${region}-${currencyCode}`}
+          src={`https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || 'BAAFardVSBZ0pcgeK2NqFbZNPYxzWOeODSCXI6AdAeFC5RkY40lEj7jqFeVVDv7QnCyJzSyo_oYLShPerc'}&currency=${currencyCode}&locale=${region === 'UK' ? 'en_GB' : 'en_US'}&components=buttons`}
+        />
+      )}
       <div className="max-w-6xl mx-auto px-6 relative z-10">
         <Link
           href={getLocalizedLink("/gigi-the-awkward-age-book")}
@@ -760,250 +900,215 @@ function CheckoutContent() {
             </div>
           </div>
 
-          {/* Right: Checkout Form */}
+          {/* Right: Unified Checkout Form */}
           <div className="lg:col-span-7 w-full max-w-full bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 md:p-12 shadow-2xl shadow-slate-200/50">
             <form onSubmit={handleSubmit} className="space-y-8" noValidate>
 
-              {/* Step 1: Personal Details */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
-                    01
-                  </div>
-                  <h2 className="text-base font-bold text-slate-800 tracking-tight">Personal details</h2>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">Full name <span className="text-rose-500">*</span></label>
-                    <input
-                      name="guestName"
-                      value={formData.guestName}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.guestName ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                      placeholder="e.g. Ananya Sharma"
-                    />
-                    {formErrors.guestName && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.guestName}</p>}
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">Phone number <span className="text-rose-500">*</span></label>
-                    
-                    <div className="relative flex items-center">
-                      <div className="absolute left-3 flex items-center gap-2 text-slate-500 font-bold text-sm pointer-events-none border-r border-slate-200 pr-2.5">
-                        <img
-                          src={`https://flagcdn.com/w40/${isoCode}.png`}
-                          className="w-5 h-3.5 object-cover rounded-sm border border-slate-200/50 shrink-0"
-                          alt={countryName}
-                        />
-                        <span>{dialCode}</span>
-                      </div>
-                      <input
-                        name="guestPhone"
-                        value={formData.guestPhone}
-                        onChange={handleInputChange}
-                        className={`w-full pl-22 pr-4 py-3 rounded-lg bg-white border ${formErrors.guestPhone ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                        placeholder={
-                          region === 'IN' ? '10-digit mobile number' :
-                          region === 'US' ? '10-digit mobile number' :
-                          region === 'UK' ? 'Mobile number (10 or 11 digits)' :
-                          'Mobile number'
-                        }
-                      />
-                    </div>
-                    {formErrors.guestPhone && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.guestPhone}</p>}
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                    Email address {region !== 'IN' ? <span className="text-rose-500">*</span> : '(optional)'}
-                  </label>
-                  <input
-                    type="email"
-                    name="guestEmail"
-                    value={formData.guestEmail}
-                    onChange={handleInputChange}
-                    className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.guestEmail ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                    placeholder="your@email.com"
-                  />
-                  {formErrors.guestEmail && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.guestEmail}</p>}
-                </div>
-              </div>
-
-              {/* Step 2: Shipping Address */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
-                    02
-                  </div>
-                  <h2 className="text-base font-bold text-slate-800 tracking-tight">Shipping address</h2>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                      {region === 'US' ? 'ZIP Code' : region === 'UK' ? 'Postal Code' : 'Pincode'} <span className="text-rose-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        name="pincode"
-                        value={formData.pincode}
-                        onChange={handleInputChange}
-                        maxLength={region === 'IN' ? 6 : region === 'US' ? 5 : 10}
-                        className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.pincode ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                        placeholder={region === 'US' ? '5-digit ZIP' : region === 'UK' ? 'Postal code' : '6-digit pincode'}
-                      />
-                      {pincodeLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-primary" size={16} />}
-                    </div>
-                    {formErrors.pincode && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.pincode}</p>}
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">Country</label>
-                    <input
-                      readOnly
-                      className="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 font-medium text-slate-500 cursor-not-allowed text-sm"
-                      value={countryName}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                    {region === 'US' ? 'Street Address' : region === 'UK' ? 'Address Line 1' : 'Full Address'} <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    name="shippingAddress"
-                    value={formData.shippingAddress}
-                    onChange={handleInputChange}
-                    className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.shippingAddress ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                    placeholder={region === 'US' ? 'e.g. 123 Main Street, Apt 4B' : region === 'UK' ? 'House name/number & street' : 'Flat / House No / Street'}
-                  />
-                  {formErrors.shippingAddress && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.shippingAddress}</p>}
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                      {region === 'UK' ? 'Town / City' : 'City'} <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      name="city"
-                      value={formData.city}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.city ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                      placeholder={region === 'UK' ? 'e.g. London' : 'City'}
-                    />
-                    {formErrors.city && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.city}</p>}
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                      {region === 'US' ? 'State' : region === 'UK' ? 'County' : 'State / Region'} <span className="text-rose-500">*</span>
-                    </label>
-                    {region === 'US' ? (
-                      <select
-                        name="state"
-                        value={formData.state}
-                        onChange={handleInputChange}
-                        onBlur={(e) => {
-                          if (region === 'US' && process.env.NODE_ENV === 'production' && e.target.value.trim() !== '') {
-                            const windowObj = window as any;
-                            windowObj.dataLayer = windowObj.dataLayer || [];
-                            windowObj.dataLayer.push({ ecommerce: null });
-                            windowObj.dataLayer.push({
-                              event: 'add_shipping_info',
-                              ecommerce: {
-                                currency: 'INR',
-                                value: 499,
-                                shipping_tier: 'Standard',
-                                items: [{
-                                  item_id: '5e569d64-9678-4689-a594-ec9c0020f07b',
-                                  item_name: 'Gigi - The Awkward Age',
-                                  price: 499,
-                                  quantity: 1
-                                }]
-                              }
-                            });
-                          }
-                        }}
-                        className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-semibold text-slate-800 text-sm shadow-sm bg-white`}
-                      >
-                        <option value="">Select State</option>
-                        {US_STATES.map((st) => (
-                          <option key={st.code} value={st.name}>{st.name} ({st.code})</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        name="state"
-                        value={formData.state}
-                        onChange={handleInputChange}
-                        onBlur={(e) => {
-                          if (region === 'IN' && process.env.NODE_ENV === 'production' && e.target.value.trim() !== '') {
-                            const windowObj = window as any;
-                            windowObj.dataLayer = windowObj.dataLayer || [];
-                            windowObj.dataLayer.push({ ecommerce: null });
-                            windowObj.dataLayer.push({
-                              event: 'add_shipping_info',
-                              ecommerce: {
-                                currency: 'INR',
-                                value: 499,
-                                shipping_tier: 'Standard',
-                                items: [{
-                                  item_id: '5e569d64-9678-4689-a594-ec9c0020f07b',
-                                  item_name: 'Gigi - The Awkward Age',
-                                  price: 499,
-                                  quantity: 1
-                                }]
-                              }
-                            });
-                          }
-                        }}
-                        className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                        placeholder={region === 'UK' ? 'e.g. Surrey' : 'State / Region'}
-                      />
-                    )}
-                    {formErrors.state && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.state}</p>}
-                  </div>
-                </div>
-              </div>
-
+              {/* Steps 1 & 2 + Promo code (India only — PayPal collects verified details for US/UK) */}
               {region === 'IN' && (
-                <div className="space-y-3 pt-2">
-                  <label className="text-[11px] font-bold text-slate-600 ml-0.5">Promo code</label>
-                  <div className="flex gap-2">
-                    <input
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                      placeholder="Enter code e.g. PROMO15"
-                      className="flex-1 min-w-0 px-4 py-2.5 rounded-lg bg-white border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={applyCoupon}
-                      disabled={!couponCode || validatingCoupon}
-                      className="px-5 py-2.5 bg-slate-900 text-white rounded-lg font-bold text-xs hover:bg-black transition-colors disabled:opacity-50"
-                    >
-                      {validatingCoupon ? <Loader2 className="animate-spin" size={14} /> : 'Apply'}
-                    </button>
-                  </div>
-                  {appliedCoupon && (
-                    <div className="flex items-center gap-2 px-3.5 py-2.5 bg-emerald-50 border border-emerald-200 rounded-lg">
-                      <Tag size={13} className="text-emerald-600" />
-                      <p className="text-emerald-700 text-[11px] font-bold">
-                        🎉 Code <span className="font-black">{appliedCoupon.code}</span> applied — you save ₹{discountAmount}!
-                      </p>
+                <>
+                  {/* Step 1: Personal Details */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
+                        01
+                      </div>
+                      <h2 className="text-base font-bold text-slate-800 tracking-tight">Personal details</h2>
                     </div>
-                  )}
-                </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">Full name <span className="text-rose-500">*</span></label>
+                        <input
+                          name="guestName"
+                          value={formData.guestName}
+                          onChange={handleInputChange}
+                          className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.guestName ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                          placeholder="e.g. Ananya Sharma"
+                        />
+                        {formErrors.guestName && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.guestName}</p>}
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">Phone number <span className="text-rose-500">*</span></label>
+                        
+                        <div className="relative flex items-center">
+                          <div className="absolute left-3 flex items-center gap-2 text-slate-500 font-bold text-sm pointer-events-none border-r border-slate-200 pr-2.5">
+                            <img
+                              src={`https://flagcdn.com/w40/${isoCode}.png`}
+                              className="w-5 h-3.5 object-cover rounded-sm border border-slate-200/50 shrink-0"
+                              alt={countryName}
+                            />
+                            <span>{dialCode}</span>
+                          </div>
+                          <input
+                            name="guestPhone"
+                            value={formData.guestPhone}
+                            onChange={handleInputChange}
+                            className={`w-full pl-22 pr-4 py-3 rounded-lg bg-white border ${formErrors.guestPhone ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                            placeholder="10-digit mobile"
+                          />
+                        </div>
+                        {formErrors.guestPhone && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.guestPhone}</p>}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-600 ml-0.5">
+                        Email address (optional)
+                      </label>
+                      <input
+                        type="email"
+                        name="guestEmail"
+                        value={formData.guestEmail}
+                        onChange={handleInputChange}
+                        className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.guestEmail ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                        placeholder="your@email.com"
+                      />
+                      {formErrors.guestEmail && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.guestEmail}</p>}
+                    </div>
+                  </div>
+
+                  {/* Step 2: Delivery Address */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
+                        02
+                      </div>
+                      <h2 className="text-base font-bold text-slate-800 tracking-tight">Delivery address</h2>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">
+                          Pincode <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <input
+                            name="pincode"
+                            value={formData.pincode}
+                            onChange={handleInputChange}
+                            maxLength={6}
+                            className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.pincode ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                            placeholder="6-digit pincode"
+                          />
+                          {pincodeLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-primary" size={16} />}
+                        </div>
+                        {formErrors.pincode && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.pincode}</p>}
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">Country</label>
+                        <div className="relative flex items-center">
+                          <div className="absolute left-3 flex items-center gap-2 pointer-events-none">
+                            <span className="text-base">{flagEmoji}</span>
+                          </div>
+                          <input
+                            readOnly
+                            className="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-50 border border-slate-200 font-bold text-slate-700 cursor-not-allowed text-sm shadow-inner"
+                            value={`${countryName} (${region})`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-600 ml-0.5">
+                        Street Address <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        name="shippingAddress"
+                        value={formData.shippingAddress}
+                        onChange={handleInputChange}
+                        className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.shippingAddress ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                        placeholder="House/Flat number, Street address"
+                      />
+                      {formErrors.shippingAddress && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.shippingAddress}</p>}
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">
+                          City <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          name="city"
+                          value={formData.city}
+                          onChange={handleInputChange}
+                          className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.city ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                          placeholder="City"
+                        />
+                        {formErrors.city && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.city}</p>}
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">
+                          State <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          name="state"
+                          value={formData.state}
+                          onChange={handleInputChange}
+                          className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                          placeholder="State"
+                        />
+                        {formErrors.state && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.state}</p>}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Promo code (India only) */}
+                  <div className="space-y-3 pt-2">
+                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">Promo code</label>
+                    <div className="flex gap-2">
+                      <input
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        placeholder="Enter code e.g. PROMO15"
+                        className="flex-1 min-w-0 px-4 py-2.5 rounded-lg bg-white border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={applyCoupon}
+                        disabled={!couponCode || validatingCoupon}
+                        className="px-5 py-2.5 bg-slate-900 text-white rounded-lg font-bold text-xs hover:bg-black transition-colors disabled:opacity-50"
+                      >
+                        {validatingCoupon ? <Loader2 className="animate-spin" size={14} /> : 'Apply'}
+                      </button>
+                    </div>
+                    {appliedCoupon && (
+                      <div className="flex items-center gap-2 px-3.5 py-2.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+                        <Tag size={13} className="text-emerald-600" />
+                        <p className="text-emerald-700 text-[11px] font-bold">
+                          🎉 Code <span className="font-black">{appliedCoupon.code}</span> applied — you save ₹{discountAmount}!
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
 
-              {/* Step 3: Payment Selection */}
+              {/* Step 3 (or main section for intl): Payment Method */}
               <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
-                    03
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {region === 'IN' ? (
+                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
+                        03
+                      </div>
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-[#0070BA]/10 flex items-center justify-center text-[#0070BA] text-[10px] font-bold border border-[#0070BA]/20">
+                        ⚡
+                      </div>
+                    )}
+                    <h2 className="text-base font-bold text-slate-800 tracking-tight">
+                      {region === 'IN' ? 'Payment method' : 'Express Checkout'}
+                    </h2>
                   </div>
-                  <h2 className="text-base font-bold text-slate-800 tracking-tight">Payment method</h2>
+
+                  {region !== 'IN' && (
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 rounded-full border border-slate-200 text-xs font-bold text-slate-700">
+                      <span>{flagEmoji}</span>
+                      <span>Shipping to {countryName}</span>
+                    </div>
+                  )}
                 </div>
 
                 {region === 'IN' ? (
@@ -1011,28 +1116,7 @@ function CheckoutContent() {
                     <button
                       type="button"
                       id='payment-online'
-                      onClick={() => {
-                        setFormData(prev => ({ ...prev, paymentMethod: 'ONLINE' }));
-                        if (process.env.NODE_ENV === 'production') {
-                          const windowObj = window as any;
-                          windowObj.dataLayer = windowObj.dataLayer || [];
-                          windowObj.dataLayer.push({ ecommerce: null });
-                          windowObj.dataLayer.push({
-                            event: 'add_payment_info',
-                            ecommerce: {
-                              currency: 'INR',
-                              value: 499,
-                              payment_type: 'Online Payment',
-                              items: [{
-                                item_id: '5e569d64-9678-4689-a594-ec9c0020f07b',
-                                item_name: 'Gigi - The Awkward Age',
-                                price: 499,
-                                quantity: 1
-                              }]
-                            }
-                          });
-                        }
-                      }}
+                      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'ONLINE' }))}
                       className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'ONLINE' ? 'border-primary bg-primary/3' : 'border-slate-100 hover:border-slate-200 bg-white'
                         }`}
                     >
@@ -1045,28 +1129,7 @@ function CheckoutContent() {
                     <button
                       type="button"
                       id='payment-cod'
-                      onClick={() => {
-                        setFormData(prev => ({ ...prev, paymentMethod: 'COD' }));
-                        if (process.env.NODE_ENV === 'production') {
-                          const windowObj = window as any;
-                          windowObj.dataLayer = windowObj.dataLayer || [];
-                          windowObj.dataLayer.push({ ecommerce: null });
-                          windowObj.dataLayer.push({
-                            event: 'add_payment_info',
-                            ecommerce: {
-                              currency: 'INR',
-                              value: 499,
-                              payment_type: 'Cash on Delivery',
-                              items: [{
-                                item_id: '5e569d64-9678-4689-a594-ec9c0020f07b',
-                                item_name: 'Gigi - The Awkward Age',
-                                price: 499,
-                                quantity: 1
-                              }]
-                            }
-                          });
-                        }
-                      }}
+                      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'COD' }))}
                       className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'COD' ? 'border-primary bg-primary/3' : 'border-slate-100 hover:border-slate-200 bg-white'
                         }`}
                     >
@@ -1078,14 +1141,52 @@ function CheckoutContent() {
                     </button>
                   </div>
                 ) : (
-                  <div className="w-full space-y-6">
-                    <div className="relative p-5 rounded-xl border-2 border-primary bg-primary/3 flex flex-col items-center gap-2.5">
-                      <CreditCard size={20} className="text-primary" />
-                      <div className="space-y-1 text-center">
-                        <div className="text-base font-bold text-primary">Pay online</div>
-                        <div className="text-xs font-medium text-slate-500">Secure checkout with major credit cards</div>
+                  <div className="w-full grid sm:grid-cols-2 gap-3.5">
+                    {/* Option 1: Credit / Debit Card */}
+                    <button
+                      type="button"
+                      id="payment-card"
+                      onClick={() => setIntlPaymentMethod('CARD')}
+                      className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 text-center cursor-pointer ${
+                        intlPaymentMethod === 'CARD'
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary/20 shadow-sm'
+                          : 'border-slate-100 hover:border-slate-200 bg-white'
+                      }`}
+                    >
+                      <CreditCard size={22} className={intlPaymentMethod === 'CARD' ? 'text-primary' : 'text-slate-400'} />
+                      <div className="space-y-1">
+                        <div className={`text-sm font-bold ${intlPaymentMethod === 'CARD' ? 'text-primary' : 'text-slate-800'}`}>
+                          Debit or Credit Card
+                        </div>
+                        <div className="text-[11px] font-medium text-slate-500">
+                          Visa, Mastercard, AMEX, Discover
+                        </div>
                       </div>
-                    </div>
+                    </button>
+
+                    {/* Option 2: PayPal */}
+                    <button
+                      type="button"
+                      id="payment-paypal"
+                      onClick={() => setIntlPaymentMethod('PAYPAL')}
+                      className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 text-center cursor-pointer ${
+                        intlPaymentMethod === 'PAYPAL'
+                          ? 'border-[#0070BA] bg-[#0070BA]/5 ring-1 ring-[#0070BA]/20 shadow-sm'
+                          : 'border-slate-100 hover:border-slate-200 bg-white'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 flex items-center justify-center font-black italic text-base ${intlPaymentMethod === 'PAYPAL' ? 'text-[#0070BA]' : 'text-slate-400'}`}>
+                        P
+                      </div>
+                      <div className="space-y-1">
+                        <div className={`text-sm font-bold ${intlPaymentMethod === 'PAYPAL' ? 'text-[#0070BA]' : 'text-slate-800'}`}>
+                          PayPal Wallet
+                        </div>
+                        <div className="text-[11px] font-medium text-slate-500">
+                          1-Click Express checkout
+                        </div>
+                      </div>
+                    </button>
                   </div>
                 )}
               </div>
@@ -1096,31 +1197,111 @@ function CheckoutContent() {
                 </div>
               )}
 
-              <div className="pt-4">
-                <button
-                  type="submit"
-                  disabled={processing || pincodeLoading}
-                  className="w-full py-4 bg-primary text-white rounded-lg font-bold text-base hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
-                >
-                  {processing ? (
-                    <>
-                      <Loader2 className="animate-spin" size={20} />
-                      Processing securely...
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingBag size={20} />
-                      {formData.paymentMethod === 'ONLINE' 
-                        ? `Pay ${formatPrice(total, false)} & place order`
-                        : `Place order via COD (${formatPrice(total, false)})`
-                      }
-                    </>
+              {/* Action area */}
+              {region === 'IN' ? (
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={processing || pincodeLoading}
+                    className="w-full py-4 bg-primary text-white rounded-lg font-bold text-base hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                  >
+                    {processing ? (
+                      <>
+                        <Loader2 className="animate-spin" size={20} />
+                        Processing securely...
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingBag size={20} />
+                        {formData.paymentMethod === 'ONLINE' 
+                          ? `Pay ${formatPrice(total, false)} & place order`
+                          : `Place order via COD (${formatPrice(total, false)})`
+                        }
+                      </>
+                    )}
+                  </button>
+                </div>
+              ) : intlPaymentMethod === 'CARD' ? (
+                <div key="intl-card-view" className="pt-2 space-y-3">
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <CreditCard size={15} className="text-primary" /> Debit or Credit Card
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                        <Lock size={10} /> 256-bit Encrypted
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      Pay directly with Visa, Mastercard, American Express, or Discover via secure PayPal guest checkout. No PayPal account needed.
+                    </p>
+                  </div>
+
+                  <div id="paypal-card-container" className="w-full min-h-[48px]" />
+
+                  {!paypalReady && (
+                    <div className="w-full py-4 bg-slate-50 border border-slate-200 text-slate-500 rounded-lg font-bold text-sm flex items-center justify-center gap-2">
+                      <Loader2 className="animate-spin text-primary" size={18} /> Connecting to Secure Card Gateway...
+                    </div>
                   )}
-                </button>
-                <p className="text-center text-slate-500 text-[10px] font-medium mt-6">
-                  By placing order, you agree to our <Link href={getLocalizedLink("/legal#terms")} className="underline underline-offset-2 hover:text-primary transition-colors">Terms</Link> and <Link href={getLocalizedLink("/legal#privacy")} className="underline underline-offset-2 hover:text-primary transition-colors">Privacy Policy</Link>.
-                </p>
+
+                  {initiatingPayment && (
+                    <div className="flex items-center justify-center gap-2.5 py-3 px-4 text-xs font-bold text-slate-800 bg-primary/5 border border-primary/20 rounded-xl shadow-xs animate-pulse">
+                      <Loader2 className="animate-spin text-primary shrink-0" size={16} />
+                      <span>Opening Secure Card Gateway... Please wait.</span>
+                    </div>
+                  )}
+
+                  {processing && (
+                    <div className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-primary bg-primary/5 rounded-xl border border-primary/20">
+                      <Loader2 className="animate-spin" size={18} /> Processing card payment & verifying order...
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div key="intl-paypal-view" className="pt-2 space-y-3">
+                  <div id="paypal-wallet-container" className="w-full min-h-[48px]" />
+
+                  {!paypalReady && (
+                    <div className="w-full py-4 bg-slate-50 border border-slate-200 text-slate-500 rounded-lg font-bold text-sm flex items-center justify-center gap-2">
+                      <Loader2 className="animate-spin text-primary" size={18} /> Connecting to PayPal...
+                    </div>
+                  )}
+
+                  {initiatingPayment && (
+                    <div className="flex items-center justify-center gap-2.5 py-3 px-4 text-xs font-bold text-slate-800 bg-primary/5 border border-primary/20 rounded-xl shadow-xs animate-pulse">
+                      <Loader2 className="animate-spin text-primary shrink-0" size={16} />
+                      <span>Connecting to PayPal... Please wait.</span>
+                    </div>
+                  )}
+
+                  {processing && (
+                    <div className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-primary bg-primary/5 rounded-xl border border-primary/20">
+                      <Loader2 className="animate-spin" size={18} /> Processing payment & verifying shipping details...
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Trust Badges */}
+              <div className="pt-5 border-t border-slate-100 grid grid-cols-3 gap-3 text-center">
+                <div className="space-y-1">
+                  <div className="text-emerald-600 font-black text-xs">🔒 256-bit SSL</div>
+                  <p className="text-[10px] text-slate-400 font-medium">Bank-grade security</p>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-primary font-black text-xs">🛡️ Buyer Protection</div>
+                  <p className="text-[10px] text-slate-400 font-medium">{region === 'IN' ? 'Verified guarantee' : 'PayPal guarantee'}</p>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-slate-700 font-black text-xs">✈️ Tracked Post</div>
+                  <p className="text-[10px] text-slate-400 font-medium">Delivered to {countryName}</p>
+                </div>
               </div>
+
+              <p className="text-center text-slate-500 text-[10px] font-medium pt-2">
+                By placing order, you agree to our <Link href={getLocalizedLink("/legal#terms")} className="underline underline-offset-2 hover:text-primary transition-colors">Terms</Link> and <Link href={getLocalizedLink("/legal#privacy")} className="underline underline-offset-2 hover:text-primary transition-colors">Privacy Policy</Link>.
+              </p>
             </form>
           </div>
         </div>

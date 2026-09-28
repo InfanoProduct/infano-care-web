@@ -495,7 +495,7 @@ export default function CustomerDashboardLayout({
                   {user?.profile?.displayName || user?.username || 'User'}
                 </p>
                 <p className="text-[9px] font-bold text-slate-400 mt-0.5 uppercase tracking-wide">
-                  {user.role === 'TEEN' ? 'Teen' : user.role === 'PARENT' ? 'Parent' : (user.role.charAt(0) + user.role.slice(1).toLowerCase())}
+                  {user?.role === 'TEEN' ? 'Teen' : user?.role === 'PARENT' ? 'Parent' : user?.role ? (user.role.charAt(0) + user.role.slice(1).toLowerCase()) : 'Member'}
                 </p>
               </div>
             </div>

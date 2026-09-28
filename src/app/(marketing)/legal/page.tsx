@@ -38,9 +38,10 @@ const sections = [
     icon: AlertCircle,
     subsections: [
       { id: 'refund-intro', title: 'Introduction' },
-      { id: 'return-policy', title: 'No Return Policy' },
-      { id: 'cancel-terms', title: 'Cancellations & Refunds' },
-      { id: 'refund-contact', title: 'Raising Queries' },
+      { id: 'return-policy', title: 'Physical Products' },
+      { id: 'cancel-terms', title: 'Digital & Programs' },
+      { id: 'refund-timeline', title: 'Refund Timelines (5-7 Days)' },
+      { id: 'refund-contact', title: 'Support & Queries' },
     ]
   },
   { 
@@ -48,16 +49,11 @@ const sections = [
     title: 'Pricing Policy', 
     icon: CreditCard,
     subsections: [
-      { id: 'pricing-structure', title: 'Pricing Structure' },
-      { id: 'sub-plans', title: 'Subscription Plans' },
-      { id: 'one-time', title: 'One-Time Purchases' },
-      { id: 'free-features', title: 'Free Features' },
-      { id: 'payment-methods', title: 'Payment Methods' },
-      { id: 'billing-renewal', title: 'Billing and Renewal' },
-      { id: 'pricing-refunds', title: 'Refunds and Cancellations' },
-      { id: 'taxes-fees', title: 'Taxes and Fees' },
-      { id: 'price-changes', title: 'Price Changes' },
-      { id: 'pricing-contact', title: 'Contact Information' },
+      { id: 'pricing-structure', title: 'Multi-Currency Structure' },
+      { id: 'payment-methods', title: 'Payment Methods & Security' },
+      { id: 'taxes-fees', title: 'Taxes & Shipping Fees' },
+      { id: 'price-changes', title: 'Price Adjustments' },
+      { id: 'pricing-contact', title: 'Billing Support' },
     ]
   },
   { 
@@ -65,15 +61,11 @@ const sections = [
     title: 'Shipping Policy', 
     icon: Truck,
     subsections: [
-      { id: 'order-processing', title: 'Order Processing' },
-      { id: 'delivery-time', title: 'Shipping & Delivery Time' },
-      { id: 'shipping-charges', title: 'Shipping Charges' },
-      { id: 'tracking-order', title: 'Tracking Your Order' },
-      { id: 'address-accuracy', title: 'Address Accuracy' },
-      { id: 'international-shipping', title: 'International Shipping' },
-      { id: 'damaged-lost', title: 'Damaged or Lost Packages' },
-      { id: 'order-change', title: 'Change or Cancellation' },
-      { id: 'shipping-support', title: 'Customer Support' },
+      { id: 'order-processing', title: 'Processing & Dispatch' },
+      { id: 'delivery-time', title: 'Domestic & International Delivery' },
+      { id: 'shipping-charges', title: 'Shipping Fees' },
+      { id: 'tracking-order', title: 'Shipment Tracking' },
+      { id: 'shipping-support', title: 'Shipping Support' },
     ]
   },
 ];
@@ -690,7 +682,7 @@ export default function LegalPage() {
                     </div>
                   )}
 
-                  {/* Cancellations and Refund Policy */}
+                  {/* Refund and Cancellation Content */}
                   {activeSection === 'refund' && (
                     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
                       <section id="refund-header" className="group/section">
@@ -698,7 +690,7 @@ export default function LegalPage() {
                           <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white shadow-xl shadow-primary/20 group-hover/section:scale-110 transition-transform duration-500">
                             <AlertCircle size={24} />
                           </div>
-                          <h2 className="text-4xl font-black text-slate-800 tracking-tight">Refund & Return <span className="text-primary">Policy</span></h2>
+                          <h2 className="text-4xl font-black text-slate-800 tracking-tight">Cancellations, Returns & <span className="text-primary">Refund Policy</span></h2>
                         </div>
                       </section>
 
@@ -710,10 +702,10 @@ export default function LegalPage() {
                           </h3>
                           <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed prose-p:text-lg">
                             <p>
-                              Thank you for choosing Infano (“Berrybird Technologies, we, us, our”). Our platform infano.care (the “Website”) is referred to as the “Infano Platform”. Please read this Cancellations, Return, and Refund Policy carefully before making any purchases or transactions on the Infano Platform.
+                              Thank you for choosing Infano (operated by <strong>Berrybird Technologies Private Limited</strong>, “we”, “us”, “our”). Our platform infano.care (the “Website”) is referred to as the “Infano Platform”. Please read this Cancellations, Return, and Refund Policy carefully before making any purchases or transactions on the Infano Platform.
                             </p>
                             <p>
-                              By registering, enrolling, or purchasing physical products (like the printed Gigi Book) or online programs from the Infano Platform, you acknowledge and agree to be bound by the terms outlined in this policy.
+                              By purchasing physical products (such as the printed Gigi Book), digital books, webinars, workshops, or enrolling in our programs and consultation sessions, you acknowledge and agree to the terms outlined in this policy.
                             </p>
                           </div>
                         </div>
@@ -723,12 +715,17 @@ export default function LegalPage() {
                         <div className="pl-0 md:pl-16">
                           <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
                             <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            No Return Policy
+                            Physical Products (Gigi Book & Merchandise)
                           </h3>
-                          <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed">
+                          <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed prose-li:text-slate-600">
                             <p>
-                              We enforce a strict <strong>No Return Policy</strong> for all our products. Once a product—whether it is a physical/printed item like the Gigi Book, a digital handbook, or digital learning resources—has been ordered, processed, or shipped, it is considered a final sale. We do not accept returns or offer exchanges under any circumstances.
+                              We take utmost care in packaging and delivering all printed books and merchandise.
                             </p>
+                            <ul className="space-y-2 mt-4">
+                              <li><strong>Order Cancellations:</strong> You can cancel your order before it has been dispatched from our facility by writing to us at <span className="font-bold text-primary">connect@infano.care</span> with your Order ID. Once an order has been shipped, it cannot be cancelled.</li>
+                              <li><strong>Damaged, Defective or Incorrect Items:</strong> In the rare event that your product arrives damaged, misprinted, or defective, please notify us within <strong>7 days of delivery</strong> along with photographs of the packaging and product. Upon verification, we will promptly ship a free replacement or initiate a full refund.</li>
+                              <li><strong>General Returns:</strong> Due to the nature of printed publications and hygiene standards, items without physical damage or defect are non-returnable once opened.</li>
+                            </ul>
                           </div>
                         </div>
                       </section>
@@ -737,15 +734,33 @@ export default function LegalPage() {
                         <div className="pl-0 md:pl-16">
                           <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
                             <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Cancellations & Refunds
+                            Digital Products, Programs & Webinars
                           </h3>
-                          <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed">
+                          <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed prose-li:text-slate-600">
+                            <ul className="space-y-2">
+                              <li><strong>Digital Downloads (eBooks/Handbooks):</strong> All sales of instantly downloadable digital content are final and non-refundable once the download link or digital access has been generated.</li>
+                              <li><strong>Live Webinars & Workshops:</strong> Registrations may be cancelled up to 24 hours prior to the scheduled session time for a full refund or credit toward a future session. No refunds are provided for unattended or missed live sessions.</li>
+                              <li><strong>1-on-1 Expert Sessions & Cohort Programs:</strong> Rescheduling requests made at least 24 hours in advance will be accommodated free of charge. Cancellations prior to commencement are eligible for a refund minus administrative processing charges.</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </section>
+
+                      <section id="refund-timeline" className="scroll-mt-32 pt-8 border-t border-slate-100">
+                        <div className="pl-0 md:pl-16">
+                          <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
+                            <span className="w-8 h-1 bg-primary/20 rounded-full" />
+                            Refund Process & Timelines
+                          </h3>
+                          <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed prose-li:text-slate-600">
                             <p>
-                              All digital services, memberships, subscriptions, mentoring programs, live online classes, webinars, and masterclasses offered on the Infano Platform are non-cancellable and non-refundable. 
+                              When a refund is approved by our team:
                             </p>
-                            <p>
-                              Once enrollment is confirmed and payment is processed, no cancellations will be accepted, and no refunds or credits will be issued for sessions missed, partially completed, or unattended.
-                            </p>
+                            <ul className="space-y-2 mt-4">
+                              <li>The refund will be credited directly to your <strong>original payment method</strong> (Credit Card, Debit Card, Net Banking, UPI, or International Payment gateway).</li>
+                              <li><strong>Domestic Refunds (India):</strong> Processed and reflected in your account within <strong>5 to 7 business days</strong>.</li>
+                              <li><strong>International Refunds (US, UK, Global):</strong> Processed within <strong>7 to 10 business days</strong>, depending on your bank or card issuer's foreign settlement policies.</li>
+                            </ul>
                           </div>
                         </div>
                       </section>
@@ -754,18 +769,20 @@ export default function LegalPage() {
                         <div className="pl-0 md:pl-16">
                           <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
                             <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Raising Queries
+                            Raising Queries & Support
                           </h3>
                           <div className="prose prose-slate max-w-none">
                             <div className="bg-primary/5 border border-primary/20 p-8 rounded-2xl shadow-sm">
                               <p className="text-sm font-bold mb-2 text-primary uppercase tracking-widest">Support</p>
-                              <p className="text-xl font-bold mb-4 text-slate-800">Have a Query or Order Issue?</p>
+                              <p className="text-xl font-bold mb-4 text-slate-800">Need Help with an Order or Refund?</p>
                               <p className="text-slate-600 text-sm mb-6 leading-relaxed">
-                                Your satisfaction is important to us. If you face any issues with your order (such as receiving a damaged book, shipping problems, or difficulty accessing your online program), you can raise a query or issue by writing to us.
+                                Our support team is here to assist you with any questions regarding orders, replacements, cancellations, or billing.
                               </p>
-                              <a href="mailto:connect@infano.care" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all hover:shadow-lg hover:-translate-y-0.5">
-                                connect@infano.care
-                              </a>
+                              <div className="flex flex-wrap items-center gap-4">
+                                <a href="mailto:connect@infano.care" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all hover:shadow-lg hover:-translate-y-0.5">
+                                  connect@infano.care
+                                </a>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -789,54 +806,17 @@ export default function LegalPage() {
                         <div className="pl-0 md:pl-16">
                           <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
                             <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Pricing Structure
+                            Multi-Currency Pricing Structure
                           </h3>
                           <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed prose-p:text-lg">
                             <p>
-                              Welcome to Infano.care! Our Pricing Policy outlines the pricing structure and terms for accessing premium features, services, and products offered on our platform.
+                              Welcome to Infano.care! We believe in transparent, upfront, and fair pricing for all our users globally. Our platform supports localized, multi-currency pricing to provide a seamless checkout experience for customers worldwide:
                             </p>
-                          </div>
-                        </div>
-                      </section>
-
-                      <section id="sub-plans" className="scroll-mt-32 pt-8 border-t border-slate-100">
-                        <div className="pl-0 md:pl-16">
-                          <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
-                            <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Subscription Plans
-                          </h3>
-                          <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed">
-                            <p>
-                              Our subscription plans provide access to premium features and content on a recurring basis. Subscription fees are billed at regular intervals (e.g., monthly, annually) and may vary based on the plan selected.
-                            </p>
-                          </div>
-                        </div>
-                      </section>
-
-                      <section id="one-time" className="scroll-mt-32 pt-8 border-t border-slate-100">
-                        <div className="pl-0 md:pl-16">
-                          <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
-                            <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            One-Time Purchases
-                          </h3>
-                          <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed">
-                            <p>
-                              Some features or products on our platform may be available for purchase as one-time transactions. The pricing for one-time purchases is determined based on the specific product or service offered.
-                            </p>
-                          </div>
-                        </div>
-                      </section>
-
-                      <section id="free-features" className="scroll-mt-32 pt-8 border-t border-slate-100">
-                        <div className="pl-0 md:pl-16">
-                          <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
-                            <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Free Features
-                          </h3>
-                          <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed">
-                            <p>
-                              We also offer certain features and content on our platform free of charge. These free features may be subject to limitations or restrictions as outlined in our Terms and Conditions.
-                            </p>
+                            <ul className="space-y-2 mt-4 text-base">
+                              <li><strong>India (Domestic):</strong> All prices are displayed and processed in <strong>Indian Rupees (INR - ₹)</strong>. Applicable Goods & Services Tax (GST) is calculated and itemized transparently.</li>
+                              <li><strong>United States & International:</strong> Prices for customers in the United States and global regions are displayed and billed in <strong>US Dollars (USD - $)</strong>.</li>
+                              <li><strong>United Kingdom:</strong> Prices for customers in the UK are displayed and billed in <strong>British Pounds (GBP - £)</strong>.</li>
+                            </ul>
                           </div>
                         </div>
                       </section>
@@ -845,39 +825,20 @@ export default function LegalPage() {
                         <div className="pl-0 md:pl-16">
                           <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
                             <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Payment Methods
+                            Accepted Payment Methods & Security
                           </h3>
-                          <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed">
+                          <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed prose-li:text-slate-600">
                             <p>
-                              We accept various payment methods, including credit/debit cards, electronic funds transfer (EFT), and other online payment services. Payment processing is facilitated through secure third-party payment processors.
+                              We accept a comprehensive range of secure domestic and international payment options:
                             </p>
-                          </div>
-                        </div>
-                      </section>
-
-                      <section id="billing-renewal" className="scroll-mt-32 pt-8 border-t border-slate-100">
-                        <div className="pl-0 md:pl-16">
-                          <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
-                            <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Billing and Renewal
-                          </h3>
-                          <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed">
-                            <p>
-                              Subscription fees are billed automatically at the beginning of each billing cycle unless canceled or modified by the user. Users may manage their subscription preferences and billing details through their account settings.
-                            </p>
-                          </div>
-                        </div>
-                      </section>
-
-                      <section id="pricing-refunds" className="scroll-mt-32 pt-8 border-t border-slate-100">
-                        <div className="pl-0 md:pl-16">
-                          <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
-                            <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Refunds and Cancellations
-                          </h3>
-                          <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed">
-                            <p>
-                              Refunds may be available for certain subscription plans or one-time purchases in accordance with our <a href="/legal#refund" className="text-primary font-bold">Refund Policy</a>. Users may cancel their subscription at any time, but refunds may be subject to applicable terms and conditions.
+                            <ul className="space-y-2 mt-4">
+                              <li><strong>Credit & Debit Cards:</strong> Visa, MasterCard, American Express, Diners Club, Maestro, and RuPay (both Domestic and International cards).</li>
+                              <li><strong>UPI & Digital Wallets:</strong> Google Pay, PhonePe, Paytm, BHIM, and other major UPI providers (for India).</li>
+                              <li><strong>Net Banking:</strong> Supported across all major Indian banks.</li>
+                              <li><strong>Cash on Delivery (COD):</strong> Available for eligible physical book orders within select PIN codes in India.</li>
+                            </ul>
+                            <p className="mt-4 text-sm font-medium text-slate-500 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                              🔒 <strong>Security Guarantee:</strong> All payment transactions are processed through leading, RBI-authorized, PCI-DSS Level 1 compliant payment gateways (such as Razorpay). We do not store or capture any card numbers, CVVs, or bank credentials on our servers.
                             </p>
                           </div>
                         </div>
@@ -887,11 +848,11 @@ export default function LegalPage() {
                         <div className="pl-0 md:pl-16">
                           <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
                             <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Taxes and Fees
+                            Taxes, Shipping & Additional Fees
                           </h3>
                           <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed">
                             <p>
-                              Prices displayed on our platform may be exclusive of taxes, fees, or other charges imposed by governmental authorities. Users are responsible for paying any applicable taxes or fees associated with their purchases.
+                              All prices displayed on product pages are transparent. Any applicable delivery charges, COD handling charges, or regional taxes are clearly itemized on the checkout summary before you confirm payment. There are no hidden fees.
                             </p>
                           </div>
                         </div>
@@ -901,11 +862,11 @@ export default function LegalPage() {
                         <div className="pl-0 md:pl-16">
                           <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
                             <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Price Changes
+                            Price Adjustments & Promotions
                           </h3>
                           <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed">
                             <p>
-                              Infano.care reserves the right to modify or update pricing for its products and services at any time without prior notice. Any changes to pricing will be communicated to users in advance.
+                              Infano reserves the right to modify prices, launch promotional discounts, or introduce seasonal offers. Any price change will not affect orders that have already been confirmed and paid for.
                             </p>
                           </div>
                         </div>
@@ -915,14 +876,14 @@ export default function LegalPage() {
                         <div className="pl-0 md:pl-16">
                           <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
                             <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Contact Information
+                            Billing Support
                           </h3>
                           <div className="prose prose-slate max-w-none">
                             <div className="bg-primary/5 border border-primary/20 p-8 rounded-2xl shadow-sm">
                               <p className="text-sm font-bold mb-2 text-primary uppercase tracking-widest">Billing Support</p>
-                              <p className="text-xl font-bold mb-4 text-slate-800">Questions about Pricing?</p>
+                              <p className="text-xl font-bold mb-4 text-slate-800">Questions regarding Invoices or Pricing?</p>
                               <p className="text-slate-600 text-sm mb-6 leading-relaxed">
-                                If you have any questions or concerns about our Pricing Policy, please contact us.
+                                For any billing inquiries, payment confirmation receipts, or tax invoices, please write to our finance team at <span className="font-bold text-primary">connect@infano.care</span>.
                               </p>
                               <a href="mailto:connect@infano.care" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all hover:shadow-lg hover:-translate-y-0.5">
                                 connect@infano.care
@@ -942,7 +903,7 @@ export default function LegalPage() {
                           <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white shadow-xl shadow-primary/20 group-hover/section:scale-110 transition-transform duration-500">
                             <Truck size={24} />
                           </div>
-                          <h2 className="text-4xl font-black text-slate-800 tracking-tight">Shipping <span className="text-primary">Policy</span></h2>
+                          <h2 className="text-4xl font-black text-slate-800 tracking-tight">Shipping & <span className="text-primary">Delivery Policy</span></h2>
                         </div>
                       </section>
 
@@ -950,14 +911,14 @@ export default function LegalPage() {
                         <div className="pl-0 md:pl-16">
                           <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
                             <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Order Processing
+                            Order Processing & Dispatch
                           </h3>
                           <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed prose-p:text-lg">
                             <p>
-                              All confirmed book or merchandise orders placed through Infano.Care are processed within <span className="font-bold">2–3 business days</span> (excluding weekends and public holidays). Once your order is confirmed, you will receive an acknowledgment email or SMS with your order details.
+                              All physical book orders (such as the printed Gigi Book) and merchandise placed on Infano.care are processed and dispatched within <span className="font-bold">1–2 business days</span> (excluding Sundays and national holidays).
                             </p>
                             <p>
-                              If we experience a high volume of orders, or if any item is out of stock, we will notify you promptly via email or phone.
+                              Upon dispatch, you will automatically receive an order confirmation email and SMS containing your package tracking details.
                             </p>
                           </div>
                         </div>
@@ -967,18 +928,15 @@ export default function LegalPage() {
                         <div className="pl-0 md:pl-16">
                           <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
                             <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Shipping & Delivery Time
+                            Delivery Timelines & Courier Partners
                           </h3>
                           <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed prose-li:text-slate-600">
-                            <p>We partner with trusted delivery services such as India Post, DTDC, and Blue Dart to ensure safe and timely delivery.</p>
-                            <ul className="space-y-2">
-                              <li><strong>Standard Shipping (Pan India):</strong> 5–7 business days</li>
-                              <li><strong>Express Shipping (where available):</strong> 2–3 business days</li>
-                              <li><strong>eBook Orders:</strong> Instant download link will be sent to your registered email address after successful payment.</li>
+                            <p>We partner with premier logistics providers (including Blue Dart, DTDC, Delhivery, India Post, and international freight partners) to ensure fast and secure delivery:</p>
+                            <ul className="space-y-2 mt-4">
+                              <li><strong>Domestic Delivery (Within India):</strong> Estimated <strong>3 to 7 business days</strong> depending on your city and state.</li>
+                              <li><strong>International Delivery (USA, UK & Worldwide):</strong> Estimated <strong>7 to 14 business days</strong> via international courier services with door-to-door tracking.</li>
+                              <li><strong>Digital Products & eBooks:</strong> Access is delivered instantly to your registered email and dashboard upon successful payment completion.</li>
                             </ul>
-                            <p className="text-sm italic text-slate-500 mt-4">
-                              Delivery timelines may vary for remote areas or unforeseen circumstances like weather disruptions or courier delays.
-                            </p>
                           </div>
                         </div>
                       </section>
@@ -987,15 +945,11 @@ export default function LegalPage() {
                         <div className="pl-0 md:pl-16">
                           <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
                             <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Shipping Charges
+                            Shipping Fees
                           </h3>
-                          <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed prose-li:text-slate-600">
-                            <ul className="space-y-3">
-                              <li><strong>Orders above ₹999:</strong> Free Shipping</li>
-                              <li><strong>Orders below ₹999:</strong> A nominal shipping fee (₹50–₹100) will apply based on your location.</li>
-                            </ul>
-                            <p className="mt-4 text-sm font-medium text-slate-500 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                              Any applicable shipping charges will be shown at checkout before you make the payment.
+                          <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed">
+                            <p>
+                              Shipping fees (if applicable) are calculated dynamically at checkout based on destination country, weight, and delivery method. All shipping costs are displayed clearly before final payment confirmation.
                             </p>
                           </div>
                         </div>
@@ -1005,70 +959,11 @@ export default function LegalPage() {
                         <div className="pl-0 md:pl-16">
                           <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
                             <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Tracking Your Order
+                            Shipment Tracking & Support
                           </h3>
                           <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed">
                             <p>
-                              Once your order has been shipped, you will receive a tracking ID and courier partner details via email or SMS. You can track the shipment status using the courier’s official website or by contacting our support team at <span className="font-bold text-primary underline">connect@infano.care</span>.
-                            </p>
-                          </div>
-                        </div>
-                      </section>
-
-                      <section id="address-accuracy" className="scroll-mt-32 pt-8 border-t border-slate-100">
-                        <div className="pl-0 md:pl-16">
-                          <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
-                            <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Address Accuracy
-                          </h3>
-                          <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed">
-                            <p>
-                              Please ensure that your delivery address, contact number, and pin code are correct. <span className="font-bold">Infano.Care</span> will not be responsible for failed deliveries caused by incorrect or incomplete addresses provided by the customer.
-                            </p>
-                          </div>
-                        </div>
-                      </section>
-
-                      <section id="international-shipping" className="scroll-mt-32 pt-8 border-t border-slate-100">
-                        <div className="pl-0 md:pl-16">
-                          <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
-                            <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            International Shipping
-                          </h3>
-                          <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed">
-                            <p>
-                              Currently, we only ship within India. International orders may be supported in the future, and updates will be reflected on our website.
-                            </p>
-                          </div>
-                        </div>
-                      </section>
-
-                      <section id="damaged-lost" className="scroll-mt-32 pt-8 border-t border-slate-100">
-                        <div className="pl-0 md:pl-16">
-                          <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
-                            <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Damaged or Lost Packages
-                          </h3>
-                          <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed prose-li:text-slate-600">
-                            <p>If you receive a damaged package or if your shipment is lost in transit:</p>
-                            <ul className="space-y-2 mt-4">
-                              <li>Report it to <span className="font-bold text-primary">connect@infano.care</span> within 48 hours of delivery (or expected delivery date).</li>
-                              <li>Provide photos (in case of damage) and order details for quick resolution.</li>
-                              <li>We will coordinate with our courier partners and provide a replacement or refund as per our Refund & Cancellation Policy.</li>
-                            </ul>
-                          </div>
-                        </div>
-                      </section>
-
-                      <section id="order-change" className="scroll-mt-32 pt-8 border-t border-slate-100">
-                        <div className="pl-0 md:pl-16">
-                          <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
-                            <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Change or Cancellation
-                          </h3>
-                          <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed">
-                            <p>
-                              Once the order has been shipped, cancellation or change of address will not be possible. If the order has not yet been shipped, please contact our support team immediately with your Order ID.
+                              Once dispatched, you can track your parcel in real time using the tracking number sent to your email/SMS. If you experience any transit delay or delivery issues, please reach out to <span className="font-bold text-primary underline">connect@infano.care</span> and our logistics team will assist you immediately.
                             </p>
                           </div>
                         </div>
@@ -1078,12 +973,12 @@ export default function LegalPage() {
                         <div className="pl-0 md:pl-16">
                           <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
                             <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Customer Support
+                            Customer Support & Operating Hours
                           </h3>
                           <div className="prose prose-slate max-w-none">
                             <div className="bg-primary/5 border border-primary/20 p-8 rounded-2xl shadow-sm">
-                              <p className="text-sm font-bold mb-2 text-primary uppercase tracking-widest">Order Help</p>
-                              <p className="text-xl font-bold mb-4 text-slate-800">Shipping or Order Query?</p>
+                              <p className="text-sm font-bold mb-2 text-primary uppercase tracking-widest">Order & Shipping Support</p>
+                              <p className="text-xl font-bold mb-4 text-slate-800">Need Help with Shipping?</p>
                               <div className="space-y-4 mb-6">
                                 <p className="flex items-center gap-3">
                                   <span className="text-xl">📧</span>
@@ -1091,12 +986,9 @@ export default function LegalPage() {
                                 </p>
                                 <p className="flex items-center gap-3 text-slate-500">
                                   <span className="text-xl">🕐</span>
-                                  <span>Monday–Friday, 10:00 AM – 6:00 PM</span>
+                                  <span>Monday–Saturday, 9:30 AM – 6:30 PM IST</span>
                                 </p>
                               </div>
-                              <p className="text-xs text-slate-400 italic">
-                                Reach out to us for any shipping-related concerns.
-                              </p>
                             </div>
                           </div>
                         </div>

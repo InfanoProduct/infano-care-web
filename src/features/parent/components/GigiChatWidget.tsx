@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Send, Loader2, ChevronDown } from 'lucide-react';
+import { X, Send, Loader2, ChevronDown, Mic, MicOff, Volume2, VolumeX, Square } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChatService, ChatMessage } from '@/services/chat.service';
+import { GigiVoiceService } from '@/services/voice.service';
 import { useAuthStore } from '@/store/auth-store';
 
 // ── Gigi link parser ────────────────────────────────────────────────────────
@@ -40,7 +41,7 @@ function parseGigiMessage(text: string): ParsedMessage {
         <Link
           key={i}
           href={href}
-          className="inline underline text-primary font-bold hover:text-primary/80 transition-colors"
+          className="inline-flex items-center gap-1 font-bold text-primary hover:text-primary/80 transition-colors underline ml-1"
         >
           Open →
         </Link>
@@ -71,13 +72,23 @@ function TypingIndicator() {
 }
 
 // ── Message Bubble ────────────────────────────────────────────────────────────
-function MessageBubble({ msg, onOptionClick }: { msg: ChatMessage; onOptionClick?: (val: string) => void }) {
+function MessageBubble({
+  msg,
+  onOptionClick,
+  onSpeak,
+  isSpeakingThis
+}: {
+  msg: ChatMessage;
+  onOptionClick?: (val: string) => void;
+  onSpeak?: (text: string) => void;
+  isSpeakingThis?: boolean;
+}) {
   const isUser = msg.sender === 'USER';
 
   if (isUser) {
     return (
       <div className="flex items-end gap-2 justify-end">
-        <div className="max-w-[78%] px-4 py-2.5 rounded-2xl text-xs leading-relaxed shadow-xs bg-purple-100 border border-purple-200/60 text-purple-950 rounded-br-sm font-medium">
+        <div className="max-w-[80%] px-4 py-2.5 rounded-2xl text-xs leading-relaxed shadow-xs bg-gradient-to-r from-purple-100 to-pink-50 border border-purple-200/60 text-purple-950 rounded-br-sm font-medium">
           {msg.content}
         </div>
       </div>
@@ -90,23 +101,39 @@ function MessageBubble({ msg, onOptionClick }: { msg: ChatMessage; onOptionClick
   return (
     <div className="flex flex-col gap-2">
       {/* Text Bubble Row */}
-      <div className="flex items-end gap-2 justify-start">
-        <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-sm border border-purple-150 overflow-hidden bg-purple-50">
+      <div className="flex items-end gap-2 justify-start group">
+        <div className="relative w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-sm border border-purple-150 overflow-hidden bg-purple-50">
           <img src="/gigi-avatar.png" alt="Gigi" className="w-full h-full object-cover" />
+          {isSpeakingThis && (
+            <span className="absolute inset-0 rounded-full border-2 border-purple-500 animate-ping opacity-75" />
+          )}
         </div>
-        <div className="max-w-[78%] px-4 py-2.5 rounded-2xl text-xs leading-relaxed shadow-xs bg-white border border-slate-100 text-slate-700 rounded-bl-sm">
+        <div className="relative max-w-[80%] px-4 py-2.5 rounded-2xl text-xs leading-relaxed shadow-xs bg-white border border-slate-100 text-slate-700 rounded-bl-sm">
           <div className="whitespace-pre-wrap">{renderedText}</div>
+          {/* Audio Replay icon button */}
+          <button
+            onClick={() => onSpeak?.(msg.content)}
+            className={`mt-1.5 -mb-0.5 inline-flex items-center gap-1 text-[10px] font-bold transition-all px-2 py-0.5 rounded-full ${
+              isSpeakingThis
+                ? 'bg-purple-100 text-purple-700 animate-pulse'
+                : 'text-slate-400 hover:text-purple-700 hover:bg-purple-50'
+            }`}
+            title="Read out loud"
+          >
+            {isSpeakingThis ? <Square size={10} className="fill-purple-600" /> : <Volume2 size={11} />}
+            <span>{isSpeakingThis ? 'Speaking...' : 'Listen'}</span>
+          </button>
         </div>
       </div>
 
-      {/* Options Row - Positioned directly below the text bubble, indented to align nicely */}
+      {/* Options Row - Positioned directly below the text bubble only if options exist */}
       {options.length > 0 && (
         <div className="pl-9 pr-4 flex flex-col gap-1.5 w-full items-start">
           {options.map((opt, i) => (
             <button
               key={i}
               onClick={() => onOptionClick?.(opt.value)}
-              className="w-full max-w-[260px] text-left text-xs font-semibold px-4 py-3 rounded-2xl bg-white border border-purple-100/80 hover:border-purple-300 text-purple-950 hover:bg-gradient-to-r hover:from-purple-50/80 hover:to-pink-50/80 hover:text-purple-800 hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.98] shadow-xs flex items-center justify-between group cursor-pointer"
+              className="w-full max-w-[260px] text-left text-xs font-semibold px-4 py-2.5 rounded-2xl bg-white border border-purple-100/80 hover:border-purple-300 text-purple-950 hover:bg-gradient-to-r hover:from-purple-50/80 hover:to-pink-50/80 hover:text-purple-800 hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.98] shadow-xs flex items-center justify-between group cursor-pointer"
             >
               <span>{opt.label}</span>
               <svg className="w-3.5 h-3.5 text-purple-400 group-hover:text-purple-600 transition-colors shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -131,11 +158,20 @@ export function GigiChatWidget() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
+
+  // Voice States
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
+  const [autoVoiceResponse, setAutoVoiceResponse] = useState(true);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const stopListeningRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     setMounted(true);
+    GigiVoiceService.initSynth();
   }, []);
 
   // Auto-scroll to bottom on new messages
@@ -151,6 +187,15 @@ export function GigiChatWidget() {
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 300);
+    } else {
+      // Stop speech and listening when chat closes
+      GigiVoiceService.stopSpeaking();
+      setIsSpeaking(false);
+      setSpeakingMsgId(null);
+      if (stopListeningRef.current) {
+        stopListeningRef.current();
+        setIsListening(false);
+      }
     }
   }, [isOpen]);
 
@@ -174,9 +219,45 @@ export function GigiChatWidget() {
   const sendDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const lastSendTimeRef = useRef<number>(0);
 
-  const sendText = async (text: string) => {
+  const playVoiceResponse = (text: string, msgId?: string) => {
+    if (!autoVoiceResponse && !msgId) return;
+    setSpeakingMsgId(msgId || null);
+    GigiVoiceService.speak(
+      text,
+      () => setIsSpeaking(true),
+      () => {
+        setIsSpeaking(false);
+        setSpeakingMsgId(null);
+      }
+    );
+  };
+
+  const toggleSpeakMessage = (text: string, msgId: string) => {
+    if (isSpeaking && speakingMsgId === msgId) {
+      GigiVoiceService.stopSpeaking();
+      setIsSpeaking(false);
+      setSpeakingMsgId(null);
+    } else {
+      setSpeakingMsgId(msgId);
+      GigiVoiceService.speak(
+        text,
+        () => setIsSpeaking(true),
+        () => {
+          setIsSpeaking(false);
+          setSpeakingMsgId(null);
+        }
+      );
+    }
+  };
+
+  const sendText = async (text: string, triggeredByVoice = false) => {
     const cleanText = text.trim();
     if (!cleanText || isLoading) return;
+
+    // Stop speaking any prior message
+    GigiVoiceService.stopSpeaking();
+    setIsSpeaking(false);
+    setSpeakingMsgId(null);
 
     const now = Date.now();
     const timeSinceLastSend = now - lastSendTimeRef.current;
@@ -189,7 +270,7 @@ export function GigiChatWidget() {
       // Queue for later
       sendDebounceRef.current = setTimeout(() => {
         lastSendTimeRef.current = Date.now();
-        sendText(cleanText);
+        sendText(cleanText, triggeredByVoice);
       }, 500 - timeSinceLastSend);
       return;
     }
@@ -236,18 +317,24 @@ export function GigiChatWidget() {
         { ...userMsg, sessionId: sid },
         ...(gigiMsg ? [gigiMsg] : []),
       ]);
+
+      // If user used voice command or autoVoiceResponse is enabled, speak Gigi's reply
+      if (gigiMsg && (triggeredByVoice || autoVoiceResponse)) {
+        playVoiceResponse(gigiMsg.content, gigiMsg.id);
+      }
     } catch (err) {
       console.error("Gigi Chat widget error:", err);
+      const errMsg: ChatMessage = {
+        id: `err-${Date.now()}`,
+        sessionId: sessionId || '',
+        sender: 'GIGI',
+        content: "I'm having a little trouble connecting right now 🌸 Give me a moment and try again! 💙",
+        createdAt: new Date().toISOString(),
+      };
       setMessages(prev => [
         ...prev.filter(m => m.id !== tempId),
         userMsg,
-        {
-          id: `err-${Date.now()}`,
-          sessionId: sessionId || '',
-          sender: 'GIGI',
-          content: "I'm having a little trouble connecting right now. Give me a moment and try again! 💙",
-          createdAt: new Date().toISOString(),
-        },
+        errMsg
       ]);
     } finally {
       setIsLoading(false);
@@ -255,7 +342,7 @@ export function GigiChatWidget() {
   };
 
   const handleSend = () => {
-    sendText(input);
+    sendText(input, false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -263,6 +350,45 @@ export function GigiChatWidget() {
       e.preventDefault();
       handleSend();
     }
+  };
+
+  // Toggle Voice Input (Speech-to-Text)
+  const toggleVoiceInput = () => {
+    if (isListening) {
+      if (stopListeningRef.current) {
+        stopListeningRef.current();
+        stopListeningRef.current = null;
+      }
+      setIsListening(false);
+      return;
+    }
+
+    if (!GigiVoiceService.isSpeechRecognitionSupported()) {
+      alert('Speech recognition is not supported on this browser. Try Chrome, Edge, or Safari.');
+      return;
+    }
+
+    // Stop speaking if currently speaking
+    GigiVoiceService.stopSpeaking();
+    setIsSpeaking(false);
+
+    const stop = GigiVoiceService.startListening({
+      onStart: () => setIsListening(true),
+      onTranscript: (transcript, isFinal) => {
+        setInput(transcript);
+        if (isFinal && transcript.trim()) {
+          setIsListening(false);
+          sendText(transcript, true);
+        }
+      },
+      onEnd: () => setIsListening(false),
+      onError: (err) => {
+        console.warn('Voice input error:', err);
+        setIsListening(false);
+      }
+    });
+
+    stopListeningRef.current = stop;
   };
 
   const cleanPathname = pathname ? pathname.replace(/^\/en-(us|uk)/, '') : '';
@@ -289,12 +415,12 @@ export function GigiChatWidget() {
 
       {/* Chat Card */}
       <div
-        className="fixed z-[999] shadow-2xl rounded-3xl overflow-hidden flex flex-col bg-[#FCF9F7] border border-purple-100/50"
+        className="fixed z-[999] shadow-2xl rounded-3xl overflow-hidden flex flex-col bg-[#FCF9F7] border border-purple-100/60"
         style={{
           bottom: '156px',
           right: '24px',
-          width: 'min(360px, calc(100vw - 32px))',
-          height: '480px',
+          width: 'min(380px, calc(100vw - 32px))',
+          height: '520px',
           animation: 'gigiSlideUp 0.25s cubic-bezier(0.34,1.56,0.64,1) both',
         }}
         onClick={e => e.stopPropagation()}
@@ -302,14 +428,43 @@ export function GigiChatWidget() {
         {/* Header */}
         <div className="shrink-0 bg-gradient-to-r from-purple-100 via-pink-100 to-rose-50 border-b border-purple-200/30 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full border border-purple-200/80 overflow-hidden bg-purple-50 shadow-sm flex items-center justify-center">
+            <div className="relative w-8 h-8 rounded-full border border-purple-200/80 overflow-hidden bg-purple-50 shadow-sm flex items-center justify-center">
               <img src="/gigi-avatar.png" alt="Gigi Logo" className="w-full h-full object-cover" />
+              {isSpeaking && (
+                <span className="absolute inset-0 rounded-full border-2 border-purple-600 animate-ping opacity-80" />
+              )}
             </div>
             <div>
-              <p className="text-purple-950 font-black text-sm leading-none">Gigi</p>
+              <p className="text-purple-950 font-black text-sm leading-none flex items-center gap-1.5">
+                Gigi
+                {isSpeaking && (
+                  <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-purple-700 bg-purple-200/60 px-1.5 py-0.5 rounded-full animate-pulse">
+                    Speaking ✨
+                  </span>
+                )}
+              </p>
+              <p className="text-[10px] text-slate-500 font-medium">Your Big Sister & Guide</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
+            {/* Auto Voice Readout Toggle */}
+            <button
+              onClick={() => {
+                if (isSpeaking) {
+                  GigiVoiceService.stopSpeaking();
+                  setIsSpeaking(false);
+                }
+                setAutoVoiceResponse(!autoVoiceResponse);
+              }}
+              className={`w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-95 ${
+                autoVoiceResponse
+                  ? 'bg-purple-200/80 text-purple-900 shadow-xs'
+                  : 'bg-purple-950/5 hover:bg-purple-950/15 text-slate-400'
+              }`}
+              title={autoVoiceResponse ? "Voice response enabled (Click to mute)" : "Voice response muted (Click to enable)"}
+            >
+              {autoVoiceResponse ? <Volume2 size={13} /> : <VolumeX size={13} />}
+            </button>
             <button
               onClick={() => setIsOpen(false)}
               className="w-7 h-7 rounded-full bg-purple-950/5 hover:bg-purple-950/15 flex items-center justify-center text-purple-900 transition-all active:scale-95"
@@ -336,17 +491,20 @@ export function GigiChatWidget() {
           ) : messages.length === 0 ? (
             // Welcome state
             <div className="flex flex-col items-center justify-center h-full text-center gap-3 px-2">
-              <div className="w-16 h-16 rounded-full border-2 border-purple-200/80 overflow-hidden bg-purple-50 shadow-md">
+              <div className="relative w-16 h-16 rounded-full border-2 border-purple-200/80 overflow-hidden bg-purple-50 shadow-md">
                 <img src="/gigi-avatar.png" alt="Gigi Welcome" className="w-full h-full object-cover" />
+                {isSpeaking && (
+                  <span className="absolute inset-0 rounded-full border-4 border-purple-500 animate-ping opacity-75" />
+                )}
               </div>
               <div>
                 <p className="font-black text-purple-950 text-sm">Hey! I'm Gigi 👋</p>
                 <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                  Your safe space to talk about anything — feelings, school stress, periods, or just life.
+                  I'm your safe space to talk, ask questions, or vent about anything on your mind.
                 </p>
               </div>
               <div className="flex flex-wrap gap-1.5 justify-center mt-1">
-                {["I'm feeling stressed 😔", "Period questions ❓", "Just talk 💬"].map(prompt => (
+                {["I'm feeling stressed 😔", "Tell me about yourself 🌸", "Period tips 💜"].map(prompt => (
                   <button
                     key={prompt}
                     onClick={() => {
@@ -363,7 +521,13 @@ export function GigiChatWidget() {
           ) : (
             <>
               {messages.filter(Boolean).map(msg => (
-                <MessageBubble key={msg.id ?? Math.random()} msg={msg} onOptionClick={sendText} />
+                <MessageBubble
+                  key={msg.id ?? Math.random()}
+                  msg={msg}
+                  onOptionClick={(val) => sendText(val, false)}
+                  onSpeak={(text) => toggleSpeakMessage(text, msg.id)}
+                  isSpeakingThis={isSpeaking && speakingMsgId === msg.id}
+                />
               ))}
               {isLoading && <TypingIndicator />}
               <div ref={messagesEndRef} />
@@ -371,18 +535,49 @@ export function GigiChatWidget() {
           )}
         </div>
 
+        {/* Listening Indicator Bar */}
+        {isListening && (
+          <div className="shrink-0 bg-gradient-to-r from-purple-600 via-pink-500 to-rose-500 text-white px-4 py-2 flex items-center justify-between text-xs font-semibold animate-pulse shadow-inner">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping" />
+              <span>Gigi is listening... Speak now!</span>
+            </div>
+            <button
+              onClick={toggleVoiceInput}
+              className="text-[10px] bg-white/20 hover:bg-white/30 px-2 py-0.5 rounded-full underline cursor-pointer"
+            >
+              Done
+            </button>
+          </div>
+        )}
+
         {/* Input Bar */}
-        <div className="shrink-0 bg-white border-t border-slate-100 p-3 flex items-center gap-2.5">
+        <div className="shrink-0 bg-white border-t border-slate-100 p-3 flex items-center gap-2">
+          {/* Voice Command Mic Button */}
+          <button
+            type="button"
+            onClick={toggleVoiceInput}
+            className={`w-9 h-9 rounded-2xl flex items-center justify-center transition-all duration-200 active:scale-95 shrink-0 ${
+              isListening
+                ? 'bg-rose-500 text-white animate-pulse shadow-md shadow-rose-200 ring-2 ring-rose-400'
+                : 'bg-purple-50 text-purple-800 border border-purple-150 hover:bg-purple-100 hover:text-purple-950'
+            }`}
+            title={isListening ? "Listening... Click to stop" : "Voice command (Speak to Gigi)"}
+          >
+            {isListening ? <MicOff size={15} /> : <Mic size={15} />}
+          </button>
+
           <input
             ref={inputRef}
             type="text"
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Talk to Gigi..."
+            placeholder={isListening ? "Listening to your voice..." : "Talk to Gigi..."}
             disabled={isLoading}
-            className="flex-1 text-xs font-medium text-slate-800 placeholder:text-slate-400 bg-slate-50 border border-slate-150 rounded-2xl px-4 py-2.5 outline-none focus:border-purple-300 focus:bg-white transition-all disabled:opacity-50"
+            className="flex-1 text-xs font-medium text-slate-800 placeholder:text-slate-400 bg-slate-50 border border-slate-150 rounded-2xl px-3.5 py-2.5 outline-none focus:border-purple-300 focus:bg-white transition-all disabled:opacity-50"
           />
+
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
@@ -401,25 +596,31 @@ export function GigiChatWidget() {
 
   return (
     <>
-      {/* Floating Trigger Button Wrapper — sits above the WhatsApp button (bottom-6) */}
+      {/* Floating Trigger Button Wrapper */}
       <div 
         className="fixed z-[997] bottom-24 right-6 gigi-float-container"
       >
         <button
           onClick={handleOpen}
-          className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-200 to-pink-200 text-purple-950 shadow-xl shadow-purple-200/50 hover:shadow-purple-300/60 hover:scale-110 border border-purple-300/30 transition-all duration-200 active:scale-95 flex items-center justify-center group overflow-hidden"
+          className="relative w-14 h-14 rounded-full bg-gradient-to-br from-purple-200 to-pink-200 text-purple-950 shadow-xl shadow-purple-200/50 hover:shadow-purple-300/60 hover:scale-110 border border-purple-300/30 transition-all duration-200 active:scale-95 flex items-center justify-center group overflow-hidden"
           title="Chat with Gigi"
           aria-label="Open Gigi AI Assistant"
         >
-          {/* Pulse ring when closed */}
-          {!isOpen && (
+          {/* Speaking Pulse Glow */}
+          {isSpeaking && (
+            <span className="absolute inset-0 rounded-full border-4 border-purple-600 animate-ping opacity-90" />
+          )}
+
+          {/* Regular Pulse ring when closed & not speaking */}
+          {!isOpen && !isSpeaking && (
             <span className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-200 to-pink-200 animate-ping opacity-30" />
           )}
+          
           <div className="relative z-10 w-11 h-11 rounded-full overflow-hidden border border-purple-300/40 shadow-sm bg-white flex items-center justify-center">
             <img 
               src="/gigi-avatar.png" 
               alt="Gigi Avatar" 
-              className="w-full h-full object-cover gigi-avatar-wiggle" 
+              className={`w-full h-full object-cover ${isSpeaking ? 'animate-pulse' : 'gigi-avatar-wiggle'}`} 
             />
           </div>
         </button>

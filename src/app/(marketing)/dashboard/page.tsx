@@ -416,20 +416,20 @@ export default function CustomerDashboardOverview() {
     );
   }
 
-  const enrolledProgramIds = enrollments.map(e => e.programId);
-  const availablePrograms = allPrograms.filter(p => !enrolledProgramIds.includes(p.id));
+  const enrolledProgramIds = (enrollments || []).map(e => e.programId);
+  const availablePrograms = (allPrograms || []).filter(p => p && !enrolledProgramIds.includes(p.id));
   const showSidebar = isTeen && parentBookmarks.length > 0;
 
   const isProgramItem = (it: any) => {
-    const book = it.book || {};
-    const bookId = (it.bookId || '').toLowerCase();
-    const bookTitle = (book.title || it.bookTitle || '').toLowerCase();
+    const book = it?.book || {};
+    const bookId = (it?.bookId || '').toLowerCase();
+    const bookTitle = (book.title || it?.bookTitle || '').toLowerCase();
     if ((book as any).curriculum?.length || book.duration) return true;
     if (bookId.includes('program') || bookId.includes('private') || bookId.includes('group') || bookId.includes('cohort')) return true;
     if (bookTitle.includes('program') || bookTitle.includes('mentoring') || bookTitle.includes('cohort')) return true;
     return false;
   };
-  const productOrders = orders.filter((o: any) => (o.items || []).some((it: any) => !isProgramItem(it)));
+  const productOrders = (orders || []).filter((o: any) => (o?.items || []).some((it: any) => !isProgramItem(it)));
 
 
   if (user?.role === 'EXPERT') {
@@ -975,6 +975,7 @@ export default function CustomerDashboardOverview() {
 
                     {(() => {
                       const latest = productOrders[0];
+                      if (!latest) return null;
                       const item = latest.items?.find((it: any) => !isProgramItem(it)) || latest.items?.[0];
                       const book = item?.book || {};
                       const title = book.title || item?.bookTitle || item?.name || 'Book Order';
@@ -993,7 +994,7 @@ export default function CustomerDashboardOverview() {
                             <div className="space-y-1 min-w-0">
                               <div className="flex flex-wrap items-center gap-2">
                                 <span className="text-[9px] font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md border border-indigo-200">
-                                  #{latest.id.slice(0, 8)}
+                                  #{latest.id ? latest.id.slice(0, 8) : ''}
                                 </span>
                                 <span className="text-[10px] font-semibold text-slate-500 flex items-center gap-1">
                                   <Calendar size={11} />
@@ -1048,6 +1049,7 @@ export default function CustomerDashboardOverview() {
 
               <div className="space-y-3.5">
                 {enrollments.map(enr => {
+                  if (!enr?.program) return null;
                   const theme = getEnrolledTheme(enr.program.title);
                   const total = enr.program.curriculum?.length || 8;
                   const dbSessions = enr.user?.scheduledSessions || [];

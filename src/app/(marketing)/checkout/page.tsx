@@ -561,7 +561,7 @@ function CheckoutContent() {
         onError: (err: any) => {
           console.error('[PAYPAL] Error:', err);
           setInitiatingPayment(false);
-          setError('Payment could not be completed. Please ensure your shipping and billing address are in ' + countryName + '.');
+          setError(err?.message || 'Payment could not be completed with PayPal. Please check your payment details or try a different card.');
           setProcessing(false);
         },
         style: buttonStyle,

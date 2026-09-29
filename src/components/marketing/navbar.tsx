@@ -161,15 +161,7 @@ export function MarketingNavbar() {
               {/* Right Column: Desktop CTAs & Mobile Toggle */}
               <div className="flex-1 flex items-center justify-end gap-4">
                 {/* Desktop CTAs */}
-                <div className="hidden xl:flex items-center gap-3 xl:gap-5">
-                  <Link
-                    href={getLocalizedLink('/redeem')}
-                    className="text-xs xl:text-[13px] font-semibold text-slate-600 hover:text-primary transition-colors flex items-center gap-1.5 py-2 px-3 rounded-full hover:bg-slate-50"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-primary" />
-                    Redeem eBook
-                  </Link>
-
+                <div className="hidden xl:flex items-center gap-3 xl:gap-6">
                   {isAuthenticated ? (
                     <Link
                       href={getLocalizedLink('/dashboard')}
@@ -224,15 +216,7 @@ export function MarketingNavbar() {
                 );
               })}
             </nav>
-            <div className="flex flex-col gap-3 mt-6 pb-12">
-              <Link
-                href={getLocalizedLink('/redeem')}
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full py-3 px-4 rounded-xl bg-purple-50 text-purple-700 font-semibold text-sm flex items-center justify-center gap-2 border border-purple-200/60"
-              >
-                <Sparkles className="w-4 h-4 text-purple-600" />
-                Redeem Etsy eBook
-              </Link>
+            <div className="flex flex-col gap-4 mt-6 pb-12">
               {isAuthenticated ? (
                 <Link
                   href={getLocalizedLink('/dashboard')}

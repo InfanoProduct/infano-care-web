@@ -12,7 +12,6 @@ const footerLinks = {
     { name: 'About Infano', href: '/about' },
     { name: 'The Ecosystem', href: '/ecosystem' },
     { name: 'The Book', href: '/gigi-the-awkward-age-book' },
-    { name: 'Redeem eBook', href: '/redeem' },
     { name: 'The Circle', href: '/the-support-circle' },
     { name: 'Impact', href: '/impact' },
   ],

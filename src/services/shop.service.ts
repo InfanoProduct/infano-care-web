@@ -233,4 +233,32 @@ export const ShopService = {
   async adminDeleteCoupon(id: string): Promise<void> {
     return apiClient.delete(`/shop/admin/coupons/${id}`);
   },
+
+  // ─── Admin EPUB Upload & Management ───────────────────────────
+  async adminUploadEpub(file: File, slug = "gigi-the-book"): Promise<any> {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("slug", slug);
+
+    return apiClient.post("/admin/books/upload-epub", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  // ─── Admin Etsy Orders & Claims ───────────────────────────────
+  async adminGetEtsyOrders(params?: { page?: number; limit?: number; search?: string }): Promise<any> {
+    const query = new URLSearchParams();
+    if (params?.page) query.set("page", String(params.page));
+    if (params?.limit) query.set("limit", String(params.limit));
+    if (params?.search) query.set("search", params.search);
+    return apiClient.get(`/admin/etsy-orders?${query.toString()}`);
+  },
+
+  async adminGrantEtsyOrder(receiptId: string, targetUserId?: string): Promise<any> {
+    return apiClient.post(`/admin/etsy-orders/${receiptId}/grant`, { targetUserId });
+  },
+
+  async adminResendEtsyEmail(receiptId: string): Promise<any> {
+    return apiClient.post(`/admin/etsy-orders/${receiptId}/resend-email`, {});
+  },
 };

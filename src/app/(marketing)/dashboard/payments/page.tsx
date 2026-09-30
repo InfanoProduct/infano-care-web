@@ -12,6 +12,7 @@ import { ShopService } from '@/services/shop.service';
 import { useAuthStore } from '@/store/auth-store';
 import Link from 'next/link';
 import { InvoiceModal } from '@/components/common/InvoiceModal';
+import { getCurrencySymbol } from '@/lib/utils';
 
 export default function CustomerPaymentsOverview() {
   const { user } = useAuthStore();
@@ -67,6 +68,7 @@ export default function CustomerPaymentsOverview() {
       title: `${e.program.title} Program`,
       date: new Date(e.createdAt),
       amount: e.pricePaid,
+      currencySymbol: '₹',
       status: e.status,
       badgeText: '1:1 Private Mentoring',
       invoiceData: e,
@@ -78,6 +80,7 @@ export default function CustomerPaymentsOverview() {
       title: o.items?.map((it: any) => `${it.book?.title || 'Gigi Book'} (x${it.quantity})`).join(', ') || 'Gigi Book',
       date: new Date(o.createdAt),
       amount: o.totalAmount,
+      currencySymbol: getCurrencySymbol(o),
       status: o.paymentStatus === 'COMPLETED' ? 'PAID' : o.paymentStatus || 'PLACED',
       orderStatus: o.orderStatus,
       badgeText: 'Gigi Book Order',
@@ -271,7 +274,7 @@ export default function CustomerPaymentsOverview() {
 
                   <div className="flex flex-row md:flex-col md:items-end justify-between items-center gap-3 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100">
                     <div className="text-left md:text-right">
-                      <span className="text-lg md:text-xl font-black text-slate-900">₹{tx.amount.toLocaleString('en-IN')}</span>
+                      <span className="text-lg md:text-xl font-black text-slate-900">{tx.currencySymbol || '₹'}{tx.amount.toLocaleString('en-IN')}</span>
                       <div className="flex items-center md:justify-end gap-1.5 mt-0.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                         <span className="text-[9px] font-black text-slate-450 uppercase tracking-widest">

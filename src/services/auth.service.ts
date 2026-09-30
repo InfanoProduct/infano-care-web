@@ -32,6 +32,14 @@ export const AuthService = {
     return apiClient.post<any>('/auth/otp/verify', { phone, otp });
   },
 
+  async sendEmailOtp(email: string) {
+    return apiClient.post('/auth/otp/send-email', { email });
+  },
+
+  async verifyEmailOtp(email: string, otp: string) {
+    return apiClient.post<any>('/auth/otp/verify-email', { email, otp });
+  },
+
   async updateRole(role: string) {
     return apiClient.patch<any>('/user/role', { role });
   },

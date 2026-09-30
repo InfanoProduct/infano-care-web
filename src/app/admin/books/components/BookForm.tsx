@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
-  Save, X, Package, DollarSign,
+  Save, X, BookOpen, DollarSign,
   Type, AlignLeft, Loader2, CheckCircle2,
   Ticket, Calendar, ToggleLeft, ToggleRight,
-  Trash2, Percent, Hash, Plus, Tag, Truck, Globe,
-  IndianRupee, PoundSterling,
+  Trash2, Percent, Hash, Plus, Globe,
+  IndianRupee, PoundSterling, Sparkles, User,
+  FileText, ExternalLink, Package, Truck, Box, Upload
 } from 'lucide-react';
 import { ShopService, Book } from '@/services/shop.service';
 import ImageUploader from '@/components/upload/ImageUploader';
@@ -29,7 +31,7 @@ const emptyPromo = {
   isActive: true,
 };
 
-/** Returns fallback when value is null, undefined, or NaN (NaN !== null so ?? doesn't catch it) */
+/** Returns fallback when value is null, undefined, or NaN */
 const safeNum = (v: number | null | undefined, fallback: number | '' = 0): number | string => {
   if (v === null || v === undefined || Number.isNaN(v)) return fallback;
   return v;
@@ -48,17 +50,24 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(!!bookId);
   const [pricingTab, setPricingTab] = useState<'IN' | 'US' | 'UK'>('IN');
+  const [format, setFormat] = useState<'DIGITAL_EBOOK' | 'PHYSICAL_BOOK'>('DIGITAL_EBOOK');
+  const [epubFile, setEpubFile] = useState<File | null>(null);
+  const [uploadingEpub, setUploadingEpub] = useState(false);
   const [formData, setFormData] = useState<Partial<Book>>({
+    slug: 'gigi-the-book',
     title: '',
+    author: 'Infano Care',
     description: '',
+    format: 'DIGITAL_EBOOK',
     price: 0,
     priceUS: undefined,
     priceUK: undefined,
-    shippingIN: 0,
-    shippingUS: 0,
-    shippingUK: 0,
+    shippingIN: 40,
+    shippingUS: 5.99,
+    shippingUK: 4.99,
     codChargeIN: 40,
-    stock: 0,
+    stock: 100,
+    totalPages: 1,
     imageUrl: '',
     isActive: true,
   });
@@ -77,12 +86,46 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
     }
   }, [bookId]);
 
+  const handleInlineEpubUpload = async () => {
+    if (!epubFile) {
+      toast.error('Please select an .epub file first');
+      return;
+    }
+    const targetSlug = formData.slug?.trim() || 'gigi-the-book';
+    setUploadingEpub(true);
+    try {
+      const res = await ShopService.adminUploadEpub(epubFile, targetSlug);
+      toast.success('EPUB parsed & chapters loaded successfully! 🎉');
+      if (res.book) {
+        setFormData(prev => ({
+          ...prev,
+          title: prev.title || res.book.title,
+          description: prev.description || res.book.description,
+          totalPages: res.book.totalPages || prev.totalPages,
+          chapters: res.book.chapters || prev.chapters,
+        }));
+      }
+      setEpubFile(null);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to upload EPUB');
+    } finally {
+      setUploadingEpub(false);
+    }
+  };
+
   const loadBook = async () => {
     try {
       const book = await ShopService.getBook(bookId!);
-      // Safe destructuring of book data to exclude circular/metadata fields
       const { coupon, couponId, orderItems, ...safeBook } = book as any;
-      setFormData(safeBook);
+      const detectedFormat = safeBook.format || (safeBook.stock && safeBook.stock < 900000 ? 'PHYSICAL_BOOK' : 'DIGITAL_EBOOK');
+      setFormat(detectedFormat);
+      setFormData({
+        ...safeBook,
+        format: detectedFormat,
+        slug: safeBook.slug || 'gigi-the-book',
+        author: safeBook.author || 'Infano Care',
+        totalPages: safeBook.totalPages || 1,
+      });
     } catch (error) {
       console.error('Failed to load book:', error);
       toast.error('Failed to load book details');
@@ -163,31 +206,36 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
     setLoading(true);
 
     try {
+      const isPhysical = format === 'PHYSICAL_BOOK';
       const payload: any = {
+        format,
+        slug: formData.slug?.trim() || 'gigi-the-book',
         title: formData.title,
+        author: formData.author?.trim() || 'Infano Care',
         description: formData.description,
         price: Number(formData.price),
         priceUS: isWebinarMode ? null : (formData.priceUS !== undefined && formData.priceUS !== null && String(formData.priceUS) !== '' ? Number(formData.priceUS) : null),
         priceUK: isWebinarMode ? null : (formData.priceUK !== undefined && formData.priceUK !== null && String(formData.priceUK) !== '' ? Number(formData.priceUK) : null),
-        shippingIN: isWebinarMode ? 0 : Number(formData.shippingIN ?? 0),
-        shippingUS: isWebinarMode ? 0 : Number(formData.shippingUS ?? 0),
-        shippingUK: isWebinarMode ? 0 : Number(formData.shippingUK ?? 0),
-        codChargeIN: isWebinarMode ? 0 : Number(formData.codChargeIN ?? 40),
-        stock: isWebinarMode ? 999999 : Number(formData.stock),
+        shippingIN: isPhysical ? Number(formData.shippingIN ?? 0) : 0,
+        shippingUS: isPhysical ? Number(formData.shippingUS ?? 0) : 0,
+        shippingUK: isPhysical ? Number(formData.shippingUK ?? 0) : 0,
+        codChargeIN: isPhysical ? Number(formData.codChargeIN ?? 40) : 0,
+        stock: isPhysical ? Number(formData.stock ?? 50) : 999999,
+        totalPages: Number(formData.totalPages || 1),
         imageUrl: formData.imageUrl,
         isActive: formData.isActive,
       };
 
       if (bookId) {
         await ShopService.adminUpdateBook(bookId, payload);
-        toast.success(isWebinarMode ? 'Webinar updated successfully' : 'Book updated successfully');
+        toast.success(isWebinarMode ? 'Webinar updated' : `${isPhysical ? 'Physical Book' : 'Digital eBook'} updated successfully`);
       } else {
         if (isWebinarMode) {
           const cleanTitle = formData.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'temp';
           payload.id = `webinar-${cleanTitle}-${Math.random().toString(36).substring(2, 6)}`;
         }
         await ShopService.adminCreateBook(payload);
-        toast.success(isWebinarMode ? 'Webinar created successfully' : 'Book created successfully');
+        toast.success(isWebinarMode ? 'Webinar created' : `${isPhysical ? 'Physical Book' : 'Digital eBook'} created successfully`);
       }
       router.push(isWebinarMode ? '/admin/webinar-products' : '/admin/books');
     } catch (error) {
@@ -198,8 +246,6 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
     }
   };
 
-  const isExpired = promoForm.expiryDate ? new Date(promoForm.expiryDate) < new Date() : false;
-
   if (initialLoading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
@@ -209,17 +255,19 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
     );
   }
 
+  const isPhysical = format === 'PHYSICAL_BOOK';
+
   return (
     <form onSubmit={handleSubmit} className="space-y-8 animate-in slide-in-from-bottom-8 duration-700">
-      <div className="admin-header flex items-center justify-between">
+      <div className="admin-header flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-4xl font-black tracking-tight">
-            {bookId ? 'Edit' : 'Add New'} <span className="text-primary">{isWebinarMode ? 'Webinar' : 'Product'}</span>
+            {bookId ? 'Edit' : 'Add New'} <span className="text-primary">{isWebinarMode ? 'Webinar' : (isPhysical ? 'Physical Book' : 'Digital eBook')}</span>
           </h1>
           <p className="text-muted-foreground mt-1">
             {isWebinarMode 
               ? 'Configure parent masterclass topic and pricing ticket pass details' 
-              : 'Configure your book details, inventory, and promo code'}
+              : `Configure ${isPhysical ? 'physical printed inventory, courier shipping matrix, and pricing' : 'digital eBook metadata, cloud reader slug, and instant access pricing'}`}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -236,19 +284,76 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
             className="btn-primary flex items-center gap-2 px-8 py-4 rounded-2xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
           >
             {loading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-            <span className="font-bold">{isWebinarMode ? 'Save Webinar' : 'Save Product'}</span>
+            <span className="font-bold">{isWebinarMode ? 'Save Webinar' : (isPhysical ? 'Save Physical Book' : 'Save Digital eBook')}</span>
           </button>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Info */}
-        <div className="lg:col-span-2 space-y-6">
+      {/* Product Format Switcher (Non-Webinar only) */}
+      {!isWebinarMode && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gradient-to-r from-purple-500/10 via-primary/5 to-blue-500/10 rounded-3xl border border-border/50 gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-white text-primary flex items-center justify-center shadow-sm">
+              {isPhysical ? <Package size={20} /> : <BookOpen size={20} />}
+            </div>
+            <div>
+              <p className="text-xs font-black uppercase tracking-wider text-muted-foreground">Select Product Format</p>
+              <h3 className="text-sm font-extrabold text-foreground">
+                {isPhysical ? 'Physical Printed Book (Shipped to Doorstep)' : 'Digital Interactive eBook (Instant Cloud Reader)'}
+              </h3>
+            </div>
+          </div>
+
+          <div className="flex rounded-2xl p-1 bg-white dark:bg-zinc-800 border border-border/50 shadow-sm">
+            <button
+              type="button"
+              onClick={() => { setFormat('DIGITAL_EBOOK'); setFormData(f => ({ ...f, format: 'DIGITAL_EBOOK' })); }}
+              className={`px-5 py-2.5 rounded-xl text-xs font-extrabold transition flex items-center gap-2 ${
+                format === 'DIGITAL_EBOOK' ? 'bg-primary text-white shadow-md' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <BookOpen size={14} />
+              <span>Digital eBook</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setFormat('PHYSICAL_BOOK'); setFormData(f => ({ ...f, format: 'PHYSICAL_BOOK' })); }}
+              className={`px-5 py-2.5 rounded-xl text-xs font-extrabold transition flex items-center gap-2 ${
+                format === 'PHYSICAL_BOOK' ? 'bg-primary text-white shadow-md' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Package size={14} />
+              <span>Physical Book</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Main Info (8 cols) */}
+        <div className="lg:col-span-8 space-y-8 min-w-0">
           {/* Basic details card */}
-          <div className="glass-card p-8 rounded-[2.5rem] border-primary/5 shadow-2xl space-y-6">
+          <div className="glass-card p-6 sm:p-8 rounded-[2.5rem] border-primary/5 shadow-2xl space-y-6">
+            <div className="flex items-center justify-between pb-2 border-b border-border/20">
+              <div className="flex items-center gap-2 text-primary font-black text-sm uppercase tracking-wider">
+                {isPhysical ? <Package size={18} /> : <BookOpen size={18} />}
+                <span>{isPhysical ? 'Physical Book Information' : 'Digital eBook Information'}</span>
+              </div>
+              {!isWebinarMode && !isPhysical && formData.slug && (
+                <Link
+                  href={`/dashboard/library/${formData.slug}/read`}
+                  target="_blank"
+                  className="text-xs font-bold text-purple-600 hover:text-purple-700 flex items-center gap-1.5 bg-purple-50 px-3 py-1.5 rounded-xl border border-purple-200 transition"
+                >
+                  <ExternalLink size={13} />
+                  <span>Preview Cloud Reader</span>
+                </Link>
+              )}
+            </div>
+
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
-                {isWebinarMode ? 'Webinar Title' : 'Product Title'}
+                {isWebinarMode ? 'Webinar Title' : (isPhysical ? 'Book Title (Paperback / Hardcover)' : 'eBook Title')}
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
@@ -259,33 +364,224 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder={isWebinarMode ? "e.g. Decoding Her Silence" : "e.g. Growing Up Honest"}
-                  className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
+                  placeholder={isWebinarMode ? "e.g. Decoding Her Silence" : "e.g. Gigi The Book: A Journey of Growing Up"}
+                  className="w-full pl-12 pr-6 py-3.5 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold"
                 />
               </div>
             </div>
 
+            {!isWebinarMode && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {!isPhysical ? (
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+                      Reader Slug (URL identifier)
+                    </label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                        <Sparkles size={16} />
+                      </div>
+                      <input
+                        type="text"
+                        value={formData.slug || ''}
+                        onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                        placeholder="e.g. gigi-the-book"
+                        className="w-full pl-12 pr-6 py-3.5 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono text-xs font-bold"
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground ml-1">Reader URL: /dashboard/library/{formData.slug || 'slug'}/read</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+                      Product SKU / Code
+                    </label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                        <Box size={16} />
+                      </div>
+                      <input
+                        type="text"
+                        value={formData.slug || ''}
+                        onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                        placeholder="e.g. gigi-physical-pb"
+                        className="w-full pl-12 pr-6 py-3.5 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono text-xs font-bold"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+                    Author / Creator
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                      <User size={16} />
+                    </div>
+                    <input
+                      type="text"
+                      value={formData.author || ''}
+                      onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                      placeholder="e.g. Infano Care"
+                      className="w-full pl-12 pr-6 py-3.5 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Full Description</label>
+              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Description & Synopsis</label>
               <div className="relative group">
                 <div className="absolute top-3 left-4 text-muted-foreground group-focus-within:text-primary transition-colors">
                   <AlignLeft size={18} />
                 </div>
                 <textarea
                   required
-                  rows={6}
+                  rows={5}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder={isWebinarMode ? "Tell parents what this webinar masterclass is about..." : "Tell the readers what this book is about..."}
-                  className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
+                  placeholder={isWebinarMode ? "Tell parents what this webinar masterclass is about..." : "Tell the readers what this book explores..."}
+                  className="w-full pl-12 pr-6 py-3.5 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm leading-relaxed"
                 />
               </div>
             </div>
           </div>
 
+          {/* Physical Inventory Card (Only for PHYSICAL_BOOK) */}
+          {isPhysical && !isWebinarMode && (
+            <div className="glass-card p-8 rounded-[2.5rem] border-primary/5 shadow-2xl space-y-4 animate-in fade-in duration-300">
+              <div className="flex items-center gap-2 text-primary font-black text-sm uppercase tracking-wider pb-2 border-b border-border/20">
+                <Package size={18} />
+                <span>Warehouse Inventory Level</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Current Stock in Warehouse</label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                      <Package size={18} />
+                    </div>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      value={safeNum(formData.stock, '')}
+                      onChange={(e) => setFormData({ ...formData, stock: parseNum(e.target.value, 0) as number })}
+                      placeholder="e.g. 50"
+                      className="w-full pl-12 pr-6 py-3.5 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-lg"
+                    />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground ml-1">Automatically decrements whenever a physical book order is placed</p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/60 flex flex-col justify-center">
+                  <p className="text-xs font-black text-amber-800">Inventory Status Alert</p>
+                  <p className="text-xs text-amber-700 mt-1 font-medium">
+                    {(formData.stock || 0) <= 0 
+                      ? '⚠️ Out of Stock — Customers will see backorder notice' 
+                      : (formData.stock || 0) < 15 
+                        ? `⚠️ Low Stock (${formData.stock} units remaining)` 
+                        : `✅ Healthy inventory (${formData.stock} units available)`}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Digital EPUB & Reader Asset Card (Only for DIGITAL_EBOOK) */}
+          {!isPhysical && !isWebinarMode && (
+            <div className="glass-card p-8 rounded-[2.5rem] border-purple-500/10 shadow-2xl space-y-6 animate-in fade-in duration-300">
+              <div className="flex items-center justify-between pb-2 border-b border-border/20">
+                <div className="flex items-center gap-2 text-purple-700 font-black text-sm uppercase tracking-wider">
+                  <Upload size={18} />
+                  <span>EPUB eBook File & Cloud Reader Parser</span>
+                </div>
+                {formData.slug && (
+                  <Link
+                    href={`/dashboard/library/${formData.slug}/read`}
+                    target="_blank"
+                    className="text-xs font-bold text-purple-600 hover:text-purple-700 flex items-center gap-1.5 bg-purple-50 px-3 py-1.5 rounded-xl border border-purple-200 transition"
+                  >
+                    <ExternalLink size={13} />
+                    <span>Test Reader</span>
+                  </Link>
+                )}
+              </div>
+
+              {/* Upload area */}
+              <div className="p-6 rounded-2xl bg-purple-50/50 border-2 border-dashed border-purple-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-2 text-left w-full min-w-0">
+                  <p className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                    <BookOpen size={16} className="text-purple-600" />
+                    Upload .EPUB File
+                  </p>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Auto-extracts chapters, spine, page counts, and HTML content into the cloud reader database.
+                  </p>
+                  <input
+                    type="file"
+                    accept=".epub"
+                    onChange={(e) => setEpubFile(e.target.files?.[0] || null)}
+                    className="w-full max-w-full block text-xs file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-600 file:text-white hover:file:bg-purple-700 cursor-pointer"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleInlineEpubUpload}
+                  disabled={uploadingEpub || !epubFile}
+                  className="w-full md:w-auto shrink-0 px-6 py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-purple-600/20 whitespace-nowrap transition active:scale-95"
+                >
+                  {uploadingEpub ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>Parsing EPUB...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={16} />
+                      <span>Parse & Load Chapters</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Reader status */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+                    Total Estimated Pages
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-purple-600 transition-colors">
+                      <BookOpen size={16} />
+                    </div>
+                    <input
+                      type="number"
+                      min="1"
+                      value={safeNum(formData.totalPages, 1)}
+                      onChange={(e) => setFormData({ ...formData, totalPages: parseNum(e.target.value, 1) as number })}
+                      className="w-full pl-12 pr-6 py-3.5 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-600/20 transition-all font-bold text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-purple-50/70 border border-purple-100 flex flex-col justify-center">
+                  <p className="text-xs font-black text-purple-900">Chapters Status</p>
+                  <p className="text-xs text-purple-700 mt-1 font-medium">
+                    {Array.isArray(formData.chapters) && formData.chapters.length > 0
+                      ? `✅ ${formData.chapters.length} chapters loaded in cloud reader`
+                      : 'ℹ️ Default chapters or waiting for EPUB upload'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Regional Pricing & Shipping */}
           <div className="glass-card rounded-[2.5rem] border-blue-500/10 shadow-2xl overflow-hidden">
-            {/* Card Header */}
             <div className="p-8 pb-6 border-b border-border/20 flex items-center justify-between bg-blue-500/5">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-blue-100 flex items-center justify-center">
@@ -293,13 +589,20 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
                 </div>
                 <div>
                   <h3 className="text-lg font-black text-slate-900 tracking-tight">
-                    {isWebinarMode ? 'Webinar Ticket Pricing' : 'Regional Pricing & Shipping'}
+                    {isWebinarMode ? 'Webinar Ticket Pricing' : (isPhysical ? 'Regional Pricing & Shipping Charges' : 'eBook Regional Pricing')}
                   </h3>
                   <p className="text-xs text-muted-foreground font-semibold mt-0.5">
-                    {isWebinarMode ? 'Configure entry fee for the parent masterclass ticket pass' : 'Set unit price and shipping charges per country'}
+                    {isWebinarMode 
+                      ? 'Configure entry fee for the parent masterclass ticket pass' 
+                      : (isPhysical ? 'Set unit price, regional courier delivery, and COD fees per destination' : 'Digital goods feature instant access with zero delivery fees')}
                   </p>
                 </div>
               </div>
+              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                isPhysical ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200'
+              }`}>
+                {isPhysical ? 'Physical Shipping' : 'Instant Cloud Delivery'}
+              </span>
             </div>
 
             {/* Country Tabs */}
@@ -312,7 +615,7 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
                     onClick={() => setPricingTab(code)}
                     className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-black uppercase tracking-widest transition-all ${
                       pricingTab === code
-                        ? 'bg-white border-b-2 border-blue-500 text-blue-600'
+                        ? 'bg-white border-b-2 border-blue-500 text-blue-600 shadow-sm'
                         : 'text-muted-foreground hover:bg-slate-50'
                     }`}
                   >
@@ -323,12 +626,12 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
               </div>
             )}
 
-            {/* India Tab / Webinar Pricing */}
+            {/* India Tab */}
             {(pricingTab === 'IN' || isWebinarMode) && (
               <div className="p-8 space-y-6 animate-in fade-in duration-200">
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
-                    {isWebinarMode ? 'Webinar Ticket Price (₹)' : 'Unit Price (₹) — India'}
+                    {isWebinarMode ? 'Webinar Ticket Price (₹)' : `Unit Price (₹) — India`}
                   </label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
@@ -341,37 +644,37 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
                       step="0.01"
                       value={safeNum(formData.price, '')}
                       onChange={(e) => setFormData({ ...formData, price: parseNum(e.target.value, null) as number })}
-                      placeholder="e.g. 99"
-                      className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
+                      placeholder="e.g. 499"
+                      className="w-full pl-12 pr-6 py-3.5 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-lg"
                     />
                   </div>
                 </div>
 
-                {!isWebinarMode && (
-                  <>
+                {isPhysical && !isWebinarMode && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-border/20">
                     <div className="space-y-2">
                       <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-1.5">
-                        <Truck size={12} /> Shipping Charge (₹)
+                        <Truck size={14} /> Shipping Charge (₹)
                       </label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                          <Truck size={16} />
+                          <IndianRupee size={16} />
                         </div>
                         <input
                           type="number"
                           min="0"
                           step="0.01"
                           value={safeNum(formData.shippingIN, '')}
-                          onChange={(e) => setFormData({ ...formData, shippingIN: parseNum(e.target.value, null) as number })}
-                          className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
+                          onChange={(e) => setFormData({ ...formData, shippingIN: parseNum(e.target.value, 0) as number })}
+                          className="w-full pl-12 pr-6 py-3.5 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all font-bold"
                         />
                       </div>
-                      <p className="text-[10px] text-muted-foreground ml-1">Configured shipping charge for both Online and COD payments in India</p>
+                      <p className="text-[10px] text-muted-foreground ml-1">Standard domestic courier charge</p>
                     </div>
 
                     <div className="space-y-2">
                       <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-1.5">
-                        <Truck size={12} /> COD Surcharge (₹)
+                        <Truck size={14} /> COD Surcharge (₹)
                       </label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
@@ -382,13 +685,13 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
                           min="0"
                           step="0.01"
                           value={safeNum(formData.codChargeIN, '')}
-                          onChange={(e) => setFormData({ ...formData, codChargeIN: parseNum(e.target.value, null) as number })}
-                          className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
+                          onChange={(e) => setFormData({ ...formData, codChargeIN: parseNum(e.target.value, 0) as number })}
+                          className="w-full pl-12 pr-6 py-3.5 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all font-bold"
                         />
                       </div>
-                      <p className="text-[10px] text-muted-foreground ml-1">Configured Cash on Delivery (COD) charge for orders in India (defaults to 40)</p>
+                      <p className="text-[10px] text-muted-foreground ml-1">Added only when buyer selects Cash on Delivery</p>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             )}
@@ -409,31 +712,32 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
                       value={safeNum(formData.priceUS, '')}
                       onChange={(e) => setFormData({ ...formData, priceUS: parseNum(e.target.value, null) })}
                       placeholder="e.g. 19.99 (leave blank to auto-convert from ₹)"
-                      className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
+                      className="w-full pl-12 pr-6 py-3.5 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-lg"
                     />
                   </div>
-                  <p className="text-[10px] text-muted-foreground ml-1">Leave blank to auto-calculate from India price using exchange rate</p>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-1.5">
-                    <Truck size={12} /> Shipping ($) — Online only
-                  </label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                      <Truck size={16} />
+                {isPhysical && (
+                  <div className="space-y-2 pt-2 border-t border-border/20">
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-1.5">
+                      <Truck size={14} /> International Shipping ($) — USA
+                    </label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                        <DollarSign size={16} />
+                      </div>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={safeNum(formData.shippingUS, '')}
+                        onChange={(e) => setFormData({ ...formData, shippingUS: parseNum(e.target.value, 0) as number })}
+                        className="w-full pl-12 pr-6 py-3.5 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all font-bold"
+                      />
                     </div>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={safeNum(formData.shippingUS, '')}
-                      onChange={(e) => setFormData({ ...formData, shippingUS: parseNum(e.target.value, null) as number })}
-                      className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
-                    />
+                    <p className="text-[10px] text-muted-foreground ml-1">US international postal / courier rate</p>
                   </div>
-                  <p className="text-[10px] text-muted-foreground ml-1">Only online payment is available for US customers</p>
-                </div>
+                )}
               </div>
             )}
 
@@ -453,60 +757,38 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
                       value={safeNum(formData.priceUK, '')}
                       onChange={(e) => setFormData({ ...formData, priceUK: parseNum(e.target.value, null) })}
                       placeholder="e.g. 14.99 (leave blank to auto-convert from ₹)"
-                      className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
+                      className="w-full pl-12 pr-6 py-3.5 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-lg"
                     />
                   </div>
-                  <p className="text-[10px] text-muted-foreground ml-1">Leave blank to auto-calculate from India price using exchange rate</p>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-1.5">
-                    <Truck size={12} /> Shipping (£) — Online only
-                  </label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                      <Truck size={16} />
+                {isPhysical && (
+                  <div className="space-y-2 pt-2 border-t border-border/20">
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-1.5">
+                      <Truck size={14} /> International Shipping (£) — UK
+                    </label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                        <PoundSterling size={16} />
+                      </div>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={safeNum(formData.shippingUK, '')}
+                        onChange={(e) => setFormData({ ...formData, shippingUK: parseNum(e.target.value, 0) as number })}
+                        className="w-full pl-12 pr-6 py-3.5 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all font-bold"
+                      />
                     </div>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={safeNum(formData.shippingUK, '')}
-                      onChange={(e) => setFormData({ ...formData, shippingUK: parseNum(e.target.value, null) as number })}
-                      className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
-                    />
+                    <p className="text-[10px] text-muted-foreground ml-1">UK international postal / courier rate</p>
                   </div>
-                  <p className="text-[10px] text-muted-foreground ml-1">Only online payment is available for UK customers</p>
-                </div>
+                )}
               </div>
             )}
           </div>
 
-          {/* Stock / Inventory */}
-          {!isWebinarMode && (
-            <div className="glass-card p-8 rounded-[2.5rem] border-primary/5 shadow-2xl">
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Inventory Level</label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                    <Package size={18} />
-                  </div>
-                  <input
-                    type="number"
-                    required
-                    min="0"
-                    value={safeNum(formData.stock, '')}
-                    onChange={(e) => setFormData({ ...formData, stock: parseNum(e.target.value, null) as number })}
-                    className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* ─── Promo Code Management Section ─── */}
           <div className="glass-card rounded-[2.5rem] border-emerald-500/10 shadow-2xl overflow-hidden">
-            {/* Section Header */}
             <div className="p-8 pb-6 border-b border-border/20 flex items-center justify-between bg-emerald-500/5">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center">
@@ -515,7 +797,7 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
                 <div>
                   <h3 className="text-lg font-black text-slate-900 tracking-tight">Shop Promo Codes</h3>
                   <p className="text-xs text-muted-foreground font-semibold mt-0.5">
-                    Manage multiple discount coupons active in the store
+                    Manage discount coupons active across the store
                   </p>
                 </div>
               </div>
@@ -548,7 +830,7 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
                     value={promoForm.code}
                     onChange={e => setPromoForm(p => ({ ...p, code: e.target.value.toUpperCase() }))}
                     placeholder="e.g. GIGI25"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none font-mono font-black text-slate-900 placeholder:font-normal placeholder:text-slate-400 text-sm transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none font-mono font-black text-slate-900 placeholder:font-normal placeholder:text-slate-400 text-sm transition-all bg-white"
                   />
                 </div>
 
@@ -575,7 +857,7 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
                       max={promoForm.type === 'PERCENTAGE' ? 100 : undefined}
                       value={promoForm.value}
                       onChange={e => setPromoForm(p => ({ ...p, value: Number(e.target.value) }))}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none font-bold text-slate-900 text-sm transition-all"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none font-bold text-slate-900 text-sm transition-all bg-white"
                     />
                   </div>
                 </div>
@@ -735,12 +1017,12 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
           </div>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          <div className="glass-card p-8 rounded-[2.5rem] border-primary/5 shadow-2xl space-y-6">
+        {/* Sidebar (4 cols) */}
+        <div className="lg:col-span-4 space-y-8 min-w-0 lg:sticky lg:top-8">
+          <div className="glass-card p-6 sm:p-8 rounded-[2.5rem] border-primary/5 shadow-2xl space-y-6">
             <div className="space-y-4">
               <ImageUploader
-                label="Cover Image"
+                label={isPhysical ? 'Book Cover Photo' : 'eBook Cover Artwork'}
                 onUpload={(url) => setFormData({ ...formData, imageUrl: url })}
                 value={formData.imageUrl}
                 folder="shop"
@@ -766,9 +1048,9 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
                   <div className={`absolute top-1 w-6 h-6 rounded-full bg-white transition-all shadow-md ${formData.isActive ? 'left-7' : 'left-1'}`} />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm font-black">Active Status</span>
+                  <span className="text-sm font-black">Publication Status</span>
                   <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
-                    {formData.isActive ? 'Visible in store' : 'Hidden from store'}
+                    {formData.isActive ? 'Published in Store' : 'Draft / Hidden'}
                   </span>
                 </div>
               </label>
@@ -778,16 +1060,18 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
           <div className="glass-card p-8 rounded-[2.5rem] bg-gradient-to-br from-primary/5 to-transparent border-primary/10 border space-y-4">
             <h4 className="text-sm font-black flex items-center gap-2">
               <CheckCircle2 size={16} className="text-primary" />
-              Publishing Checklist
+              {isPhysical ? 'Physical Book Checklist' : 'eBook Publishing Checklist'}
             </h4>
             <ul className="space-y-3">
               {[
-                { label: 'India price set', checked: formData.price! > 0 },
+                { label: 'India unit price set', checked: (formData.price || 0) > 0 },
                 { label: 'US price configured', checked: formData.priceUS != null && formData.priceUS! > 0 },
                 { label: 'UK price configured', checked: formData.priceUK != null && formData.priceUK! > 0 },
                 { label: 'Cover image linked', checked: !!formData.imageUrl },
-                { label: 'Stock level updated', checked: formData.stock! >= 0 },
-                { label: 'Catchy description', checked: formData.description!.length > 20 },
+                isPhysical 
+                  ? { label: 'Stock inventory recorded', checked: (formData.stock || 0) > 0 }
+                  : { label: 'Cloud reader slug ready', checked: !!formData.slug },
+                { label: 'Detailed description', checked: (formData.description?.length || 0) > 20 },
                 { label: 'Shop promo codes ready', checked: coupons.length > 0 },
               ].map(item => (
                 <li key={item.label} className="flex items-center gap-3 text-xs font-bold transition-all">

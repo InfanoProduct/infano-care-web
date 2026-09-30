@@ -17,17 +17,22 @@ export interface Coupon {
 
 export interface Book {
   id: string;
+  slug?: string;
   title: string;
+  author?: string;
   description: string;
+  format?: 'DIGITAL_EBOOK' | 'PHYSICAL_BOOK' | 'BUNDLE';
   price: number;           // India price (INR)
   priceUS?: number | null; // USA price (USD)
   priceUK?: number | null; // UK price (GBP)
   shippingIN?: number;     // India shipping (INR)
-  shippingUS?: number;       // USA shipping (USD)
-  shippingUK?: number;       // UK shipping (GBP)
+  shippingUS?: number;     // USA shipping (USD)
+  shippingUK?: number;     // UK shipping (GBP)
   codChargeIN?: number;    // India COD Surcharge (INR)
   imageUrl?: string;
   stock: number;
+  totalPages?: number;
+  chapters?: any;
   isActive: boolean;
   couponId?: string | null;
   coupon?: Coupon | null;
@@ -240,9 +245,7 @@ export const ShopService = {
     formData.append("file", file);
     formData.append("slug", slug);
 
-    return apiClient.post("/admin/books/upload-epub", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    return apiClient.post("/admin/books/upload-epub", formData);
   },
 
   // ─── Admin Etsy Orders & Claims ───────────────────────────────

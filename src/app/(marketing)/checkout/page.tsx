@@ -347,22 +347,25 @@ function CheckoutContent() {
     }
   };
 
+  const formatParam = searchParams.get('format');
+  const isEbook = formatParam === 'ebook' || book?.format === 'DIGITAL_EBOOK' || (book?.stock !== undefined && book.stock >= 900000);
+
   const calculateTotal = () => {
     if (!book) return { subtotal: 0, gst: 0, delivery: 0, codCharge: 0, total: 0 };
-    const price = getBookPrice(book, region);
+    const price = isEbook ? (region === 'US' ? 9.99 : (region === 'UK' ? 7.99 : (book.price < 300 ? book.price : 249))) : getBookPrice(book, region);
     const baseSubtotal = price * quantity;
     const appliedDiscount = region === 'IN' ? discountAmount : 0; // Coupons disabled for US/UK
     const priceAfterDiscount = baseSubtotal - appliedDiscount;
     
     if (region === 'IN') {
-      const deliveryCharge = getShippingCharge(book, region);
+      const deliveryCharge = isEbook ? 0 : getShippingCharge(book, region);
       const taxableValue = Math.round((priceAfterDiscount / 1.05) * 100) / 100;
       const gst = Math.round((priceAfterDiscount - taxableValue) * 100) / 100;
-      const codSurcharge = formData.paymentMethod === 'COD' ? (book.codChargeIN ?? 40) : 0;
+      const codSurcharge = (!isEbook && formData.paymentMethod === 'COD') ? (book.codChargeIN ?? 40) : 0;
       const total = priceAfterDiscount + deliveryCharge + codSurcharge;
       return { subtotal: baseSubtotal, gst, delivery: deliveryCharge, codCharge: codSurcharge, total };
     } else {
-      const deliveryCharge = getShippingCharge(book, region);
+      const deliveryCharge = isEbook ? 0 : getShippingCharge(book, region);
       const total = priceAfterDiscount + deliveryCharge;
       return { subtotal: baseSubtotal, gst: 0, delivery: deliveryCharge, codCharge: 0, total };
     }
@@ -415,10 +418,10 @@ function CheckoutContent() {
       }
     }
 
-    // Email validation (mandatory for US/UK)
-    if (region !== 'IN') {
+    // Email validation (mandatory for eBooks & international orders)
+    if (isEbook || region !== 'IN') {
       if (!curForm.guestEmail.trim()) {
-        errors.guestEmail = 'Email address is required for international orders';
+        errors.guestEmail = isEbook ? 'Email address is required for instant eBook reader access' : 'Email address is required for international orders';
       } else if (!/\S+@\S+\.\S+/.test(curForm.guestEmail)) {
         errors.guestEmail = 'Please enter a valid email address';
       }
@@ -426,24 +429,26 @@ function CheckoutContent() {
       errors.guestEmail = 'Please enter a valid email address';
     }
 
-    // Pincode/Zip validation
-    if (region === 'IN') {
-      if (!curForm.pincode.trim() || curForm.pincode.length !== 6) {
-        errors.pincode = 'Valid 6-digit pincode is required';
+    // Only validate shipping address for Physical Books
+    if (!isEbook) {
+      if (region === 'IN') {
+        if (!curForm.pincode.trim() || curForm.pincode.length !== 6) {
+          errors.pincode = 'Valid 6-digit pincode is required';
+        }
+      } else if (region === 'US') {
+        if (!curForm.pincode.trim() || !/^\d{5}$/.test(curForm.pincode)) {
+          errors.pincode = 'Valid 5-digit ZIP code is required';
+        }
+      } else if (region === 'UK') {
+        if (!curForm.pincode.trim() || curForm.pincode.length < 3 || curForm.pincode.length > 10) {
+          errors.pincode = 'Valid postal code is required';
+        }
       }
-    } else if (region === 'US') {
-      if (!curForm.pincode.trim() || !/^\d{5}$/.test(curForm.pincode)) {
-        errors.pincode = 'Valid 5-digit ZIP code is required';
-      }
-    } else if (region === 'UK') {
-      if (!curForm.pincode.trim() || curForm.pincode.length < 3 || curForm.pincode.length > 10) {
-        errors.pincode = 'Valid postal code is required';
-      }
-    }
 
-    if (!curForm.shippingAddress.trim()) errors.shippingAddress = 'Street address is required';
-    if (!curForm.city.trim()) errors.city = 'City is required';
-    if (!curForm.state.trim()) errors.state = 'State / Region is required';
+      if (!curForm.shippingAddress.trim()) errors.shippingAddress = 'Street address is required';
+      if (!curForm.city.trim()) errors.city = 'City is required';
+      if (!curForm.state.trim()) errors.state = 'State / Region is required';
+    }
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -907,13 +912,15 @@ function CheckoutContent() {
               {/* Steps 1 & 2 + Promo code (India only — PayPal collects verified details for US/UK) */}
               {region === 'IN' && (
                 <>
-                  {/* Step 1: Personal Details */}
+                  {/* Step 1: Personal / Reader Details */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
                       <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
                         01
                       </div>
-                      <h2 className="text-base font-bold text-slate-800 tracking-tight">Personal details</h2>
+                      <h2 className="text-base font-bold text-slate-800 tracking-tight">
+                        {isEbook ? 'Reader & account details' : 'Personal details'}
+                      </h2>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-4">
@@ -954,7 +961,7 @@ function CheckoutContent() {
 
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                        Email address (optional)
+                        Email address {isEbook ? <span className="text-rose-500">* (for cloud reader access)</span> : <span className="text-slate-400 font-normal">(optional)</span>}
                       </label>
                       <input
                         type="email"
@@ -968,91 +975,103 @@ function CheckoutContent() {
                     </div>
                   </div>
 
-                  {/* Step 2: Delivery Address */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
-                        02
+                  {/* Step 2: Delivery Address (Physical) OR Instant Digital Access (eBook) */}
+                  {isEbook ? (
+                    <div className="p-5 rounded-2xl bg-purple-50/70 border border-purple-200/80 space-y-2">
+                      <div className="flex items-center gap-2 text-purple-900 font-bold text-sm">
+                        <span className="text-base">⚡</span>
+                        <span>Instant Digital Delivery • Zero Delivery Fee</span>
                       </div>
-                      <h2 className="text-base font-bold text-slate-800 tracking-tight">Delivery address</h2>
+                      <p className="text-xs text-purple-800 leading-relaxed font-medium">
+                        No physical address is required. Upon successful payment, this interactive eBook will be unlocked immediately in your Infano library, and your access credentials will be delivered to <strong>{formData.guestEmail || 'your email'}</strong>.
+                      </p>
                     </div>
-
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                          Pincode <span className="text-rose-500">*</span>
-                        </label>
-                        <div className="relative">
-                          <input
-                            name="pincode"
-                            value={formData.pincode}
-                            onChange={handleInputChange}
-                            maxLength={6}
-                            className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.pincode ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                            placeholder="6-digit pincode"
-                          />
-                          {pincodeLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-primary" size={16} />}
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
+                          02
                         </div>
-                        {formErrors.pincode && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.pincode}</p>}
+                        <h2 className="text-base font-bold text-slate-800 tracking-tight">Delivery address</h2>
                       </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">Country</label>
-                        <div className="relative flex items-center">
-                          <div className="absolute left-3 flex items-center gap-2 pointer-events-none">
-                            <span className="text-base">{flagEmoji}</span>
+
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-bold text-slate-600 ml-0.5">
+                            Pincode <span className="text-rose-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <input
+                              name="pincode"
+                              value={formData.pincode}
+                              onChange={handleInputChange}
+                              maxLength={6}
+                              className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.pincode ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                              placeholder="6-digit pincode"
+                            />
+                            {pincodeLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-primary" size={16} />}
                           </div>
+                          {formErrors.pincode && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.pincode}</p>}
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-bold text-slate-600 ml-0.5">Country</label>
+                          <div className="relative flex items-center">
+                            <div className="absolute left-3 flex items-center gap-2 pointer-events-none">
+                              <span className="text-base">{flagEmoji}</span>
+                            </div>
+                            <input
+                              readOnly
+                              className="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-50 border border-slate-200 font-bold text-slate-700 cursor-not-allowed text-sm shadow-inner"
+                              value={`${countryName} (${region})`}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">
+                          Street Address <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          name="shippingAddress"
+                          value={formData.shippingAddress}
+                          onChange={handleInputChange}
+                          className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.shippingAddress ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                          placeholder="House/Flat number, Street address"
+                        />
+                        {formErrors.shippingAddress && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.shippingAddress}</p>}
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-bold text-slate-600 ml-0.5">
+                            City <span className="text-rose-500">*</span>
+                          </label>
                           <input
-                            readOnly
-                            className="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-50 border border-slate-200 font-bold text-slate-700 cursor-not-allowed text-sm shadow-inner"
-                            value={`${countryName} (${region})`}
+                            name="city"
+                            value={formData.city}
+                            onChange={handleInputChange}
+                            className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.city ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                            placeholder="City"
                           />
+                          {formErrors.city && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.city}</p>}
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-bold text-slate-600 ml-0.5">
+                            State <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            name="state"
+                            value={formData.state}
+                            onChange={handleInputChange}
+                            className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                            placeholder="State"
+                          />
+                          {formErrors.state && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.state}</p>}
                         </div>
                       </div>
                     </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                        Street Address <span className="text-rose-500">*</span>
-                      </label>
-                      <input
-                        name="shippingAddress"
-                        value={formData.shippingAddress}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.shippingAddress ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                        placeholder="House/Flat number, Street address"
-                      />
-                      {formErrors.shippingAddress && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.shippingAddress}</p>}
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                          City <span className="text-rose-500">*</span>
-                        </label>
-                        <input
-                          name="city"
-                          value={formData.city}
-                          onChange={handleInputChange}
-                          className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.city ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                          placeholder="City"
-                        />
-                        {formErrors.city && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.city}</p>}
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                          State <span className="text-rose-500">*</span>
-                        </label>
-                        <input
-                          name="state"
-                          value={formData.state}
-                          onChange={handleInputChange}
-                          className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                          placeholder="State"
-                        />
-                        {formErrors.state && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.state}</p>}
-                      </div>
-                    </div>
-                  </div>
+                  )}
 
                   {/* Promo code (India only) */}
                   <div className="space-y-3 pt-2">
@@ -1091,7 +1110,7 @@ function CheckoutContent() {
                   <div className="flex items-center gap-3">
                     {region === 'IN' ? (
                       <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
-                        03
+                        {isEbook ? '02' : '03'}
                       </div>
                     ) : (
                       <div className="w-7 h-7 rounded-full bg-[#0070BA]/10 flex items-center justify-center text-[#0070BA] text-[10px] font-bold border border-[#0070BA]/20">
@@ -1106,13 +1125,13 @@ function CheckoutContent() {
                   {region !== 'IN' && (
                     <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 rounded-full border border-slate-200 text-xs font-bold text-slate-700">
                       <span>{flagEmoji}</span>
-                      <span>Shipping to {countryName}</span>
+                      <span>{isEbook ? 'Digital Access' : `Shipping to ${countryName}`}</span>
                     </div>
                   )}
                 </div>
 
                 {region === 'IN' ? (
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className={`grid ${isEbook ? 'grid-cols-1' : 'md:grid-cols-2'} gap-4`}>
                     <button
                       type="button"
                       id='payment-online'
@@ -1123,22 +1142,24 @@ function CheckoutContent() {
                       <CreditCard size={20} className={formData.paymentMethod === 'ONLINE' ? 'text-primary' : 'text-slate-400'} />
                       <div className="space-y-1 text-center">
                         <div className={`text-base font-bold ${formData.paymentMethod === 'ONLINE' ? 'text-primary' : 'text-slate-800'}`}>Pay online</div>
-                        <div className="text-xs font-medium text-slate-500">Cards, UPI, NetBanking</div>
+                        <div className="text-xs font-medium text-slate-500">Cards, UPI, NetBanking (Instant unlock)</div>
                       </div>
                     </button>
-                    <button
-                      type="button"
-                      id='payment-cod'
-                      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'COD' }))}
-                      className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'COD' ? 'border-primary bg-primary/3' : 'border-slate-100 hover:border-slate-200 bg-white'
-                        }`}
-                    >
-                      <Truck size={20} className={formData.paymentMethod === 'COD' ? 'text-primary' : 'text-slate-400'} />
-                      <div className="space-y-1 text-center">
-                        <div className={`text-base font-bold ${formData.paymentMethod === 'COD' ? 'text-primary' : 'text-slate-800'}`}>Cash on delivery</div>
-                        <div className="text-xs font-medium text-slate-500">Pay at door, just a little more!</div>
-                      </div>
-                    </button>
+                    {!isEbook && (
+                      <button
+                        type="button"
+                        id='payment-cod'
+                        onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'COD' }))}
+                        className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'COD' ? 'border-primary bg-primary/3' : 'border-slate-100 hover:border-slate-200 bg-white'
+                          }`}
+                      >
+                        <Truck size={20} className={formData.paymentMethod === 'COD' ? 'text-primary' : 'text-slate-400'} />
+                        <div className="space-y-1 text-center">
+                          <div className={`text-base font-bold ${formData.paymentMethod === 'COD' ? 'text-primary' : 'text-slate-800'}`}>Cash on delivery</div>
+                          <div className="text-xs font-medium text-slate-500">Pay at door, just a little more!</div>
+                        </div>
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div className="w-full grid sm:grid-cols-2 gap-3.5">

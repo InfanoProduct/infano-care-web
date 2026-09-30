@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { FileText } from 'lucide-react';
-import { getCurrencySymbol } from '@/lib/utils';
+import { getCurrencySymbol, getOrderCountry } from '@/lib/utils';
 
 interface InvoiceModalProps {
   isOpen: boolean;
@@ -14,6 +14,8 @@ interface InvoiceModalProps {
 export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps) {
   if (!isOpen || !data) return null;
 
+  const orderCountry = type === 'BOOK' ? getOrderCountry(data) : 'IN';
+  const isInternational = type === 'BOOK' && (orderCountry !== 'IN' || (data.currency && data.currency !== 'INR'));
   const currencySymbol = type === 'PROGRAM' ? '₹' : getCurrencySymbol(data);
 
   const invoiceNo = type === 'PROGRAM' 
@@ -40,11 +42,17 @@ export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps)
 
   const paymentMethod = type === 'PROGRAM'
     ? 'Razorpay (ONLINE)'
-    : (data.paymentMethod || 'ONLINE');
+    : (data.paypalCaptureId || data.paypalOrderId)
+      ? 'PayPal (ONLINE)'
+      : (data.paymentMethod ? `${data.paymentMethod} (ONLINE)` : 'ONLINE');
 
-  // Billing address for Book Order vs Program Enrollment
+  const transactionId = type === 'PROGRAM'
+    ? data.id
+    : (data.paypalCaptureId || data.paypalOrderId || data.razorpayPaymentId || data.id);
+
+  // Billing address
   const billingAddress = type === 'BOOK'
-    ? `${data.shippingAddress}, ${data.city}, ${data.state} - ${data.pincode}`
+    ? `${data.shippingAddress || ''}${data.city ? `, ${data.city}` : ''}${data.state ? `, ${data.state}` : ''}${data.pincode ? ` - ${data.pincode}` : ''}`
     : 'Online Mentoring Service';
 
   // Helper to determine if an item is a program
@@ -58,8 +66,8 @@ export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps)
     return false;
   };
 
-  // Tax and line items
-  let lineItems: Array<{
+  // Indian tax invoice line items
+  let domesticLineItems: Array<{
     name: string;
     hsn: string;
     qty: number;
@@ -72,20 +80,63 @@ export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps)
     total: number;
   }> = [];
 
+  // International invoice line items
+  let internationalLineItems: Array<{
+    name: string;
+    qty: number;
+    unitPrice: number;
+    total: number;
+  }> = [];
+
   let subtotal = 0;
   let cgstTotal = 0;
   let sgstTotal = 0;
   let grandTotal = 0;
+  let discountAmt = data.discountAmount || 0;
+  let deliveryCharge = 0;
 
-  if (type === 'PROGRAM') {
-    // 18% inclusive GST for mentoring programs
-    const pricePaid = data.pricePaid;
+  if (isInternational) {
+    const items = data.items || [];
+    let itemsSubtotal = 0;
+
+    items.forEach((item: any) => {
+      const itemPrice = item.price != null ? Number(item.price) : Number(item.book?.price || 0);
+      const qty = Number(item.quantity || 1);
+      const itemTotal = itemPrice * qty;
+      itemsSubtotal += itemTotal;
+
+      internationalLineItems.push({
+        name: item.book?.title || item.bookTitle || 'The Awkward Age',
+        qty,
+        unitPrice: itemPrice,
+        total: itemTotal,
+      });
+    });
+
+    if (itemsSubtotal === 0 && data.totalAmount) {
+      itemsSubtotal = Number(data.totalAmount);
+      internationalLineItems.push({
+        name: 'The Awkward Age',
+        qty: 1,
+        unitPrice: itemsSubtotal,
+        total: itemsSubtotal,
+      });
+    }
+
+    subtotal = itemsSubtotal;
+    grandTotal = Number(data.totalAmount || itemsSubtotal);
+    deliveryCharge = data.deliveryCharge != null && data.deliveryCharge > 0
+      ? Number(data.deliveryCharge)
+      : Math.max(0, Math.round((grandTotal - (itemsSubtotal - discountAmt)) * 100) / 100);
+  } else if (type === 'PROGRAM') {
+    // 18% inclusive GST for mentoring programs in India
+    const pricePaid = data.pricePaid || 0;
     const taxableVal = Math.round((pricePaid / 1.18) * 100) / 100;
     const gstAmt = Math.round((pricePaid - taxableVal) * 100) / 100;
     const cgstAmt = Math.round((gstAmt / 2) * 100) / 100;
     const sgstAmt = Math.round((gstAmt / 2) * 100) / 100;
 
-    lineItems.push({
+    domesticLineItems.push({
       name: `${data.program?.title || 'Infano Mentoring'} Program Enrollment`,
       hsn: '999299',
       qty: 1,
@@ -103,8 +154,7 @@ export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps)
     sgstTotal = sgstAmt;
     grandTotal = pricePaid;
   } else {
-    // Books or mixed order: 5% inclusive GST for books, 18% for programs
-    const discountAmt = data.discountAmount || 0;
+    // Domestic India Book Order: 5% inclusive GST for books, 18% for programs
     const items = data.items || [];
     
     items.forEach((item: any) => {
@@ -122,8 +172,8 @@ export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps)
       const cgstAmt = Math.round((gstAmt / 2) * 100) / 100;
       const sgstAmt = Math.round((gstAmt / 2) * 100) / 100;
 
-      lineItems.push({
-        name: item.book?.title || item.bookTitle || 'Gigi: The Awkward Age Book',
+      domesticLineItems.push({
+        name: item.book?.title || item.bookTitle || 'The Awkward Age Book',
         hsn: isProg ? '999299' : '4901',
         qty: item.quantity,
         rate: Math.round((itemPrice / (1 + taxRate)) * 100) / 100,
@@ -141,7 +191,6 @@ export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps)
       grandTotal += finalItemTotal;
     });
 
-    // Make totals mathematically sound
     subtotal = Math.round(subtotal * 100) / 100;
     cgstTotal = Math.round(cgstTotal * 100) / 100;
     sgstTotal = Math.round(sgstTotal * 100) / 100;
@@ -262,7 +311,9 @@ export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps)
             <div className="bg-primary/10 p-1.5 rounded-lg text-primary">
               <FileText size={18} />
             </div>
-            <h3 className="font-extrabold text-slate-800 text-sm">Tax Invoice</h3>
+            <h3 className="font-extrabold text-slate-800 text-sm">
+              {isInternational ? 'Invoice' : 'Tax Invoice'}
+            </h3>
           </div>
           <div className="flex items-center gap-2.5 w-full sm:w-auto">
             <button
@@ -291,14 +342,22 @@ export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps)
                 alt="Infano Care Logo" 
                 className="h-10 object-contain object-left mb-2.5"
               />
-              <p className="font-extrabold text-slate-900 text-sm">infano.care</p>
-              <p className="text-slate-500 font-semibold text-[10px]">Empowering adolescent girls, one family at a time.</p>
-              <p className="text-slate-600 font-bold mt-2">GSTIN: <span className="text-slate-800 font-black">29AAFCI8765A1Z2</span></p>
+              <p className="font-extrabold text-slate-900 text-sm">
+                Berry Bird Technologies Pvt Ltd
+              </p>
+              <p className="text-slate-500 font-semibold text-[10px]">
+                infano.care • Empowering adolescent girls, one family at a time.
+              </p>
+              {!isInternational && (
+                <p className="text-slate-600 font-bold mt-2">
+                  GSTIN: <span className="text-slate-800 font-black">29AAFCI8765A1Z2</span>
+                </p>
+              )}
               <p className="text-slate-500 font-semibold">Bengaluru, Karnataka, India • connect@infano.care</p>
             </div>
             <div className="text-right space-y-1 mt-1 shrink-0">
               <span className="inline-block px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-250/50 rounded-lg font-black text-[10px] uppercase tracking-wider print:border-none print:bg-transparent print:p-0 print:text-xs">
-                Tax Invoice
+                {isInternational ? 'Invoice' : 'Tax Invoice'}
               </span>
               <p className="text-slate-400 font-bold text-[9px] uppercase tracking-wider mt-3">Invoice Number</p>
               <p className="text-slate-900 font-black text-xs font-mono tracking-tight">{invoiceNo}</p>
@@ -312,8 +371,13 @@ export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps)
             <div className="space-y-1.5">
               <h4 className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Bill To:</h4>
               <p className="font-extrabold text-slate-900 text-sm">{buyerName}</p>
-              <p className="text-slate-600 font-semibold">Phone: <span className="text-slate-800 font-bold">{buyerPhone}</span></p>
+              {buyerPhone && buyerPhone !== 'N/A' && (
+                <p className="text-slate-600 font-semibold">Phone: <span className="text-slate-800 font-bold">{buyerPhone}</span></p>
+              )}
               <p className="text-slate-600 font-semibold">Email: <span className="text-slate-800 font-bold">{buyerEmail}</span></p>
+              {isInternational && orderCountry && (
+                <p className="text-slate-600 font-semibold">Country: <span className="text-slate-800 font-bold">{orderCountry}</span></p>
+              )}
             </div>
             <div className="space-y-1.5">
               <h4 className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Shipping & Billing Address:</h4>
@@ -322,65 +386,124 @@ export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps)
               <div className="pt-2">
                 <span className="text-[9px] font-bold text-slate-400 block uppercase tracking-wider">Payment Details</span>
                 <span className="text-slate-800 font-black text-[10px] block mt-0.5 uppercase">{paymentMethod}</span>
+                {transactionId && (
+                  <span className="text-slate-500 font-mono text-[9px] block mt-0.5">ID: {transactionId}</span>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Tax Breakdowns Table */}
+          {/* Line Items Table */}
           <div className="mb-6 overflow-x-auto print:overflow-x-visible">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 text-[9px] font-black uppercase text-slate-500 border-b border-slate-200">
-                  <th className="py-2.5 px-3">Item Description</th>
-                  <th className="py-2.5 px-2 text-center">HSN</th>
-                  <th className="py-2.5 px-2 text-center">Qty</th>
-                  <th className="py-2.5 px-2 text-right">Taxable Rate</th>
-                  <th className="py-2.5 px-2 text-center">CGST %</th>
-                  <th className="py-2.5 px-2 text-right">CGST</th>
-                  <th className="py-2.5 px-2 text-center">SGST %</th>
-                  <th className="py-2.5 px-2 text-right">SGST</th>
-                  <th className="py-2.5 px-3 text-right">Total Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {lineItems.map((item, idx) => (
-                  <tr key={idx} className="border-b border-slate-100 font-medium text-slate-700 hover:bg-slate-50/30">
-                    <td className="py-3 px-3">
-                      <span className="font-extrabold text-slate-900 block">{item.name}</span>
-                    </td>
-                    <td className="py-3 px-2 text-center text-slate-500 font-semibold font-mono">{item.hsn}</td>
-                    <td className="py-3 px-2 text-center font-bold text-slate-900">{item.qty}</td>
-                    <td className="py-3 px-2 text-right font-mono">{currencySymbol}{item.rate.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                    <td className="py-3 px-2 text-center text-slate-400 font-bold">{item.cgstRate}%</td>
-                    <td className="py-3 px-2 text-right font-mono text-slate-600">{currencySymbol}{item.cgstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                    <td className="py-3 px-2 text-center text-slate-400 font-bold">{item.sgstRate}%</td>
-                    <td className="py-3 px-2 text-right font-mono text-slate-600">{currencySymbol}{item.sgstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                    <td className="py-3 px-3 text-right font-black text-slate-900 font-mono">{currencySymbol}{item.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+            {isInternational ? (
+              /* International Table (No GST/CGST/SGST/HSN) */
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 text-[9px] font-black uppercase text-slate-500 border-b border-slate-200">
+                    <th className="py-2.5 px-3">Item Description</th>
+                    <th className="py-2.5 px-3 text-center">Qty</th>
+                    <th className="py-2.5 px-3 text-right">Unit Price</th>
+                    <th className="py-2.5 px-3 text-right">Total Amount</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {internationalLineItems.map((item, idx) => (
+                    <tr key={idx} className="border-b border-slate-100 font-medium text-slate-700 hover:bg-slate-50/30">
+                      <td className="py-3 px-3">
+                        <span className="font-extrabold text-slate-900 block">{item.name}</span>
+                      </td>
+                      <td className="py-3 px-3 text-center font-bold text-slate-900">{item.qty}</td>
+                      <td className="py-3 px-3 text-right font-mono">{currencySymbol}{item.unitPrice.toFixed(2)}</td>
+                      <td className="py-3 px-3 text-right font-black text-slate-900 font-mono">{currencySymbol}{item.total.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              /* India Domestic Tax Table (with GST/CGST/SGST/HSN) */
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 text-[9px] font-black uppercase text-slate-500 border-b border-slate-200">
+                    <th className="py-2.5 px-3">Item Description</th>
+                    <th className="py-2.5 px-2 text-center">HSN</th>
+                    <th className="py-2.5 px-2 text-center">Qty</th>
+                    <th className="py-2.5 px-2 text-right">Taxable Rate</th>
+                    <th className="py-2.5 px-2 text-center">CGST %</th>
+                    <th className="py-2.5 px-2 text-right">CGST</th>
+                    <th className="py-2.5 px-2 text-center">SGST %</th>
+                    <th className="py-2.5 px-2 text-right">SGST</th>
+                    <th className="py-2.5 px-3 text-right">Total Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {domesticLineItems.map((item, idx) => (
+                    <tr key={idx} className="border-b border-slate-100 font-medium text-slate-700 hover:bg-slate-50/30">
+                      <td className="py-3 px-3">
+                        <span className="font-extrabold text-slate-900 block">{item.name}</span>
+                      </td>
+                      <td className="py-3 px-2 text-center text-slate-500 font-semibold font-mono">{item.hsn}</td>
+                      <td className="py-3 px-2 text-center font-bold text-slate-900">{item.qty}</td>
+                      <td className="py-3 px-2 text-right font-mono">{currencySymbol}{item.rate.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                      <td className="py-3 px-2 text-center text-slate-400 font-bold">{item.cgstRate}%</td>
+                      <td className="py-3 px-2 text-right font-mono text-slate-600">{currencySymbol}{item.cgstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                      <td className="py-3 px-2 text-center text-slate-400 font-bold">{item.sgstRate}%</td>
+                      <td className="py-3 px-2 text-right font-mono text-slate-600">{currencySymbol}{item.sgstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                      <td className="py-3 px-3 text-right font-black text-slate-900 font-mono">{currencySymbol}{item.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
 
           {/* Totals Block */}
           <div className="flex justify-end mb-8">
             <div className="w-72 bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-2 text-slate-600 font-semibold">
-              <div className="flex justify-between text-[10px]">
-                <span>Total Taxable Value:</span>
-                <span className="font-mono text-slate-800">{currencySymbol}{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-              </div>
-              <div className="flex justify-between text-[10px]">
-                <span>CGST Total:</span>
-                <span className="font-mono text-slate-800">{currencySymbol}{cgstTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-              </div>
-              <div className="flex justify-between text-[10px]">
-                <span>SGST Total:</span>
-                <span className="font-mono text-slate-800">{currencySymbol}{sgstTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-              </div>
-              <div className="flex justify-between text-xs font-black text-slate-950 pt-2 border-t border-slate-200">
-                <span>Grand Total:</span>
-                <span className="font-mono text-primary text-sm">{currencySymbol}{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-              </div>
+              {isInternational ? (
+                /* International Totals Breakdown */
+                <>
+                  <div className="flex justify-between text-[10px]">
+                    <span>Item Price:</span>
+                    <span className="font-mono text-slate-800">{currencySymbol}{subtotal.toFixed(2)}</span>
+                  </div>
+                  {discountAmt > 0 && (
+                    <div className="flex justify-between text-[10px] text-emerald-600">
+                      <span>Discount:</span>
+                      <span className="font-mono">-{currencySymbol}{discountAmt.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-[10px]">
+                    <span>Shipping Charge:</span>
+                    <span className="font-mono text-slate-800">
+                      {deliveryCharge > 0 ? `${currencySymbol}${deliveryCharge.toFixed(2)}` : 'Free'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs font-black text-slate-950 pt-2 border-t border-slate-200">
+                    <span>Total Price:</span>
+                    <span className="font-mono text-primary text-sm">{currencySymbol}{grandTotal.toFixed(2)}</span>
+                  </div>
+                </>
+              ) : (
+                /* Domestic India Totals */
+                <>
+                  <div className="flex justify-between text-[10px]">
+                    <span>Total Taxable Value:</span>
+                    <span className="font-mono text-slate-800">{currencySymbol}{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex justify-between text-[10px]">
+                    <span>CGST Total:</span>
+                    <span className="font-mono text-slate-800">{currencySymbol}{cgstTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex justify-between text-[10px]">
+                    <span>SGST Total:</span>
+                    <span className="font-mono text-slate-800">{currencySymbol}{sgstTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex justify-between text-xs font-black text-slate-950 pt-2 border-t border-slate-200">
+                    <span>Grand Total:</span>
+                    <span className="font-mono text-primary text-sm">{currencySymbol}{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -389,12 +512,12 @@ export function InvoiceModal({ isOpen, onClose, type, data }: InvoiceModalProps)
             <div className="space-y-1">
               <p className="font-bold text-slate-800 uppercase text-[8px] tracking-wider">Declaration:</p>
               <p className="text-slate-400 font-semibold text-[9px] leading-relaxed">
-                We declare that this invoice shows the actual price of the goods or services described and that all particulars are true and correct. This is a computer-generated tax invoice and does not require a physical signature.
+                We declare that this invoice shows the actual price of the goods or services described and that all particulars are true and correct. This is a computer-generated invoice and does not require a physical signature.
               </p>
             </div>
             <div className="text-right flex flex-col justify-end items-end space-y-0.5">
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">Authorized Signatory for</p>
-              <p className="font-extrabold text-slate-900 text-[10px]">infano.care</p>
+              <p className="font-extrabold text-slate-900 text-[10px]">Berry Bird Technologies Pvt Ltd</p>
               <div className="h-8"></div>
               <p className="text-[8px] font-bold text-slate-400 tracking-wider uppercase">Computer Generated Invoice</p>
             </div>

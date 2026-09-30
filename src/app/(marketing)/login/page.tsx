@@ -22,26 +22,28 @@ const COUNTRIES = [
   { code: '+91', iso: 'in', name: 'India', digits: 10 },
   { code: '+1', iso: 'us', name: 'United States', digits: 10 },
   { code: '+44', iso: 'gb', name: 'United Kingdom', digits: 10 },
+  { code: '+33', iso: 'fr', name: 'France', digits: 9 },
   { code: '+65', iso: 'sg', name: 'Singapore', digits: 8 },
   { code: '+971', iso: 'ae', name: 'United Arab Emirates', digits: 9 },
   { code: '+61', iso: 'au', name: 'Australia', digits: 9 }
 ];
 
 function LoginFormContent() {
-  const { region } = useRegion();
+  const { region, getLocalizedLink } = useRegion();
   const pathname = usePathname() || '';
   const searchParams = useSearchParams();
   const router = useRouter();
   const { setAuth, isAuthenticated, user } = useAuthStore();
 
   // Detect if international based on URL path or active region
-  const isInternationalUrl =
+  const isInternational =
     pathname.startsWith('/en-us') ||
     pathname.startsWith('/en-uk') ||
-    region === 'US' ||
-    region === 'UK';
+    pathname.startsWith('/en-fr') ||
+    pathname.startsWith('/fr') ||
+    region !== 'IN';
 
-  const [authMode, setAuthMode] = useState<'PHONE' | 'EMAIL'>(isInternationalUrl ? 'EMAIL' : 'PHONE');
+  const authMode: 'PHONE' | 'EMAIL' = isInternational ? 'EMAIL' : 'PHONE';
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
@@ -51,8 +53,8 @@ function LoginFormContent() {
   const [mounted, setMounted] = useState(false);
 
   // Country Code Dropdown State
-  const defaultCountry = isInternationalUrl
-    ? (region === 'UK' || pathname.startsWith('/en-uk') ? COUNTRIES[2] : COUNTRIES[1])
+  const defaultCountry = isInternational
+    ? (region === 'UK' || pathname.startsWith('/en-uk') ? COUNTRIES[2] : (region === 'FR' || pathname.startsWith('/en-fr') || pathname.startsWith('/fr') ? COUNTRIES[3] : COUNTRIES[1]))
     : COUNTRIES[0];
   const [selectedCountryCode, setSelectedCountryCode] = useState(defaultCountry.code);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -71,16 +73,8 @@ function LoginFormContent() {
     setMounted(true);
 
     const emailParam = searchParams.get('email');
-    const typeParam = searchParams.get('type');
-    if (emailParam) {
+    if (emailParam && isInternational) {
       setEmail(emailParam);
-      setAuthMode('EMAIL');
-    } else if (typeParam === 'email') {
-      setAuthMode('EMAIL');
-    } else if (typeParam === 'phone') {
-      setAuthMode('PHONE');
-    } else {
-      setAuthMode(isInternationalUrl ? 'EMAIL' : 'PHONE');
     }
 
     // Role-based already authenticated checks
@@ -93,7 +87,7 @@ function LoginFormContent() {
         router.push('/dashboard');
       }
     }
-  }, [isAuthenticated, user, router, searchParams, isInternationalUrl]);
+  }, [isAuthenticated, user, router, searchParams, isInternational]);
 
   // Resend OTP timer effect
   useEffect(() => {
@@ -353,7 +347,7 @@ function LoginFormContent() {
     <div className="min-h-screen flex items-center justify-center lg:justify-end bg-[#FFFAF7] relative overflow-hidden py-12 px-6 lg:px-24">
       {/* Back Button */}
       <Link
-        href={isInternationalUrl ? (pathname.startsWith('/en-uk') ? '/en-uk' : '/en-us') : '/'}
+        href={getLocalizedLink('/')}
         className="absolute top-6 left-6 z-20 flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 rounded-lg border border-slate-200 shadow-xs hover:shadow-md transition-all duration-200 active:scale-95 text-xs sm:text-sm font-bold backdrop-blur-md"
       >
         <ArrowLeft size={16} className="text-slate-500" />
@@ -518,35 +512,6 @@ function LoginFormContent() {
                 </>
               )}
             </button>
-
-            {/* Subtle fallback option if needed without bulky tabs */}
-            <div className="text-center pt-2">
-              {authMode === 'EMAIL' ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMode('PHONE');
-                    setError('');
-                  }}
-                  className="text-xs text-slate-400 hover:text-primary transition-colors font-medium inline-flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Phone size={13} />
-                  <span>Sign in with Mobile number instead</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMode('EMAIL');
-                    setError('');
-                  }}
-                  className="text-xs text-slate-400 hover:text-primary transition-colors font-medium inline-flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Mail size={13} />
-                  <span>Sign in with Email instead</span>
-                </button>
-              )}
-            </div>
           </form>
         )}
 

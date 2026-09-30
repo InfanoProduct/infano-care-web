@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 
-export type Region = 'IN' | 'US' | 'UK';
+export type Region = 'IN' | 'US' | 'UK' | 'FR';
 
 export interface RegionMetadata {
   region: Region;
@@ -49,6 +49,16 @@ export const REGION_CONFIGS: Record<Region, Omit<RegionMetadata, 'getLocalizedLi
     isoCode: 'gb',
     countryName: 'United Kingdom',
   },
+  FR: {
+    currencySymbol: '€',
+    currencyCode: 'EUR',
+    bookPrice: 17.99,
+    urlPrefix: '/en-fr',
+    dialCode: '+33',
+    flagEmoji: '🇫🇷',
+    isoCode: 'fr',
+    countryName: 'France',
+  },
 };
 
 function detectTimezoneRegion(): Region {
@@ -61,13 +71,27 @@ function detectTimezoneRegion(): Region {
     if (tz.startsWith('Europe/London') || tz.includes('London') || tz.includes('GMT')) {
       return 'UK';
     }
+    if (
+      tz.includes('Paris') ||
+      tz.includes('Berlin') ||
+      tz.includes('Rome') ||
+      tz.includes('Madrid') ||
+      tz.includes('Amsterdam') ||
+      tz.includes('Brussels') ||
+      tz.includes('Vienna') ||
+      tz.includes('Zurich') ||
+      tz.includes('Europe/')
+    ) {
+      return 'FR';
+    }
     if (tz.startsWith('America/') || tz.startsWith('US/') || tz.includes('New_York') || tz.includes('Los_Angeles') || tz.includes('Chicago')) {
       return 'US';
     }
     // Check browser languages
     const lang = (navigator.languages ? navigator.languages.join(',') : navigator.language) || '';
+    if (lang.includes('fr') || lang.includes('FR')) return 'FR';
     if (lang.includes('en-GB') || lang.includes('en-UK')) return 'UK';
-    if (lang.includes('en-US')) return 'US';
+    if (lang.includes('en-US') || lang.includes('en-CA')) return 'US';
     if (lang.includes('en-IN') || lang.includes('hi')) return 'IN';
   } catch (e) {
     // ignore
@@ -85,6 +109,8 @@ export function useRegion(): RegionMetadata {
     baseRegion = 'US';
   } else if (lowerPath.startsWith('/en-uk') || lowerPath.includes('/en-uk')) {
     baseRegion = 'UK';
+  } else if (lowerPath.startsWith('/en-fr') || lowerPath.includes('/en-fr') || lowerPath.startsWith('/fr') || lowerPath.includes('/fr')) {
+    baseRegion = 'FR';
   }
 
   const [region, setRegion] = useState<Region>(baseRegion);
@@ -97,7 +123,7 @@ export function useRegion(): RegionMetadata {
       const params = new URLSearchParams(window.location.search);
       const rParam = params.get('__region')?.toUpperCase();
 
-      if (rParam === 'US' || rParam === 'UK' || rParam === 'IN') {
+      if (rParam === 'US' || rParam === 'UK' || rParam === 'FR' || rParam === 'IN') {
         resolvedRegion = rParam as Region;
       }
     }
@@ -111,7 +137,7 @@ export function useRegion(): RegionMetadata {
     setRegion(newRegion);
     if (typeof window !== 'undefined') {
       localStorage.setItem('infano_region', newRegion);
-      document.cookie = `infano_region=${newRegion}; path=/; max-age=31536000`;
+      document.cookie = `infano_region=${newRegion}; path=/; max-age=31536000; SameSite=Lax`;
       window.dispatchEvent(new CustomEvent('infano-region-changed', { detail: newRegion }));
     }
   }, []);
@@ -123,7 +149,7 @@ export function useRegion(): RegionMetadata {
     if (href.startsWith('http') || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('#')) return href;
     
     // Normalize href to remove duplicate prefix if already present
-    const cleanHref = href.replace(/^\/(en-us|en-uk)/i, '');
+    const cleanHref = href.replace(/^\/(en-us|en-uk|en-fr|fr)/i, '');
     const prefix = config.urlPrefix;
     
     return `${prefix}${cleanHref.startsWith('/') ? '' : '/'}${cleanHref}`;
@@ -136,6 +162,8 @@ export function useRegion(): RegionMetadata {
         finalAmount = Math.round((amount / 83) * 100) / 100;
       } else if (region === 'UK') {
         finalAmount = Math.round((amount / 105) * 100) / 100;
+      } else if (region === 'FR') {
+        finalAmount = Math.round((amount / 90) * 100) / 100;
       }
     }
     
@@ -159,7 +187,7 @@ export function useRegion(): RegionMetadata {
  * Falls back to conversion-rate calculation if country-specific price is not set in DB.
  */
 export function getBookPrice(
-  book: { price: number; priceUS?: number | null; priceUK?: number | null } | null | undefined,
+  book: { price: number; priceUS?: number | null; priceUK?: number | null; priceFR?: number | null } | null | undefined,
   region: Region
 ): number {
   if (!book) return REGION_CONFIGS[region].bookPrice;
@@ -169,6 +197,9 @@ export function getBookPrice(
   if (region === 'UK') {
     return book.priceUK != null ? book.priceUK : Math.round((book.price / 105) * 100) / 100;
   }
+  if (region === 'FR') {
+    return book.priceFR != null ? book.priceFR : Math.round((book.price / 90) * 100) / 100;
+  }
   return book.price;
 }
 
@@ -177,6 +208,7 @@ export function getShippingCharge(
     shippingIN?: number;
     shippingUS?: number;
     shippingUK?: number;
+    shippingFR?: number;
   } | null | undefined,
   region: Region
 ): number {
@@ -188,5 +220,7 @@ export function getShippingCharge(
   }
   if (region === 'US') return book.shippingUS ?? 0;
   if (region === 'UK') return book.shippingUK ?? 0;
+  if (region === 'FR') return book.shippingFR ?? 0;
   return 0;
 }
+

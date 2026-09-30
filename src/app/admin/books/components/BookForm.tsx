@@ -79,7 +79,12 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
 
   const loadBook = async () => {
     try {
-      const book = await ShopService.getBook(bookId!);
+      let book: any;
+      try {
+        book = await ShopService.adminGetBook(bookId!);
+      } catch {
+        book = await ShopService.getBook(bookId!);
+      }
       // Safe destructuring of book data to exclude circular/metadata fields
       const { coupon, couponId, orderItems, ...safeBook } = book as any;
       setFormData(safeBook);
@@ -189,6 +194,7 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
         await ShopService.adminCreateBook(payload);
         toast.success(isWebinarMode ? 'Webinar created successfully' : 'Book created successfully');
       }
+      router.refresh();
       router.push(isWebinarMode ? '/admin/webinar-products' : '/admin/books');
     } catch (error) {
       console.error('Failed to save book:', error);

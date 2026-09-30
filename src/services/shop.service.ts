@@ -187,6 +187,10 @@ export const ShopService = {
     return apiClient.get<Book[]>('/admin/books', { params: { isWebinar } }); 
   },
 
+  async adminGetBook(id: string): Promise<Book> {
+    return apiClient.get<Book>(`/admin/books/${id}`);
+  },
+
   async adminCreateBook(data: Partial<Book>): Promise<Book> {
     return apiClient.post<Book>('/admin/books', data);
   },

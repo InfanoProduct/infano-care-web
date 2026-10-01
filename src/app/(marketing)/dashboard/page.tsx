@@ -21,6 +21,7 @@ import { ShopService } from '@/services/shop.service';
 import { LearningService, LearningJourney, UserProgress } from '@/services/learning.service';
 import Script from 'next/script';
 import { isAnalyticsEnabled } from '@/components/common/Analytics';
+import { getCurrencySymbol } from '@/lib/utils';
 
 // Same STYLES_MAP as ParentsPrograms.tsx for exact match
 const STYLES_MAP: Record<string, any> = {
@@ -980,6 +981,7 @@ export default function CustomerDashboardOverview() {
                       const book = item?.book || {};
                       const title = book.title || item?.bookTitle || item?.name || 'Book Order';
                       const quantity = item?.quantity || 1;
+                      const currencySymbol = getCurrencySymbol(latest);
 
                       return (
                         <div className="p-4 bg-white/90 border border-indigo-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs hover:shadow-md transition-all">
@@ -1002,7 +1004,7 @@ export default function CustomerDashboardOverview() {
                                 </span>
                               </div>
                               <h4 className="font-extrabold text-sm text-slate-800 truncate">{title} <span className="text-slate-400 text-xs font-medium">(x{quantity})</span></h4>
-                              <p className="text-xs font-extrabold text-indigo-700">Total: ₹{latest.totalAmount?.toLocaleString()}</p>
+                              <p className="text-xs font-extrabold text-indigo-700">Total: {currencySymbol}{latest.totalAmount?.toLocaleString()}</p>
                             </div>
                           </div>
 

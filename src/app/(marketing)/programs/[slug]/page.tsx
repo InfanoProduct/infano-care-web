@@ -125,6 +125,7 @@ const COUNTRIES = [
   { code: '+91', iso: 'in', name: 'India', digits: 10 },
   { code: '+1', iso: 'us', name: 'United States', digits: 10 },
   { code: '+44', iso: 'gb', name: 'United Kingdom', digits: 10 },
+  { code: '+33', iso: 'fr', name: 'France', digits: 9 },
   { code: '+65', iso: 'sg', name: 'Singapore', digits: 8 },
   { code: '+971', iso: 'ae', name: 'United Arab Emirates', digits: 9 },
   { code: '+61', iso: 'au', name: 'Australia', digits: 9 }

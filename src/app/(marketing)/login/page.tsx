@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Shield, ArrowRight, ArrowLeft, Loader2, Heart, Star, Sparkles, ChevronDown } from 'lucide-react';
+import { Shield, ArrowRight, ArrowLeft, Loader2, Heart, Star, Sparkles, ChevronDown, Mail, Phone } from 'lucide-react';
 import { AuthService } from '@/services/auth.service';
 import { useAuthStore } from '@/store/auth-store';
+import { useRegion } from '@/hooks/use-region';
 import { toast } from 'react-hot-toast';
 import Image from 'next/image';
 
@@ -21,23 +22,43 @@ const COUNTRIES = [
   { code: '+91', iso: 'in', name: 'India', digits: 10 },
   { code: '+1', iso: 'us', name: 'United States', digits: 10 },
   { code: '+44', iso: 'gb', name: 'United Kingdom', digits: 10 },
+  { code: '+33', iso: 'fr', name: 'France', digits: 9 },
   { code: '+65', iso: 'sg', name: 'Singapore', digits: 8 },
   { code: '+971', iso: 'ae', name: 'United Arab Emirates', digits: 9 },
   { code: '+61', iso: 'au', name: 'Australia', digits: 9 }
 ];
 
-export default function CustomerLoginPage() {
+function LoginFormContent() {
+  const { region, getLocalizedLink } = useRegion();
+  const pathname = usePathname() || '';
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { setAuth, isAuthenticated, user } = useAuthStore();
+
+  // Detect if international based on URL path or active region
+  const isInternational =
+    pathname.startsWith('/en-us') ||
+    pathname.startsWith('/en-uk') ||
+    pathname.startsWith('/en-fr') ||
+    pathname.startsWith('/fr') ||
+    region !== 'IN';
+
+  const authMode: 'PHONE' | 'EMAIL' = isInternational ? 'EMAIL' : 'PHONE';
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
-  const [step, setStep] = useState<'PHONE' | 'OTP' | 'ROLE_SELECT'>('PHONE');
+  const [step, setStep] = useState<'INPUT' | 'OTP' | 'ROLE_SELECT'>('INPUT');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
 
   // Country Code Dropdown State
-  const [selectedCountryCode, setSelectedCountryCode] = useState('+91');
+  const defaultCountry = isInternational
+    ? (region === 'UK' || pathname.startsWith('/en-uk') ? COUNTRIES[2] : (region === 'FR' || pathname.startsWith('/en-fr') || pathname.startsWith('/fr') ? COUNTRIES[3] : COUNTRIES[1]))
+    : COUNTRIES[0];
+  const [selectedCountryCode, setSelectedCountryCode] = useState(defaultCountry.code);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState({ code: '+91', iso: 'in', name: 'India', digits: 10 });
+  const [selectedCountry, setSelectedCountry] = useState(defaultCountry);
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   // Resend Timer States
@@ -48,11 +69,14 @@ export default function CustomerLoginPage() {
   // Store temporary login details for role onboarding selection
   const [tempAuthData, setTempAuthData] = useState<any>(null);
 
-  const router = useRouter();
-  const { setAuth, isAuthenticated, user } = useAuthStore();
-
   useEffect(() => {
     setMounted(true);
+
+    const emailParam = searchParams.get('email');
+    if (emailParam && isInternational) {
+      setEmail(emailParam);
+    }
+
     // Role-based already authenticated checks
     if (isAuthenticated && user) {
       if (user.role === 'SCHOOL_COORDINATOR') {
@@ -63,7 +87,7 @@ export default function CustomerLoginPage() {
         router.push('/dashboard');
       }
     }
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user, router, searchParams, isInternational]);
 
   // Resend OTP timer effect
   useEffect(() => {
@@ -91,44 +115,67 @@ export default function CustomerLoginPage() {
   const handleSendOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!termsAccepted) {
-      setError('Please accept the Terms & Conditions and Privacy Policy.');
-      return;
-    }
-    if (!phone) {
-      setError('Please enter a valid phone number');
-      return;
-    }
-    if (phone.length !== selectedCountry.digits) {
-      const errorMsg = `Please enter a valid ${selectedCountry.digits}-digit phone number`;
-      setError(errorMsg);
+      setError('Please accept the Terms of Service and Privacy Policy.');
       return;
     }
 
-    setIsLoading(true);
-    setError('');
-
-    const cleanPhone = phone.replace(/\D/g, '');
-    const normalizedMobile = cleanPhone.startsWith('0') ? cleanPhone.substring(1) : cleanPhone;
-    const formattedPhone = `${selectedCountryCode}${normalizedMobile}`;
-
-    try {
-      const response = await AuthService.sendOtp(formattedPhone);
-
-      // Support test number bypass
-      if (response && (response as any).autoLogin) {
-        toast.success('Test number verified instantly!');
-        const data = (response as any).autoLogin;
-        handlePostVerifyRedirect(data);
+    if (authMode === 'PHONE') {
+      if (!phone) {
+        setError('Please enter a valid phone number');
+        return;
+      }
+      if (phone.length !== selectedCountry.digits) {
+        const errorMsg = `Please enter a valid ${selectedCountry.digits}-digit phone number`;
+        setError(errorMsg);
         return;
       }
 
-      toast.success('Verification code sent successfully!');
-      setStep('OTP');
-    } catch (err: any) {
-      setError(err.response?.data?.error || err.message || 'Failed to send OTP. Please try again.');
-      toast.error('Failed to send verification code.');
-    } finally {
-      setIsLoading(false);
+      setIsLoading(true);
+      setError('');
+
+      const cleanPhone = phone.replace(/\D/g, '');
+      const normalizedMobile = cleanPhone.startsWith('0') ? cleanPhone.substring(1) : cleanPhone;
+      const formattedPhone = `${selectedCountryCode}${normalizedMobile}`;
+
+      try {
+        const response = await AuthService.sendOtp(formattedPhone);
+
+        // Support test number bypass
+        if (response && (response as any).autoLogin) {
+          toast.success('Test number verified instantly!');
+          const data = (response as any).autoLogin;
+          handlePostVerifyRedirect(data);
+          return;
+        }
+
+        toast.success('Verification code sent successfully!');
+        setStep('OTP');
+      } catch (err: any) {
+        setError(err.response?.data?.error || err.message || 'Failed to send OTP. Please try again.');
+        toast.error('Failed to send verification code.');
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // Email OTP flow
+      if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) {
+        setError('Please enter a valid email address');
+        return;
+      }
+
+      setIsLoading(true);
+      setError('');
+
+      try {
+        await AuthService.sendEmailOtp(email.trim().toLowerCase());
+        toast.success('Verification code sent to your email!');
+        setStep('OTP');
+      } catch (err: any) {
+        setError(err.response?.data?.error || err.message || 'Failed to send verification email. Please try again.');
+        toast.error('Failed to send code to email.');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -138,19 +185,32 @@ export default function CustomerLoginPage() {
     setIsLoading(true);
     setError('');
 
-    const cleanPhone = phone.replace(/\D/g, '');
-    const normalizedMobile = cleanPhone.startsWith('0') ? cleanPhone.substring(1) : cleanPhone;
-    const formattedPhone = `${selectedCountryCode}${normalizedMobile}`;
+    if (authMode === 'PHONE') {
+      const cleanPhone = phone.replace(/\D/g, '');
+      const normalizedMobile = cleanPhone.startsWith('0') ? cleanPhone.substring(1) : cleanPhone;
+      const formattedPhone = `${selectedCountryCode}${normalizedMobile}`;
 
-    try {
-      await AuthService.sendOtp(formattedPhone);
-      toast.success('Verification code resent successfully!');
-      setResendTrigger(prev => prev + 1);
-    } catch (err: any) {
-      setError(err.response?.data?.error || err.message || 'Failed to resend code. Please try again.');
-      toast.error('Failed to resend code.');
-    } finally {
-      setIsLoading(false);
+      try {
+        await AuthService.sendOtp(formattedPhone);
+        toast.success('Verification code resent successfully!');
+        setResendTrigger(prev => prev + 1);
+      } catch (err: any) {
+        setError(err.response?.data?.error || err.message || 'Failed to resend code. Please try again.');
+        toast.error('Failed to resend code.');
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      try {
+        await AuthService.sendEmailOtp(email.trim().toLowerCase());
+        toast.success('Verification code resent to your email!');
+        setResendTrigger(prev => prev + 1);
+      } catch (err: any) {
+        setError(err.response?.data?.error || err.message || 'Failed to resend email code. Please try again.');
+        toast.error('Failed to resend code.');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -165,17 +225,28 @@ export default function CustomerLoginPage() {
     setIsLoading(true);
     setError('');
 
-    const cleanPhone = phone.replace(/\D/g, '');
-    const normalizedMobile = cleanPhone.startsWith('0') ? cleanPhone.substring(1) : cleanPhone;
-    const formattedPhone = `${selectedCountryCode}${normalizedMobile}`;
+    if (authMode === 'PHONE') {
+      const cleanPhone = phone.replace(/\D/g, '');
+      const normalizedMobile = cleanPhone.startsWith('0') ? cleanPhone.substring(1) : cleanPhone;
+      const formattedPhone = `${selectedCountryCode}${normalizedMobile}`;
 
-    try {
-      const data = await AuthService.verifyOtp(formattedPhone, otp);
-      handlePostVerifyRedirect(data);
-    } catch (err: any) {
-      setError(err.response?.data?.error || err.message || 'Invalid code. Please check and try again.');
-      toast.error('Verification failed.');
-      setIsLoading(false);
+      try {
+        const data = await AuthService.verifyOtp(formattedPhone, otp);
+        handlePostVerifyRedirect(data);
+      } catch (err: any) {
+        setError(err.response?.data?.error || err.message || 'Invalid code. Please check and try again.');
+        toast.error('Verification failed.');
+        setIsLoading(false);
+      }
+    } else {
+      try {
+        const data = await AuthService.verifyEmailOtp(email.trim().toLowerCase(), otp);
+        handlePostVerifyRedirect(data);
+      } catch (err: any) {
+        setError(err.response?.data?.error || err.message || 'Invalid code. Please check your email and try again.');
+        toast.error('Verification failed.');
+        setIsLoading(false);
+      }
     }
   };
 
@@ -276,8 +347,8 @@ export default function CustomerLoginPage() {
     <div className="min-h-screen flex items-center justify-center lg:justify-end bg-[#FFFAF7] relative overflow-hidden py-12 px-6 lg:px-24">
       {/* Back Button */}
       <Link
-        href="/"
-        className="absolute top-6 left-6 z-20 flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 text-xs sm:text-sm font-bold backdrop-blur-md"
+        href={getLocalizedLink('/')}
+        className="absolute top-6 left-6 z-20 flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 rounded-lg border border-slate-200 shadow-xs hover:shadow-md transition-all duration-200 active:scale-95 text-xs sm:text-sm font-bold backdrop-blur-md"
       >
         <ArrowLeft size={16} className="text-slate-500" />
         <span>Back to Home</span>
@@ -297,7 +368,7 @@ export default function CustomerLoginPage() {
       />
 
       {/* Unified Login Box */}
-      <div className="w-full max-w-md bg-white border border-slate-100 p-8 sm:p-10 rounded-lg shadow-xl shadow-slate-200/30 backdrop-blur-md relative z-10 animate-in fade-in slide-in-from-right-8 duration-500 my-auto">
+      <div className="w-full max-w-md bg-white border border-slate-100 p-8 sm:p-10 rounded-2xl shadow-xl shadow-slate-200/30 backdrop-blur-md relative z-10 animate-in fade-in slide-in-from-right-8 duration-500 my-auto">
         <div className="text-center space-y-2.5 mb-6">
           <div className="w-32 h-8 flex items-center justify-center mx-auto mb-3">
             <Image src="/logo/infano-logo-for-light-bg.png" alt="Infano Logo" width={500} height={500} className="text-primary" />
@@ -311,19 +382,20 @@ export default function CustomerLoginPage() {
         </div>
 
         {error && (
-            <div className="mb-5 p-3.5 bg-rose-50 border border-rose-100 text-rose-600 text-xs font-semibold rounded-lg text-center">
-              {error}
-            </div>
-          )}
+          <div className="mb-5 p-3.5 bg-rose-50 border border-rose-100 text-rose-600 text-xs font-semibold rounded-lg text-center">
+            {error}
+          </div>
+        )}
 
-          {step === 'PHONE' && (
-            <form onSubmit={handleSendOtp} className="space-y-5" noValidate>
+        {step === 'INPUT' && (
+          <form onSubmit={handleSendOtp} className="space-y-5" noValidate>
+            {authMode === 'PHONE' ? (
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-500 pl-0.5">
                   Phone Number
                 </label>
 
-                <div className={`flex bg-slate-50 border rounded-lg focus-within:ring-4 transition-colors overflow-visible relative shadow-sm ${
+                <div className={`flex bg-slate-50 border rounded-lg focus-within:ring-4 transition-colors overflow-visible relative shadow-xs ${
                   error && (error.toLowerCase().includes('phone') || error.toLowerCase().includes('mobile'))
                     ? 'border-rose-300 focus-within:border-rose-400 focus-within:ring-rose-500/10'
                     : 'border-slate-200 focus-within:border-slate-400 focus-within:ring-primary/5'
@@ -337,7 +409,7 @@ export default function CustomerLoginPage() {
                     >
                       <img
                         src={`https://flagcdn.com/w40/${selectedCountry.iso}.png`}
-                        className="w-5 h-3.5 object-cover rounded-sm shrink-0 border border-slate-200/50"
+                        className="w-5 h-3.5 object-cover rounded-xs shrink-0 border border-slate-200/50"
                         alt={selectedCountry.name}
                       />
                       <span className="text-sm font-bold text-slate-700">{selectedCountry.code}</span>
@@ -361,7 +433,7 @@ export default function CustomerLoginPage() {
                           >
                             <img
                               src={`https://flagcdn.com/w40/${country.iso}.png`}
-                              className="w-5.5 h-4 object-cover rounded-sm border border-slate-200/50 shrink-0"
+                              className="w-5.5 h-4 object-cover rounded-xs border border-slate-200/50 shrink-0"
                               alt={country.name}
                             />
                             <span className="flex-1">{country.name}</span>
@@ -385,199 +457,244 @@ export default function CustomerLoginPage() {
                   />
                 </div>
               </div>
-
-              <div className="space-y-3 pb-3">
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                    className="mt-1 w-4 h-4 rounded text-primary focus:ring-primary border-slate-200 accent-primary"
-                  />
-                  <span className="text-xs text-slate-500 font-medium leading-relaxed">
-                    I accept the <a href="/legal/terms" target="_blank" className="text-primary hover:underline font-bold">Terms of Service</a> and <a href="/legal/privacy" target="_blank" className="text-primary hover:underline font-bold">Privacy Policy</a>.
-                  </span>
+            ) : (
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 pl-0.5">
+                  Email Address
                 </label>
+                <div className={`flex items-center bg-slate-50 border rounded-lg focus-within:ring-4 transition-colors relative shadow-xs ${
+                  error && error.toLowerCase().includes('email')
+                    ? 'border-rose-300 focus-within:border-rose-400 focus-within:ring-rose-500/10'
+                    : 'border-slate-200 focus-within:border-slate-400 focus-within:ring-primary/5'
+                }`}>
+                  <div className="pl-3.5 pr-2 text-slate-400">
+                    <Mail size={18} />
+                  </div>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (error) setError('');
+                    }}
+                    placeholder="Enter your email address"
+                    className="w-full px-2 py-3 outline-none text-slate-800 text-sm font-semibold bg-transparent"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3 pb-1">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={termsAccepted}
+                  onChange={(e) => setTermsAccepted(e.target.checked)}
+                  className="mt-1 w-4 h-4 rounded-sm text-primary focus:ring-primary border-slate-200 accent-primary"
+                />
+                <span className="text-xs text-slate-500 font-medium leading-relaxed">
+                  I accept the <a href="/legal/terms" target="_blank" className="text-primary hover:underline font-bold">Terms of Service</a> and <a href="/legal/privacy" target="_blank" className="text-primary hover:underline font-bold">Privacy Policy</a>.
+                </span>
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading || !termsAccepted || (authMode === 'PHONE' ? !phone : !email)}
+              className="w-full py-3 bg-primary hover:bg-primary-dark text-white font-bold rounded-lg flex items-center justify-center gap-2 group hover:shadow-md transition-all active:scale-95 disabled:opacity-50 duration-200 cursor-pointer"
+            >
+              {isLoading ? (
+                <Loader2 className="animate-spin" size={18} />
+              ) : (
+                <>
+                  Send verification code <ArrowRight className="group-hover:translate-x-0.5 transition-transform" size={16} />
+                </>
+              )}
+            </button>
+          </form>
+        )}
+
+        {step === 'OTP' && (
+          <form onSubmit={handleVerifyOtp} className="space-y-6 animate-in slide-in-from-right-4 duration-300" noValidate>
+            <div className="max-w-60 mx-auto w-full space-y-4">
+              <div className="flex justify-between items-center">
+                <label className="text-xs font-bold text-slate-500 pl-0.5">
+                  Enter Verification Code
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep('INPUT');
+                    setOtp('');
+                  }}
+                  className="text-xs font-bold text-primary hover:underline hover:text-primary-dark cursor-pointer"
+                >
+                  Change {authMode === 'PHONE' ? 'mobile' : 'email'}
+                </button>
               </div>
 
-              <button
-                type="submit"
-                disabled={isLoading || !termsAccepted || !phone}
-                className="w-full py-3 bg-primary hover:bg-primary-dark text-white font-bold rounded-lg flex items-center justify-center gap-2 group hover:shadow-md transition-all active:scale-95 disabled:opacity-50 duration-200 cursor-pointer"
-              >
-                {isLoading ? (
-                  <Loader2 className="animate-spin" size={18} />
-                ) : (
-                  <>
-                    Send verification code <ArrowRight className="group-hover:translate-x-0.5 transition-transform" size={16} />
-                  </>
-                )}
-              </button>
-            </form>
-          )}
+              <div className="flex justify-center gap-3">
+                {[0, 1, 2, 3].map((index) => (
+                  <input
+                    key={index}
+                    id={`otp-box-${index}`}
+                    type="text"
+                    inputMode="numeric"
+                    value={otp[index] || ''}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      if (error) setError('');
+                      if (!val) {
+                        const newOtp = otp.split('');
+                        newOtp[index] = '';
+                        setOtp(newOtp.join(''));
+                        return;
+                      }
 
-          {step === 'OTP' && (
-            <form onSubmit={handleVerifyOtp} className="space-y-6 animate-in slide-in-from-right-4 duration-300" noValidate>
-              <div className="max-w-60 mx-auto w-full space-y-4">
-                <div className="flex justify-between items-center">
-                  <label className="text-xs font-bold text-slate-500 pl-0.5">
-                    Enter Verification Code
-                  </label>
+                      const char = val.charAt(val.length - 1);
+                      const newOtp = otp.split('');
+                      newOtp[index] = char;
+                      const finalOtp = newOtp.join('');
+                      setOtp(finalOtp);
+
+                      if (index < 3) {
+                        document.getElementById(`otp-box-${index + 1}`)?.focus();
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Backspace' && !otp[index] && index > 0) {
+                        document.getElementById(`otp-box-${index - 1}`)?.focus();
+                      }
+                    }}
+                    className={`w-12 h-14 text-xl font-bold text-center bg-slate-50 border rounded-lg focus:ring-4 outline-none transition-all text-slate-800 ${
+                      error && (error.toLowerCase().includes('verification') || error.toLowerCase().includes('code') || error.toLowerCase().includes('otp'))
+                        ? 'border-rose-300 focus:ring-rose-500/10 focus:border-rose-400'
+                        : 'border-slate-200 focus:ring-primary/10 focus:border-primary/40'
+                    }`}
+                    maxLength={1}
+                    required
+                  />
+                ))}
+              </div>
+
+              <p className="text-xs text-slate-400 font-medium text-center">
+                Verification code sent to{' '}
+                <span className="font-bold text-slate-600">
+                  {authMode === 'PHONE' ? `${selectedCountryCode} ${phone}` : email}
+                </span>
+              </p>
+
+              <div className="flex justify-between items-center text-xs font-semibold text-slate-500 px-1">
+                <span>Didn't receive code?</span>
+                {canResend ? (
                   <button
                     type="button"
-                    onClick={() => {
-                      setStep('PHONE');
-                      setOtp('');
-                    }}
-                    className="text-xs font-bold text-primary hover:underline hover:text-primary-dark cursor-pointer"
+                    onClick={handleResendOtp}
+                    className="text-primary hover:underline hover:text-primary-dark font-bold cursor-pointer"
                   >
-                    Change mobile
+                    Resend code
                   </button>
-                </div>
-
-                <div className="flex justify-center gap-3">
-                  {[0, 1, 2, 3].map((index) => (
-                    <input
-                      key={index}
-                      id={`otp-box-${index}`}
-                      type="text"
-                      inputMode="numeric"
-                      value={otp[index] || ''}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/[^0-9]/g, '');
-                        if (error) setError('');
-                        if (!val) {
-                          const newOtp = otp.split('');
-                          newOtp[index] = '';
-                          setOtp(newOtp.join(''));
-                          return;
-                        }
-
-                        const char = val.charAt(val.length - 1);
-                        const newOtp = otp.split('');
-                        newOtp[index] = char;
-                        const finalOtp = newOtp.join('');
-                        setOtp(finalOtp);
-
-                        if (index < 3) {
-                          document.getElementById(`otp-box-${index + 1}`)?.focus();
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Backspace' && !otp[index] && index > 0) {
-                          document.getElementById(`otp-box-${index - 1}`)?.focus();
-                        }
-                      }}
-                      className={`w-12 h-14 text-xl font-bold text-center bg-slate-50 border rounded-lg focus:ring-4 outline-none transition-all text-slate-800 ${
-                        error && (error.toLowerCase().includes('verification') || error.toLowerCase().includes('code') || error.toLowerCase().includes('otp'))
-                          ? 'border-rose-300 focus:ring-rose-500/10 focus:border-rose-400'
-                          : 'border-slate-200 focus:ring-primary/10 focus:border-primary/40'
-                      }`}
-                      maxLength={1}
-                      required
-                    />
-                  ))}
-                </div>
-
-                <p className="text-xs text-slate-400 font-medium text-center">
-                  Verification code sent to <span className="font-bold text-slate-600">{selectedCountryCode} {phone}</span>
-                </p>
-
-                <div className="flex justify-between items-center text-xs font-semibold text-slate-500 px-1">
-                  <span>Didn't receive code?</span>
-                  {canResend ? (
-                    <button
-                      type="button"
-                      onClick={handleResendOtp}
-                      className="text-primary hover:underline hover:text-primary-dark font-bold cursor-pointer"
-                    >
-                      Resend code
-                    </button>
-                  ) : (
-                    <span className="text-slate-400 font-medium">
-                      Resend in {resendTimer}s
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-3.5 bg-primary hover:bg-primary-dark text-white font-bold rounded-lg flex items-center justify-center gap-2 group hover:shadow-md active:scale-95 disabled:opacity-50 disabled:grayscale transition-all duration-200 cursor-pointer"
-              >
-                {isLoading ? (
-                  <Loader2 className="animate-spin" size={18} />
                 ) : (
-                  <>
-                    Verify & continue <Shield className="ml-1" size={16} />
-                  </>
+                  <span className="text-slate-400 font-medium">
+                    Resend in {resendTimer}s
+                  </span>
                 )}
-              </button>
-            </form>
-          )}
-
-          {step === 'ROLE_SELECT' && (
-            <div className="space-y-5 animate-in fade-in duration-400">
-              <div className="text-center space-y-1">
-                <span className="inline-flex items-center gap-1 bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-[10px] font-bold">
-                  <Sparkles size={10} /> Profile Setup
-                </span>
-                <h3 className="text-lg font-bold text-slate-800">Who is using this workspace?</h3>
-                <p className="text-xs font-semibold text-slate-400">Choose your workspace dashboard to customize your journey.</p>
-              </div>
-
-              <div className="flex flex-col gap-4">
-                <button
-                  type="button"
-                  onClick={() => selectRoleAndRegister('TEEN')}
-                  className="flex items-start gap-4 p-5 bg-linear-to-br from-purple-50/60 to-violet-50/30 hover:from-purple-50 hover:to-violet-50/60 border border-purple-100 hover:border-purple-300 rounded-xl text-left transition-all duration-300 group hover:shadow-md hover:shadow-purple-100/10 cursor-pointer"
-                >
-                  <div className="w-12 h-12 bg-white text-purple-600 rounded-lg flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform border border-purple-100">
-                    <Heart className="fill-purple-200 text-purple-600" size={22} />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-800 group-hover:text-purple-700 transition-colors">I am a Teen (Daughter)</h4>
-                    <p className="text-[11px] text-slate-400 leading-relaxed font-semibold mt-1">
-                      Check your Period Tracker logs, attend live expert cohort sessions, and access your self-learning gamified journey.
-                    </p>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => selectRoleAndRegister('PARENT')}
-                  className="flex items-start gap-4 p-5 bg-linear-to-br from-rose-50/60 to-orange-50/30 hover:from-rose-50 hover:to-orange-50/60 border border-rose-100 hover:border-rose-300 rounded-xl text-left transition-all duration-300 group hover:shadow-md hover:shadow-rose-100/10 cursor-pointer"
-                >
-                  <div className="w-12 h-12 bg-white text-rose-500 rounded-lg flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform border border-rose-100">
-                    <Star className="fill-rose-100 text-rose-500" size={22} />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-800 group-hover:text-rose-600 transition-colors">I am a Parent (Mother)</h4>
-                    <p className="text-[11px] text-slate-400 leading-relaxed font-semibold mt-1">
-                      Monitor developmental progress, manage learning program enrollments, track booked demo slots, and read curated dinner conversation starters.
-                    </p>
-                  </div>
-                </button>
               </div>
             </div>
-          )}
 
-          {/* Terms & Privacy Disclaimer */}
-          <div className="mt-6 pt-4 border-t border-slate-200 text-center">
-            <p className="text-[10px] text-slate-400 leading-relaxed font-normal">
-              By continuing, you agree to our{' '}
-              <Link href="/legal#terms" className="text-primary hover:underline font-medium">
-                Terms and Conditions
-              </Link>{' '}
-              &{' '}
-              <Link href="/legal#privacy" className="text-primary hover:underline font-medium">
-                Privacy Policies
-              </Link>
-              .
-            </p>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3.5 bg-primary hover:bg-primary-dark text-white font-bold rounded-lg flex items-center justify-center gap-2 group hover:shadow-md active:scale-95 disabled:opacity-50 disabled:grayscale transition-all duration-200 cursor-pointer"
+            >
+              {isLoading ? (
+                <Loader2 className="animate-spin" size={18} />
+              ) : (
+                <>
+                  Verify & continue <Shield className="ml-1" size={16} />
+                </>
+              )}
+            </button>
+          </form>
+        )}
+
+        {step === 'ROLE_SELECT' && (
+          <div className="space-y-5 animate-in fade-in duration-400">
+            <div className="text-center space-y-1">
+              <span className="inline-flex items-center gap-1 bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-[10px] font-bold">
+                <Sparkles size={10} /> Profile Setup
+              </span>
+              <h3 className="text-lg font-bold text-slate-800">Who is using this workspace?</h3>
+              <p className="text-xs font-semibold text-slate-400">Choose your workspace dashboard to customize your journey.</p>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <button
+                type="button"
+                onClick={() => selectRoleAndRegister('TEEN')}
+                className="flex items-start gap-4 p-5 bg-linear-to-br from-purple-50/60 to-violet-50/30 hover:from-purple-50 hover:to-violet-50/60 border border-purple-100 hover:border-purple-300 rounded-xl text-left transition-all duration-300 group hover:shadow-md hover:shadow-purple-100/10 cursor-pointer"
+              >
+                <div className="w-12 h-12 bg-white text-purple-600 rounded-lg flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform border border-purple-100">
+                  <Heart className="fill-purple-200 text-purple-600" size={22} />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800 group-hover:text-purple-700 transition-colors">I am a Teen (Daughter)</h4>
+                  <p className="text-[11px] text-slate-400 leading-relaxed font-semibold mt-1">
+                    Check your Period Tracker logs, attend live expert cohort sessions, and access your self-learning gamified journey.
+                  </p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => selectRoleAndRegister('PARENT')}
+                className="flex items-start gap-4 p-5 bg-linear-to-br from-rose-50/60 to-orange-50/30 hover:from-rose-50 hover:to-orange-50/60 border border-rose-100 hover:border-rose-300 rounded-xl text-left transition-all duration-300 group hover:shadow-md hover:shadow-rose-100/10 cursor-pointer"
+              >
+                <div className="w-12 h-12 bg-white text-rose-500 rounded-lg flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform border border-rose-100">
+                  <Star className="fill-rose-100 text-rose-500" size={22} />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800 group-hover:text-rose-600 transition-colors">I am a Parent (Mother)</h4>
+                  <p className="text-[11px] text-slate-400 leading-relaxed font-semibold mt-1">
+                    Monitor developmental progress, manage learning program enrollments, track booked demo slots, and read curated dinner conversation starters.
+                  </p>
+                </div>
+              </button>
+            </div>
           </div>
+        )}
+
+        {/* Terms & Privacy Disclaimer */}
+        <div className="mt-6 pt-4 border-t border-slate-200 text-center">
+          <p className="text-[10px] text-slate-400 leading-relaxed font-normal">
+            By continuing, you agree to our{' '}
+            <Link href="/legal#terms" className="text-primary hover:underline font-medium">
+              Terms and Conditions
+            </Link>{' '}
+            &{' '}
+            <Link href="/legal#privacy" className="text-primary hover:underline font-medium">
+              Privacy Policies
+            </Link>
+            .
+          </p>
+        </div>
       </div>
     </div>
   );
 }
+
+export default function CustomerLoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#FFFAF7]">
+          <Loader2 className="animate-spin text-primary" size={36} />
+        </div>
+      }
+    >
+      <LoginFormContent />
+    </Suspense>
+  );
+}
+

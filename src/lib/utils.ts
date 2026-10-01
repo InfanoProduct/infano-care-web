@@ -152,10 +152,10 @@ export function getCurrencySymbol(input?: any): string {
     const currency = (input.currency || '').toUpperCase();
     if (currency === 'USD' || country === 'US') return '$';
     if (currency === 'GBP' || country === 'UK' || country === 'GB') return '£';
-    if (currency === 'EUR' || country === 'EU') return '€';
-    if (currency === 'CAD') return 'CA$';
-    if (currency === 'AUD') return 'A$';
-    if (currency === 'AED') return 'AED ';
+    if (currency === 'EUR' || country === 'EU' || country === 'FR' || country === 'DE' || country === 'IT' || country === 'ES') return '€';
+    if (currency === 'CAD' || country === 'CA') return 'CA$';
+    if (currency === 'AUD' || country === 'AU') return 'A$';
+    if (currency === 'AED' || country === 'AE') return 'AED ';
     return '₹';
   }
 
@@ -169,14 +169,19 @@ export function getCurrencySymbol(input?: any): string {
     case 'GB':
     case 'GBP':
       return '£';
+    case 'FR':
+    case 'FRA':
     case 'EUR':
     case 'EU':
       return '€';
     case 'CAD':
+    case 'CA':
       return 'CA$';
     case 'AUD':
+    case 'AU':
       return 'A$';
     case 'AED':
+    case 'AE':
       return 'AED ';
     case 'IN':
     case 'IND':

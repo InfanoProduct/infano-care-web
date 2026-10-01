@@ -170,6 +170,12 @@ function CheckoutContent() {
           } else if (cleaned.startsWith('44') && cleaned.length === 12) {
             targetPhone = cleaned.substring(2);
           }
+        } else if (region === 'FR') {
+          if (cleaned.startsWith('+33') && cleaned.length === 12) {
+            targetPhone = cleaned.substring(3);
+          } else if (cleaned.startsWith('33') && cleaned.length === 11) {
+            targetPhone = cleaned.substring(2);
+          }
         }
       }
 

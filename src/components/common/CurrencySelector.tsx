@@ -8,6 +8,7 @@ const REGIONS_LIST: { region: Region; label: string; currency: string; symbol: s
   { region: 'IN', label: 'India', currency: 'INR', symbol: '₹', flag: '🇮🇳' },
   { region: 'US', label: 'United States', currency: 'USD', symbol: '$', flag: '🇺🇸' },
   { region: 'UK', label: 'United Kingdom', currency: 'GBP', symbol: '£', flag: '🇬🇧' },
+  { region: 'FR', label: 'France (EU)', currency: 'EUR', symbol: '€', flag: '🇫🇷' },
 ];
 
 interface CurrencySelectorProps {

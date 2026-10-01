@@ -12,7 +12,7 @@ import { ProgramsService } from '@/services/programs.service';
 import { useAuthStore } from '@/store/auth-store';
 import Link from 'next/link';
 import { InvoiceModal } from '@/components/common/InvoiceModal';
-import { getCurrencySymbol } from '@/lib/utils';
+import { getCurrencySymbol, getOrderCountry } from '@/lib/utils';
 
 export default function OrderDetailsPage() {
   const params = useParams();
@@ -325,56 +325,131 @@ export default function OrderDetailsPage() {
               </div>
 
               <div className="p-5 space-y-4">
-                <div className="space-y-2 text-xs font-bold text-slate-500">
-                  <div className="flex justify-between">
-                    <span>Subtotal</span>
-                    <span className="text-slate-850 font-bold">
-                      {currencySymbol}{type === 'PROGRAM' ? programTaxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : data.subtotal?.toLocaleString('en-IN')}
-                    </span>
-                  </div>
-                  {type === 'BOOK' && data.discountAmount > 0 && (
-                    <div className="flex justify-between text-emerald-650">
-                      <span>Discount applied</span>
-                      <span>-{currencySymbol}{data.discountAmount?.toLocaleString('en-IN')}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span>Taxable Value</span>
-                    <span className="text-slate-850 font-bold">
-                      {currencySymbol}{type === 'PROGRAM' ? programTaxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : data.taxableAmount?.toLocaleString('en-IN')}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>GST ({type === 'PROGRAM' ? '18%' : '5%'})</span>
-                    <span className="text-slate-850 font-bold">
-                      {currencySymbol}{type === 'PROGRAM' ? programGstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : data.gstAmount?.toLocaleString('en-IN')}
-                    </span>
-                  </div>
-                </div>
+                {(() => {
+                  const orderCountry = type === 'BOOK' ? getOrderCountry(data) : 'IN';
+                  const isInternational = type === 'BOOK' && (orderCountry !== 'IN' || (data.currency && data.currency !== 'INR'));
 
-                <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
-                  <span className="font-extrabold text-slate-800 text-sm">Grand Total</span>
-                  <span className="font-black text-primary text-xl">
-                    {currencySymbol}{type === 'PROGRAM' ? pricePaid.toLocaleString('en-IN') : data.totalAmount?.toLocaleString('en-IN')}
-                  </span>
-                </div>
+                  if (isInternational) {
+                    const itemsList = data.items || [];
+                    const computedItemsSubtotal = itemsList.reduce((sum: number, it: any) => {
+                      const p = it.price != null ? it.price : (it.book?.price || 0);
+                      return sum + p * (it.quantity || 1);
+                    }, 0);
+                    const rawItemPrice = computedItemsSubtotal > 0 ? computedItemsSubtotal : (data.subtotal || data.totalAmount || 0);
+                    const discountAmt = data.discountAmount || 0;
+                    const deliveryCharge = data.deliveryCharge != null && data.deliveryCharge > 0
+                      ? data.deliveryCharge
+                      : Math.max(0, Math.round(((data.totalAmount || 0) - (rawItemPrice - discountAmt)) * 100) / 100);
 
-                <div className="pt-3.5 border-t border-dashed border-slate-200 flex flex-col gap-1.5 text-[11px] font-bold text-slate-400">
-                  <div className="flex justify-between">
-                    <span>Gateway Method</span>
-                    <span className="text-slate-700 uppercase">
-                      {type === 'PROGRAM' ? 'Razorpay (ONLINE)' : data.paymentMethod || 'RAZORPAY'}
-                    </span>
-                  </div>
-                  {(type === 'PROGRAM' || data.razorpayPaymentId) && (
-                    <div className="flex justify-between">
-                      <span>Transaction ID</span>
-                      <span className="text-slate-700 font-mono">
-                        {type === 'PROGRAM' ? data.id : data.razorpayPaymentId}
-                      </span>
-                    </div>
-                  )}
-                </div>
+                    const paymentGatewayName = (data.paypalCaptureId || data.paypalOrderId)
+                      ? 'PayPal (ONLINE)'
+                      : (data.paymentMethod ? `${data.paymentMethod} (ONLINE)` : 'ONLINE');
+                    const transactionId = data.paypalCaptureId || data.paypalOrderId || data.razorpayPaymentId || data.id;
+
+                    return (
+                      <>
+                        <div className="space-y-2 text-xs font-bold text-slate-500">
+                          <div className="flex justify-between">
+                            <span>Item Price</span>
+                            <span className="text-slate-850 font-bold">
+                              {currencySymbol}{rawItemPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                          {discountAmt > 0 && (
+                            <div className="flex justify-between text-emerald-650">
+                              <span>Discount applied</span>
+                              <span>-{currencySymbol}{discountAmt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between">
+                            <span>Shipping Charge</span>
+                            <span className="text-slate-850 font-bold">
+                              {deliveryCharge > 0
+                                ? `${currencySymbol}${deliveryCharge.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                : 'Free'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
+                          <span className="font-extrabold text-slate-800 text-sm">Total Price</span>
+                          <span className="font-black text-primary text-xl">
+                            {currencySymbol}{data.totalAmount?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </div>
+
+                        <div className="pt-3.5 border-t border-dashed border-slate-200 flex flex-col gap-1.5 text-[11px] font-bold text-slate-400">
+                          <div className="flex justify-between">
+                            <span>Gateway Method</span>
+                            <span className="text-slate-700 uppercase">{paymentGatewayName}</span>
+                          </div>
+                          {transactionId && (
+                            <div className="flex justify-between">
+                              <span>Transaction ID</span>
+                              <span className="text-slate-700 font-mono">{transactionId}</span>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    );
+                  }
+
+                  // Domestic (India) breakdown with GST
+                  return (
+                    <>
+                      <div className="space-y-2 text-xs font-bold text-slate-500">
+                        <div className="flex justify-between">
+                          <span>Subtotal</span>
+                          <span className="text-slate-850 font-bold">
+                            {currencySymbol}{type === 'PROGRAM' ? programTaxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : data.subtotal?.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                        {type === 'BOOK' && data.discountAmount > 0 && (
+                          <div className="flex justify-between text-emerald-650">
+                            <span>Discount applied</span>
+                            <span>-{currencySymbol}{data.discountAmount?.toLocaleString('en-IN')}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between">
+                          <span>Taxable Value</span>
+                          <span className="text-slate-850 font-bold">
+                            {currencySymbol}{type === 'PROGRAM' ? programTaxableAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : data.taxableAmount?.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>GST ({type === 'PROGRAM' ? '18%' : '5%'})</span>
+                          <span className="text-slate-850 font-bold">
+                            {currencySymbol}{type === 'PROGRAM' ? programGstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : data.gstAmount?.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
+                        <span className="font-extrabold text-slate-800 text-sm">Grand Total</span>
+                        <span className="font-black text-primary text-xl">
+                          {currencySymbol}{type === 'PROGRAM' ? pricePaid.toLocaleString('en-IN') : data.totalAmount?.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+
+                      <div className="pt-3.5 border-t border-dashed border-slate-200 flex flex-col gap-1.5 text-[11px] font-bold text-slate-400">
+                        <div className="flex justify-between">
+                          <span>Gateway Method</span>
+                          <span className="text-slate-700 uppercase">
+                            {type === 'PROGRAM' ? 'Razorpay (ONLINE)' : data.paymentMethod || 'RAZORPAY'}
+                          </span>
+                        </div>
+                        {(type === 'PROGRAM' || data.razorpayPaymentId) && (
+                          <div className="flex justify-between">
+                            <span>Transaction ID</span>
+                            <span className="text-slate-700 font-mono">
+                              {type === 'PROGRAM' ? data.id : data.razorpayPaymentId}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
 

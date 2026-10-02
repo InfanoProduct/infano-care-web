@@ -171,8 +171,16 @@ class ApiClient {
         throw err;
       }
 
-      const error = new Error(errorData.message || errorData.error || `Request failed with status ${response.status}`);
-      (error as any).details = errorData.details;
+      // Extract most helpful message (checking details array, message, or error)
+      let resolvedMessage = errorData.message || errorData.error;
+      if (Array.isArray(errorData.details) && errorData.details.length > 0 && errorData.details[0]?.message) {
+        resolvedMessage = errorData.details[0].message;
+      } else if (Array.isArray(errorData.errors) && errorData.errors.length > 0 && errorData.errors[0]?.message) {
+        resolvedMessage = errorData.errors[0].message;
+      }
+
+      const error = new Error(resolvedMessage || `Request failed with status ${response.status}`);
+      (error as any).details = errorData.details || errorData.errors;
       throw error;
     }
 

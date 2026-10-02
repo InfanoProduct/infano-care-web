@@ -25,6 +25,80 @@ const bookImages = [
   '/Page-7.png'
 ];
 
+const INDIA_STATES = [
+  "Andaman and Nicobar Islands",
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chandigarh",
+  "Chhattisgarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jammu and Kashmir",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Ladakh",
+  "Lakshadweep",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Puducherry",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+];
+
+const INDIA_STATE_ALIASES: Record<string, string> = {
+  'chattisgarh': 'Chhattisgarh',
+  'chhattisgarh': 'Chhattisgarh',
+  'orissa': 'Odisha',
+  'odisha': 'Odisha',
+  'pondicherry': 'Puducherry',
+  'puducherry': 'Puducherry',
+  'uttaranchal': 'Uttarakhand',
+  'uttarakhand': 'Uttarakhand',
+  'delhi': 'Delhi',
+  'newdelhi': 'Delhi',
+  'nationalcapitalterritoryofdelhi': 'Delhi',
+  'nctofdelhi': 'Delhi',
+  'jammuandkashmir': 'Jammu and Kashmir',
+  'jammukashmir': 'Jammu and Kashmir',
+  'andamanandnicobar': 'Andaman and Nicobar Islands',
+  'andamanandnicobarislands': 'Andaman and Nicobar Islands',
+  'andamannicobar': 'Andaman and Nicobar Islands',
+  'dadraandnagarhaveli': 'Dadra and Nagar Haveli and Daman and Diu',
+  'damananddiu': 'Dadra and Nagar Haveli and Daman and Diu',
+  'dadraandnagarhavelianddamananddiu': 'Dadra and Nagar Haveli and Daman and Diu',
+  'telengana': 'Telangana',
+  'telangana': 'Telangana',
+};
+
+function matchIndianState(rawState: string): string {
+  if (!rawState) return '';
+  const clean = rawState.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (INDIA_STATE_ALIASES[clean]) return INDIA_STATE_ALIASES[clean];
+  const exact = INDIA_STATES.find(s => s.toLowerCase().replace(/[^a-z0-9]/g, '') === clean);
+  if (exact) return exact;
+  const partial = INDIA_STATES.find(s => clean.includes(s.toLowerCase().replace(/[^a-z0-9]/g, '')) || s.toLowerCase().replace(/[^a-z0-9]/g, '').includes(clean));
+  return partial || rawState;
+}
+
 const US_STATES = [
   { code: 'AL', name: 'Alabama' },
   { code: 'AK', name: 'Alaska' },
@@ -296,7 +370,9 @@ function CheckoutContent() {
           const data = await res.json();
           if (data && data.success) {
             let matchedState = data.state || '';
-            if (region === 'US') {
+            if (region === 'IN') {
+              matchedState = matchIndianState(data.state || '');
+            } else if (region === 'US') {
               const query = (data.stateCode || data.state || '').trim().toLowerCase();
               const found = US_STATES.find(
                 s => s.code.toLowerCase() === query || s.name.toLowerCase() === query
@@ -329,6 +405,17 @@ function CheckoutContent() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+
+    // For India, strictly allow only numeric digits in pincode
+    if (name === 'pincode' && region === 'IN') {
+      const numericVal = value.replace(/\D/g, '').slice(0, 6);
+      setFormData(prev => ({ ...prev, [name]: numericVal }));
+      if (formErrors[name]) {
+        setFormErrors(prev => ({ ...prev, [name]: '' }));
+      }
+      return;
+    }
+
     setFormData(prev => ({ ...prev, [name]: value }));
     if (formErrors[name]) {
       setFormErrors(prev => ({ ...prev, [name]: '' }));
@@ -397,13 +484,17 @@ function CheckoutContent() {
   const validateForm = () => {
     const curForm = formDataRef.current;
     const errors: Record<string, string> = {};
-    if (!curForm.guestName.trim()) errors.guestName = 'Full name is required';
+    if (!curForm.guestName.trim()) {
+      errors.guestName = 'Full name is required';
+    } else if (!/^[a-zA-Z\s\.\'\-]{2,60}$/.test(curForm.guestName.trim())) {
+      errors.guestName = 'Please enter a valid name';
+    }
     
     // Phone Validation
     const digits = curForm.guestPhone.replace(/\D/g, '');
     if (region === 'IN') {
-      if (!curForm.guestPhone.trim() || !/^\d{10}$/.test(curForm.guestPhone)) {
-        errors.guestPhone = 'Valid 10-digit mobile number is required';
+      if (!curForm.guestPhone.trim() || !/^[6-9]\d{9}$/.test(digits)) {
+        errors.guestPhone = 'Valid 10-digit mobile number starting with 6, 7, 8, or 9 is required';
       }
     } else if (region === 'US') {
       if (!curForm.guestPhone.trim() || !/^\d{10}$/.test(digits)) {
@@ -434,8 +525,8 @@ function CheckoutContent() {
 
     // Pincode/Zip validation
     if (region === 'IN') {
-      if (!curForm.pincode.trim() || curForm.pincode.length !== 6) {
-        errors.pincode = 'Valid 6-digit pincode is required';
+      if (!curForm.pincode.trim() || !/^[1-9][0-9]{5}$/.test(curForm.pincode)) {
+        errors.pincode = 'Valid 6-digit Indian PIN code is required';
       }
     } else if (region === 'US') {
       if (!curForm.pincode.trim() || !/^\d{5}$/.test(curForm.pincode)) {
@@ -447,9 +538,27 @@ function CheckoutContent() {
       }
     }
 
-    if (!curForm.shippingAddress.trim()) errors.shippingAddress = 'Street address is required';
-    if (!curForm.city.trim()) errors.city = 'City is required';
-    if (!curForm.state.trim()) errors.state = 'State / Region is required';
+    if (!curForm.shippingAddress.trim()) {
+      errors.shippingAddress = 'Street address is required';
+    } else if (curForm.shippingAddress.trim().length < 5) {
+      errors.shippingAddress = 'Please enter a valid street address';
+    }
+
+    if (!curForm.city.trim()) {
+      errors.city = 'City is required';
+    } else if (!/^[a-zA-Z\s\.\-]{2,50}$/.test(curForm.city.trim())) {
+      errors.city = 'Please enter a valid city name';
+    }
+
+    if (!curForm.state.trim()) {
+      errors.state = 'State is required';
+    } else if (region === 'IN') {
+      const normalizedState = curForm.state.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      const isValid = INDIA_STATES.some(s => s.toLowerCase().replace(/[^a-z0-9]/g, '') === normalizedState);
+      if (!isValid) {
+        errors.state = 'Please select a valid Indian state';
+      }
+    }
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -991,11 +1100,14 @@ function CheckoutContent() {
                         <div className="relative">
                           <input
                             name="pincode"
+                            type={region === 'IN' ? 'tel' : 'text'}
+                            inputMode={region === 'IN' ? 'numeric' : 'text'}
+                            pattern={region === 'IN' ? '[0-9]*' : undefined}
                             value={formData.pincode}
                             onChange={handleInputChange}
-                            maxLength={6}
+                            maxLength={region === 'IN' ? 6 : 10}
                             className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.pincode ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                            placeholder="6-digit pincode"
+                            placeholder={region === 'IN' ? '6-digit pincode' : 'Postal code'}
                           />
                           {pincodeLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-primary" size={16} />}
                         </div>
@@ -1048,13 +1160,29 @@ function CheckoutContent() {
                         <label className="text-[11px] font-bold text-slate-600 ml-0.5">
                           State <span className="text-rose-500">*</span>
                         </label>
-                        <input
-                          name="state"
-                          value={formData.state}
-                          onChange={handleInputChange}
-                          className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                          placeholder="State"
-                        />
+                        {region === 'IN' ? (
+                          <select
+                            name="state"
+                            value={formData.state}
+                            onChange={handleInputChange}
+                            className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 text-sm shadow-sm cursor-pointer`}
+                          >
+                            <option value="">Select State</option>
+                            {INDIA_STATES.map((st) => (
+                              <option key={st} value={st}>
+                                {st}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            name="state"
+                            value={formData.state}
+                            onChange={handleInputChange}
+                            className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
+                            placeholder="State"
+                          />
+                        )}
                         {formErrors.state && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.state}</p>}
                       </div>
                     </div>

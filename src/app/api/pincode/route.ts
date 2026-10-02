@@ -29,6 +29,80 @@ export async function GET(request: NextRequest) {
 
   const region = regionParam.toUpperCase();
 
+const INDIA_STATE_ALIASES: Record<string, string> = {
+  'chattisgarh': 'Chhattisgarh',
+  'chhattisgarh': 'Chhattisgarh',
+  'orissa': 'Odisha',
+  'odisha': 'Odisha',
+  'pondicherry': 'Puducherry',
+  'puducherry': 'Puducherry',
+  'uttaranchal': 'Uttarakhand',
+  'uttarakhand': 'Uttarakhand',
+  'delhi': 'Delhi',
+  'newdelhi': 'Delhi',
+  'nationalcapitalterritoryofdelhi': 'Delhi',
+  'nctofdelhi': 'Delhi',
+  'jammuandkashmir': 'Jammu and Kashmir',
+  'jammukashmir': 'Jammu and Kashmir',
+  'andamanandnicobar': 'Andaman and Nicobar Islands',
+  'andamanandnicobarislands': 'Andaman and Nicobar Islands',
+  'andamannicobar': 'Andaman and Nicobar Islands',
+  'dadraandnagarhaveli': 'Dadra and Nagar Haveli and Daman and Diu',
+  'damananddiu': 'Dadra and Nagar Haveli and Daman and Diu',
+  'dadraandnagarhavelianddamananddiu': 'Dadra and Nagar Haveli and Daman and Diu',
+  'telengana': 'Telangana',
+  'telangana': 'Telangana',
+};
+
+const CANONICAL_INDIA_STATES = [
+  "Andaman and Nicobar Islands",
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chandigarh",
+  "Chhattisgarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jammu and Kashmir",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Ladakh",
+  "Lakshadweep",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Puducherry",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+];
+
+function normalizeIndianStateName(rawState: string): string {
+  if (!rawState) return '';
+  const clean = rawState.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (INDIA_STATE_ALIASES[clean]) return INDIA_STATE_ALIASES[clean];
+  const exact = CANONICAL_INDIA_STATES.find(s => s.toLowerCase().replace(/[^a-z0-9]/g, '') === clean);
+  if (exact) return exact;
+  const partial = CANONICAL_INDIA_STATES.find(s => clean.includes(s.toLowerCase().replace(/[^a-z0-9]/g, '')) || s.toLowerCase().replace(/[^a-z0-9]/g, '').includes(clean));
+  return partial || rawState;
+}
+
   if (region === 'IN') {
     if (code.length !== 6 || !/^\d{6}$/.test(code)) {
       return NextResponse.json({ error: 'Invalid pincode format' }, { status: 400 });
@@ -41,10 +115,11 @@ export async function GET(request: NextRequest) {
       const data = await res.json();
       if (data && data[0] && data[0].Status === 'Success' && data[0].PostOffice && data[0].PostOffice[0]) {
         const postOffice = data[0].PostOffice[0];
+        const canonicalState = normalizeIndianStateName(postOffice.State);
         return NextResponse.json({
           success: true,
           city: postOffice.District,
-          state: postOffice.State,
+          state: canonicalState,
         });
       }
       return NextResponse.json({ error: 'Pincode not found' }, { status: 404 });

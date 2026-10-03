@@ -17,7 +17,7 @@ export function BookSection() {
       try {
         const books = await ShopService.getBooks();
         if (books && books.length > 0) {
-          const targetBook = books.find(b => b.isActive) || books[0];
+          const targetBook = books.find(b => (b.format === 'PHYSICAL_BOOK' || !b.format) && b.isActive) || books.find(b => b.isActive) || books[0];
           setBook(targetBook);
         } else {
           setBook({

@@ -34,6 +34,7 @@ export interface BookReaderData {
     author: string;
     description: string;
     coverImageUrl?: string;
+    pdfUrl?: string | null;
     totalPages: number;
     tableOfContents: ChapterManifest[];
   };

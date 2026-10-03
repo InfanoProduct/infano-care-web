@@ -20,9 +20,11 @@ export default function MarketingLayout({
   const isLogin = cleanPathname === '/login' || cleanPathname === '/login/';
   const isPortal = isDashboard || isProgramDetail || isLogin;
   const isPurchaseSuccess = cleanPathname.startsWith('/purchase-success');
+  const isReader = cleanPathname.includes('/read');
   const hideWidgets =
     cleanPathname.startsWith('/checkout') ||
     cleanPathname.startsWith('/gigi-the-awkward-age-book') ||
+    isReader ||
     isPurchaseSuccess ||
     cleanPathname.startsWith('/webinar') ||
     cleanPathname.startsWith('/parents') ||

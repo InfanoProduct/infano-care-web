@@ -22,24 +22,9 @@ export function BookCTA({ book }: BookCTAProps) {
             <p className="text-slate-500 font-medium mb-10 leading-relaxed">
               Order your copy today and get a private, expert-supported space for your girl to grow.
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-4">
-              <Link 
-                href={getLocalizedLink(book ? `/checkout?bookId=${book.id}&format=physical` : '/checkout?format=physical')} 
-                className="px-8 py-5 bg-rose-500 text-white rounded-full font-bold text-base hover:bg-rose-600 transition-all shadow-xl shadow-rose-500/20 active:scale-95 inline-flex items-center gap-3"
-              >
-                <ShoppingCart size={20} /> Order Physical Copy ({formatPrice(getBookPrice(book, region), false)})
-              </Link>
-              <Link 
-                href={getLocalizedLink(book ? `/checkout?bookId=${book.id}&format=ebook` : '/checkout?format=ebook')} 
-                className="px-8 py-5 bg-purple-600 text-white rounded-full font-bold text-base hover:bg-purple-700 transition-all shadow-xl shadow-purple-600/20 active:scale-95 inline-flex items-center gap-3"
-              >
-                <span>⚡ Get Instant eBook ({formatPrice(region === 'US' ? 9.99 : (region === 'UK' ? 7.99 : 249), false)})</span>
-              </Link>
-            </div>
-            
-            <p className="text-xs text-slate-400 mt-6">
-              Already bought on Etsy? <Link href="/dashboard/library" className="text-purple-600 font-bold underline">Claim your digital reader access here</Link>
-            </p>
+            <Link href={getLocalizedLink(book ? `/checkout?bookId=${book.id}` : '/checkout')} className="px-12 py-6 bg-rose-500 text-white rounded-full font-bold text-xl hover:bg-rose-600 transition-all shadow-xl shadow-rose-500/20 active:scale-95 inline-flex items-center gap-3">
+               <ShoppingCart size={24} /> Get My Copy {formatPrice(getBookPrice(book, region), false)}
+            </Link>
          </div>
       </div>
     </section>

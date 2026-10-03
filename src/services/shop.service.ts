@@ -30,6 +30,7 @@ export interface Book {
   shippingUK?: number;     // UK shipping (GBP)
   codChargeIN?: number;    // India COD Surcharge (INR)
   imageUrl?: string;
+  pdfUrl?: string | null;
   stock: number;
   totalPages?: number;
   chapters?: any;
@@ -239,13 +240,11 @@ export const ShopService = {
     return apiClient.delete(`/shop/admin/coupons/${id}`);
   },
 
-  // ─── Admin EPUB Upload & Management ───────────────────────────
-  async adminUploadEpub(file: File, slug = "gigi-the-book"): Promise<any> {
+  // ─── Admin eBook PDF Upload & Management ─────────────────────
+  async adminUploadPdf(file: File): Promise<{ url: string; filename: string; message?: string }> {
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("slug", slug);
-
-    return apiClient.post("/admin/books/upload-epub", formData);
+    return apiClient.post("/admin/upload?folder=books", formData);
   },
 
   // ─── Admin Etsy Orders & Claims ───────────────────────────────

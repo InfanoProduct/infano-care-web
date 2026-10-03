@@ -87,23 +87,14 @@ export function FloatingBuyWidget({ book }: FloatingBuyWidgetProps) {
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              {/* Row 2: full-width Buy buttons */}
-              <div className="flex gap-2 w-full">
-                <a
-                  href={getLocalizedLink(book ? `/checkout?bookId=${book.id}&format=physical` : '/checkout?format=physical')}
-                  className="flex-1 flex items-center justify-center gap-1.5 bg-[#ff1f56] hover:bg-[#e0164c] active:scale-95 text-white font-bold text-xs px-3 py-2.5 rounded-xl transition-all duration-200 shadow-md shadow-rose-200/50"
-                >
-                  <ShoppingBag className="w-3.5 h-3.5" />
-                  Print Book
-                </a>
-                <a
-                  href={getLocalizedLink(book ? `/checkout?bookId=${book.id}&format=ebook` : '/checkout?format=ebook')}
-                  className="flex-1 flex items-center justify-center gap-1.5 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-bold text-xs px-3 py-2.5 rounded-xl transition-all duration-200 shadow-md shadow-purple-200/50"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  eBook ({formatPrice(region === 'US' ? 9.99 : (region === 'UK' ? 7.99 : 249), false)})
-                </a>
-              </div>
+              {/* Row 2: full-width Buy Now */}
+              <a
+                href={checkoutHref}
+                className="flex items-center justify-center gap-2 bg-[#ff1f56] hover:bg-[#e0164c] active:scale-95 text-white font-bold text-sm px-4 py-2.5 rounded-xl transition-all duration-200 shadow-lg shadow-rose-200/50 w-full"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                Buy Now
+              </a>
             </div>
 
             {/* ── Desktop layout (≥ sm) ── */}
@@ -120,16 +111,16 @@ export function FloatingBuyWidget({ book }: FloatingBuyWidgetProps) {
                     Gigi: The Awkward Age
                   </p>
                   <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-emerald-100 shrink-0">
-                    <Sparkles className="w-2.5 h-2.5" /> Print & eBook Available
+                    <Sparkles className="w-2.5 h-2.5" /> 50% OFF
                   </span>
                 </div>
 
                 <div className="flex items-baseline gap-2">
-                  <span className="text-xl font-extrabold text-slate-900 leading-none">
-                    Print: {formatPrice(getBookPrice(book, region), false)}
+                  <span className="text-2xl font-extrabold text-slate-900 leading-none">
+                    {formatPrice(getBookPrice(book, region), false)}
                   </span>
-                  <span className="text-xs text-purple-700 font-bold bg-purple-50 px-2 py-0.5 rounded-md border border-purple-100">
-                    Digital: {formatPrice(region === 'US' ? 9.99 : (region === 'UK' ? 7.99 : 249), false)}
+                  <span className="text-sm text-slate-400 line-through leading-none">
+                    {formatPrice(getBookPrice(book, region) * 2, false)}
                   </span>
                   <span className="flex items-center gap-0.5 text-amber-500 text-[10px] font-bold">
                     <Star className="w-3 h-3 fill-amber-500" />
@@ -142,23 +133,14 @@ export function FloatingBuyWidget({ book }: FloatingBuyWidgetProps) {
                 </div>
               </div>
 
-              {/* CTA Buttons */}
-              <div className="flex items-center gap-2">
-                <a
-                  href={getLocalizedLink(book ? `/checkout?bookId=${book.id}&format=physical` : '/checkout?format=physical')}
-                  className="shrink-0 inline-flex items-center gap-1.5 bg-[#ff1f56] hover:bg-[#e0164c] active:scale-95 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all duration-200 shadow-md shadow-rose-200/50 whitespace-nowrap"
-                >
-                  <ShoppingBag className="w-3.5 h-3.5" />
-                  Buy Print
-                </a>
-                <a
-                  href={getLocalizedLink(book ? `/checkout?bookId=${book.id}&format=ebook` : '/checkout?format=ebook')}
-                  className="shrink-0 inline-flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all duration-200 shadow-md shadow-purple-200/50 whitespace-nowrap"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Instant eBook
-                </a>
-              </div>
+              {/* CTA Button */}
+              <a
+                href={checkoutHref}
+                className="shrink-0 inline-flex items-center gap-2 bg-[#ff1f56] hover:bg-[#e0164c] active:scale-95 text-white font-bold text-sm px-5 py-3 rounded-xl transition-all duration-200 shadow-lg shadow-rose-200/50 whitespace-nowrap"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                Buy Now
+              </a>
 
               {/* Dismiss button */}
               <button

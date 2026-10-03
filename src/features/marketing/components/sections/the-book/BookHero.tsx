@@ -112,27 +112,15 @@ export function BookHero({ book }: BookHeroProps) {
               className="flex flex-wrap gap-4 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
               style={{ animationDelay: '300ms' }}
             >
-              <Link 
-                href={getLocalizedLink(book ? `/checkout?bookId=${book.id}&format=physical` : '/checkout?format=physical')} 
-                className="px-8 py-4 bg-primary hover:bg-primary-dark text-white rounded-full font-bold text-sm sm:text-base transition-all shadow-xl shadow-primary/20 active:scale-95 group flex items-center gap-2"
-              >
-                Order Physical Print <span className="opacity-75">{formatPrice(getBookPrice(book, region), false)}</span> <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
-              </Link>
-              <Link
-                href={getLocalizedLink(book ? `/checkout?bookId=${book.id}&format=ebook` : '/checkout?format=ebook')}
-                className="px-7 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-full font-bold text-sm sm:text-base transition-all shadow-lg shadow-purple-600/20 active:scale-95 flex items-center gap-2"
-              >
-                <BookOpen size={18} /> Instant eBook {formatPrice(region === 'US' ? 9.99 : (region === 'UK' ? 7.99 : 249), false)}
+              <Link href={getLocalizedLink(book ? `/checkout?bookId=${book.id}` : '/checkout')} className="px-10 py-4 bg-primary text-white rounded-full font-bold text-base hover:bg-primary transition-all shadow-xl shadow-slate-900/10 active:scale-95 group flex items-center gap-2">
+                Buy Now <span className="opacity-50">{formatPrice(getBookPrice(book, region), false)}</span> <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
               </Link>
               <button
-                onClick={() => {
-                  const target = document.getElementById('get-the-book') || document.getElementById('read');
-                  target?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="px-6 py-4 bg-white text-slate-700 border border-slate-200 rounded-full font-bold text-sm hover:bg-slate-50 transition-all active:scale-95 flex items-center gap-2"
+                onClick={() => document.getElementById('read')?.scrollIntoView({ behavior: 'smooth' })}
+                className="px-10 py-4 bg-white text-slate-900 border border-slate-200 rounded-full font-bold text-base hover:bg-slate-50 transition-all active:scale-95 flex items-center gap-2"
                 suppressHydrationWarning
               >
-                Compare Editions
+                <BookOpen size={18} className="text-primary" /> Read Sample
               </button>
             </div>
 

@@ -41,7 +41,7 @@ export function TheBookClient() {
       try {
         const books = await ShopService.getBooks();
         if (isMounted && books && books.length > 0) {
-          const targetBook = books.find(b => b.isActive) || books[0];
+          const targetBook = books.find(b => (b.format === 'PHYSICAL_BOOK' || !b.format) && b.isActive) || books.find(b => b.isActive) || books[0];
           setBook(targetBook);
         }
       } catch (error) {

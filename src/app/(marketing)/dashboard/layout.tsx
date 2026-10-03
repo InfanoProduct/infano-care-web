@@ -199,9 +199,13 @@ export default function CustomerDashboardLayout({
     );
   }
 
-  // Episode & Course Player Isolation check: bypass dashboard shell for cleaner full-screen player experience
-  if (pathname.includes('/episodes/') || (pathname.includes('/dashboard/courses/') && !pathname.endsWith('/courses') && !pathname.includes('/explore') && !pathname.includes('/overview'))) {
-    return <div className="min-h-screen bg-background overflow-hidden">{children}</div>;
+  // Episode, Course Player, & eBook Reader Isolation check: bypass dashboard shell for cleaner full-screen reader experience
+  if (
+    pathname.includes('/episodes/') ||
+    pathname.includes('/read') ||
+    (pathname.includes('/dashboard/courses/') && !pathname.endsWith('/courses') && !pathname.includes('/explore') && !pathname.includes('/overview'))
+  ) {
+    return <div className="min-h-screen w-screen bg-background overflow-hidden">{children}</div>;
   }
 
   const isTeen = user.role === 'TEEN' || (user.role === 'PEER' && user.contentTier && user.contentTier !== 'ADULT');

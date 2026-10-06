@@ -895,7 +895,7 @@ function CheckoutContent() {
       {(region === 'US' || region === 'UK') && (
         <Script
           key={`paypal-sdk-${region}-${currencyCode}`}
-          src={`https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || 'BAAFardVSBZ0pcgeK2NqFbZNPYxzWOeODSCXI6AdAeFC5RkY40lEj7jqFeVVDv7QnCyJzSyo_oYLShPerc'}&currency=${currencyCode}&locale=${region === 'UK' ? 'en_GB' : 'en_US'}&components=buttons`}
+          src={`https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || 'BAAu5Wzv8JPhse_c_yH3j8C85mccF79I3mfN8aeMBJJndOxvgX-2FugthYGDWAQY1XHZA-5XXEpmxdZ7VY'}&currency=${currencyCode}&locale=${region === 'UK' ? 'en_GB' : 'en_US'}&components=buttons`}
         />
       )}
       <div className="max-w-6xl mx-auto px-6 relative z-10">

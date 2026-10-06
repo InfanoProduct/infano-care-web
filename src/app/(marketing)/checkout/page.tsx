@@ -619,8 +619,16 @@ function CheckoutContent() {
               return currentOrderRef.current.paypalOrderId;
             }
 
+            const curForm = formDataRef.current;
             const orderData = {
               userId: userRef.current?.id,
+              guestName: curForm.guestName?.trim() || undefined,
+              guestEmail: curForm.guestEmail?.trim() || undefined,
+              guestPhone: curForm.guestPhone?.trim() || undefined,
+              shippingAddress: curForm.shippingAddress?.trim() || undefined,
+              city: curForm.city?.trim() || undefined,
+              state: curForm.state?.trim() || undefined,
+              pincode: curForm.pincode?.trim() || undefined,
               items: [{ bookId: curBook.id, quantity: quantityRef.current }],
               country: region,
               currency: currencyCode,

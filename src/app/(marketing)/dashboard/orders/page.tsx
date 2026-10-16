@@ -61,42 +61,24 @@ export default function CustomerOrdersOverview() {
 
   const productOrders = orders.filter((o: any) => (o.items || []).some((it: any) => !isProgramItem(it)));
 
-  // Combine and sort program enrollments and book orders chronologically
-  const allTransactions = [
-    ...enrollments.map(e => ({
-      id: e.id,
-      type: 'PROGRAM' as const,
-      title: `${e.program?.title || 'Mentoring'} Program`,
-      date: new Date(e.createdAt),
-      amount: e.pricePaid,
-      currencySymbol: '₹',
-      status: e.status,
-      badgeText: '1:1 Private Mentoring',
-      invoiceData: e,
-      original: e,
-    })),
-    ...productOrders.map(o => ({
-      id: o.id,
-      type: 'BOOK' as const,
-      title: o.items?.map((it: any) => `${it.book?.title || 'Gigi Book'} (x${it.quantity})`).join(', ') || 'Gigi Book',
-      date: new Date(o.createdAt),
-      amount: o.totalAmount,
-      currencySymbol: getCurrencySymbol(o),
-      status: o.paymentStatus === 'COMPLETED' ? 'PAID' : o.paymentStatus || 'PLACED',
-      orderStatus: o.orderStatus,
-      badgeText: 'Book Purchase',
-      invoiceData: o,
-      city: o.city,
-      original: o,
-    }))
-  ].sort((a, b) => b.date.getTime() - a.date.getTime());
+  // Transactions list for physical product orders
+  const allTransactions = productOrders.map(o => ({
+    id: o.id,
+    type: 'BOOK' as const,
+    title: o.items?.map((it: any) => `${it.book?.title || 'Gigi Book'} (x${it.quantity})`).join(', ') || 'Gigi Book',
+    date: new Date(o.createdAt),
+    amount: o.totalAmount,
+    currencySymbol: getCurrencySymbol(o),
+    status: o.paymentStatus === 'COMPLETED' ? 'PAID' : o.paymentStatus || 'PLACED',
+    orderStatus: o.orderStatus,
+    badgeText: 'Book Purchase',
+    invoiceData: o,
+    city: o.city,
+    original: o,
+  })).sort((a, b) => b.date.getTime() - a.date.getTime());
 
   // Filtered transactions based on active tab
-  const filteredTransactions = allTransactions.filter(tx => {
-    if (activeTab === 'programs') return tx.type === 'PROGRAM';
-    if (activeTab === 'books') return tx.type === 'BOOK';
-    return true;
-  });
+  const filteredTransactions = allTransactions;
 
   if (loading) {
     return (
@@ -108,9 +90,9 @@ export default function CustomerOrdersOverview() {
   }
 
   // Calculate order stats
-  const totalOrders = enrollments.length + productOrders.length;
-  const totalPrograms = enrollments.length;
-  const totalBooks = productOrders.length;
+  const totalOrders = productOrders.length;
+  const deliveredOrders = productOrders.filter((o: any) => o.orderStatus === 'DELIVERED').length;
+  const processingOrders = productOrders.filter((o: any) => o.orderStatus === 'PROCESSING' || o.orderStatus === 'SHIPPED').length;
 
   return (
     <div className="space-y-6 w-full max-w-7xl mx-auto pb-8 font-sans px-4 sm:px-6">
@@ -123,13 +105,13 @@ export default function CustomerOrdersOverview() {
         
         <div className="space-y-2.5 relative z-10">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-primary/20 rounded-full text-[10px] font-black text-primary shadow-3xs uppercase tracking-widest">
-            <Package size={11} /> Orders & Enrollments
+            <Package size={11} /> Orders & Deliveries
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
             My Orders
           </h1>
           <p className="text-xs font-bold text-slate-500 max-w-xl leading-relaxed">
-            Track your physical product orders, review mentoring program enrollments, and download invoice details.
+            Track your physical product orders and download invoice details.
           </p>
         </div>
       </div>
@@ -149,53 +131,25 @@ export default function CustomerOrdersOverview() {
 
         <div className="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-2xs flex items-center justify-between overflow-hidden relative group hover:border-slate-300 transition-all duration-300">
           <div className="space-y-1.5 relative z-10">
-            <span className="text-[10px] font-black text-slate-450 uppercase tracking-widest block font-sans">Program Enrollments</span>
-            <h3 className="text-2xl font-black text-slate-900">{totalPrograms}</h3>
-            <p className="text-[10px] text-slate-500 font-bold">Active mentoring cohorts</p>
+            <span className="text-[10px] font-black text-slate-450 uppercase tracking-widest block font-sans">Delivered</span>
+            <h3 className="text-2xl font-black text-slate-900">{deliveredOrders}</h3>
+            <p className="text-[10px] text-slate-500 font-bold">Packages received</p>
           </div>
           <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center border border-emerald-100 shadow-3xs shrink-0">
-            <GraduationCap size={20} />
+            <CheckCircle2 size={20} />
           </div>
         </div>
 
         <div className="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-2xs flex items-center justify-between overflow-hidden relative group hover:border-slate-300 transition-all duration-300">
           <div className="space-y-1.5 relative z-10">
-            <span className="text-[10px] font-black text-slate-450 uppercase tracking-widest block font-sans">Book Purchases</span>
-            <h3 className="text-2xl font-black text-slate-900">{totalBooks}</h3>
-            <p className="text-[10px] text-slate-500 font-bold">Book orders placed</p>
+            <span className="text-[10px] font-black text-slate-450 uppercase tracking-widest block font-sans">Active Shipments</span>
+            <h3 className="text-2xl font-black text-slate-900">{processingOrders}</h3>
+            <p className="text-[10px] text-slate-500 font-bold">In transit or processing</p>
           </div>
           <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center border border-rose-100 shadow-3xs shrink-0">
             <BookOpen size={20} />
           </div>
         </div>
-      </div>
-
-      {/* Tab Switcher */}
-      <div className="flex border-b border-slate-100 pb-1 gap-2">
-        {[
-          { id: 'all', label: 'All Orders', count: allTransactions.length },
-          { id: 'programs', label: 'Programs', count: enrollments.length },
-          { id: 'books', label: 'Books', count: productOrders.length }
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all relative ${
-              activeTab === tab.id
-                ? 'bg-slate-900 text-white shadow-sm'
-                : 'text-slate-550 hover:bg-slate-100 hover:text-slate-800'
-            }`}
-          >
-            <span className="flex items-center gap-1.5">
-              {tab.label}
-              <span className={`px-1.5 py-px text-[9px] rounded-full font-black ${
-                activeTab === tab.id ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-650'
-              }`}>
-                {tab.count}
-              </span>
-            </span>
-          </button>
-        ))}
       </div>
 
       {/* Orders List */}
@@ -208,19 +162,15 @@ export default function CustomerOrdersOverview() {
             <div>
               <h4 className="font-extrabold text-slate-800 text-sm">No Orders Found</h4>
               <p className="text-xs text-slate-500 font-semibold mt-1 max-w-xs mx-auto">
-                {activeTab === 'all' && "You haven't ordered any books or enrolled in mentoring programs yet."}
-                {activeTab === 'programs' && "You are not enrolled in any mentoring programs yet."}
-                {activeTab === 'books' && "You haven't purchased any books or guides yet."}
+                You haven't purchased any books or guides yet.
               </p>
             </div>
-            {activeTab !== 'programs' && (
-              <Link 
-                href="/gigi-the-awkward-age-book" 
-                className="inline-flex items-center gap-1.5 px-4.5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-full shadow-sm hover:scale-102 active:scale-98 transition-all"
-              >
-                View Book Details <ArrowRight size={13} />
-              </Link>
-            )}
+            <Link 
+              href="/gigi-the-awkward-age-book" 
+              className="inline-flex items-center gap-1.5 px-4.5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-full shadow-sm hover:scale-102 active:scale-98 transition-all"
+            >
+              View Book Details <ArrowRight size={13} />
+            </Link>
           </div>
         ) : (
           filteredTransactions.map((tx) => (

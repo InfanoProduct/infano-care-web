@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuthStore } from '@/store/auth-store';
-import { User, Bell, Camera, Loader2, Save, HelpCircle, Link2, ShieldAlert, Sparkles, Send, BookOpen, Calendar, X, Edit3, ArrowLeft, Check } from 'lucide-react';
+import { User, Bell, Camera, Loader2, Save, HelpCircle, ShieldAlert, Sparkles, Send, BookOpen, Calendar, X, Edit3, ArrowLeft, Check } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
@@ -509,7 +509,7 @@ export default function ProfilePage() {
               {isTeen ? 'My Space Settings' : 'Parent Profile & Preferences'}
             </h1>
             <p className="text-xs font-semibold text-slate-500 mt-1">
-              Manage your personal details, notification alerts, and learn how linking works.
+              Manage your personal details and notification preferences.
             </p>
           </div>
         </div>
@@ -532,8 +532,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Content Area */}
-      <div className="grid md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 space-y-5">
+      <div className="max-w-4xl space-y-5">
           
           {/* TAB 1: Profile */}
           {activeTab === 'profile' && (
@@ -866,28 +865,6 @@ export default function ProfilePage() {
           )}
 
         </div>
-
-        {/* Sidebar Widget */}
-        <div className="space-y-5">
-          <div className="bg-indigo-50/40 border border-indigo-100 rounded-xl p-5 text-center space-y-3">
-            <div className="w-10 h-10 bg-white text-indigo-600 rounded-lg flex items-center justify-center mx-auto shadow-sm">
-              <Link2 size={20} />
-            </div>
-            <div>
-              <h3 className="font-bold text-indigo-900 text-base">{isTeen ? 'Parent Linking' : 'Daughter Linking'}</h3>
-              <p className="text-[11px] font-medium text-slate-505 mt-1.5 leading-relaxed">
-                Connect accounts to share progress updates and synchronize calendars.
-              </p>
-            </div>
-            <Link 
-              href="/dashboard/parent"
-              className="block w-full py-2 bg-indigo-600 text-white border border-indigo-500 rounded-lg font-bold text-xs hover:bg-indigo-750 transition-all shadow-sm"
-            >
-              Manage Links
-            </Link>
-          </div>
-        </div>
-      </div>
 
       {/* Crop Modal Dialog */}
       {isCropModalOpen && portalMounted && createPortal(

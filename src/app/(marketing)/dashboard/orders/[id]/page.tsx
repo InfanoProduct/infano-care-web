@@ -298,17 +298,7 @@ export default function OrderDetailsPage() {
                 </div>
               )}
 
-              {/* Action buttons for Program */}
-              {type === 'PROGRAM' && (
-                <div className="px-6 py-5 border-t border-slate-100 bg-slate-50/30 flex items-center justify-end gap-3">
-                  <Link
-                    href="/dashboard/enrolled-programs"
-                    className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-primary hover:bg-primary-dark text-white font-extrabold text-xs rounded-full shadow-md transition-all whitespace-nowrap active:scale-95"
-                  >
-                    Go to My Programs <ArrowRight size={13} />
-                  </Link>
-                </div>
-              )}
+
 
             </div>
 

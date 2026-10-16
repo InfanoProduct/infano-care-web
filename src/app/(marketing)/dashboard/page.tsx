@@ -824,15 +824,10 @@ export default function CustomerDashboardOverview() {
           </h1>
           <p className="text-xs sm:text-sm font-semibold text-slate-600 max-w-xl leading-relaxed">
             {isTeen
-              ? "Track your daily quests, active cohort sessions, and cycle insights — all in one place."
-              : "Review your daughter's progress, session status, and explore new programs tailored for her."}
+              ? "Track your daily quests, learning journeys, and cycle insights — all in one place."
+              : "Review your daughter's progress, learning journeys, and personalized resources."}
           </p>
         </div>
-        {isTeen && enrollments.length > 0 && (
-          <button className="bg-linear-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-extrabold py-3 px-6 rounded-full flex items-center gap-2 shadow-md transition-all duration-200 active:scale-95 text-xs shrink-0 relative z-10">
-            <Play size={14} className="fill-white" /> Join Active Cohort
-          </button>
-        )}
       </div>
 
       {/* 4-Card Overview Summary matching reference design */}
@@ -882,80 +877,11 @@ export default function CustomerDashboardOverview() {
 
       <div className={showSidebar ? "grid grid-cols-1 lg:grid-cols-3 gap-6" : "space-y-6 w-full"}>
         <div className={showSidebar ? "lg:col-span-2 space-y-6" : "space-y-6 w-full"}>
-          {/* DEMO SESSIONS & LATEST ORDERS GLIMPSE (ALIGNED IN A ROW WITH PASTEL THEMES & GRAPHICS) */}
-          {(demoSessions.length > 0 || productOrders.length > 0) && (
-            <div className={`grid grid-cols-1 ${demoSessions.length > 0 && productOrders.length > 0 ? 'md:grid-cols-2' : ''} gap-6`}>
-              {/* DEMO SESSIONS GLIMPSE */}
-              {demoSessions.length > 0 && (
-                <div className="bg-[#FFFDF5] border border-amber-200/70 rounded-[26px] p-6 shadow-[0_4px_25px_rgba(245,158,11,0.06)] hover:shadow-lg transition-all duration-300 flex flex-col justify-between relative overflow-hidden group">
-
-
-                  <div className="space-y-4 relative z-10">
-                    <div className="flex items-center justify-between border-b border-amber-200/60 pb-4">
-                      <div>
-                        <h3 className="text-base font-extrabold text-slate-800 flex items-center gap-2">
-                          <div className="p-1.5 rounded-lg bg-white/90 border border-amber-200 text-amber-600 shadow-2xs">
-                            <Calendar size={16} />
-                          </div>
-                          Booked Demo Sessions
-                        </h3>
-                        <p className="text-xs font-semibold text-slate-500 mt-1">Status of consultation slot bookings</p>
-                      </div>
-                      <Link href="/dashboard/expert-sessions?tab=demos" className="text-xs font-extrabold text-amber-600 hover:underline flex items-center gap-0.5 shrink-0">
-                        View Details <ChevronRight size={14} />
-                      </Link>
-                    </div>
-
-                    <div className="space-y-3">
-                      {demoSessions.slice(0, 2).map((demo: any) => {
-                        const progName = demo.suggestedPrograms?.[0] || 'Learning Program';
-                        const theme = getEnrolledTheme(progName);
-                        return (
-                          <div key={demo.id} className="p-4 bg-white/90 border border-amber-200/80 rounded-2xl flex items-center justify-between gap-3 shadow-2xs hover:shadow-md transition-all">
-                            <div className="space-y-1 min-w-0">
-                              <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${theme.badge} inline-block`}>
-                                Demo Session
-                              </span>
-                              <h4 className={`font-extrabold text-sm truncate ${theme.accent}`}>{progName}</h4>
-                              <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 mt-1">
-                                <Calendar size={11} className="text-amber-500" />
-                                <span>{demo.slotDate}</span>
-                                <span>·</span>
-                                <span>{demo.slotTime}</span>
-                              </div>
-                            </div>
-
-                            <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 shrink-0">
-                              {demo.status === 'SCHEDULED' && demo.meetLink && (
-                                <a
-                                  href={demo.meetLink}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="px-2.5 py-1 bg-purple-650 hover:bg-purple-750 text-white rounded-lg text-[9px] font-bold transition-all shadow-3xs flex items-center gap-1 cursor-pointer"
-                                >
-                                  <Video size={10} /> Join
-                                </a>
-                              )}
-                              <span className={`text-[9px] font-bold px-2.5 py-1 rounded-full border shrink-0 ${demo.status === 'PENDING' ? 'bg-amber-50 text-amber-600 border-amber-200' :
-                                demo.status === 'CONTACTED' ? 'bg-teal-50 text-teal-600 border-teal-200' :
-                                  demo.status === 'SCHEDULED' ? 'bg-purple-50 text-purple-600 border-purple-200' :
-                                    demo.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
-                                      'bg-rose-50 text-rose-600 border-rose-200'
-                                }`}>
-                                {demo.status}
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
-
+          {/* LATEST ORDERS GLIMPSE */}
+          {productOrders.length > 0 && (
+            <div className="grid grid-cols-1 gap-6">
               {/* LATEST ORDER DETAILS GLIMPSE */}
-              {productOrders.length > 0 && (
-                <div className="bg-[#F0F4FF] border border-indigo-200/70 rounded-[26px] p-6 shadow-[0_4px_25px_rgba(99,102,241,0.06)] hover:shadow-lg transition-all duration-300 flex flex-col justify-between relative overflow-hidden group">
+              <div className="bg-[#F0F4FF] border border-indigo-200/70 rounded-[26px] p-6 shadow-[0_4px_25px_rgba(99,102,241,0.06)] hover:shadow-lg transition-all duration-300 flex flex-col justify-between relative overflow-hidden group">
 
 
                   <div className="space-y-4 relative z-10">
@@ -1030,113 +956,10 @@ export default function CustomerDashboardOverview() {
                     })()}
                   </div>
                 </div>
-              )}
             </div>
           )}
 
-          {/* COMPACT PROGRAM PROGRESS OVERVIEW */}
-          {enrollments.length > 0 && (
-            <div className="bg-white border border-slate-100 rounded-[26px] p-6 shadow-[0_4px_25px_rgba(0,0,0,0.03)] space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div>
-                  <h3 className="text-base font-extrabold text-slate-800 flex items-center gap-2">
-                    <Award className="text-primary" size={20} /> Program Progress
-                  </h3>
-                  <p className="text-xs font-medium text-slate-400 mt-0.5">High-level status of your active enrollments</p>
-                </div>
-                <Link href="/dashboard/enrolled-programs" className="text-xs font-bold text-primary hover:underline flex items-center gap-0.5">
-                  View All Sessions <ChevronRight size={14} />
-                </Link>
-              </div>
 
-              <div className="space-y-3.5">
-                {enrollments.map(enr => {
-                  if (!enr?.program) return null;
-                  const theme = getEnrolledTheme(enr.program.title);
-                  const total = enr.program.curriculum?.length || 8;
-                  const dbSessions = enr.user?.scheduledSessions || [];
-                  const completed = dbSessions.filter((s: any) => s.status?.toLowerCase() === 'completed' && s.programId === enr.programId).length;
-                  const scheduled = dbSessions.find((s: any) => s.status?.toLowerCase() === 'scheduled' && s.programId === enr.programId);
-                  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-                  const nextDate = scheduled ? new Date(scheduled.scheduledAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : null;
-
-                  return (
-                    <div key={enr.id} className="group/item relative p-6 bg-white border border-slate-100/90 rounded-[22px] flex flex-col gap-4.5 hover:shadow-[0_12px_30px_rgba(0,0,0,0.04)] hover:border-slate-200/80 transition-all duration-300 overflow-hidden">
-                      {/* Left color bar glow indicator */}
-                      <div className={`absolute left-0 top-0 bottom-0 w-1.5 bg-linear-to-b ${theme.gradient}`} />
-                      
-                      <div className="flex-1 space-y-3.5 pl-2">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                          <div className="flex items-center gap-3.5">
-                            {enr.program.thumbnailUrl && (
-                              <div className="relative w-12 h-12 rounded-[14px] overflow-hidden shrink-0 border border-slate-100 shadow-2xs">
-                                <img src={enr.program.thumbnailUrl} alt={enr.program.title} className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-500" />
-                              </div>
-                            )}
-                            <div>
-                              <h4 className={`font-black text-base ${theme.accent} tracking-tight leading-snug`}>{enr.program.title}</h4>
-                              <p className="text-xs font-semibold text-slate-400 mt-0.5">1:1 Private Mentoring</p>
-                              {enr.program.consultations && Array.isArray(enr.program.consultations) && enr.program.consultations.length > 0 && (
-                                <p className="text-[10px] font-bold text-slate-500 mt-1 flex items-center gap-1">
-                                  <Sparkles size={11} className={`${theme.accent} animate-pulse shrink-0`} /> Free: <span className={`${theme.accent} font-extrabold`}>{enr.program.consultations.map((c: any) => c.title).join(', ')}</span>
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            {enr.user?.id && user?.id && enr.user.id !== user.id && (
-                              <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider ${enr.user?.role === 'TEEN' ? 'bg-purple-50 text-purple-600 border-purple-200/60' : 'bg-blue-50 text-blue-600 border-blue-200/60'}`}>
-                                By {enr.user?.role === 'TEEN' ? 'Daughter' : 'Parent'}
-                              </span>
-                            )}
-                            <span className={`inline-flex items-center gap-1 text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${theme.badge} shadow-3xs`}>
-                              {pct === 100 ? 'Completed' : 'Active'}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2 bg-slate-50/40 p-3 rounded-2xl border border-slate-100/50">
-                          <div className="flex justify-between items-center text-[11px] font-bold text-slate-500">
-                            <span>{completed}/{total} sessions done</span>
-                            {nextDate && <span className="text-purple-600 flex items-center gap-1 font-bold"><Calendar size={11} /> Next: {nextDate}</span>}
-                            <span className={`${theme.accent} font-black`}>{pct}%</span>
-                          </div>
-                          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                            <div className={`h-full bg-linear-to-r ${theme.gradient} transition-all duration-1000 ease-out rounded-full`} style={{ width: `${pct}%` }} />
-                          </div>
-                        </div>
-
-                        {scheduled && (
-                          <div className="pt-3 border-t border-slate-100/80 flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
-                            <div className="flex flex-col min-w-0">
-                              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-0.5">Upcoming Session</span>
-                              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 truncate">
-                                <Calendar size={13} className={`${theme.accent} shrink-0`} />
-                                <span className="truncate">
-                                  {new Date(scheduled.scheduledAt).toLocaleString('en-IN', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                                </span>
-                              </div>
-                            </div>
-                            {scheduled.meetingLink && (
-                              <a href={scheduled.meetingLink} target="_blank" className={`shrink-0 px-3.5 py-1.5 text-white text-[11px] font-extrabold rounded-full flex items-center gap-1 shadow-sm transition-all hover:scale-102 active:scale-95 hover:shadow-md bg-linear-to-r ${theme.gradient}`}>
-                                <Play size={11} className="fill-current" /> Join Live
-                              </a>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center justify-end border-t border-slate-100/60 pt-3 pl-2">
-                        <Link href={`/dashboard/enrolled-programs/${enr.id}`} className={`text-xs font-black ${theme.accent} hover:underline flex items-center gap-0.5 whitespace-nowrap bg-slate-50 hover:bg-slate-100 px-4 py-2 rounded-full border border-slate-100/85 transition-all`}>
-                          Timeline <ChevronRight size={14} className="group-hover/item:translate-x-0.5 transition-transform duration-300 ease-out" />
-                        </Link>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
 
           {/* AVAILABLE PROGRAMS CATALOG */}
 
@@ -1218,98 +1041,7 @@ export default function CustomerDashboardOverview() {
             );
           })()}
 
-          {availablePrograms.length > 0 && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-base font-extrabold text-slate-800 flex items-center gap-2.5">
-                  <Compass className="text-primary" size={22} /> Curated Learning Programs
-                </h3>
-                <p className="text-xs font-medium text-slate-500 mt-0.5">Enroll in specialized expert cohorts designed to empower her growth</p>
-              </div>
-              <div className={`grid grid-cols-1 md:grid-cols-2 ${showSidebar ? "" : "lg:grid-cols-3"} gap-5`}>
-                {availablePrograms.map((program, index) => {
-                  const styles = getProgramStyles(program, index);
 
-                  return (
-                    <div
-                      key={program.id}
-                      className={`rounded-[26px] border ${styles.bg} ${styles.border} shadow-[0_4px_25px_rgba(0,0,0,0.03)] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group relative overflow-hidden`}
-                      style={{
-                        boxShadow: `0 10px 30px -10px ${styles.glow}`,
-                      }}
-                    >
-                      {/* Dynamic Background Soft Orb */}
-                      <div
-                        className="absolute -top-12 -right-12 w-32 h-32 rounded-full blur-2xl pointer-events-none opacity-40 group-hover:scale-125 transition-all duration-500 z-0"
-                        style={{ backgroundColor: styles.glow.replace('0.15', '0.3') }}
-                      />
-
-                      {program.thumbnailUrl && (
-                        <div className="w-full h-40 sm:h-44 relative overflow-hidden shrink-0 border-b border-white/40">
-                          <img src={program.thumbnailUrl} alt={program.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                          <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
-                        </div>
-                      )}
-
-                      <div className="p-6 flex flex-col flex-1 relative z-10">
-                        <div className="mb-3">
-                          <h3 className={`text-xl font-extrabold tracking-tight ${styles.text} leading-snug`}>
-                            {program.title}
-                          </h3>
-                          <p className="text-slate-700 font-semibold text-xs leading-relaxed mt-2 italic">
-                            "{program.tagline || program.description}"
-                          </p>
-                        </div>
-
-                        <div className={`flex flex-wrap items-center justify-between gap-2 py-2.5 px-3.5 ${styles.metaBg} rounded-2xl border shadow-2xs mb-5 text-slate-700 text-[11px] font-extrabold relative z-10`}>
-                          <div className="flex items-center gap-1.5">
-                            <BookOpen size={13} className={styles.text} />
-                            <span>{program.curriculum?.length || 8} Sessions</span>
-                          </div>
-                          <div className="h-3 w-px bg-slate-200" />
-                          <div className="flex items-center gap-1.5">
-                            <Calendar size={13} className={styles.text} />
-                            <span>{program.duration}</span>
-                          </div>
-                          {program.consultations && Array.isArray(program.consultations) && program.consultations.length > 0 && (
-                            <>
-                              <div className="h-3 w-px bg-slate-200" />
-                              <div className="flex items-center gap-1.5 text-purple-600">
-                                <Sparkles size={13} className="text-purple-500 shrink-0 animate-pulse" />
-                                <span>{program.consultations.length} {program.consultations.length === 1 ? 'Free Consultation' : 'Free Consultations'}</span>
-                              </div>
-                            </>
-                          )}
-                        </div>
-
-                        <div className="mb-6 flex-1 relative z-10">
-                          <h4 className="text-[10px] font-extrabold text-slate-400 mb-3 uppercase tracking-widest">What she will cover:</h4>
-                          <ul className="space-y-2.5">
-                            {program.topics?.slice(0, 5).map((topic, topicIdx) => (
-                              <li key={topicIdx} className="flex items-start gap-2.5 text-slate-700 text-xs font-semibold leading-snug">
-                                <span className={`w-4 h-4 shrink-0 rounded-full flex items-center justify-center text-[9px] font-black ${styles.bulletBg} shadow-2xs mt-0.5`}>
-                                  <Check size={10} strokeWidth={3} />
-                                </span>
-                                <span>{topic}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        <button
-                          onClick={() => handleBookDemoClick(program)}
-                          className={`w-full inline-flex items-center justify-center gap-2 py-3.5 px-5 rounded-full text-white font-extrabold text-xs transition-all ${styles.btnBg} relative z-10 cursor-pointer active:scale-95 shadow-md`}
-                        >
-                          <span>Book Demo Session • ₹9</span>
-                          <ArrowRight size={14} className="transition-transform group-hover:translate-x-1 duration-300" />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
 
 
 

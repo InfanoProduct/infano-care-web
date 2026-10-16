@@ -215,35 +215,15 @@ export default function CustomerDashboardLayout({
     { href: '/dashboard/profile', label: 'Profile', icon: User },
   ] : [
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-    { href: '/dashboard/enrolled-programs', label: 'My Programs', icon: Layers },
-    { href: '/dashboard/courses', label: 'Explore Courses', icon: Video, matchPrefix: true },
-    { href: '/dashboard/my-courses', label: 'My Courses', icon: BookOpen, matchPrefix: true },
     { href: '/dashboard/orders', label: 'My Orders', icon: Package },
-    ...(!isTeen ? [{ href: '/dashboard/expert-sessions', label: 'My Consultations', icon: Calendar }] : []),
     ...(!isTeen ? [{ href: '/dashboard/resources', label: 'Library', icon: BookOpen }] : []),
-    ...(isTeen ? [{ href: '/dashboard/expert-sessions', label: 'My Consultations', icon: Calendar }] : []),
-    { href: '/dashboard/parent', label: isTeen ? 'Link Parent' : 'Link Daughter', icon: User },
     ...(user.role === 'PEER' ? [{ href: '/dashboard/my-chats', label: 'My Chats', icon: MessageSquare }] : []),
     { href: '/dashboard/profile', label: 'Profile', icon: User },
   ];
 
-  const menuItems = user.role === 'EXPERT'
-    ? baseMenuItems
-    : baseMenuItems.filter(item => {
-      if (item.href === '/dashboard/my-courses') {
-        return hasEnrollments;
-      }
-      return true;
-    });
+  const menuItems = baseMenuItems;
 
   const isLinkActive = (item: { href: string; label: string; icon: any; matchPrefix?: boolean }) => {
-    if (item.href === '/dashboard/my-courses') {
-      return pathname === '/dashboard/my-courses' ||
-        (pathname.startsWith('/dashboard/courses/') && !pathname.startsWith('/dashboard/courses/explore/'));
-    }
-    if (item.href === '/dashboard/courses') {
-      return pathname === '/dashboard/courses' || pathname.startsWith('/dashboard/courses/explore/');
-    }
     if (item.matchPrefix) {
       return pathname === item.href || pathname.startsWith(item.href + '/');
     }
@@ -451,30 +431,6 @@ export default function CustomerDashboardLayout({
           </div>
 
           <div className="flex items-center gap-2 md:gap-4">
-            {/* Peer Training / Become a Peer Top Bar Button */}
-            {user.role !== 'EXPERT' && user.role !== 'PEER' && (
-              certificationStatus === 'unregistered' ? (
-                <button
-                  onClick={() => setIsApplyModalOpen(true)}
-                  className="flex items-center gap-2.5 px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-md bg-[#431872] hover:bg-[#3B1C71] text-white shadow-purple-900/10 active:scale-95 cursor-pointer"
-                >
-                  <Sparkles size={18} className="text-white shrink-0" />
-                  <span>Become a Peer</span>
-                </button>
-              ) : (
-                <Link
-                  href="/dashboard/peer-training"
-                  className={`flex items-center gap-2.5 px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-md active:scale-95 ${pathname.startsWith('/dashboard/peer-training')
-                    ? 'bg-[#3B1C71] text-white ring-2 ring-purple-300 shadow-purple-200'
-                    : 'bg-[#431872] hover:bg-[#3B1C71] text-white shadow-purple-900/10'
-                    }`}
-                >
-                  <Sparkles size={18} className="text-white shrink-0" />
-                  <span>Peer Training</span>
-                </Link>
-              )
-            )}
-
             <NotificationBell />
 
             <div className="flex items-center gap-2.5 bg-slate-50/50 border border-slate-100/80 py-1 pl-2.5 pr-3.5 rounded-xl">

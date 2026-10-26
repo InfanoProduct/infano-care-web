@@ -6,6 +6,30 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   output: 'standalone',
   allowedDevOrigins: ['192.168.1.6'],
+  async redirects() {
+    return [
+      {
+        source: '/adolescentProgram',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/adolescentprogram',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/:locale(en-us|en-uk|en-fr|fr)/adolescentProgram',
+        destination: '/:locale',
+        permanent: true,
+      },
+      {
+        source: '/:locale(en-us|en-uk|en-fr|fr)/adolescentprogram',
+        destination: '/:locale',
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
@@ -37,6 +61,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'dev.infano.care',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
       }
     ],
   },

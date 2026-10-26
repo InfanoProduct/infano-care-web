@@ -45,9 +45,9 @@ export function BookTrust() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 group"
+              className="bg-white p-10 rounded-xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 group"
             >
-              <div className="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500">
+              <div className="w-16 h-16 rounded-xl bg-primary/5 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500">
                 {point.icon}
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-4">{point.title}</h3>

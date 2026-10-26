@@ -42,7 +42,7 @@ export function FloatingBuyWidget({ book }: FloatingBuyWidgetProps) {
           className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-1.5rem)] max-w-2xl"
         >
           {/* Glass card */}
-          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/20 bg-white/95 backdrop-blur-md">
+          <div className="relative rounded-xl overflow-hidden shadow-2xl border border-white/20 bg-white/95 backdrop-blur-md">
             {/* Top accent gradient strip */}
             <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#ff1f56] via-pink-500 to-rose-300" />
 

@@ -32,7 +32,7 @@ export function BookDetailedSection({ book }: BookDetailedSectionProps) {
             >
               <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full scale-110" />
               <Image
-                src="https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952568/infano-assets/book-workbook_ogqaoi.png"
+                src="https://res.cloudinary.com/dhg6sjxug/image/upload/v1793001423/book-workbook_s834cx.png"
                 alt="The Awkward Age Book & Workbook Bundle"
                 width={880}
                 height={1214}

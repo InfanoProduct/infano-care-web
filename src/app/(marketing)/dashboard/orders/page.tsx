@@ -64,7 +64,7 @@ export default function CustomerOrdersOverview() {
   // Transactions list for physical product orders
   const allTransactions = productOrders.map(o => ({
     id: o.id,
-    type: 'BOOK' as const,
+    type: 'BOOK' as 'BOOK' | 'PROGRAM',
     title: o.items?.map((it: any) => `${it.book?.title || 'Gigi Book'} (x${it.quantity})`).join(', ') || 'Gigi Book',
     date: new Date(o.createdAt),
     amount: o.totalAmount,

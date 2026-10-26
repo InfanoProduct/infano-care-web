@@ -32,11 +32,12 @@ export function BookDetailedSection({ book }: BookDetailedSectionProps) {
             >
               <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full scale-110" />
               <Image
-                src="/BookwithCover.png"
-                alt="The Awkward Age Book"
-                width={800}
-                height={800}
+                src="https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952568/infano-assets/book-workbook_ogqaoi.png"
+                alt="The Awkward Age Book & Workbook Bundle"
+                width={880}
+                height={1214}
                 className="relative z-10 drop-shadow-[0_30px_60px_rgba(0,0,0,0.1)] transition-transform hover:scale-[1.02] duration-500 w-full h-auto"
+                unoptimized
               />
             </motion.div>
 
@@ -45,7 +46,7 @@ export function BookDetailedSection({ book }: BookDetailedSectionProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
-              className="w-full  bg-white p-8 md:p-10 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-50 relative mt-[-60px] lg:mt-[-80px] z-20"
+              className="w-full bg-white p-8 md:p-10 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-50 relative mt-[-60px] lg:mt-[-80px] z-20"
             >
               <div className="text-primary/10 text-6xl font-serif absolute top-4 left-8 leading-none select-none italic">“</div>
               <p className="text-slate-600 italic text-sm leading-relaxed relative z-10 mb-8 pt-4">
@@ -77,23 +78,27 @@ export function BookDetailedSection({ book }: BookDetailedSectionProps) {
                 </span>
               </div>
 
-              <h2 className="text-4xl md:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900">
-                A story of Every <br /> <span className="text-primary">Adolescent Girl</span>
+              <h2 className="text-3xl sm:text-4xl lg:text-[38px] xl:text-[44px] 2xl:text-5xl font-bold font-heading mb-8 leading-tight tracking-tight text-slate-900 lg:whitespace-nowrap">
+                A story of Every <span className="text-primary">Adolescent Girl</span>
               </h2>
 
-              <p className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-8 max-w-lg">
-                A warm, illustrated guide to the adolescent journey—built to spark reflection, confidence, and conversations at home. Short chapters, friendly visuals, and practical prompts.
+              <p className="text-base md:text-md text-slate-500 leading-relaxed font-medium mb-8 max-w-xl">
+                A warm, illustrated guide paired with an interactive companion workbook—built to spark reflection, confidence, and conversations at home. Short chapters, friendly visuals, and hands-on activities.
               </p>
 
               {/* Info Cards */}
-              <div className="flex flex-wrap gap-4 mb-10">
-                <div className="flex-1 min-w-[200px] bg-[#FAF9FF] p-6 rounded-2xl border border-slate-100">
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Pages</h4>
-                  <p className="text-slate-600 text-sm font-medium"><span className="font-bold text-slate-900">230 pages</span> of illustrated guidance</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+                <div className="bg-gradient-to-br from-[#EDE9FE] via-[#F3EDFF] to-[#FAF5FF] p-5 lg:p-6 rounded-xl border border-purple-200/90 shadow-[0_2px_12px_-3px_rgba(88,56,140,0.08)] hover:shadow-md hover:border-purple-300 transition-all flex flex-col justify-center">
+                  <h4 className="text-[11px] font-black uppercase tracking-widest text-primary mb-1.5">Book</h4>
+                  <p className="text-slate-700 text-sm font-medium"><span className="font-bold text-slate-900">230 pages</span> of illustrated guidance</p>
                 </div>
-                <div className="flex-1 min-w-[200px] bg-[#FAF9FF] p-6 rounded-2xl border border-slate-100">
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Who it's for</h4>
-                  <p className="text-slate-600 text-sm font-medium"><span className="font-bold text-slate-900">Ages 10–17</span> Trusted by parents & teachers</p>
+                <div className="bg-gradient-to-br from-[#FCE7F3] via-[#FDE8EF] to-[#FFF1F6] p-5 lg:p-6 rounded-xl border border-pink-200/90 shadow-[0_2px_12px_-3px_rgba(219,39,119,0.08)] hover:shadow-md hover:border-pink-300 transition-all flex flex-col justify-center">
+                  <h4 className="text-[11px] font-black uppercase tracking-widest text-pink-600 mb-1.5">Workbook</h4>
+                  <p className="text-slate-700 text-sm font-medium"><span className="font-bold text-slate-900">90 pages</span> of hands-on activities</p>
+                </div>
+                <div className="sm:col-span-2 bg-gradient-to-br from-[#FEF3C7] via-[#FFF3D6] to-[#FFFBEB] p-5 lg:p-6 rounded-xl border border-amber-200/90 shadow-[0_2px_12px_-3px_rgba(217,119,6,0.08)] hover:shadow-md hover:border-amber-300 transition-all flex flex-col justify-center">
+                  <h4 className="text-[11px] font-black uppercase tracking-widest text-amber-700 mb-1.5">Who it's for</h4>
+                  <p className="text-slate-700 text-sm font-medium"><span className="font-bold text-slate-900">Ages 10–15</span> • Trusted by parents & teachers</p>
                 </div>
               </div>
 
@@ -107,14 +112,14 @@ export function BookDetailedSection({ book }: BookDetailedSectionProps) {
                   ].map((text, i) => (
                     <div key={i} className="flex items-center gap-3">
                       <CheckCircle2 className="text-emerald-500 shrink-0" size={18} />
-                      <span className="text-slate-600 font-bold tracking-tight">{text}</span>
+                      <span className="text-slate-500 text-sm font-medium tracking-tight">{text}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Price & Buttons Box */}
-              <div className="bg-[#F5F3FF] p-6 lg:p-8 rounded-[2.5rem] border border-primary/10  relative overflow-hidden group">
+              <div className="bg-[#F5F3FF] p-6 lg:p-8 rounded-2xl border border-primary/10  relative overflow-hidden group">
                 <div className="flex flex-wrap flex-col xl:flex-row items-center justify-between gap-6 xl:gap-8">
                   <div>
                     <div className="flex items-baseline gap-2 mb-1">

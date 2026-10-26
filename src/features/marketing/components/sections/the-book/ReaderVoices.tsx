@@ -70,7 +70,7 @@ export function VideoPlayer({ videoUrl, name, age, location }: VideoPlayerProps)
 
   return (
     <div
-      className="relative w-full aspect-[9/16] rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10 bg-slate-950 group"
+      className="relative w-full aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-slate-950 group"
       role="region"
       aria-label={`Testimonial video by ${name}${age ? `, age ${age}` : ''}, from ${location}`}
     >

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { ArrowRight, BookOpen } from 'lucide-react';
+import { ArrowRight, BookOpen, BookCheck } from 'lucide-react';
 import { Book } from '@/services/shop.service';
 import { useRegion, getBookPrice } from '@/hooks/use-region';
 
@@ -24,16 +24,16 @@ export function BookHero({ book }: BookHeroProps) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Left: Book Bundle Image */}
           <div
-            className="relative lg:order-1 self-end lg:-ml-12 animate-in fade-in zoom-in-95 duration-700 fill-mode-both"
+            className="relative lg:order-1 self-end flex justify-center animate-in fade-in zoom-in-95 duration-700 fill-mode-both"
             style={{ animationDelay: '150ms' }}
           >
             <div className="absolute inset-0 bg-primary/10 blur-[100px] rounded-full scale-90" />
             <Image
-              src="/girl-standing-with-book.png"
+              src="https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952851/infano-assets/book-hero-Photoroom_l1llx5.webp"
               alt="The Awkward Age Book Bundle"
-              width={900}
-              height={900}
-              className="relative z-10 drop-shadow-[0_40px_80px_rgba(0,0,0,0.1)] block w-full h-auto"
+              width={912}
+              height={1173}
+              className="relative z-10 drop-shadow-[0_40px_80px_rgba(0,0,0,0.1)] block w-full max-w-[340px] sm:max-w-[390px] lg:max-w-[430px] xl:max-w-[460px] h-auto mx-auto"
               priority
               unoptimized
             />
@@ -102,11 +102,43 @@ export function BookHero({ book }: BookHeroProps) {
             </h1>
 
             <p
-              className="text-base md:text-lg text-slate-500 leading-relaxed font-medium mb-10 max-w-lg animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              className="text-base md:text-lg text-slate-500 leading-relaxed font-medium mb-6 max-w-lg animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
               style={{ animationDelay: '200ms' }}
             >
               Let’s make the best investment—an investment in companionship, love, and loyalty. In a world that’s constantly changing, there is no friend as loyal, comforting, and true as
             </p>
+
+            {/* Book & Workbook Cards */}
+            <div
+              className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-w-lg mb-8 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"
+              style={{ animationDelay: '250ms' }}
+            >
+              {/* Book Card */}
+              <div className="group p-4 bg-gradient-to-br from-[#EDE9FE]/85 via-[#F5F3FF]/75 to-white/90 backdrop-blur-md border border-purple-200/80 rounded-xl shadow-[0_4px_20px_-4px_rgba(88,56,140,0.08)] hover:shadow-[0_12px_28px_-6px_rgba(88,56,140,0.16)] hover:border-purple-300 hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between">
+                <div className="flex items-center gap-2.5 mb-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-white text-primary shadow-xs border border-purple-100 flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all duration-200">
+                    <BookOpen size={14} />
+                  </div>
+                  <span className="text-[11px] font-black uppercase tracking-widest text-primary">Book</span>
+                </div>
+                <p className="text-xs sm:text-[13px] text-slate-700 leading-relaxed font-medium">
+                  The book helps her <strong className="font-bold text-primary-dark">understand</strong> growing up.
+                </p>
+              </div>
+
+              {/* Workbook Card */}
+              <div className="group p-4 bg-gradient-to-br from-[#FCE7F3]/85 via-[#FFF1F2]/75 to-white/90 backdrop-blur-md border border-pink-200/80 rounded-xl shadow-[0_4px_20px_-4px_rgba(219,39,119,0.08)] hover:shadow-[0_12px_28px_-6px_rgba(219,39,119,0.16)] hover:border-pink-300 hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between">
+                <div className="flex items-center gap-2.5 mb-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-white text-pink-600 shadow-xs border border-pink-100 flex items-center justify-center shrink-0 group-hover:bg-pink-600 group-hover:text-white group-hover:border-pink-600 transition-all duration-200">
+                    <BookCheck size={14} />
+                  </div>
+                  <span className="text-[11px] font-black uppercase tracking-widest text-pink-600">Workbook</span>
+                </div>
+                <p className="text-xs sm:text-[13px] text-slate-700 leading-relaxed font-medium">
+                  This workbook helps her <strong className="font-bold text-pink-700">practise</strong> it, one chapter at a time.
+                </p>
+              </div>
+            </div>
 
             <div
               className="flex flex-wrap gap-4 animate-in fade-in slide-in-from-bottom-3 duration-700 fill-mode-both"

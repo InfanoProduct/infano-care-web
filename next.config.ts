@@ -61,6 +61,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'dev.infano.care',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
       }
     ],
   },

@@ -49,7 +49,7 @@ export function BookAchieve() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="bg-white p-8 rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-50 relative overflow-hidden group hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+              className="bg-white p-8 rounded-xl shadow-xl shadow-slate-200/40 border border-slate-50 relative overflow-hidden group hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
             >
               {/* Decorative Glow */}
               <div className="absolute -top-4 -right-4 w-16 h-16 bg-primary/10 blur-2xl rounded-full transition-transform group-hover:scale-150" />

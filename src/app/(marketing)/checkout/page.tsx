@@ -933,15 +933,6 @@ function CheckoutContent() {
 
             <div className="space-y-6">
               <div className="relative aspect-3/4 rounded-xl overflow-hidden shadow-2xl bg-white border border-slate-100 w-full max-w-100 mx-auto lg:mx-0">
-                {selectedImage.includes('Field-Guide') ? (
-                  <span className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-pink-600/90 text-white backdrop-blur-md shadow-xs pointer-events-none">
-                    Workbook
-                  </span>
-                ) : (
-                  <span className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-primary/90 text-white backdrop-blur-md shadow-xs pointer-events-none">
-                    Guide Book
-                  </span>
-                )}
                 <Image
                   src={selectedImage}
                   alt="Book preview"

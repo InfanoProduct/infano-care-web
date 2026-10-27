@@ -151,7 +151,7 @@ export function BookDetailedSection({ book }: BookDetailedSectionProps) {
 
               {/* Trusted Footer */}
               <p className="mt-8 text-center xl:text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                Trusted by 2,000+ families • Endorsed by educators
+                Trusted by 1,000+ families • Endorsed by educators
               </p>
             </motion.div>
           </div>

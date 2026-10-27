@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     url: 'https://infano.care/gigi-the-awkward-age-book',
     images: [
       {
-        url: '/og-images/book-og.png',
+        url: 'https://res.cloudinary.com/dhg6sjxug/image/upload/b_white,c_pad,w_1200,h_630/v1792952851/infano-assets/book-hero-Photoroom_l1llx5.png',
         width: 1200,
         height: 630,
         alt: 'Gigi - The Awkward Age Book Puberty Guide',
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Gigi - The Awkward Age | Adolescent Puberty Guide for Girls | Infano Care',
     description: "Empower adolescent girls with scientific guidance, body-positivity, and self-love. India's first dedicated guidebook addressing female puberty transitions with absolute clarity.",
-    images: ['/og-images/book-og.png'],
+    images: ['https://res.cloudinary.com/dhg6sjxug/image/upload/b_white,c_pad,w_1200,h_630/v1792952851/infano-assets/book-hero-Photoroom_l1llx5.png'],
   },
 };
 
@@ -34,7 +34,7 @@ const bookSchema = {
   "alternateName": "Gigi The Awkward Age Book",
   "description": "India's first illustrated guidebook addressing female puberty with scientific clarity, body-positivity, and self-love. 230 pages of empathetic stories, practical prompts, and expert-backed guidance for girls aged 10–17. Co-created with counsellors and teachers.",
   "url": "https://infano.care/gigi-the-awkward-age-book",
-  "image": "https://infano.care/api/og?title=Gigi+-+The+Awkward+Age&category=Gigi+Book&author=Infano+Care",
+  "image": "https://res.cloudinary.com/dhg6sjxug/image/upload/b_white,c_pad,w_1200,h_630/v1792952851/infano-assets/book-hero-Photoroom_l1llx5.png",
   "bookFormat": "https://schema.org/Paperback",
   "numberOfPages": 230,
   "inLanguage": "en",

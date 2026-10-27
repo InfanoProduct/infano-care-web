@@ -75,7 +75,7 @@ export function FloatingBuyWidget({ book }: FloatingBuyWidgetProps) {
                       <Star className="w-2.5 h-2.5 fill-amber-500" />
                       <Star className="w-2.5 h-2.5 fill-amber-500" />
                       <Star className="w-2.5 h-2.5 fill-amber-500" />
-                      <span className="text-slate-500 ml-0.5">(2000+)</span>
+                      <span className="text-slate-500 ml-0.5">(1000+)</span>
                     </span>
                   </div>
                 </div>
@@ -128,7 +128,7 @@ export function FloatingBuyWidget({ book }: FloatingBuyWidgetProps) {
                     <Star className="w-3 h-3 fill-amber-500" />
                     <Star className="w-3 h-3 fill-amber-500" />
                     <Star className="w-3 h-3 fill-amber-500" />
-                    <span className="text-slate-500 ml-1">(2000+)</span>
+                    <span className="text-slate-500 ml-1">(1000+)</span>
                   </span>
                 </div>
               </div>

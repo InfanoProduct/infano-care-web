@@ -31,9 +31,7 @@ const WORKBOOK_PAGES: string[] = [
   'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952569/infano-assets/7-Gigi-Field-Guide-21x27-Page-028-Troll-Maze_obd7mu.png',
   'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952570/infano-assets/8-Gigi-Field-Guide-21x27-Page-106-Sticker-Sheet_fzmcro.png',
   'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952571/infano-assets/9-Gigi-Field-Guide-21x27-99-Back-Cover_wvjwfb.png',
-  'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952571/infano-assets/9-Gigi-Field-Guide-21x27-99-Back-Cover_wvjwfb.png',
-];
-
+]
 
 interface BookPreviewProps {
   book?: Book | null;

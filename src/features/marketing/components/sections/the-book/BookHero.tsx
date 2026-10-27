@@ -21,7 +21,7 @@ export function BookHero({ book }: BookHeroProps) {
       <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-primary/5 blur-[100px] rounded-full -translate-x-1/3 translate-y-1/3" />
 
       <div className="max-w-360 mx-auto px-6 md:px-12 lg:px-24 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-y-0 lg:gap-20 items-center">
           {/* Left: Book Bundle Image */}
           <div
             className="relative lg:order-1 self-end flex justify-center animate-in fade-in zoom-in-95 duration-700 fill-mode-both"
@@ -33,21 +33,21 @@ export function BookHero({ book }: BookHeroProps) {
               alt="The Awkward Age Book Bundle"
               width={912}
               height={1173}
-              className="relative z-10 drop-shadow-[0_40px_80px_rgba(0,0,0,0.1)] block w-full max-w-[340px] sm:max-w-[390px] lg:max-w-[430px] xl:max-w-[460px] h-auto mx-auto"
+              className="relative z-10 drop-shadow-[0_20px_40px_rgba(0,0,0,0.08)] lg:drop-shadow-[0_40px_80px_rgba(0,0,0,0.1)] block w-full max-w-[340px] sm:max-w-[390px] lg:max-w-[430px] xl:max-w-[460px] h-auto mx-auto"
               priority
               unoptimized
             />
           </div>
 
           {/* Right: Content */}
-          <div className="flex flex-col lg:order-2 py-16 lg:py-20">
+          <div className="flex flex-col lg:order-2 pt-0 pb-16 lg:py-20">
             {/* Animated Social Proof Badge */}
             <motion.div
-              initial={{ opacity: 0, y: -30, scale: 0.95 }}
+              initial={{ opacity: 0, y: 15, scale: 0.95 }}
               animate={{
                 opacity: 1,
-                y: [0, -6, 0],
-                x: [0, 3, 0],
+                y: [0, 4, 0],
+                x: [0, 2, 0],
                 rotate: [-0.5, 0.5, -0.5]
               }}
               whileHover={{ scale: 1.03, rotate: 0.5, transition: { duration: 0.2 } }}
@@ -58,7 +58,7 @@ export function BookHero({ book }: BookHeroProps) {
                 opacity: { duration: 0.6 },
                 scale: { duration: 0.6 }
               }}
-              className="w-fit flex items-center gap-2 sm:gap-2.5 px-4 sm:px-5 py-2 sm:py-2.5 bg-primary/8 backdrop-blur-md text-primary-dark rounded-full mb-6 border border-primary/15 relative overflow-hidden group cursor-pointer hover:bg-primary/12 transition-colors"
+              className="w-fit flex items-center gap-2 sm:gap-2.5 px-4 sm:px-5 py-2 sm:py-2.5 bg-primary/8 backdrop-blur-md text-primary-dark rounded-full mb-6 border border-primary/15 relative overflow-hidden group cursor-pointer hover:bg-primary/12 transition-colors mx-auto lg:mx-0 mt-0 lg:mt-0 z-20"
             >
               <style dangerouslySetInnerHTML={{
                 __html: `

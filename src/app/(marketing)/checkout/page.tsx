@@ -16,13 +16,19 @@ import {
 import { isAnalyticsEnabled } from '@/components/common/Analytics';
 
 const bookImages = [
+  // Guide Book
   '/Page-1.png',
   '/Page-2.png',
   '/page-3.png',
   '/Page-4.png',
   '/Page-5.png',
-  '/Page-6.png',
-  '/Page-7.png'
+  // Companion Workbook
+  'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952570/infano-assets/1-Gigi-Field-Guide-21x27-00-Front-Cover_qpkhza.png',
+  'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952568/infano-assets/2-Gigi-Field-Guide-21x27-Page-002-How-to-use_kpp2kp.png',
+  'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952569/infano-assets/3-Gigi-Field-Guide-21x27-Page-009-Calm-Quest_zk9dvx.png',
+  'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952571/infano-assets/4-Gigi-Field-Guide-21x27-Page-011-Myth-or-Fact_eklea8.png',
+  'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952567/infano-assets/6-Gigi-Field-Guide-21x27-Page-020-Heart-to-Heart-Crossword_z9yapq.png',
+  'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952570/infano-assets/8-Gigi-Field-Guide-21x27-Page-106-Sticker-Sheet_fzmcro.png',
 ];
 
 const INDIA_STATES = [
@@ -910,12 +916,18 @@ function CheckoutContent() {
 
           {/* Left: Product Gallery & Summary */}
           <div className="lg:col-span-5 space-y-8 lg:sticky lg:top-32 w-full max-w-full">
-            <div className="space-y-2 max-w-100 mx-auto lg:mx-0 text-center lg:text-left">
+            <div className="space-y-2.5 max-w-100 mx-auto lg:mx-0 text-center lg:text-left">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                2-in-1 Bundle: Guide Book + Workbook
+              </div>
               <h1 className="text-3xl font-black tracking-tight text-slate-900 leading-tight">
                 {book?.title || 'The Awkward Age'}
               </h1>
-              <p className="text-slate-500 font-medium text-sm italic">
-                {book?.description || 'A story of every adolescent girl'}
+              <p className="text-slate-500 font-medium text-sm">
+                {!book?.description || book.description.trim().toLowerCase() === book.title?.trim().toLowerCase()
+                  ? 'A story of every adolescent girl • Includes 230-page Guide & 90-page Activity Workbook'
+                  : book.description}
               </p>
             </div>
 
@@ -928,28 +940,51 @@ function CheckoutContent() {
                   sizes="(max-width: 768px) 100vw, 400px"
                   className="object-cover transition-all duration-700"
                   priority
+                  unoptimized={selectedImage.startsWith('http')}
                 />
               </div>
 
               <div className="flex gap-2 flex-wrap max-w-100 mx-auto lg:mx-0 justify-center lg:justify-start">
-                {bookImages.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedImage(img)}
-                    className={`relative w-11 aspect-3/4 rounded-md overflow-hidden shrink-0 transition-all border-2 ${selectedImage === img ? 'border-primary ring-1 ring-primary/20' : 'border-transparent opacity-50 hover:opacity-100'
+                {bookImages.map((img, idx) => {
+                  const isWorkbook = img.includes('Field-Guide');
+                  const isSelected = selectedImage === img;
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedImage(img)}
+                      className={`relative w-11 aspect-3/4 rounded-md overflow-hidden shrink-0 transition-all border-2 ${
+                        isSelected
+                          ? isWorkbook
+                            ? 'border-pink-500 ring-2 ring-pink-500/30 scale-105 z-10'
+                            : 'border-primary ring-2 ring-primary/30 scale-105 z-10'
+                          : 'border-transparent opacity-60 hover:opacity-100'
                       }`}
-                  >
-                    <Image src={img} alt={`Thumbnail ${idx}`} fill sizes="44px" className="object-cover" />
-                  </button>
-                ))}
+                      title={isWorkbook ? 'Workbook Page' : 'Guide Book Page'}
+                    >
+                      <Image
+                        src={img}
+                        alt={`Thumbnail ${idx}`}
+                        fill
+                        sizes="44px"
+                        className="object-cover"
+                        unoptimized={img.startsWith('http')}
+                      />
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xl shadow-slate-200/30 space-y-6 max-w-100 w-full mx-auto lg:mx-0">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <ShoppingBag size={16} className="text-primary" />
-                Order summary
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <ShoppingBag size={16} className="text-primary" />
+                  Order summary
+                </h3>
+                <span className="text-[10px] font-black uppercase tracking-wider text-primary bg-purple-50 border border-purple-200/70 px-2 py-0.5 rounded-full">
+                  2 Books Included
+                </span>
+              </div>
 
               <div className="space-y-4">
                 <div className="flex justify-between items-center" itemScope itemType="https://schema.org/Offer">

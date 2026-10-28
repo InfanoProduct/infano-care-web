@@ -40,7 +40,7 @@ export function BookReaders() {
               transition={{ delay: i * 0.1 }}
               className="group relative"
             >
-              <div className="aspect-square rounded-[2rem] overflow-hidden bg-slate-100 border border-slate-100 shadow-sm transition-transform group-hover:scale-105 duration-500">
+              <div className="aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-100 shadow-sm transition-transform group-hover:scale-105 duration-500">
                 <Image 
                   src={reader.src}
                   alt={reader.name}

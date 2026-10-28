@@ -215,6 +215,8 @@ export default function CustomerDashboardLayout({
     { href: '/dashboard/profile', label: 'Profile', icon: User },
   ] : [
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
+    { href: '/dashboard/my-courses', label: 'My Courses', icon: BookOpen, matchPrefix: true },
+    { href: '/dashboard/courses', label: 'Explore Courses', icon: Video, matchPrefix: true },
     { href: '/dashboard/orders', label: 'My Orders', icon: Package },
     ...(!isTeen ? [{ href: '/dashboard/resources', label: 'Library', icon: BookOpen }] : []),
     ...(user.role === 'PEER' ? [{ href: '/dashboard/my-chats', label: 'My Chats', icon: MessageSquare }] : []),
@@ -224,6 +226,13 @@ export default function CustomerDashboardLayout({
   const menuItems = baseMenuItems;
 
   const isLinkActive = (item: { href: string; label: string; icon: any; matchPrefix?: boolean }) => {
+    if (item.href === '/dashboard/my-courses') {
+      return pathname === '/dashboard/my-courses' ||
+        (pathname.startsWith('/dashboard/courses/') && !pathname.startsWith('/dashboard/courses/explore/'));
+    }
+    if (item.href === '/dashboard/courses') {
+      return pathname === '/dashboard/courses' || pathname.startsWith('/dashboard/courses/explore/');
+    }
     if (item.matchPrefix) {
       return pathname === item.href || pathname.startsWith(item.href + '/');
     }

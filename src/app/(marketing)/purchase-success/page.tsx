@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { CheckCircle2, Copy, Check, BookOpen, FileText, HelpCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Copy, Check, BookOpen, FileText, HelpCircle, ArrowRight, Sparkles, Star, Play, Video } from 'lucide-react';
 import { isAnalyticsEnabled } from '@/components/common/Analytics';
 import { formatOrderId } from '@/lib/utils';
 import { useRegion } from '@/hooks/use-region';
+import { apiClient } from '@/lib/api-client';
 
 // Pure React Canvas Confetti effect
 function CanvasConfetti() {
@@ -152,6 +153,36 @@ function PurchaseSuccessContent() {
   const [copied, setCopied] = useState(false);
   const [transactionId, setTransactionId] = useState<string>('');
 
+  const [featuredCourse, setFeaturedCourse] = useState<any>({
+    id: '53dd5354-fad3-460b-b60c-687d4082cc0f',
+    title: 'Adolescent & Parenting Masterclass',
+    description: 'Evidence-based video lessons on puberty transitions, emotional regulation, and confident communication.',
+    thumbnailUrl: 'https://infano-prod.duckdns.org/images/CourseImageM1.png',
+    timeDuration: 345,
+    category: 'Parenting & Adolescent Care',
+    price: 999,
+    isFree: false,
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchCourses = async () => {
+      try {
+        const res: any = await apiClient.get('/lms/explore');
+        if (isMounted && Array.isArray(res) && res.length > 0) {
+          const masterclass = res.find((c: any) => c.title?.toLowerCase().includes('masterclass')) || res[0];
+          if (masterclass) {
+            setFeaturedCourse(masterclass);
+          }
+        }
+      } catch (err) {
+        // Fallback gracefully
+      }
+    };
+    fetchCourses();
+    return () => { isMounted = false; };
+  }, []);
+
   useEffect(() => {
     const idFromParams = searchParams.get('transaction_id');
     setTransactionId(idFromParams || 'ORDER_' + Math.floor(Math.random() * 1000000));
@@ -243,56 +274,155 @@ function PurchaseSuccessContent() {
       <div className="absolute top-[-10%] left-[-10%] w-[40%] aspect-square rounded-full bg-purple-200/30 blur-3xl pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] aspect-square rounded-full bg-rose-200/20 blur-3xl pointer-events-none" />
 
-      <div className="max-w-4xl w-full bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-300 relative z-10">
+      <div className="max-w-5xl w-full bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-300 relative z-10">
         <div className="grid md:grid-cols-12">
 
-          {/* Left Column: Success Message & Support */}
-          <div className="md:col-span-7 p-6 sm:p-10 md:p-12 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-100">
+          {/* Left Column: Success Message & Course Promotion */}
+          <div className="md:col-span-7 p-6 sm:p-8 md:p-10 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-100">
             <div>
-              <div className="w-20 h-20 bg-linear-to-tr from-emerald-400 to-teal-500 text-white rounded-3xl flex items-center justify-center mb-8 shadow-lg shadow-emerald-450/20 border border-emerald-300/20 animate-bounce-slow">
-                <CheckCircle2 size={44} className="stroke-[2.5]" />
+              {/* Header with checkmark badge */}
+              <div className="flex items-start gap-4 mb-5">
+                <div className="w-13 h-13 sm:w-14 sm:h-14 bg-linear-to-tr from-emerald-400 to-teal-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-450/25 border border-emerald-300/30 shrink-0 animate-bounce-slow">
+                  <CheckCircle2 size={30} className="stroke-[2.5]" />
+                </div>
+                <div>
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full mb-1 border border-emerald-200/60">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Order Placed Successfully
+                  </span>
+                  <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                    Order Confirmed! 🎉
+                  </h1>
+                  <p className="text-slate-500 text-xs sm:text-sm leading-relaxed mt-0.5 font-medium">
+                    Thank you! Your book is on its way. We'll share tracking updates via WhatsApp & email.
+                  </p>
+                </div>
               </div>
 
-              <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight mb-4 leading-tight">
-                Order Confirmed! 🎉
-              </h1>
+              {/* Course Advertisement Card */}
+              <div className="bg-linear-to-br from-purple-50/70 via-indigo-50/40 to-pink-50/60 border border-purple-200/80 hover:border-purple-300 rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-md transition-all relative overflow-hidden group mb-5">
+                {/* Decorative glow */}
+                <div className="absolute -top-12 -right-12 w-32 h-32 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
 
-              <p className="text-slate-500 text-sm sm:text-base leading-relaxed mb-8 font-medium">
-                Thank you for ordering your book. Your order has been successfully placed, and we will get it delivered to you soon! Our team will connect with you shortly with further updates.
-              </p>
+                {/* Card Header Tag Row */}
+                <div className="flex items-center justify-between gap-2 mb-3 relative z-10">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-extrabold uppercase tracking-wider border border-primary/15">
+                    <Sparkles size={11} className="text-primary" />
+                    Recommended Next Step
+                  </span>
+                  <div className="flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/50">
+                    <Star size={11} className="fill-amber-400 text-amber-400" />
+                    <span>4.9 (500+ Parents)</span>
+                  </div>
+                </div>
 
-              {/* Need Help Box */}
-              <div className="bg-slate-50/80 rounded-2xl p-5 border border-slate-100/80 mb-8 shadow-sm">
-                <h3 className="font-bold text-slate-800 text-sm mb-3.5 flex items-center gap-1.5">
-                  <HelpCircle size={16} className="text-slate-400" />
-                  Need help with your order?
-                </h3>
-                <div className="grid gap-2.5 text-xs font-semibold text-slate-650">
-                  <a href="mailto:connect@infano.care" className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-white hover:shadow-md border border-transparent hover:border-slate-200/50 transition-all text-slate-700 group">
-                    <span className="text-base group-hover:scale-110 transition-transform">📧</span>
-                    <span>Email: <span className="text-primary font-extrabold group-hover:underline">connect@infano.care</span></span>
-                  </a>
-                  <a href="https://wa.me/916362994347" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-white hover:shadow-md border border-transparent hover:border-slate-200/50 transition-all text-slate-700 group">
-                    <span className="text-base group-hover:scale-110 transition-transform">💬</span>
-                    <span>WhatsApp: <span className="text-primary font-extrabold group-hover:underline">+91 6362994347</span></span>
-                  </a>
+                {/* Main course info row */}
+                <div className="flex gap-3.5 sm:gap-4 items-start relative z-10">
+                  {/* Course Thumbnail */}
+                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-purple-100/80 shadow-xs group-hover:scale-[1.02] transition-transform">
+                    <img
+                      src={featuredCourse.thumbnailUrl || 'https://infano-prod.duckdns.org/images/CourseImageM1.png'}
+                      alt={featuredCourse.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
+                      <div className="w-7 h-7 rounded-full bg-white/90 text-primary flex items-center justify-center shadow-xs">
+                        <Play size={11} className="fill-primary text-primary ml-0.5" />
+                      </div>
+                    </div>
+                    {featuredCourse.timeDuration && (
+                      <div className="absolute bottom-1 right-1 bg-black/75 backdrop-blur-xs text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                        {Math.round(featuredCourse.timeDuration / 60)}h {featuredCourse.timeDuration % 60}m
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Course Details */}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] font-black uppercase tracking-wider text-primary mb-0.5">
+                      {featuredCourse.category || 'Parenting & Adolescent Care'}
+                    </div>
+                    <h3 className="font-extrabold text-slate-900 text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-primary transition-colors font-heading">
+                      {featuredCourse.title}
+                    </h3>
+                    <p className="text-slate-500 text-xs mt-1 line-clamp-2 leading-relaxed">
+                      While waiting for your book, dive into expert-led video lessons to navigate puberty transitions, mood swings, and build lifelong confidence.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Highlights Pill Badges */}
+                <div className="flex flex-wrap items-center gap-1.5 mt-3 pt-3 border-t border-purple-150/70 relative z-10">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-650 bg-white/80 px-2 py-0.5 rounded-lg border border-purple-100/60 shadow-3xs">
+                    <Video size={11} className="text-primary" /> 19 Video Lessons
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-650 bg-white/80 px-2 py-0.5 rounded-lg border border-purple-100/60 shadow-3xs">
+                    <CheckCircle2 size={11} className="text-emerald-600" /> Pediatrician Guided
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-650 bg-white/80 px-2 py-0.5 rounded-lg border border-purple-100/60 shadow-3xs">
+                    <BookOpen size={11} className="text-primary" /> Practical Quizzes
+                  </span>
+                </div>
+
+                {/* CTA Action inside Card */}
+                <div className="mt-4 flex flex-col sm:flex-row items-center gap-2.5 relative z-10">
+                  <button
+                    onClick={() => router.push(featuredCourse.id ? `/course/${featuredCourse.id}` : '/course')}
+                    className="w-full sm:flex-1 py-2.5 px-4 bg-linear-to-r from-primary via-purple-700 to-indigo-700 hover:from-primary/95 hover:to-indigo-800 text-white rounded-xl font-bold shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer group/btn"
+                  >
+                    <span>Explore Masterclass Course</span>
+                    <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+                  </button>
+                  <button
+                    onClick={() => router.push('/course')}
+                    className="text-xs font-bold text-slate-600 hover:text-primary transition-colors py-1.5 px-3 text-center cursor-pointer"
+                  >
+                    Browse all courses →
+                  </button>
                 </div>
               </div>
             </div>
 
-            {/* Back to Home CTA Button */}
-            <div className="mt-6">
+            {/* Bottom Actions & Compact Contact Info */}
+            <div className="mt-auto pt-2 space-y-3">
               <button
                 onClick={() => router.push('/')}
-                className="w-full py-4 bg-slate-900 hover:bg-slate-850 text-white rounded-2xl font-bold shadow-md hover:shadow-lg transition-all active:scale-[0.98] cursor-pointer text-center text-sm flex items-center justify-center gap-1.5"
+                className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold shadow-sm hover:shadow-md transition-all active:scale-[0.99] cursor-pointer text-center text-xs sm:text-sm flex items-center justify-center gap-1.5"
               >
-                Back to Home <ArrowRight size={14} />
+                Back to Home <ArrowRight size={13} />
               </button>
+
+              {/* Repositioned Contact Information as subtle, accessible text */}
+              <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 font-medium">
+                <div className="flex items-center gap-1.5 text-slate-650">
+                  <HelpCircle size={13} className="text-slate-400 shrink-0" />
+                  <span>Need help with your order?</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <a
+                    href="mailto:connect@infano.care"
+                    className="inline-flex items-center gap-1 text-slate-650 hover:text-primary transition-colors hover:underline"
+                  >
+                    <span>📧</span>
+                    <span className="font-semibold">connect@infano.care</span>
+                  </a>
+                  <span className="text-slate-300">•</span>
+                  <a
+                    href="https://wa.me/916362994347"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-slate-650 hover:text-emerald-600 transition-colors hover:underline"
+                  >
+                    <span>💬</span>
+                    <span className="font-semibold">+91 6362994347</span>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Right Column: Detailed Receipt & Breakdown */}
-          <div className="md:col-span-5 bg-slate-50/40 p-6 sm:p-10 md:p-12 flex flex-col justify-center">
+          <div className="md:col-span-5 bg-slate-50/50 p-6 sm:p-8 md:p-10 flex flex-col justify-center">
             <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
               <FileText size={16} className="text-slate-400" />
               Receipt Details

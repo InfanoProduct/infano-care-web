@@ -27,7 +27,7 @@ function detectCountry(request: NextRequest): string | null {
   return null;
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   // 1. Protect /admin routes

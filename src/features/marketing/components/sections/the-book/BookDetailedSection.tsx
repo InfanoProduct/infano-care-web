@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { CheckCircle2, ShoppingCart, BookOpen, Quote, ArrowRight, Users } from 'lucide-react';
-import { Book } from '@/services/shop.service';
+import { Book, getBookSlug } from '@/services/shop.service';
 import { useRegion, getBookPrice } from '@/hooks/use-region';
 
 interface BookDetailedSectionProps {
@@ -133,7 +133,7 @@ export function BookDetailedSection({ book }: BookDetailedSectionProps) {
 
                   <div className="flex flex-wrap gap-4 lg:gap-2 xl:gap-4 justify-center">
                     <Link
-                      href={getLocalizedLink(book ? `/checkout?bookId=${book.id}` : '/checkout')}
+                      href={getLocalizedLink(`/checkout?book=${getBookSlug(book)}`)}
                       className="px-8 lg:px-5 xl:px-8 py-4 lg:py-3 xl:py-4 bg-primary text-white rounded-full font-bold text-sm lg:text-xs xl:text-sm hover:bg-primary transition-all shadow-lg active:scale-95 flex items-center gap-2"
                     >
                       Buy Now <ArrowRight size={16} />

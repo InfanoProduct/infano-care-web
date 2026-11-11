@@ -22,6 +22,7 @@ import { LearningService, LearningJourney, UserProgress } from '@/services/learn
 import Script from 'next/script';
 import { isAnalyticsEnabled } from '@/components/common/Analytics';
 import { getCurrencySymbol } from '@/lib/utils';
+import { HerBloomGarden } from '@/features/daughter/HerBloomGarden';
 
 // Same STYLES_MAP as ParentsPrograms.tsx for exact match
 const STYLES_MAP: Record<string, any> = {
@@ -107,7 +108,15 @@ export default function CustomerDashboardOverview() {
   useEffect(() => {
     setMounted(true);
   }, []);
-  const { user } = useAuthStore();
+  const { user, activeProfile } = useAuthStore();
+
+  useEffect(() => {
+    if (mounted && user) {
+      if (activeProfile?.type === 'PARENT') {
+        router.push('/dashboard/parent');
+      }
+    }
+  }, [mounted, user, activeProfile, router]);
   const [enrollments, setEnrollments] = useState<ProgramEnrollment[]>([]);
   const [allPrograms, setAllPrograms] = useState<Program[]>([]);
   const [isLinked, setIsLinked] = useState(false);
@@ -407,6 +416,18 @@ export default function CustomerDashboardOverview() {
       setDemoSubmitting(false);
     }
   };
+
+  // Render Daughter Bloom Garden for learners/parents
+  if (mounted && user && user.role !== 'EXPERT' && (user.role === 'PARENT' || activeProfile?.type === 'DAUGHTER' || (user.learners && user.learners.length > 0))) {
+    if (activeProfile?.type === 'PARENT') {
+      return (
+        <div className="min-h-screen bg-[#FBF8F6] flex items-center justify-center">
+          <Loader2 className="animate-spin text-[#C2456A]" size={32} />
+        </div>
+      );
+    }
+    return <HerBloomGarden />;
+  }
 
   if (loading) {
     return (

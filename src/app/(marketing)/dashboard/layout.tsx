@@ -33,8 +33,21 @@ export default function CustomerDashboardLayout({
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [hasEnrollments, setHasEnrollments] = useState<boolean>(false);
 
+  // Compute new dashboard flow status early so legacy sidebar fetches don't run unnecessarily
+  const isNewDashboardFlow = Boolean(
+    user && (
+      pathname === '/dashboard/picker' ||
+      pathname.startsWith('/dashboard/parent') ||
+      pathname.startsWith('/dashboard/journey') ||
+      pathname.startsWith('/dashboard/badges') ||
+      pathname.startsWith('/dashboard/diary') ||
+      pathname.startsWith('/dashboard/journal') ||
+      (pathname === '/dashboard' && user.role !== 'EXPERT' && user.role !== 'ADMIN' && user.role !== 'PEER')
+    )
+  );
+
   useEffect(() => {
-    if (!isAuthenticated || !user) return;
+    if (!isAuthenticated || !user?.id || isNewDashboardFlow) return;
     const fetchPeerStatus = async () => {
       try {
         const res: any = await apiClient.get('/peerline/training/status');
@@ -44,10 +57,10 @@ export default function CustomerDashboardLayout({
       }
     };
     fetchPeerStatus();
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user?.id, isNewDashboardFlow]);
 
   useEffect(() => {
-    if (!isAuthenticated || !user || user.role === 'EXPERT') return;
+    if (!isAuthenticated || !user?.id || user.role === 'EXPERT' || isNewDashboardFlow) return;
     const fetchEnrollments = async () => {
       try {
         const res = await apiClient.get<any[]>('/lms/my-courses');
@@ -57,7 +70,7 @@ export default function CustomerDashboardLayout({
       }
     };
     fetchEnrollments();
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user?.id, user?.role, isNewDashboardFlow]);
 
   // Sync profile photo in layout header
   useEffect(() => {
@@ -73,7 +86,7 @@ export default function CustomerDashboardLayout({
         }
       }
     }
-  }, [user]);
+  }, [user?.id, user?.profile?.avatarUrl]);
 
   useEffect(() => {
     setMounted(true);
@@ -98,7 +111,10 @@ export default function CustomerDashboardLayout({
     const doRefresh = async () => {
       try {
         const data: any = await AuthService.refreshToken(refreshToken);
-        setAuth(data.accessToken, data.refreshToken, user);
+        const latestUser = useAuthStore.getState().user;
+        if (latestUser) {
+          setAuth(data.accessToken, data.refreshToken, latestUser);
+        }
       } catch {
         console.warn('[Dashboard] Token refresh session notice.');
       }
@@ -106,7 +122,7 @@ export default function CustomerDashboardLayout({
 
     const refreshTimeout = setTimeout(doRefresh, 14 * 60 * 1000);
     return () => clearTimeout(refreshTimeout);
-  }, [isAuthenticated, refreshToken, user, setAuth]);
+  }, [isAuthenticated, refreshToken, setAuth]);
 
   // Fetch full user profile (and refresh on window focus)
   const profileFetchedRef = useRef(false);
@@ -200,8 +216,12 @@ export default function CustomerDashboardLayout({
   }
 
   // Episode & Course Player Isolation check: bypass dashboard shell for cleaner full-screen player experience
-  if (pathname.includes('/episodes/') || (pathname.includes('/dashboard/courses/') && !pathname.endsWith('/courses') && !pathname.includes('/explore') && !pathname.includes('/overview'))) {
-    return <div className="min-h-screen bg-background overflow-hidden">{children}</div>;
+  if (
+    isNewDashboardFlow ||
+    pathname.includes('/episodes/') ||
+    (pathname.includes('/dashboard/courses/') && !pathname.endsWith('/courses') && !pathname.includes('/explore') && !pathname.includes('/overview'))
+  ) {
+    return <div className="min-h-screen bg-[#FFFAF6]">{children}</div>;
   }
 
   const isTeen = user.role === 'TEEN' || (user.role === 'PEER' && user.contentTier && user.contentTier !== 'ADULT');

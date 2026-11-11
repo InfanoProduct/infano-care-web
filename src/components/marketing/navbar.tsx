@@ -18,7 +18,7 @@ const navLinks = [
   { name: 'Circle', href: '/the-support-circle' },
   { name: 'Book', href: '/gigi-the-awkward-age-book' },
   { name: 'Blog', href: '/blog' },
-  { name: 'Course', href: '/course' },
+  { name: 'Course', href: '/course/girlhood-hernext' },
   { name: 'About', href: '/about' },
 ];
 

@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import HTMLFlipBook from 'react-pageflip';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { Book } from '@/services/shop.service';
+import { Book, getBookSlug } from '@/services/shop.service';
 import { useRegion } from '@/hooks/use-region';
 
 const BOOK_PAGES: string[] = [
@@ -127,7 +127,7 @@ export function BookPreview({ book }: BookPreviewProps = {}) {
                         {idx === pagesWithFiller.length - 1 && (
                           <div className="absolute md:bottom-[55px] bottom-[20px] md:left-[30px] left-[25px]">
                             <a
-                              href={getLocalizedLink(book ? `/checkout?bookId=${book.id}` : '/checkout')}
+                              href={getLocalizedLink(`/checkout?book=${getBookSlug(book)}`)}
                               className="bg-[#ba3c78] text-white font-semibold px-6 py-3 rounded-xl shadow transition hover:bg-[#a03065]"
                             >
                               Book Now

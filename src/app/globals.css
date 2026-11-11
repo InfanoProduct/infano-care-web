@@ -8,6 +8,7 @@
   --font-mono: var(--font-geist-mono);
   --font-playfair: var(--font-playfair-display), Georgia, serif;
   --font-caveat: var(--font-caveat), cursive;
+  --font-noto: var(--font-noto-sans), 'Noto Sans', system-ui, sans-serif;
   
   /* Infano.care Brand Colors */
   --color-background: #FFFCFA; /* Warm off-white */

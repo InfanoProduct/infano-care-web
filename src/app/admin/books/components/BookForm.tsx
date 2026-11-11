@@ -50,6 +50,7 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
   const [pricingTab, setPricingTab] = useState<'IN' | 'US' | 'UK'>('IN');
   const [formData, setFormData] = useState<Partial<Book>>({
     title: '',
+    slug: '',
     description: '',
     price: 0,
     priceUS: undefined,
@@ -264,11 +265,42 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
                   type="text"
                   required
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) => {
+                    const newTitle = e.target.value;
+                    setFormData(prev => {
+                      const nextData = { ...prev, title: newTitle };
+                      if (!bookId && (!prev.slug || prev.slug === prev.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''))) {
+                        nextData.slug = newTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                      }
+                      return nextData;
+                    });
+                  }}
                   placeholder={isWebinarMode ? "e.g. Decoding Her Silence" : "e.g. Growing Up Honest"}
                   className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+                {isWebinarMode ? 'Webinar Slug (URL Path) *' : 'Product Slug (URL Path) *'}
+              </label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                  <Globe size={18} />
+                </div>
+                <input
+                  type="text"
+                  required
+                  value={formData.slug || ''}
+                  onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, '') })}
+                  placeholder={isWebinarMode ? "e.g. decoding-her-silence" : "e.g. gigi-the-awkward-age-book"}
+                  className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all font-mono text-sm"
+                />
+              </div>
+              <p className="text-[11px] text-muted-foreground ml-1">
+                Direct checkout link: <span className="font-mono text-primary font-bold">/checkout?book={formData.slug || 'slug'}</span>
+              </p>
             </div>
 
             <div className="space-y-2">

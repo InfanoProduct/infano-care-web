@@ -97,6 +97,9 @@ export default function BookManagement() {
                       </div>
                       <div className="min-w-0">
                         <p className="font-extrabold text-2xl line-clamp-1 group-hover:text-primary transition-colors tracking-tight">{book.title}</p>
+                        {book.slug && (
+                          <p className="text-xs font-mono text-primary font-semibold mt-0.5">/checkout?book={book.slug}</p>
+                        )}
                         <p className="text-sm text-muted-foreground line-clamp-2 mt-1 font-medium leading-relaxed max-w-xl">
                           {book.description}
                         </p>

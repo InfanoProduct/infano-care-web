@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { getImageUrl, getCategoryColor } from '@/lib/utils';
-import { ShopService, Book } from '@/services/shop.service';
+import { ShopService, Book, getBookSlug } from '@/services/shop.service';
 
 // ─── Configurable "Don't Miss" CTA background image ────────────────────────
 // To change the image: replace /blog-promo-banner.png in the public/ folder,
@@ -72,7 +72,7 @@ export function PromoBanner() {
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
       <div className="absolute inset-0 p-8 flex flex-col justify-end items-center text-center space-y-4">
         <Link 
-          href={book ? `/checkout?bookId=${book.id}` : '/checkout'}
+          href={`/checkout?book=${getBookSlug(book)}`}
           className="px-10 py-4 bg-primary text-white text-[12px] font-black uppercase tracking-widest rounded-lg hover:bg-white hover:text-primary transition-all text-center inline-block"
         >
           Purchase Now

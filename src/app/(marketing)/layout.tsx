@@ -13,22 +13,32 @@ export default function MarketingLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const cleanPathname = pathname ? pathname.replace(/^\/en-(us|uk)/, '') : '';
-  const isHomePage = cleanPathname === '' || cleanPathname === '/';
-  const isDashboard = cleanPathname.startsWith('/peerline/dashboard') || cleanPathname.startsWith('/dashboard');
-  const isProgramDetail = cleanPathname.startsWith('/programs/') && cleanPathname !== '/programs' && cleanPathname !== '/programs/';
-  const isLogin = cleanPathname === '/login' || cleanPathname === '/login/';
-  const isPortal = isDashboard || isProgramDetail || isLogin;
-  const isPurchaseSuccess = cleanPathname.startsWith('/purchase-success');
+  const currentPath = pathname || (typeof window !== "undefined" ? window.location.pathname : "");
+  const cleanPathname = currentPath ? currentPath.replace(/^\/en-(us|uk)/, "") : "";
+
+  const isHomePage = cleanPathname === "" || cleanPathname === "/";
+  const isDashboard = cleanPathname.startsWith("/dashboard") || cleanPathname.startsWith("/peerline/dashboard");
+  const isLogin = cleanPathname.startsWith("/login");
+  const isOnboarding = cleanPathname.startsWith("/onboarding");
+  const isProgramDetail = cleanPathname.startsWith("/programs/") && cleanPathname !== "/programs" && cleanPathname !== "/programs/";
+  const isCoursePage = cleanPathname.startsWith("/course");
+  const isPurchaseSuccess = cleanPathname.startsWith("/purchase-success");
+
+  // Portal routes where the website main navbar, footer, and top padding must be hidden
+  const isPortal = isDashboard || isLogin || isOnboarding || isProgramDetail || isCoursePage;
+
   const hideWidgets =
-    cleanPathname.startsWith('/checkout') ||
-    cleanPathname.startsWith('/gigi-the-awkward-age-book') ||
+    cleanPathname.startsWith("/checkout") ||
+    cleanPathname.startsWith("/gigi-the-awkward-age-book") ||
     isPurchaseSuccess ||
-    cleanPathname.startsWith('/webinar') ||
-    cleanPathname.startsWith('/parents') ||
-    cleanPathname.startsWith('/programs') ||
-    cleanPathname.startsWith('/program-enrollment');
-  const showWhatsAppWidget = (isHomePage || isDashboard) && !hideWidgets;
+    cleanPathname.startsWith("/webinar") ||
+    cleanPathname.startsWith("/parents") ||
+    cleanPathname.startsWith("/programs") ||
+    cleanPathname.startsWith("/program-enrollment") ||
+    isCoursePage ||
+    isPortal;
+
+  const showWhatsAppWidget = isHomePage && !hideWidgets && !isPortal;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -37,12 +47,16 @@ export default function MarketingLayout({
           <MarketingNavbar />
         </Suspense>
       )}
-      <main className={`flex-1 w-full ${!isPortal ? 'pt-20' : ''}`}>
+
+      <main className={`flex-1 w-full ${!isPortal ? "pt-20" : ""}`}>
         {children}
       </main>
-      {!isPortal && !isPurchaseSuccess && !cleanPathname.startsWith('/webinar') && <MarketingFooter />}
 
-      {/* Floating WhatsApp Button */}
+      {!isPortal && !isPurchaseSuccess && !cleanPathname.startsWith("/webinar") && (
+        <MarketingFooter />
+      )}
+
+      {/* Floating WhatsApp Button on Public Home Page only */}
       {showWhatsAppWidget && (
         <Link
           href="https://wa.me/919243019243"

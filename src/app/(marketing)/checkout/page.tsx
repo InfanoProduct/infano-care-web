@@ -1,37 +1,44 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import Script from 'next/script';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
-import { ShopService, Book } from '@/services/shop.service';
+import { ShopService, Book, getBookSlug, slugify } from '@/services/shop.service';
 import { useRegion, getBookPrice, getShippingCharge } from '@/hooks/use-region';
 import {
   ArrowLeft, CheckCircle2, ShoppingBag, Tag,
   Loader2, CreditCard, Truck, AlertCircle,
-  Plus, Minus, Lock
+  Plus, Minus, Lock, Check, Gift, ChevronRight,
+  ChevronLeft, X, Sparkles, Star, Eye
 } from 'lucide-react';
 import { isAnalyticsEnabled } from '@/components/common/Analytics';
 
-const bookImages = [
-  // Guide Book
-  '/Page-1.png',
-  '/Page-2.png',
-  '/page-3.png',
-  '/Page-4.png',
-  '/Page-5.png',
-  // Companion Workbook
-  'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952570/infano-assets/1-Gigi-Field-Guide-21x27-00-Front-Cover_qpkhza.png',
-  'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952568/infano-assets/2-Gigi-Field-Guide-21x27-Page-002-How-to-use_kpp2kp.png',
-  'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952569/infano-assets/3-Gigi-Field-Guide-21x27-Page-009-Calm-Quest_zk9dvx.png',
-  'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952571/infano-assets/4-Gigi-Field-Guide-21x27-Page-011-Myth-or-Fact_eklea8.png',
-  'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952567/infano-assets/6-Gigi-Field-Guide-21x27-Page-020-Heart-to-Heart-Crossword_z9yapq.png',
-  'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952570/infano-assets/8-Gigi-Field-Guide-21x27-Page-106-Sticker-Sheet_fzmcro.png',
+// Real high-resolution pages for the Look Inside Lightbox modal
+const LIGHTBOX_PAGES = [
+  { n: 1, name: 'Front Cover', part: 'Guide Book', image: '/Page-1.png', bg: '#F7B267', ink: '#9A4A16' },
+  { n: 2, name: 'Table of Contents', part: 'Guide Book', image: '/Page-2.png', bg: '#FDEFF0', ink: '#A8365A' },
+  { n: 3, name: 'A Day at School', part: 'Guide Book', image: '/page-3.png', bg: '#E3DAF5', ink: '#5A4385' },
+  { n: 4, name: 'Talking to Mom', part: 'Guide Book', image: '/Page-4.png', bg: '#FDEFF0', ink: '#A8365A' },
+  { n: 5, name: 'Inside Her Mind', part: 'Guide Book', image: '/Page-5.png', bg: '#F1ECFA', ink: '#5A4385' },
+  { n: 6, name: 'Field Guide Cover', part: 'Workbook', image: 'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952570/infano-assets/1-Gigi-Field-Guide-21x27-00-Front-Cover_qpkhza.png', bg: '#D8ECF8', ink: '#2F6494' },
+  { n: 7, name: 'My Period Plan', part: 'Workbook', image: 'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952568/infano-assets/2-Gigi-Field-Guide-21x27-Page-002-How-to-use_kpp2kp.png', bg: '#D4EFE4', ink: '#24735A' },
+  { n: 8, name: 'Calm Quest Grid', part: 'Workbook', image: 'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952569/infano-assets/3-Gigi-Field-Guide-21x27-Page-009-Calm-Quest_zk9dvx.png', bg: '#D4EFE4', ink: '#24735A' },
+  { n: 9, name: 'Body Check-in', part: 'Workbook', image: 'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952571/infano-assets/4-Gigi-Field-Guide-21x27-Page-011-Myth-or-Fact_eklea8.png', bg: '#E3DAF5', ink: '#5A4385' },
+  { n: 10, name: 'Crossword Puzzle', part: 'Workbook', image: 'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952567/infano-assets/6-Gigi-Field-Guide-21x27-Page-020-Heart-to-Heart-Crossword_z9yapq.png', bg: '#D8ECF8', ink: '#2F6494' },
+  { n: 11, name: 'Sticker Sheet', part: 'Workbook', image: 'https://res.cloudinary.com/dhg6sjxug/image/upload/v1792952570/infano-assets/8-Gigi-Field-Guide-21x27-Page-106-Sticker-Sheet_fzmcro.png', bg: '#FFF4C7', ink: '#8A6410' },
 ];
 
-const INDIA_STATES = [
+function getEstimatedDeliveryDate(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 4);
+  return d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
+// List of all Indian states & union territories for address selection
+const INDIAN_STATES = [
   "Andaman and Nicobar Islands",
   "Andhra Pradesh",
   "Arunachal Pradesh",
@@ -70,825 +77,1025 @@ const INDIA_STATES = [
   "West Bengal",
 ];
 
-const INDIA_STATE_ALIASES: Record<string, string> = {
-  'chattisgarh': 'Chhattisgarh',
-  'chhattisgarh': 'Chhattisgarh',
-  'orissa': 'Odisha',
-  'odisha': 'Odisha',
-  'pondicherry': 'Puducherry',
-  'puducherry': 'Puducherry',
-  'uttaranchal': 'Uttarakhand',
-  'uttarakhand': 'Uttarakhand',
-  'delhi': 'Delhi',
-  'newdelhi': 'Delhi',
-  'nationalcapitalterritoryofdelhi': 'Delhi',
-  'nctofdelhi': 'Delhi',
-  'jammuandkashmir': 'Jammu and Kashmir',
-  'jammukashmir': 'Jammu and Kashmir',
-  'andamanandnicobar': 'Andaman and Nicobar Islands',
-  'andamanandnicobarislands': 'Andaman and Nicobar Islands',
-  'andamannicobar': 'Andaman and Nicobar Islands',
-  'dadraandnagarhaveli': 'Dadra and Nagar Haveli and Daman and Diu',
-  'damananddiu': 'Dadra and Nagar Haveli and Daman and Diu',
-  'dadraandnagarhavelianddamananddiu': 'Dadra and Nagar Haveli and Daman and Diu',
-  'telengana': 'Telangana',
-  'telangana': 'Telangana',
-};
-
-function matchIndianState(rawState: string): string {
-  if (!rawState) return '';
-  const clean = rawState.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-  if (INDIA_STATE_ALIASES[clean]) return INDIA_STATE_ALIASES[clean];
-  const exact = INDIA_STATES.find(s => s.toLowerCase().replace(/[^a-z0-9]/g, '') === clean);
-  if (exact) return exact;
-  const partial = INDIA_STATES.find(s => clean.includes(s.toLowerCase().replace(/[^a-z0-9]/g, '')) || s.toLowerCase().replace(/[^a-z0-9]/g, '').includes(clean));
-  return partial || rawState;
-}
-
-const US_STATES = [
-  { code: 'AL', name: 'Alabama' },
-  { code: 'AK', name: 'Alaska' },
-  { code: 'AZ', name: 'Arizona' },
-  { code: 'AR', name: 'Arkansas' },
-  { code: 'CA', name: 'California' },
-  { code: 'CO', name: 'Colorado' },
-  { code: 'CT', name: 'Connecticut' },
-  { code: 'DE', name: 'Delaware' },
-  { code: 'FL', name: 'Florida' },
-  { code: 'GA', name: 'Georgia' },
-  { code: 'HI', name: 'Hawaii' },
-  { code: 'ID', name: 'Idaho' },
-  { code: 'IL', name: 'Illinois' },
-  { code: 'IN', name: 'Indiana' },
-  { code: 'IA', name: 'Iowa' },
-  { code: 'KS', name: 'Kansas' },
-  { code: 'KY', name: 'Kentucky' },
-  { code: 'LA', name: 'Louisiana' },
-  { code: 'ME', name: 'Maine' },
-  { code: 'MD', name: 'Maryland' },
-  { code: 'MA', name: 'Massachusetts' },
-  { code: 'MI', name: 'Michigan' },
-  { code: 'MN', name: 'Minnesota' },
-  { code: 'MS', name: 'Mississippi' },
-  { code: 'MO', name: 'Missouri' },
-  { code: 'MT', name: 'Montana' },
-  { code: 'NE', name: 'Nebraska' },
-  { code: 'NV', name: 'Nevada' },
-  { code: 'NH', name: 'New Hampshire' },
-  { code: 'NJ', name: 'New Jersey' },
-  { code: 'NM', name: 'New Mexico' },
-  { code: 'NY', name: 'New York' },
-  { code: 'NC', name: 'North Carolina' },
-  { code: 'ND', name: 'North Dakota' },
-  { code: 'OH', name: 'Ohio' },
-  { code: 'OK', name: 'Oklahoma' },
-  { code: 'OR', name: 'Oregon' },
-  { code: 'PA', name: 'Pennsylvania' },
-  { code: 'RI', name: 'Rhode Island' },
-  { code: 'SC', name: 'South Carolina' },
-  { code: 'SD', name: 'South Dakota' },
-  { code: 'TN', name: 'Tennessee' },
-  { code: 'TX', name: 'Texas' },
-  { code: 'UT', name: 'Utah' },
-  { code: 'VT', name: 'Vermont' },
-  { code: 'VA', name: 'Virginia' },
-  { code: 'WA', name: 'Washington' },
-  { code: 'WV', name: 'West Virginia' },
-  { code: 'WI', name: 'Wisconsin' },
-  { code: 'WY', name: 'Wyoming' }
-];
-
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const bookId = searchParams.get('bookId');
+  const params = useParams();
+  const routeSlug = (params?.slug as string) || '';
+  const bookIdentifier = searchParams.get('book') || searchParams.get('slug') || routeSlug || searchParams.get('bookId') || '';
   const nameParam = searchParams.get('name') || '';
   const phoneParam = searchParams.get('phone') || '';
   const emailParam = searchParams.get('email') || '';
-  const { user, isAuthenticated } = useAuthStore();
+  const giftParam = searchParams.get('gift') === 'true';
+
+  const { user } = useAuthStore();
   const {
     region,
     currencySymbol,
     currencyCode,
-    countryName,
     dialCode,
-    flagEmoji,
-    isoCode,
     getLocalizedLink,
     formatPrice
   } = useRegion();
 
-  const [book, setBook] = useState<Book | null>({
-    id: bookId || 'default',
-    title: 'Gigi — The Awkward Age',
-    description: 'A story of Every Adolescent Girl',
-    price: 499,
-    priceUS: 19.99,
-    priceUK: 14.99,
-    imageUrl: '/Page-1.png',
-    stock: 100,
-    isActive: true
-  });
-  const [loading, setLoading] = useState(false);
+  const [book, setBook] = useState<Book | null>(null);
+  const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [cachedOrder, setCachedOrder] = useState<any>(null);
-  const [selectedImage, setSelectedImage] = useState(bookImages[0]);
 
-  // Financials
+  // Form Fields
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [pincode, setPincode] = useState('');
+  const [address, setAddress] = useState(''); // Flat / House / Building
+  const [addressLine2, setAddressLine2] = useState(''); // Street / Area / Sector
+  const [landmark, setLandmark] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [isGift, setIsGift] = useState(giftParam);
+  const [giftNote, setGiftNote] = useState('');
+
+  // Course Addon & Payment
+  const [paymentMethod, setPaymentMethod] = useState<'ONLINE' | 'COD'>('ONLINE');
+  const [addCourse, setAddCourse] = useState(true); // default ON for maximum value as in template
+  const [showSummaryDetails, setShowSummaryDetails] = useState(false);
+
+  // Look Inside Lightbox
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  // Coupons
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+
+  // Payment Failed State
   const [paymentFailed, setPaymentFailed] = useState(false);
   const [paymentFailedReason, setPaymentFailedReason] = useState('');
-  const rzpRef = React.useRef<any>(null);
+
+  // Pincode auto-lookup status
   const [pincodeLoading, setPincodeLoading] = useState(false);
-  const [paypalReady, setPaypalReady] = useState(false);
-  const [initiatingPayment, setInitiatingPayment] = useState(false);
-  const [intlPaymentMethod, setIntlPaymentMethod] = useState<'CARD' | 'PAYPAL'>('CARD');
-  const paypalContainerRef = React.useRef<HTMLDivElement>(null);
-  const [quantity, setQuantity] = useState(1);
-  const [formData, setFormData] = useState({
-    guestName: '',
-    guestEmail: '',
-    guestPhone: '',
-    shippingAddress: '',
-    city: '',
-    state: '',
-    pincode: '',
-    paymentMethod: 'ONLINE' as 'ONLINE' | 'COD',
-    gstNumber: '',
-  });
 
+  const deliveryDateString = useMemo(() => getEstimatedDeliveryDate(), []);
 
+  // Autofill user details
   useEffect(() => {
-    if (nameParam || phoneParam || emailParam || user) {
-      const fallbackName = user?.profile?.displayName || (user?.username?.includes('@') ? '' : user?.username) || '';
-      const targetName = nameParam || fallbackName;
-      let targetPhone = phoneParam || user?.phone || '';
-      const targetEmail = emailParam || user?.email || '';
+    if (user || nameParam || phoneParam || emailParam) {
+      if (nameParam && !fullName) setFullName(nameParam);
+      else if (user?.profile?.displayName && !fullName) setFullName(user.profile.displayName);
 
+      if (emailParam && !email) setEmail(emailParam);
+      else if (user?.email && !email) setEmail(user.email);
+
+      let targetPhone = phoneParam || user?.phone || '';
       if (targetPhone) {
         const cleaned = targetPhone.replace(/[\s\-()]/g, '');
-        if (region === 'IN') {
-          if (cleaned.startsWith('+91') && cleaned.length === 13) {
-            targetPhone = cleaned.substring(3);
-          } else if (cleaned.startsWith('91') && cleaned.length === 12) {
-            targetPhone = cleaned.substring(2);
-          }
-        } else if (region === 'US') {
-          if (cleaned.startsWith('+1') && cleaned.length === 12) {
-            targetPhone = cleaned.substring(2);
-          } else if (cleaned.startsWith('1') && cleaned.length === 11) {
-            targetPhone = cleaned.substring(1);
-          }
-        } else if (region === 'UK') {
-          if (cleaned.startsWith('+44') && cleaned.length === 13) {
-            targetPhone = cleaned.substring(3);
-          } else if (cleaned.startsWith('44') && cleaned.length === 12) {
-            targetPhone = cleaned.substring(2);
-          }
-        } else if (region === 'FR') {
-          if (cleaned.startsWith('+33') && cleaned.length === 12) {
-            targetPhone = cleaned.substring(3);
-          } else if (cleaned.startsWith('33') && cleaned.length === 11) {
-            targetPhone = cleaned.substring(2);
-          }
-        }
+        if (cleaned.startsWith('+91') && cleaned.length === 13) setPhone(cleaned.substring(3));
+        else if (cleaned.startsWith('91') && cleaned.length === 12) setPhone(cleaned.substring(2));
+        else setPhone(cleaned);
       }
-
-      setFormData(prev => {
-        const updates: Partial<typeof prev> = {};
-        if (targetName && !prev.guestName) updates.guestName = targetName;
-        if (targetPhone && !prev.guestPhone) updates.guestPhone = targetPhone;
-        if (targetEmail && !prev.guestEmail) updates.guestEmail = targetEmail;
-
-        if (Object.keys(updates).length === 0) {
-          return prev;
-        }
-        return {
-          ...prev,
-          ...updates
-        };
-      });
     }
-  }, [nameParam, phoneParam, emailParam, user, region]);
+  }, [user, nameParam, phoneParam, emailParam]);
 
-  useEffect(() => {
-    setCachedOrder(null);
-  }, [formData, quantity, appliedCoupon]);
-
+  // Load Book dynamically by slug or ID
   useEffect(() => {
     async function loadBook() {
       try {
-        if (bookId) {
-          const data = await ShopService.getBook(bookId);
-          if (data) {
-            setBook(data);
-          } else {
-            throw new Error('Book not found');
+        let loadedBook: Book | null = null;
+        if (bookIdentifier) {
+          try {
+            const data = await ShopService.getBook(bookIdentifier);
+            if (data && data.id) loadedBook = data;
+          } catch {
+            // fallback to getBooks
           }
-        } else {
+        }
+
+        if (!loadedBook) {
           const books = await ShopService.getBooks();
           if (books && books.length > 0) {
-            const targetBook = books.find(b => b.isActive) || books[0];
-            setBook(targetBook);
-          } else {
-            setBook({
-              id: 'default',
-              title: 'The Awkward Age',
-              description: 'A story of Every Adolescent Girl',
-              price: 499,
-              stock: 100,
-              isActive: true
-            });
+            if (bookIdentifier) {
+              const normalized = bookIdentifier.toLowerCase().trim();
+              loadedBook = books.find(b => {
+                const titleSlug = slugify(b.title || '');
+                const bookSlug = (b.slug || '').toLowerCase().trim();
+                return (
+                  b.id === bookIdentifier ||
+                  bookSlug === normalized ||
+                  titleSlug === normalized ||
+                  normalized.startsWith(titleSlug) ||
+                  titleSlug.startsWith(normalized)
+                );
+              }) || null;
+            }
+            if (!loadedBook) {
+              loadedBook = books.find(b => b.isActive) || books[0];
+            }
+          }
+        }
+
+        if (loadedBook) {
+          setBook(loadedBook);
+          // If URL contains raw UUID parameter (?bookId=...), cleanly replace with slug parameter in URL bar
+          if (typeof window !== 'undefined' && searchParams.has('bookId')) {
+            const currentParams = new URLSearchParams(searchParams.toString());
+            const canonicalSlug = getBookSlug(loadedBook);
+            currentParams.delete('bookId');
+            if (canonicalSlug) {
+              currentParams.set('book', canonicalSlug);
+            }
+            const newUrl = `${window.location.pathname}?${currentParams.toString()}`;
+            window.history.replaceState(null, '', newUrl);
           }
         }
       } catch (err) {
         console.error('Error loading checkout book:', err);
-        setBook({
-          id: 'default',
-          title: 'The Awkward Age',
-          description: 'A story of Every Adolescent Girl',
-          price: 499,
-          stock: 100,
-          isActive: true
-        });
       } finally {
         setLoading(false);
       }
     }
     loadBook();
-  }, [bookId]);
+  }, [bookIdentifier, searchParams]);
 
+  // Pincode auto-lookup
   useEffect(() => {
-    if (isAnalyticsEnabled() && book) {
-      const windowObj = window as any;
-      windowObj.dataLayer = windowObj.dataLayer || [];
-      windowObj.dataLayer.push({
-        event: 'begin_checkout',
-        value: getBookPrice(book, region) * quantity,
-        currency: currencyCode,
-        content_ids: [book.id],
-        content_type: 'product',
-        ecommerce: {
-          currency: currencyCode,
-          value: getBookPrice(book, region) * quantity,
-          items: [{
-            item_id: book.id,
-            item_name: book.title,
-            price: getBookPrice(book, region),
-            quantity: quantity
-          }]
-        }
-      });
-    }
-  }, [book, region, currencyCode, quantity]);
-
-  useEffect(() => {
-    let shouldFetch = false;
-    let codeToFetch = formData.pincode.trim();
-
-    if (region === 'IN' && codeToFetch.length === 6 && /^\d{6}$/.test(codeToFetch)) {
-      shouldFetch = true;
-    } else if (region === 'US' && codeToFetch.length === 5 && /^\d{5}$/.test(codeToFetch)) {
-      shouldFetch = true;
-    } else if (region === 'UK') {
-      const cleanCode = codeToFetch.replace(/\s+/g, '');
-      const ukRegex = /^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$/i;
-      if (ukRegex.test(codeToFetch)) {
-        shouldFetch = true;
-        codeToFetch = cleanCode;
-      }
-    }
-
-    if (shouldFetch) {
-      const fetchPincodeData = async () => {
-        setPincodeLoading(true);
-        try {
-          const res = await fetch(`/api/pincode?code=${codeToFetch}&region=${region}`);
-          if (!res.ok) {
-            console.warn('Postal code auto-fill unavailable at the moment');
-            return;
-          }
-          const data = await res.json();
+    const cleanPin = pincode.replace(/\D/g, '');
+    if (cleanPin.length === 6 && region === 'IN') {
+      setPincodeLoading(true);
+      fetch(`/api/pincode?code=${cleanPin}&region=IN`)
+        .then(res => res.json())
+        .then(data => {
           if (data && data.success) {
-            let matchedState = data.state || '';
-            if (region === 'IN') {
-              matchedState = matchIndianState(data.state || '');
-            } else if (region === 'US') {
-              const query = (data.stateCode || data.state || '').trim().toLowerCase();
-              const found = US_STATES.find(
-                s => s.code.toLowerCase() === query || s.name.toLowerCase() === query
-              );
-              if (found) {
-                matchedState = found.code;
-              }
+            if (data.city) {
+              setCity(data.city);
             }
-            setFormData(prev => ({
-              ...prev,
-              city: data.city || prev.city,
-              state: matchedState || prev.state
-            }));
-            setFormErrors(prev => ({
-              ...prev,
-              pincode: '',
-              ...(data.city ? { city: '' } : {}),
-              ...(matchedState ? { state: '' } : {})
-            }));
+            if (data.state) {
+              const matchedState = INDIAN_STATES.find(
+                s => s.toLowerCase() === data.state.toLowerCase() ||
+                     s.toLowerCase().replace(/\s+/g, '') === data.state.toLowerCase().replace(/\s+/g, '')
+              );
+              setState(matchedState || data.state);
+            }
           }
-        } catch (err) {
-          console.warn('Postal code lookup failed (network issue or timeout)');
-        } finally {
-          setPincodeLoading(false);
-        }
-      };
-      fetchPincodeData();
+        })
+        .catch(err => {
+          console.warn('Pincode lookup error:', err);
+        })
+        .finally(() => setPincodeLoading(false));
     }
-  }, [formData.pincode, region]);
+  }, [pincode, region]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-
-    // For India, strictly allow only numeric digits in pincode
-    if (name === 'pincode' && region === 'IN') {
-      const numericVal = value.replace(/\D/g, '').slice(0, 6);
-      setFormData(prev => ({ ...prev, [name]: numericVal }));
-      if (formErrors[name]) {
-        setFormErrors(prev => ({ ...prev, [name]: '' }));
-      }
-      return;
+  // Auto-disable course addon if COD is chosen
+  useEffect(() => {
+    if (paymentMethod === 'COD') {
+      setAddCourse(false);
     }
+  }, [paymentMethod]);
 
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (formErrors[name]) {
-      setFormErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
+  // Price calculations
+  const rawBookPrice = book ? getBookPrice(book, region) : 499;
+  const coursePrice = 299;
+  const isCod = paymentMethod === 'COD';
+  const isCourseAdded = !isCod && addCourse;
+  const codChargeRate = book?.codChargeIN || 49;
+  const codFee = isCod ? codChargeRate : 0;
+  const shippingFee = 0; // Free delivery as per design
 
+  const subtotalBeforeDiscount = rawBookPrice + (isCourseAdded ? coursePrice : 0) + codFee;
+  const totalAmount = Math.max(0, subtotalBeforeDiscount - discountAmount);
 
-  const applyCoupon = async () => {
-    if (!couponCode || !book) return;
+  // Validate coupon
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim() || !book) return;
     setValidatingCoupon(true);
-    setError(null);
+    setCouponError(null);
     try {
-      const result = await ShopService.validateCoupon(couponCode, [{ bookId: book.id, quantity: 1, price: book.price }]);
-      setAppliedCoupon(result.coupon);
-      setDiscountAmount(result.discountAmount);
-    } catch (err: any) {
-      setError(err.message || 'Invalid coupon');
-      setAppliedCoupon(null);
-      setDiscountAmount(0);
+      const res = await ShopService.validateCoupon(couponCode.trim(), [
+        { bookId: book.id, quantity: 1, price: rawBookPrice }
+      ]);
+      if (res && res.coupon) {
+        setAppliedCoupon(res.coupon);
+        setDiscountAmount(res.discountAmount || 0);
+      } else {
+        setCouponError('Invalid coupon code');
+      }
+    } catch (e: any) {
+      setCouponError(e.message || 'Failed to apply coupon');
     } finally {
       setValidatingCoupon(false);
     }
   };
 
-  const calculateTotal = () => {
-    if (!book) return { subtotal: 0, gst: 0, delivery: 0, codCharge: 0, total: 0 };
-    const price = getBookPrice(book, region);
-    const baseSubtotal = price * quantity;
-    const appliedDiscount = region === 'IN' ? discountAmount : 0; // Coupons disabled for US/UK
-    const priceAfterDiscount = baseSubtotal - appliedDiscount;
-    
-    if (region === 'IN') {
-      const deliveryCharge = getShippingCharge(book, region);
-      const taxableValue = Math.round((priceAfterDiscount / 1.05) * 100) / 100;
-      const gst = Math.round((priceAfterDiscount - taxableValue) * 100) / 100;
-      const codSurcharge = formData.paymentMethod === 'COD' ? (book.codChargeIN ?? 40) : 0;
-      const total = priceAfterDiscount + deliveryCharge + codSurcharge;
-      return { subtotal: baseSubtotal, gst, delivery: deliveryCharge, codCharge: codSurcharge, total };
-    } else {
-      const deliveryCharge = getShippingCharge(book, region);
-      const total = priceAfterDiscount + deliveryCharge;
-      return { subtotal: baseSubtotal, gst: 0, delivery: deliveryCharge, codCharge: 0, total };
-    }
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setDiscountAmount(0);
+    setCouponCode('');
+    setCouponError(null);
   };
 
-  const { subtotal, gst, delivery, codCharge, total } = calculateTotal();
-
-  // Refs for PayPal callbacks to always access the freshest data without re-rendering buttons
-  const formDataRef = React.useRef(formData);
-  const bookRef = React.useRef(book);
-  const quantityRef = React.useRef(quantity);
-  const totalRef = React.useRef(total);
-  const deliveryRef = React.useRef(delivery);
-  const subtotalRef = React.useRef(subtotal);
-  const userRef = React.useRef(user);
-  const currentOrderRef = React.useRef<any>(null);
-
-  useEffect(() => { formDataRef.current = formData; }, [formData]);
-  useEffect(() => { bookRef.current = book; }, [book]);
-  useEffect(() => { quantityRef.current = quantity; }, [quantity]);
-  useEffect(() => { totalRef.current = total; }, [total]);
-  useEffect(() => { deliveryRef.current = delivery; }, [delivery]);
-  useEffect(() => { subtotalRef.current = subtotal; }, [subtotal]);
-  useEffect(() => { userRef.current = user; }, [user]);
+  // Form Validation & Normalization
+  const getNormalizedPhone = () => {
+    let clean = phone.trim().replace(/[\s\-()]/g, '');
+    if (clean.startsWith('+91')) clean = clean.slice(3);
+    else if (clean.startsWith('91') && clean.length === 12) clean = clean.slice(2);
+    else if (clean.startsWith('0') && clean.length === 11) clean = clean.slice(1);
+    return clean;
+  };
 
   const validateForm = () => {
-    const curForm = formDataRef.current;
-    const errors: Record<string, string> = {};
-    if (!curForm.guestName.trim()) {
-      errors.guestName = 'Full name is required';
-    } else if (!/^[a-zA-Z\s\.\'\-]{2,60}$/.test(curForm.guestName.trim())) {
-      errors.guestName = 'Please enter a valid name';
+    const cleanPhone = getNormalizedPhone();
+    if (!cleanPhone || cleanPhone.length < 10) {
+      setError('Please enter a valid 10-digit mobile number');
+      return false;
     }
-    
-    // Phone Validation
-    const digits = curForm.guestPhone.replace(/\D/g, '');
-    if (region === 'IN') {
-      if (!curForm.guestPhone.trim() || !/^[6-9]\d{9}$/.test(digits)) {
-        errors.guestPhone = 'Valid 10-digit mobile number starting with 6, 7, 8, or 9 is required';
-      }
-    } else if (region === 'US') {
-      if (!curForm.guestPhone.trim() || !/^\d{10}$/.test(digits)) {
-        errors.guestPhone = 'Valid 10-digit mobile number is required';
-      }
-    } else if (region === 'UK') {
-      const isValidUK = (digits.length === 10 && !digits.startsWith('0')) || (digits.length === 11 && digits.startsWith('0'));
-      if (!curForm.guestPhone.trim() || !isValidUK) {
-        errors.guestPhone = 'Valid UK phone number is required (10 or 11 digits)';
-      }
-    } else {
-      const cleanPhone = curForm.guestPhone.replace(/[\s\-()]/g, '');
-      if (!curForm.guestPhone.trim() || !/^\d{7,15}$/.test(cleanPhone)) {
-        errors.guestPhone = 'Valid phone number is required (7-15 digits)';
-      }
+    if (!fullName.trim()) {
+      setError('Please enter your full name');
+      return false;
     }
-
-    // Email validation (mandatory for US/UK)
-    if (region !== 'IN') {
-      if (!curForm.guestEmail.trim()) {
-        errors.guestEmail = 'Email address is required for international orders';
-      } else if (!/\S+@\S+\.\S+/.test(curForm.guestEmail)) {
-        errors.guestEmail = 'Please enter a valid email address';
-      }
-    } else if (curForm.guestEmail.trim() && !/\S+@\S+\.\S+/.test(curForm.guestEmail)) {
-      errors.guestEmail = 'Please enter a valid email address';
+    if (!pincode.trim() || (region === 'IN' && pincode.replace(/\D/g, '').length !== 6)) {
+      setError('Please enter a valid 6-digit delivery pincode');
+      return false;
     }
-
-    // Pincode/Zip validation
-    if (region === 'IN') {
-      if (!curForm.pincode.trim() || !/^[1-9][0-9]{5}$/.test(curForm.pincode)) {
-        errors.pincode = 'Valid 6-digit Indian PIN code is required';
-      }
-    } else if (region === 'US') {
-      if (!curForm.pincode.trim() || !/^\d{5}$/.test(curForm.pincode)) {
-        errors.pincode = 'Valid 5-digit ZIP code is required';
-      }
-    } else if (region === 'UK') {
-      if (!curForm.pincode.trim() || curForm.pincode.length < 3 || curForm.pincode.length > 10) {
-        errors.pincode = 'Valid postal code is required';
-      }
+    if (!address.trim()) {
+      setError('Please enter your flat / house and building address');
+      return false;
     }
-
-    if (!curForm.shippingAddress.trim()) {
-      errors.shippingAddress = 'Street address is required';
-    } else if (curForm.shippingAddress.trim().length < 5) {
-      errors.shippingAddress = 'Please enter a valid street address';
+    if (!city.trim()) {
+      setError('Please enter your city');
+      return false;
     }
-
-    if (!curForm.city.trim()) {
-      errors.city = 'City is required';
-    } else if (!/^[a-zA-Z\s\.\-]{2,50}$/.test(curForm.city.trim())) {
-      errors.city = 'Please enter a valid city name';
+    if (!state.trim()) {
+      setError('Please select or enter your state');
+      return false;
     }
-
-    if (!curForm.state.trim()) {
-      errors.state = 'State is required';
-    } else if (region === 'IN') {
-      const normalizedState = curForm.state.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-      const isValid = INDIA_STATES.some(s => s.toLowerCase().replace(/[^a-z0-9]/g, '') === normalizedState);
-      if (!isValid) {
-        errors.state = 'Please select a valid Indian state';
-      }
-    }
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+    setError(null);
+    return true;
   };
 
-  // ── PayPal Buttons (for both Debit/Credit Card and PayPal Wallet tabs) ──────────
-  useEffect(() => {
-    if (region !== 'US' && region !== 'UK') return;
-
-    setPaypalReady(false);
-    const cardEl = document.getElementById('paypal-card-container');
-    const walletEl = document.getElementById('paypal-wallet-container');
-    if (cardEl) cardEl.innerHTML = '';
-    if (walletEl) walletEl.innerHTML = '';
-
-    let isMounted = true;
-
-    const initPaypal = () => {
-      const paypal = (window as any).paypal;
-      const targetContainerId = intlPaymentMethod === 'CARD' ? 'paypal-card-container' : 'paypal-wallet-container';
-      const containerEl = document.getElementById(targetContainerId);
-
-      if (!paypal?.Buttons || !containerEl) return false;
-
-      containerEl.innerHTML = '';
-
-      const fundingSource = intlPaymentMethod === 'CARD'
-        ? paypal.FUNDING.CARD
-        : paypal.FUNDING.PAYPAL;
-
-      const buttonStyle = intlPaymentMethod === 'CARD'
-        ? { layout: 'vertical', color: 'black', shape: 'rect', label: 'pay', height: 48 }
-        : { layout: 'vertical', color: 'gold', shape: 'rect', label: 'paypal', height: 48 };
-
-      paypal.Buttons({
-        fundingSource,
-        onClick: (_data: any, actions: any) => {
-          setError(null);
-          setInitiatingPayment(true);
-          return actions.resolve();
-        },
-        createOrder: async () => {
-          setError(null);
-          setInitiatingPayment(true);
-          try {
-            const curBook = bookRef.current;
-            if (!curBook) throw new Error('Book details not loaded');
-
-            // Reuse existing pending order if buyer re-clicked or reopened popup in same session
-            if (
-              currentOrderRef.current &&
-              currentOrderRef.current.paypalOrderId &&
-              currentOrderRef.current.country === region &&
-              currentOrderRef.current.currency === currencyCode &&
-              currentOrderRef.current.totalAmount === totalRef.current
-            ) {
-              setTimeout(() => setInitiatingPayment(false), 2000);
-              return currentOrderRef.current.paypalOrderId;
-            }
-
-            const curForm = formDataRef.current;
-            const orderData = {
-              userId: userRef.current?.id,
-              guestName: curForm.guestName?.trim() || undefined,
-              guestEmail: curForm.guestEmail?.trim() || undefined,
-              guestPhone: curForm.guestPhone?.trim() || undefined,
-              shippingAddress: curForm.shippingAddress?.trim() || undefined,
-              city: curForm.city?.trim() || undefined,
-              state: curForm.state?.trim() || undefined,
-              pincode: curForm.pincode?.trim() || undefined,
-              items: [{ bookId: curBook.id, quantity: quantityRef.current }],
-              country: region,
-              currency: currencyCode,
-              paymentMethod: 'ONLINE' as const,
-              comments: JSON.stringify({
-                country: region,
-                method: intlPaymentMethod === 'CARD' ? 'PAYPAL_CARD_CHECKOUT' : 'PAYPAL_WALLET',
-                flow: 'PAYPAL_EXPRESS_CHECKOUT',
-              }),
-            };
-
-            const order = await ShopService.createOrder(orderData);
-            currentOrderRef.current = order;
-            setTimeout(() => setInitiatingPayment(false), 2500);
-            return order.paypalOrderId;
-          } catch (err: any) {
-            setInitiatingPayment(false);
-            setError(err.message || 'Failed to initialize payment.');
-            throw err;
-          }
-        },
-        onApprove: async (data: any) => {
-          setInitiatingPayment(false);
-          setProcessing(true);
-          try {
-            const captureResult: any = await ShopService.capturePaypalOrder({ paypalOrderId: data.orderID });
-            const curBook = bookRef.current;
-            const order = currentOrderRef.current;
-            const successParams = new URLSearchParams({
-              transaction_id: captureResult?.id || order?.id || data.orderID,
-              value: captureResult?.totalAmount?.toString() || order?.totalAmount?.toString() || totalRef.current.toString(),
-              quantity: quantityRef.current.toString(),
-              item_id: curBook?.id || '',
-              item_name: curBook?.title || '',
-              price: getBookPrice(curBook, region).toString(),
-              discount: '0',
-              delivery: deliveryRef.current.toString(),
-              cod_charge: '0',
-              subtotal: subtotalRef.current.toString(),
-              payment_method: 'ONLINE',
-              image_url: curBook?.imageUrl || '/Page-1.png'
-            });
-            router.push(getLocalizedLink(`/purchase-success?${successParams.toString()}`));
-          } catch (err: any) {
-            setError(err.message || 'Payment capture failed. Please contact support.');
-            setProcessing(false);
-          }
-        },
-        onCancel: () => {
-          setInitiatingPayment(false);
-          setProcessing(false);
-        },
-        onError: (err: any) => {
-          console.error('[PAYPAL] Error:', err);
-          setInitiatingPayment(false);
-          setError(err?.message || 'Payment could not be completed with PayPal. Please check your payment details or try a different card.');
-          setProcessing(false);
-        },
-        style: buttonStyle,
-      }).render(containerEl);
-
-      if (isMounted) setPaypalReady(true);
-      return true;
-    };
-
-    setPaypalReady(false);
-    if (initPaypal()) return;
-
-    const timer = setInterval(() => {
-      if (initPaypal()) {
-        clearInterval(timer);
-      }
-    }, 250);
-
-    return () => {
-      isMounted = false;
-      clearInterval(timer);
-      const cEl = document.getElementById('paypal-card-container');
-      const wEl = document.getElementById('paypal-wallet-container');
-      if (cEl) cEl.innerHTML = '';
-      if (wEl) wEl.innerHTML = '';
-    };
-  }, [region, currencyCode, intlPaymentMethod]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (region === 'US' || region === 'UK') {
-      return;
-    }
-    if (!book) return;
-
-    if (!validateForm()) {
-      return;
-    }
-
+  // Handle Order Placement
+  const handlePlaceOrder = async () => {
+    if (!validateForm() || !book) return;
     setProcessing(true);
     setError(null);
 
     try {
-      let order = cachedOrder;
+      const cleanPhone = getNormalizedPhone();
+      const combinedAddress = [
+        address.trim(),
+        addressLine2.trim(),
+        landmark.trim() ? `Landmark: ${landmark.trim()}` : null
+      ].filter(Boolean).join(', ');
 
-      let finalPhone = formData.guestPhone.trim();
-      const phoneDigits = finalPhone.replace(/\D/g, '');
-      if (region === 'IN') {
-        if (phoneDigits.length === 10) {
-          finalPhone = `+91${phoneDigits}`;
-        } else if (phoneDigits.length === 12 && phoneDigits.startsWith('91')) {
-          finalPhone = `+${phoneDigits}`;
-        }
-      }
-
-      if (!order) {
-        const orderData = {
-          ...formData,
-          guestPhone: finalPhone,
-          userId: user?.id,
-          items: [{ bookId: book.id, quantity }],
-          couponCode: region === 'IN' ? appliedCoupon?.code : undefined,
+      const orderData = {
+        guestName: fullName.trim(),
+        guestPhone: cleanPhone,
+        guestEmail: email.trim() || user?.email || (fullName.toLowerCase().replace(/[^a-z0-9]/g, '') + '@guest.infano.care'),
+        shippingAddress: combinedAddress,
+        city: city.trim(),
+        state: state.trim(),
+        pincode: pincode.trim(),
+        paymentMethod: paymentMethod,
+        items: [{ bookId: book.id, quantity: 1 }],
+        country: region || 'IN',
+        currency: currencyCode || 'INR',
+        couponCode: appliedCoupon?.code || undefined,
+        comments: JSON.stringify({
+          addonCourse: isCourseAdded,
+          isGift,
+          giftNote: isGift ? giftNote.trim() : null,
           country: region,
-          currency: currencyCode,
-          comments: JSON.stringify({ country: region }),
-        };
-        order = await ShopService.createOrder(orderData);
-        if (formData.paymentMethod === 'ONLINE') {
-          setCachedOrder(order);
-        }
-      }
+          city: city.trim(),
+          state: state.trim(),
+          pincode: pincode.trim(),
+        })
+      };
 
-      // ── India Gateway routing (Razorpay or COD) ───────────────────────────
-      if (formData.paymentMethod === 'ONLINE' && order.razorpayOrderId) {
-        // Razorpay popup (India)
-        if (typeof (window as any).Razorpay === 'undefined') {
-          setError('Payment gateway is still loading. Please wait a few seconds and try again.');
-          setProcessing(false);
-          return;
+      const res = await ShopService.createOrder(orderData);
+
+      if (paymentMethod === 'ONLINE') {
+        if (!res.razorpayOrderId) {
+          throw new Error('Razorpay order initiation failed. Please try again.');
         }
+
         const options = {
-          key: order.razorpayKeyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-          amount: Math.round(order.totalAmount * 100),
-          currency: order.currency || currencyCode,
-          name: 'Infano.care',
-          description: `Purchase: ${book.title}`,
-          order_id: order.razorpayOrderId,
+          key: res.razorpayKeyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+          amount: Math.round(totalAmount * 100),
+          currency: currencyCode,
+          name: 'Infano Care',
+          description: `${book.title}${isCourseAdded ? ' + HerNext Video Course' : ''}`,
+          image: '/logo/infano-logo-for-light-bg.png',
+          order_id: res.razorpayOrderId,
           handler: async function (response: any) {
             try {
               await ShopService.verifyPayment({
                 razorpayOrderId: response.razorpay_order_id,
                 razorpayPaymentId: response.razorpay_payment_id,
-                razorpaySignature: response.razorpay_signature,
+                razorpaySignature: response.razorpay_signature
               });
+
               const successParams = new URLSearchParams({
-                transaction_id: order.id,
-                value: order.totalAmount.toString(),
-                quantity: quantity.toString(),
-                item_id: book.id,
+                transaction_id: response.razorpay_order_id,
+                value: totalAmount.toString(),
                 item_name: book.title,
-                price: getBookPrice(book, region).toString(),
-                discount: discountAmount.toString(),
-                delivery: delivery.toString(),
-                cod_charge: codCharge.toString(),
-                subtotal: subtotal.toString(),
-                payment_method: formData.paymentMethod,
-                image_url: book.imageUrl || '/Page-1.png'
+                course: isCourseAdded ? 'true' : 'false',
+                cod: 'false',
+                gift: isGift ? 'true' : 'false',
+                recipient_phone: phone.trim(),
+                city: city.trim(),
+                pincode: pincode.trim(),
+                delivery_date: deliveryDateString,
               });
+
               router.push(getLocalizedLink(`/purchase-success?${successParams.toString()}`));
-            } catch (err) {
-              setError('Payment verification failed.');
-            } finally {
+            } catch (vErr: any) {
+              setPaymentFailed(true);
+              setPaymentFailedReason(vErr.message || 'Payment signature verification failed.');
               setProcessing(false);
             }
           },
           prefill: {
-            name: isAuthenticated ? user?.username : formData.guestName,
-            email: formData.guestEmail,
-            contact: finalPhone,
+            name: fullName.trim(),
+            contact: cleanPhone,
+            email: email.trim() || user?.email || '',
+          },
+          theme: {
+            color: '#C2456A',
           },
           modal: {
-            ondismiss: () => {
-              setPaymentFailedReason('Payment window was closed before completion.');
-              setPaymentFailed(true);
+            ondismiss: function () {
               setProcessing(false);
             }
           }
         };
-        const rzp = new (window as any).Razorpay(options);
-        rzp.on('payment.failed', function (response: any) {
-          setPaymentFailedReason(response.error.description || 'Payment failed due to a network or banking issue.');
+
+        const razorpay = new (window as any).Razorpay(options);
+        razorpay.on('payment.failed', function (resp: any) {
           setPaymentFailed(true);
+          setPaymentFailedReason(resp?.error?.description || 'Your transaction was declined.');
           setProcessing(false);
         });
-        rzpRef.current = rzp;
-        rzp.open();
-
+        razorpay.open();
       } else {
-        // COD (or fallback) — redirect to success immediately
+        // Cash on delivery - immediate success
         const successParams = new URLSearchParams({
-          transaction_id: order.id,
-          value: order.totalAmount.toString(),
-          quantity: quantity.toString(),
-          item_id: book.id,
+          transaction_id: res.id || `ORD-${Date.now().toString().slice(-8)}`,
+          value: totalAmount.toString(),
           item_name: book.title,
-          price: getBookPrice(book, region).toString(),
-          discount: discountAmount.toString(),
-          delivery: delivery.toString(),
-          cod_charge: codCharge.toString(),
-          subtotal: subtotal.toString(),
-          payment_method: formData.paymentMethod,
-          image_url: book.imageUrl || '/Page-1.png'
+          course: 'false',
+          cod: 'true',
+          gift: isGift ? 'true' : 'false',
+          recipient_phone: phone.trim(),
+          city: city.trim(),
+          pincode: pincode.trim(),
+          delivery_date: deliveryDateString,
         });
+
         router.push(getLocalizedLink(`/purchase-success?${successParams.toString()}`));
-        setProcessing(false);
       }
     } catch (err: any) {
-      setError(err.message || 'Order placement failed');
+      console.error('Order error:', err);
+      setError(err.message || 'Order placement failed. Please verify your details.');
       setProcessing(false);
     }
   };
 
-  if (loading) {
+  if (loading || !book) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="animate-spin text-primary" size={48} />
+      <div className="min-h-screen flex items-center justify-center bg-[#FBF8F6]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="animate-spin text-[#C2456A]" size={42} />
+          <p className="text-sm font-semibold text-[#5E4B6B]">Loading secure checkout...</p>
+        </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-[#FDFCFB] selection:bg-primary/20 pt-20 md:pt-28 pb-16 font-sans">
+  const currentLightboxPage = lightboxIndex !== null ? LIGHTBOX_PAGES[lightboxIndex] : null;
 
-      {/* Payment Failed Modal Popup */}
-      {paymentFailed && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl border border-rose-100 text-center relative overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-rose-500" />
-            <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-5 border border-rose-100 shadow-sm">
-              <AlertCircle size={32} />
+  return (
+    <div className="min-h-screen bg-[#FBF8F6] text-[#3D2C4A] selection:bg-[#C2456A]/20" style={{ fontFamily: "'Noto Sans', system-ui, sans-serif" }}>
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+
+      {/* Embedded Animation & Micro-styling */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        .ck-root * { box-sizing: border-box; }
+        .ck-root, .ck-root button, .ck-root input, .ck-root textarea, .ck-root select {
+          font-family: 'Noto Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        }
+        .ck-root button { cursor: pointer; }
+        .ck-pop { animation: ckpop .35s cubic-bezier(.2, 1.3, .4, 1); }
+        @keyframes ckpop { 0% { transform: scale(0.97); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+      `}} />
+
+      {/* Header */}
+      <header className="bg-white border-b border-[#F1E4E8] sticky top-0 z-30 shadow-xs">
+        <div className="max-w-[1180px] mx-auto px-5 py-3 flex items-center justify-between gap-3">
+          <Link href="/" className="inline-flex items-center gap-2.5 group">
+            <svg width="28" height="28" viewBox="0 0 40 40" aria-hidden="true">
+              <g transform="translate(20 20)">
+                <ellipse rx="6" ry="11" cy="-8" fill="#F4A3B4" />
+                <ellipse rx="6" ry="11" cy="-8" fill="#E3DAF5" transform="rotate(72)" />
+                <ellipse rx="6" ry="11" cy="-8" fill="#D4EFE4" transform="rotate(144)" />
+                <ellipse rx="6" ry="11" cy="-8" fill="#FFE3CC" transform="rotate(216)" />
+                <ellipse rx="6" ry="11" cy="-8" fill="#D8ECF8" transform="rotate(288)" />
+                <circle r="5" fill="#E8738A" />
+              </g>
+            </svg>
+            <span className="font-extrabold text-xl text-[#3D2C4A] tracking-tight group-hover:text-[#C2456A] transition-colors">infano</span>
+          </Link>
+
+          <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#24735A] bg-[#EAF7F1] px-3 py-1 rounded-full border border-[#24735A]/20">
+            <Lock size={14} className="stroke-[2.5]" />
+            <span>Secure checkout</span>
+          </span>
+        </div>
+      </header>
+
+      {/* Main Checkout Area */}
+      <main className="max-w-[1180px] mx-auto px-4 sm:px-5 py-6 sm:py-8 pb-16 flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
+        
+        {/* Left Form Column */}
+        <div className="flex-1 min-w-0 w-full flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#3D2C4A] leading-tight">Checkout</h1>
+            <Link
+              href={getLocalizedLink(book ? `/${getBookSlug(book)}` : "/gigi-the-awkward-age-book")}
+              className="text-xs font-semibold text-[#5E4B6B] hover:text-[#C2456A] transition-colors inline-flex items-center gap-1"
+            >
+              <ArrowLeft size={14} /> Back to book details
+            </Link>
+          </div>
+
+          {error && (
+            <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-2xl text-sm font-semibold flex items-center gap-2">
+              <AlertCircle size={18} className="shrink-0 text-rose-500" />
+              <span>{error}</span>
             </div>
-            <h3 className="text-xl font-black text-slate-800 mb-2">Payment Failed</h3>
-            <p className="text-sm font-medium text-slate-500 mb-6">{paymentFailedReason}</p>
-            <div className="space-y-3">
+          )}
+
+          {/* Section 1: Contact Details */}
+          <section aria-labelledby="c1" className="bg-white border border-[#F1E4E8] rounded-3xl p-5 sm:p-6 flex flex-col gap-3.5 shadow-xs">
+            <h2 id="c1" className="text-lg font-bold text-[#3D2C4A] m-0">1 · Contact details</h2>
+            <p className="text-sm text-[#5E4B6B] -mt-1 leading-relaxed">
+              We send order tracking on WhatsApp and your receipt/invoice via email.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label className="flex flex-col gap-1 text-sm font-semibold text-[#3D2C4A]">
+                Mobile number
+                <div className="flex gap-2 items-center">
+                  <span className="min-h-[48px] px-3.5 rounded-xl bg-[#FBF8F6] border-[1.5px] border-[#E9DDE6] grid place-items-center font-bold text-[#3D2C4A]">
+                    {dialCode || '+91'}
+                  </span>
+                  <input
+                    id="ph"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/[^\d\s-]/g, ''))}
+                    placeholder="98765 43210"
+                    className="flex-1 min-w-0 min-h-[48px] rounded-xl border-[1.5px] border-[#E9DDE6] px-3.5 text-base text-[#3D2C4A] font-semibold focus:outline-none focus:border-[#C2456A] transition-colors"
+                  />
+                </div>
+              </label>
+
+              <label className="flex flex-col gap-1 text-sm font-semibold text-[#3D2C4A]">
+                Email address
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="e.g. priya@gmail.com"
+                  className="min-h-[48px] rounded-xl border-[1.5px] border-[#E9DDE6] px-3.5 text-base text-[#3D2C4A] focus:outline-none focus:border-[#C2456A] transition-colors"
+                />
+              </label>
+            </div>
+          </section>
+
+          {/* Section 2: Delivery Address */}
+          <section aria-labelledby="c2" className="bg-white border border-[#F1E4E8] rounded-3xl p-5 sm:p-6 flex flex-col gap-3.5 shadow-xs">
+            <h2 id="c2" className="text-lg font-bold text-[#3D2C4A] m-0">2 · Delivery address</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label className="flex flex-col gap-1 text-sm font-semibold text-[#3D2C4A]">
+                Full name
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="e.g. Priya Sharma"
+                  className="min-h-[48px] rounded-xl border-[1.5px] border-[#E9DDE6] px-3.5 text-base text-[#3D2C4A] focus:outline-none focus:border-[#C2456A] transition-colors"
+                />
+              </label>
+
+              <label className="flex flex-col gap-1 text-sm font-semibold text-[#3D2C4A]">
+                Pincode
+                <div className="relative">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={pincode}
+                    onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="e.g. 560038"
+                    className="w-full min-h-[48px] rounded-xl border-[1.5px] border-[#E9DDE6] px-3.5 text-base text-[#3D2C4A] focus:outline-none focus:border-[#C2456A] transition-colors"
+                  />
+                  {pincodeLoading && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-xs text-[#C2456A] font-semibold bg-white/90 px-1 py-0.5 rounded">
+                      <Loader2 size={15} className="animate-spin text-[#C2456A]" />
+                      <span>Checking...</span>
+                    </div>
+                  )}
+                </div>
+              </label>
+
+              <label className="sm:col-span-2 flex flex-col gap-1 text-sm font-semibold text-[#3D2C4A]">
+                Flat, House no., Building, Apartment
+                <input
+                  type="text"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="e.g. Flat 4B, Sunflower Apartments"
+                  className="min-h-[48px] rounded-xl border-[1.5px] border-[#E9DDE6] px-3.5 text-base text-[#3D2C4A] focus:outline-none focus:border-[#C2456A] transition-colors"
+                />
+              </label>
+
+              <label className="sm:col-span-2 flex flex-col gap-1 text-sm font-semibold text-[#3D2C4A]">
+                Area, Street, Sector, Village
+                <input
+                  type="text"
+                  value={addressLine2}
+                  onChange={(e) => setAddressLine2(e.target.value)}
+                  placeholder="e.g. 12th Main Road, HAL 2nd Stage, Indiranagar"
+                  className="min-h-[48px] rounded-xl border-[1.5px] border-[#E9DDE6] px-3.5 text-base text-[#3D2C4A] focus:outline-none focus:border-[#C2456A] transition-colors"
+                />
+              </label>
+
+              {/* City (Separate Field) */}
+              <label className="flex flex-col gap-1 text-sm font-semibold text-[#3D2C4A]">
+                City
+                <input
+                  type="text"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="e.g. Bengaluru"
+                  className="min-h-[48px] rounded-xl border-[1.5px] border-[#E9DDE6] px-3.5 text-base text-[#3D2C4A] focus:outline-none focus:border-[#C2456A] transition-colors"
+                />
+              </label>
+
+              {/* State (Separate Field) */}
+              <label className="flex flex-col gap-1 text-sm font-semibold text-[#3D2C4A]">
+                State
+                {region === 'IN' ? (
+                  <select
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                    className="min-h-[48px] rounded-xl border-[1.5px] border-[#E9DDE6] px-3.5 text-base text-[#3D2C4A] bg-white focus:outline-none focus:border-[#C2456A] transition-colors cursor-pointer"
+                  >
+                    <option value="">Select State</option>
+                    {INDIAN_STATES.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                    placeholder="State / Province"
+                    className="min-h-[48px] rounded-xl border-[1.5px] border-[#E9DDE6] px-3.5 text-base text-[#3D2C4A] focus:outline-none focus:border-[#C2456A] transition-colors"
+                  />
+                )}
+              </label>
+
+              <label className="sm:col-span-2 flex flex-col gap-1 text-sm font-semibold text-[#3D2C4A]">
+                Landmark (optional)
+                <input
+                  type="text"
+                  value={landmark}
+                  onChange={(e) => setLandmark(e.target.value)}
+                  placeholder="e.g. Near BDA Complex / Opposite Metro Station"
+                  className="min-h-[48px] rounded-xl border-[1.5px] border-[#E9DDE6] px-3.5 text-base text-[#3D2C4A] focus:outline-none focus:border-[#C2456A] transition-colors"
+                />
+              </label>
+            </div>
+
+            {/* Delivery Promise Badge */}
+            <div className="text-sm font-semibold text-[#24735A] flex items-center gap-1.5 mt-1 bg-[#EAF7F1] px-3 py-1.5 rounded-xl border border-[#24735A]/20 w-fit">
+              <Check size={16} className="stroke-[3]" />
+              <span>Delivers to {city || 'your city'} {pincode} by {deliveryDateString}</span>
+            </div>
+
+            {/* Gift option */}
+            <div className="border-t border-[#F1E4E8] pt-3 mt-1">
+              <label className="flex gap-2.5 items-center text-sm sm:text-base font-semibold text-[#3D2C4A] cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={isGift}
+                  onChange={(e) => setIsGift(e.target.checked)}
+                  className="w-5 h-5 accent-[#C2456A] rounded-md cursor-pointer"
+                />
+                <span>This is a gift (we’ll add a note and hide the price)</span>
+              </label>
+
+              {isGift && (
+                <div className="mt-3 ck-pop">
+                  <textarea
+                    rows={2}
+                    value={giftNote}
+                    onChange={(e) => setGiftNote(e.target.value)}
+                    placeholder="Write a sweet message for the recipient (printed on a lovely card inside)..."
+                    className="w-full rounded-xl border-[1.5px] border-[#E9DDE6] p-3 text-sm text-[#3D2C4A] focus:outline-none focus:border-[#C2456A] transition-colors"
+                  />
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Section 3: Payment Method */}
+          <section aria-labelledby="c3" className="bg-white border border-[#F1E4E8] rounded-3xl p-5 sm:p-6 flex flex-col gap-3 shadow-xs">
+            <h2 id="c3" className="text-lg font-bold text-[#3D2C4A] m-0">3 · Payment</h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Option 1: Pay Online */}
               <button
-                onClick={() => {
-                  setPaymentFailed(false);
-                  if (region === 'IN' && rzpRef.current) {
-                    rzpRef.current.open();
-                  }
-                }}
-                className="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold text-sm shadow-md transition-all active:scale-[0.98]"
+                type="button"
+                role="radio"
+                aria-checked={paymentMethod === 'ONLINE'}
+                onClick={() => setPaymentMethod('ONLINE')}
+                className={`text-left flex gap-3 items-center min-h-[64px] h-full p-3 sm:px-4 rounded-2xl transition-all cursor-pointer ${
+                  paymentMethod === 'ONLINE'
+                    ? 'border-2 border-[#C2456A] bg-[#FDEFF0]'
+                    : 'border-[1.5px] border-[#E9DDE6] bg-white hover:border-[#C2456A]/40'
+                }`}
+              >
+                <span className={`w-5 h-5 rounded-full border-2 grid place-items-center shrink-0 ${
+                  paymentMethod === 'ONLINE' ? 'border-[#C2456A]' : 'border-[#C9B9C9]'
+                }`}>
+                  {paymentMethod === 'ONLINE' && <span className="w-2.5 h-2.5 rounded-full bg-[#C2456A]" />}
+                </span>
+                <span className="flex-1 min-w-0">
+                  <strong className="block text-base font-bold text-[#3D2C4A]">Pay online</strong>
+                  <span className="text-xs text-[#5E4B6B] block mt-0.5">UPI, cards, net banking or wallets via Razorpay</span>
+                </span>
+              </button>
+
+              {/* Option 2: Cash on Delivery */}
+              <button
+                type="button"
+                role="radio"
+                aria-checked={paymentMethod === 'COD'}
+                onClick={() => setPaymentMethod('COD')}
+                className={`text-left flex gap-3 items-center min-h-[64px] h-full p-3 sm:px-4 rounded-2xl transition-all cursor-pointer ${
+                  paymentMethod === 'COD'
+                    ? 'border-2 border-[#C2456A] bg-[#FDEFF0]'
+                    : 'border-[1.5px] border-[#E9DDE6] bg-white hover:border-[#C2456A]/40'
+                }`}
+              >
+                <span className={`w-5 h-5 rounded-full border-2 grid place-items-center shrink-0 ${
+                  paymentMethod === 'COD' ? 'border-[#C2456A]' : 'border-[#C9B9C9]'
+                }`}>
+                  {paymentMethod === 'COD' && <span className="w-2.5 h-2.5 rounded-full bg-[#C2456A]" />}
+                </span>
+                <span className="flex-1 min-w-0">
+                  <strong className="block text-base font-bold text-[#3D2C4A]">Cash on delivery</strong>
+                  <span className="text-xs text-[#5E4B6B] block mt-0.5">₹{codChargeRate} handling fee · book only</span>
+                </span>
+                <span className="text-xs sm:text-sm font-bold text-[#6E5B7A] shrink-0">
+                  + ₹{codChargeRate}
+                </span>
+              </button>
+            </div>
+          </section>
+        </div>
+
+        {/* Right Order Summary Column */}
+        <aside aria-labelledby="sum-h" className="w-full lg:w-[380px] shrink-0 sticky top-20 self-start flex flex-col gap-3.5 z-10">
+          <section className="bg-white border border-[#F1E4E8] rounded-3xl p-5 sm:p-6 flex flex-col gap-4 shadow-sm">
+            <div className="flex justify-between items-center gap-2">
+              <h2 id="sum-h" className="text-lg font-bold text-[#3D2C4A] m-0">Order summary</h2>
+              <button
+                type="button"
+                onClick={() => setShowSummaryDetails(!showSummaryDetails)}
+                className="md:hidden text-xs font-bold text-[#C2456A] hover:underline"
+              >
+                {showSummaryDetails ? 'Hide details' : 'Show details'} · {currencySymbol}{totalAmount}
+              </button>
+            </div>
+
+            {/* Product summary row */}
+            <div className="flex gap-3.5 items-center">
+              <div className="w-20 h-20 rounded-2xl bg-[#FDEFF0] border border-[#F1E4E8] overflow-hidden relative shrink-0">
+                <Image
+                  src={book.imageUrl || '/Page-1.png'}
+                  alt={book.title}
+                  fill
+                  sizes="80px"
+                  className="object-cover"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <strong className="block font-bold text-base text-[#3D2C4A] line-clamp-1">{book.title}</strong>
+                <span className="text-xs text-[#5E4B6B] block mt-0.5">Book + Activity Field Guide &amp; Workbook</span>
+              </div>
+              <strong className="text-base font-extrabold text-[#3D2C4A]">{currencySymbol}{rawBookPrice}</strong>
+            </div>
+
+            {/* Look Inside Mini Gallery */}
+            <div className="bg-[#FBF8F6] border border-[#F1E4E8] rounded-2xl p-3 flex flex-col gap-2">
+              <span className="text-xs font-bold text-[#3D2C4A]">230-page guide + 90-page Activity Workbook</span>
+              <div className="flex gap-1.5 items-center flex-wrap">
+                {LIGHTBOX_PAGES.slice(0, 5).map((page, idx) => {
+                  const thumbSrc = idx === 0 && book?.imageUrl ? book.imageUrl : page.image;
+                  return (
+                    <button
+                      key={page.n}
+                      type="button"
+                      onClick={() => setLightboxIndex(idx)}
+                      aria-label={`Look inside: ${page.name}`}
+                      className="w-10 h-14 rounded-lg border-[1.5px] border-[#E9DDE6] overflow-hidden relative group cursor-pointer transition-all hover:scale-105 hover:border-[#C2456A] shadow-xs bg-white shrink-0"
+                    >
+                      <Image
+                        src={thumbSrc}
+                        alt={page.name}
+                        fill
+                        sizes="40px"
+                        className="object-cover object-top transition-transform duration-200 group-hover:scale-110"
+                        unoptimized={thumbSrc.startsWith('http')}
+                      />
+                      <div className="absolute inset-0 bg-[#C2456A]/0 group-hover:bg-[#C2456A]/10 transition-colors" />
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => setLightboxIndex(5)}
+                  aria-label="See all 11 preview pages"
+                  className="w-10 h-14 rounded-lg bg-[#3D2C4A] text-white font-extrabold text-xs grid place-items-center hover:bg-[#5A4385] transition-all hover:scale-105 cursor-pointer shrink-0 shadow-xs"
+                >
+                  +6
+                </button>
+                <span className="text-xs text-[#6E5B7A] ml-1 font-medium">Tap to look inside</span>
+              </div>
+            </div>
+
+            {/* Line items list */}
+            <dl className="m-0 grid grid-cols-2 gap-2 text-sm text-[#5E4B6B] border-t border-[#F1E4E8] pt-3">
+              <dt>Book + workbook</dt>
+              <dd className="text-right text-[#3D2C4A] font-semibold">{currencySymbol}{rawBookPrice}</dd>
+
+              {isCourseAdded && (
+                <>
+                  <dt className="text-[#C2456A] font-bold">HerNext course add-on</dt>
+                  <dd className="text-right text-[#C2456A] font-bold">+{currencySymbol}{coursePrice}</dd>
+                </>
+              )}
+
+              <dt>Shipping</dt>
+              <dd className="text-right text-[#2F7F62] font-bold">Free</dd>
+
+              {isCod && (
+                <>
+                  <dt>Cash on delivery fee</dt>
+                  <dd className="text-right text-[#3D2C4A] font-semibold">+{currencySymbol}{codFee}</dd>
+                </>
+              )}
+
+              {discountAmount > 0 && (
+                <>
+                  <dt className="text-emerald-600 font-semibold">Coupon discount</dt>
+                  <dd className="text-right text-emerald-600 font-bold">-{currencySymbol}{discountAmount}</dd>
+                </>
+              )}
+
+              <dt className="font-extrabold text-base text-[#3D2C4A] border-t border-[#F1E4E8] pt-2.5 mt-1">
+                {isCod ? 'Pay on delivery' : 'Total'}
+              </dt>
+              <dd className="text-right font-extrabold text-xl text-[#3D2C4A] border-t border-[#F1E4E8] pt-2 mt-1">
+                {currencySymbol}{totalAmount}
+              </dd>
+            </dl>
+
+            {/* HerNext Course Addon Card */}
+            <div className={`relative rounded-2xl p-4 flex flex-col gap-2.5 transition-all ${
+              isCod
+                ? 'bg-[#F6F1F4] border-2 border-dashed border-[#D9C8D3] opacity-85'
+                : isCourseAdded
+                ? 'bg-[#FDEFF0] border-2 border-[#C2456A] ck-pop shadow-sm'
+                : 'bg-white border-2 border-dashed border-[#E8A5B6]'
+            }`}>
+              <span className="absolute -top-3 left-3 bg-[#3D2C4A] text-white rounded-full px-2.5 py-0.5 text-[10px] font-extrabold tracking-wide">
+                BOOK BUYERS ONLY
+              </span>
+
+              <label className={`flex gap-3 items-start ${isCod ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                <input
+                  type="checkbox"
+                  checked={isCourseAdded}
+                  disabled={isCod}
+                  onChange={(e) => {
+                    if (!isCod) setAddCourse(e.target.checked);
+                  }}
+                  className="w-5 h-5 mt-0.5 accent-[#C2456A] shrink-0 cursor-pointer"
+                />
+                <span className="flex-1">
+                  <strong className="block text-base font-bold text-[#3D2C4A] leading-tight">Add the Girlhood HerNext course</strong>
+                  <span className="text-xs text-[#5E4B6B] block mt-0.5">She can start today, before the book arrives. 26 video lessons, games and badges.</span>
+                </span>
+                <span className="text-right shrink-0">
+                  <strong className="block text-base font-extrabold text-[#C2456A]">₹299</strong>
+                  <s className="text-xs text-[#8A7896]">₹999</s>
+                </span>
+              </label>
+
+              <div className="flex gap-2.5 items-center pt-1 border-t border-[#C2456A]/10">
+                <svg width="28" height="46" viewBox="0 0 120 200" aria-hidden="true" className="shrink-0">
+                  <rect x="6" y="4" width="108" height="192" rx="18" fill="#3D2C4A" />
+                  <rect x="12" y="14" width="96" height="172" rx="12" fill="#D4EFE4" />
+                  <path d="M12 140 C 40 120, 80 150, 108 130 V186 H12z" fill="#A8D8BE" />
+                  <rect x="22" y="28" width="76" height="40" rx="10" fill="#FFFFFF" />
+                  <circle cx="60" cy="96" r="16" fill="#FFFFFF" opacity=".9" />
+                  <path d="M55 88v16l13-8z" fill="#C2456A" />
+                </svg>
+                <span className="text-[11px] text-[#5E4B6B] leading-tight">
+                  Book + workbook + course together = ₹{rawBookPrice + coursePrice}, complete story &amp; learning experience.
+                </span>
+              </div>
+
+              {isCod && (
+                <div className="bg-[#FFF4C7] rounded-xl p-2.5 text-xs font-semibold text-[#8A6410]">
+                  Pay online to add the course for ₹299. With cash on delivery, the ₹299 reader price unlocks once your payment is collected.
+                </div>
+              )}
+            </div>
+
+            {/* Coupon Code Accordion matching Course Checkout Template */}
+            <div className="border-t border-[#F1E4E8] pt-3">
+              {appliedCoupon ? (
+                <div className="flex items-center justify-between bg-[#EAF7F1] border border-[#24735A]/20 px-3.5 py-2.5 rounded-xl text-xs">
+                  <span className="font-bold text-[#24735A]">
+                    Coupon: <span className="font-black tracking-wide">{appliedCoupon.code}</span> (-{currencySymbol}{discountAmount})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleRemoveCoupon}
+                    className="text-[#C2456A] hover:text-[#A8365A] font-bold text-xs hover:underline cursor-pointer"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <details className="text-[15px] group" open={Boolean(couponCode || couponError)}>
+                  <summary className="cursor-pointer font-semibold text-[#A8365A] hover:text-[#C2456A] min-h-[32px] flex items-center gap-1.5 transition-colors select-none">
+                    Have a coupon?
+                  </summary>
+                  <div className="flex gap-2 items-center mt-2">
+                    <input
+                      type="text"
+                      aria-label="Coupon code"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      placeholder="CODE"
+                      className="flex-1 min-w-0 min-h-[46px] rounded-xl border-[1.5px] border-[#E9DDE6] px-3.5 text-sm font-semibold uppercase tracking-wider text-[#3D2C4A] placeholder:text-[#8A7896] placeholder:normal-case placeholder:font-normal focus:outline-none focus:border-[#C2456A] transition-colors"
+                    />
+                    <button
+                      type="button"
+                      disabled={validatingCoupon || !couponCode.trim()}
+                      onClick={handleApplyCoupon}
+                      className="min-h-[46px] px-4 rounded-xl border-2 border-[#3D2C4A] bg-white hover:bg-[#3D2C4A] hover:text-white font-semibold text-sm text-[#3D2C4A] transition-all disabled:opacity-40 cursor-pointer"
+                    >
+                      {validatingCoupon ? 'Checking...' : 'Apply'}
+                    </button>
+                  </div>
+                  {couponError && <p className="text-xs text-rose-600 font-semibold mt-1 px-1">{couponError}</p>}
+                </details>
+              )}
+            </div>
+
+            {/* Big Action CTA */}
+            <button
+              type="button"
+              disabled={processing}
+              onClick={handlePlaceOrder}
+              style={{
+                fontFamily: "'Noto Sans', system-ui, sans-serif",
+                minHeight: '54px',
+                borderRadius: '999px',
+                border: 'none',
+                background: '#C2456A',
+                color: '#FFFFFF',
+                fontWeight: 700,
+                fontSize: '17px',
+                lineHeight: 1.2,
+              }}
+              className="w-full hover:bg-[#A8365A] active:bg-[#942C4E] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 px-6 py-3.5 shadow-none"
+            >
+              {processing ? (
+                <>
+                  <Loader2 className="animate-spin" size={20} />
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <span>
+                  {isCod ? `Place order · pay ${currencySymbol}${totalAmount} on delivery` : `Pay ${currencySymbol}${totalAmount.toLocaleString('en-IN')} securely`}
+                </span>
+              )}
+            </button>
+
+            <div className="text-[11px] text-[#6E5B7A] text-center leading-relaxed">
+              By placing the order you agree to our Terms, Privacy Policy and Refund Policy. Payments secured by Razorpay.
+            </div>
+          </section>
+
+          {/* WhatsApp Support Assistance */}
+          <div className="text-xs text-[#5E4B6B] text-center font-medium">
+            Questions? <a href="https://wa.me/919243019243" target="_blank" rel="noopener noreferrer" className="font-bold text-[#24735A] hover:underline">WhatsApp +91 92430 19243</a>
+          </div>
+        </aside>
+      </main>
+
+      {/* Look Inside Lightbox Dialog */}
+      {currentLightboxPage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-[#23182D]/75 backdrop-blur-xs" onClick={() => setLightboxIndex(null)} />
+          <div className="ck-pop relative z-10 w-full max-w-[460px] bg-white rounded-3xl p-5 flex flex-col gap-3.5 shadow-2xl border border-[#F1E4E8]">
+            <div className="flex justify-between items-center">
+              <div>
+                <strong className="text-base text-[#3D2C4A] block">{currentLightboxPage.name}</strong>
+                <span className="text-xs text-[#5E4B6B]">{currentLightboxPage.part}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setLightboxIndex(null)}
+                className="w-9 h-9 rounded-full bg-[#FBF8F6] border border-[#E9DDE6] grid place-items-center text-[#3D2C4A] hover:bg-[#FDEFF0] transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Preview Page Frame */}
+            <div className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-inner bg-slate-50 border border-slate-100 flex items-center justify-center">
+              <Image
+                src={lightboxIndex === 0 && book?.imageUrl ? book.imageUrl : currentLightboxPage.image}
+                alt={currentLightboxPage.name}
+                fill
+                sizes="440px"
+                className="object-contain"
+                unoptimized={(lightboxIndex === 0 && book?.imageUrl ? book.imageUrl : currentLightboxPage.image).startsWith('http')}
+              />
+            </div>
+
+            {/* Page Navigation Controls */}
+            <div className="flex gap-2.5 items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setLightboxIndex((lightboxIndex! + 10) % 11)}
+                className="w-11 h-11 rounded-full border-2 border-[#3D2C4A] bg-white text-[#3D2C4A] font-extrabold grid place-items-center hover:bg-[#FBF8F6] transition-colors cursor-pointer"
+              >
+                ‹
+              </button>
+              <span className="text-sm font-bold text-[#5E4B6B]">
+                {currentLightboxPage.n} / {LIGHTBOX_PAGES.length} · {currentLightboxPage.part}
+              </span>
+              <button
+                type="button"
+                onClick={() => setLightboxIndex((lightboxIndex! + 1) % 11)}
+                className="w-11 h-11 rounded-full border-2 border-[#3D2C4A] bg-white text-[#3D2C4A] font-extrabold grid place-items-center hover:bg-[#FBF8F6] transition-colors cursor-pointer"
+              >
+                ›
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setLightboxIndex(null)}
+              className="w-full py-3 rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white font-bold text-sm transition-colors cursor-pointer"
+            >
+              Back to checkout
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Failed Modal */}
+      {paymentFailed && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-rose-100 text-center ck-pop">
+            <div className="w-14 h-14 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-rose-100">
+              <AlertCircle size={28} />
+            </div>
+            <h3 className="text-lg font-bold text-slate-800 mb-1">Payment Failed</h3>
+            <p className="text-xs text-slate-500 mb-5">{paymentFailedReason}</p>
+            <div className="space-y-2">
+              <button
+                onClick={() => setPaymentFailed(false)}
+                className="w-full py-3 bg-[#C2456A] hover:bg-[#A8365A] text-white rounded-xl font-bold text-sm transition-colors"
               >
                 Retry Payment
               </button>
               <button
                 onClick={() => setPaymentFailed(false)}
-                className="w-full py-3.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg font-bold text-sm border border-slate-200 transition-all"
+                className="w-full py-2.5 text-slate-600 rounded-xl font-semibold text-xs border border-slate-200 hover:bg-slate-50 transition-colors"
               >
                 Cancel
               </button>
@@ -896,593 +1103,6 @@ function CheckoutContent() {
           </div>
         </div>
       )}
-
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" />
-      {(region === 'US' || region === 'UK') && (
-        <Script
-          key={`paypal-sdk-${region}-${currencyCode}`}
-          src={`https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || 'BAAu5Wzv8JPhse_c_yH3j8C85mccF79I3mfN8aeMBJJndOxvgX-2FugthYGDWAQY1XHZA-5XXEpmxdZ7VY'}&currency=${currencyCode}&locale=${region === 'UK' ? 'en_GB' : 'en_US'}&components=buttons`}
-        />
-      )}
-      <div className="max-w-6xl mx-auto px-6 relative z-10">
-        <Link
-          href={getLocalizedLink("/gigi-the-awkward-age-book")}
-          className="inline-flex items-center text-slate-500 hover:text-primary mb-8 md:mb-12 transition-colors text-sm font-medium group"
-        >
-          <ArrowLeft size={16} className="mr-2 group-hover:-translate-x-1 transition-transform" /> Back to product
-        </Link>
-
-        <div className="grid lg:grid-cols-12 gap-10 items-start">
-
-          {/* Left: Product Gallery & Summary */}
-          <div className="lg:col-span-5 space-y-8 lg:sticky lg:top-32 w-full max-w-full">
-            <div className="space-y-2.5 max-w-100 mx-auto lg:mx-0 text-center lg:text-left">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                2-in-1 Bundle: Guide Book + Workbook
-              </div>
-              <h1 className="text-3xl font-black tracking-tight text-slate-900 leading-tight">
-                {book?.title || 'The Awkward Age'}
-              </h1>
-              <p className="text-slate-500 font-medium text-sm">
-                {!book?.description || book.description.trim().toLowerCase() === book.title?.trim().toLowerCase()
-                  ? 'A story of every adolescent girl • Includes 230-page Guide & 90-page Activity Workbook'
-                  : book.description}
-              </p>
-            </div>
-
-            <div className="space-y-6">
-              <div className="relative aspect-3/4 rounded-xl overflow-hidden shadow-2xl bg-white border border-slate-100 w-full max-w-100 mx-auto lg:mx-0">
-                <Image
-                  src={selectedImage}
-                  alt="Book preview"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 400px"
-                  className="object-cover transition-all duration-700"
-                  priority
-                  unoptimized={selectedImage.startsWith('http')}
-                />
-              </div>
-
-              <div className="flex gap-2 flex-wrap max-w-100 mx-auto lg:mx-0 justify-center lg:justify-start">
-                {bookImages.map((img, idx) => {
-                  const isWorkbook = img.includes('Field-Guide');
-                  const isSelected = selectedImage === img;
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => setSelectedImage(img)}
-                      className={`relative w-11 aspect-3/4 rounded-md overflow-hidden shrink-0 transition-all border-2 ${
-                        isSelected
-                          ? isWorkbook
-                            ? 'border-pink-500 ring-2 ring-pink-500/30 scale-105 z-10'
-                            : 'border-primary ring-2 ring-primary/30 scale-105 z-10'
-                          : 'border-transparent opacity-60 hover:opacity-100'
-                      }`}
-                      title={isWorkbook ? 'Workbook Page' : 'Guide Book Page'}
-                    >
-                      <Image
-                        src={img}
-                        alt={`Thumbnail ${idx}`}
-                        fill
-                        sizes="44px"
-                        className="object-cover"
-                        unoptimized={img.startsWith('http')}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xl shadow-slate-200/30 space-y-6 max-w-100 w-full mx-auto lg:mx-0">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <ShoppingBag size={16} className="text-primary" />
-                  Order summary
-                </h3>
-                <span className="text-[10px] font-black uppercase tracking-wider text-primary bg-purple-50 border border-purple-200/70 px-2 py-0.5 rounded-full">
-                  2 Books Included
-                </span>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex justify-between items-center" itemScope itemType="https://schema.org/Offer">
-                  <span className="text-slate-500 text-sm font-medium">Unit price</span>
-                  <span className="font-bold text-slate-900 text-sm" data-price={getBookPrice(book, region)}>{formatPrice(getBookPrice(book, region), false)}</span>
-                  <meta itemProp="price" content={getBookPrice(book, region).toString()} />
-                  <meta itemProp="priceCurrency" content={currencyCode} />
-                </div>
-
-                <div className="flex justify-between items-center pt-1">
-                  <span className="text-slate-500 text-sm font-medium">Shipping charge</span>
-                  <span className={`text-sm font-bold ${delivery === 0 ? 'text-emerald-600' : 'text-slate-900'}`} data-price={delivery}>
-                    {delivery === 0 ? 'Free' : formatPrice(delivery, false)}
-                  </span>
-                </div>
-
-                {region === 'IN' && formData.paymentMethod === 'COD' && (
-                  <div className="flex justify-between items-center pt-1" itemScope itemType="https://schema.org/Offer">
-                    <span className="text-slate-500 text-sm font-medium">Cash on Delivery</span>
-                    <span className="font-bold text-slate-900 text-sm" data-price={book?.codChargeIN ?? 40}>₹{book?.codChargeIN ?? 40}</span>
-                    <meta itemProp="price" content={(book?.codChargeIN ?? 40).toString()} />
-                    <meta itemProp="priceCurrency" content="INR" />
-                  </div>
-                )}
-
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500 text-sm font-medium">Quantity</span>
-                  <div className="flex items-center gap-3 bg-slate-50 rounded-lg px-3 py-1.5 border border-slate-200 text-xs">
-                    <button
-                      type="button"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="text-slate-400 hover:text-slate-900 transition-colors font-bold"
-                    >
-                      -
-                    </button>
-                    <span className="text-slate-900 font-extrabold min-w-3 text-center">{quantity}</span>
-                    <button
-                      type="button"
-                      onClick={() => setQuantity(Math.min(book?.stock || 10, quantity + 1))}
-                      className="text-slate-400 hover:text-slate-900 transition-colors font-bold"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
-                {region === 'IN' && discountAmount > 0 && (
-                  <div className="flex justify-between items-center pt-2">
-                    <span className="text-emerald-600 text-sm font-bold flex items-center gap-1.5">
-                      <Tag size={14} /> Discount
-                    </span>
-                    <span className="font-bold text-emerald-600 text-sm flex items-center gap-0.5">
-                      <span>-₹</span>
-                      <span data-price={discountAmount}>{discountAmount}</span>
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex justify-between items-end pt-5 border-t border-slate-100" itemScope itemType="https://schema.org/Offer">
-                <div className="space-y-0.5">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total amount</span>
-                  <p className="text-[10px] text-slate-400 font-medium">Incl. of all taxes</p>
-                </div>
-                <span className="text-3xl font-black text-primary tracking-tighter" data-price={total}>
-                  {formatPrice(total, false)}
-                </span>
-                <meta itemProp="price" content={total.toString()} />
-                <meta itemProp="priceCurrency" content={currencyCode} />
-              </div>
-            </div>
-          </div>
-
-          {/* Right: Unified Checkout Form */}
-          <div className="lg:col-span-7 w-full max-w-full bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 md:p-12 shadow-2xl shadow-slate-200/50">
-            <form onSubmit={handleSubmit} className="space-y-8" noValidate>
-
-              {/* Steps 1 & 2 + Promo code (India only — PayPal collects verified details for US/UK) */}
-              {region === 'IN' && (
-                <>
-                  {/* Step 1: Personal Details */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
-                        01
-                      </div>
-                      <h2 className="text-base font-bold text-slate-800 tracking-tight">Personal details</h2>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">Full name <span className="text-rose-500">*</span></label>
-                        <input
-                          name="guestName"
-                          value={formData.guestName}
-                          onChange={handleInputChange}
-                          className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.guestName ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                          placeholder="e.g. Ananya Sharma"
-                        />
-                        {formErrors.guestName && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.guestName}</p>}
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">Phone number <span className="text-rose-500">*</span></label>
-                        
-                        <div className="relative flex items-center">
-                          <div className="absolute left-3 flex items-center gap-2 text-slate-500 font-bold text-sm pointer-events-none border-r border-slate-200 pr-2.5">
-                            <img
-                              src={`https://flagcdn.com/w40/${isoCode}.png`}
-                              className="w-5 h-3.5 object-cover rounded-sm border border-slate-200/50 shrink-0"
-                              alt={countryName}
-                            />
-                            <span>{dialCode}</span>
-                          </div>
-                          <input
-                            name="guestPhone"
-                            value={formData.guestPhone}
-                            onChange={handleInputChange}
-                            className={`w-full pl-22 pr-4 py-3 rounded-lg bg-white border ${formErrors.guestPhone ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                            placeholder="10-digit mobile"
-                          />
-                        </div>
-                        {formErrors.guestPhone && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.guestPhone}</p>}
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                        Email address (optional)
-                      </label>
-                      <input
-                        type="email"
-                        name="guestEmail"
-                        value={formData.guestEmail}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.guestEmail ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                        placeholder="your@email.com"
-                      />
-                      {formErrors.guestEmail && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.guestEmail}</p>}
-                    </div>
-                  </div>
-
-                  {/* Step 2: Delivery Address */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
-                        02
-                      </div>
-                      <h2 className="text-base font-bold text-slate-800 tracking-tight">Delivery address</h2>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                          Pincode <span className="text-rose-500">*</span>
-                        </label>
-                        <div className="relative">
-                          <input
-                            name="pincode"
-                            type={region === 'IN' ? 'tel' : 'text'}
-                            inputMode={region === 'IN' ? 'numeric' : 'text'}
-                            pattern={region === 'IN' ? '[0-9]*' : undefined}
-                            value={formData.pincode}
-                            onChange={handleInputChange}
-                            maxLength={region === 'IN' ? 6 : 10}
-                            className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.pincode ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                            placeholder={region === 'IN' ? '6-digit pincode' : 'Postal code'}
-                          />
-                          {pincodeLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-primary" size={16} />}
-                        </div>
-                        {formErrors.pincode && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.pincode}</p>}
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">Country</label>
-                        <div className="relative flex items-center">
-                          <div className="absolute left-3 flex items-center gap-2 pointer-events-none">
-                            <span className="text-base">{flagEmoji}</span>
-                          </div>
-                          <input
-                            readOnly
-                            className="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-50 border border-slate-200 font-bold text-slate-700 cursor-not-allowed text-sm shadow-inner"
-                            value={`${countryName} (${region})`}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                        Street Address <span className="text-rose-500">*</span>
-                      </label>
-                      <input
-                        name="shippingAddress"
-                        value={formData.shippingAddress}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.shippingAddress ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                        placeholder="House/Flat number, Street address"
-                      />
-                      {formErrors.shippingAddress && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.shippingAddress}</p>}
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                          City <span className="text-rose-500">*</span>
-                        </label>
-                        <input
-                          name="city"
-                          value={formData.city}
-                          onChange={handleInputChange}
-                          className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.city ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                          placeholder="City"
-                        />
-                        {formErrors.city && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.city}</p>}
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold text-slate-600 ml-0.5">
-                          State <span className="text-rose-500">*</span>
-                        </label>
-                        {region === 'IN' ? (
-                          <select
-                            name="state"
-                            value={formData.state}
-                            onChange={handleInputChange}
-                            className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 text-sm shadow-sm cursor-pointer`}
-                          >
-                            <option value="">Select State</option>
-                            {INDIA_STATES.map((st) => (
-                              <option key={st} value={st}>
-                                {st}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <input
-                            name="state"
-                            value={formData.state}
-                            onChange={handleInputChange}
-                            className={`w-full px-4 py-3 rounded-lg bg-white border ${formErrors.state ? 'border-rose-400 focus:ring-rose-50' : 'border-slate-200 focus:border-primary/60 focus:ring-primary/5'} focus:ring-4 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm`}
-                            placeholder="State"
-                          />
-                        )}
-                        {formErrors.state && <p className="text-[10px] text-rose-500 font-bold ml-0.5">{formErrors.state}</p>}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Promo code (India only) */}
-                  <div className="space-y-3 pt-2">
-                    <label className="text-[11px] font-bold text-slate-600 ml-0.5">Promo code</label>
-                    <div className="flex gap-2">
-                      <input
-                        value={couponCode}
-                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                        placeholder="Enter code e.g. PROMO15"
-                        className="flex-1 min-w-0 px-4 py-2.5 rounded-lg bg-white border border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm shadow-sm"
-                      />
-                      <button
-                        type="button"
-                        onClick={applyCoupon}
-                        disabled={!couponCode || validatingCoupon}
-                        className="px-5 py-2.5 bg-slate-900 text-white rounded-lg font-bold text-xs hover:bg-black transition-colors disabled:opacity-50"
-                      >
-                        {validatingCoupon ? <Loader2 className="animate-spin" size={14} /> : 'Apply'}
-                      </button>
-                    </div>
-                    {appliedCoupon && (
-                      <div className="flex items-center gap-2 px-3.5 py-2.5 bg-emerald-50 border border-emerald-200 rounded-lg">
-                        <Tag size={13} className="text-emerald-600" />
-                        <p className="text-emerald-700 text-[11px] font-bold">
-                          🎉 Code <span className="font-black">{appliedCoupon.code}</span> applied — you save ₹{discountAmount}!
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {/* Step 3 (or main section for intl): Payment Method */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {region === 'IN' ? (
-                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold border border-primary/20">
-                        03
-                      </div>
-                    ) : (
-                      <div className="w-7 h-7 rounded-full bg-[#0070BA]/10 flex items-center justify-center text-[#0070BA] text-[10px] font-bold border border-[#0070BA]/20">
-                        ⚡
-                      </div>
-                    )}
-                    <h2 className="text-base font-bold text-slate-800 tracking-tight">
-                      {region === 'IN' ? 'Payment method' : 'Express Checkout'}
-                    </h2>
-                  </div>
-
-                  {region !== 'IN' && (
-                    <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 rounded-full border border-slate-200 text-xs font-bold text-slate-700">
-                      <span>{flagEmoji}</span>
-                      <span>Shipping to {countryName}</span>
-                    </div>
-                  )}
-                </div>
-
-                {region === 'IN' ? (
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <button
-                      type="button"
-                      id='payment-online'
-                      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'ONLINE' }))}
-                      className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'ONLINE' ? 'border-primary bg-primary/3' : 'border-slate-100 hover:border-slate-200 bg-white'
-                        }`}
-                    >
-                      <CreditCard size={20} className={formData.paymentMethod === 'ONLINE' ? 'text-primary' : 'text-slate-400'} />
-                      <div className="space-y-1 text-center">
-                        <div className={`text-base font-bold ${formData.paymentMethod === 'ONLINE' ? 'text-primary' : 'text-slate-800'}`}>Pay online</div>
-                        <div className="text-xs font-medium text-slate-500">Cards, UPI, NetBanking</div>
-                      </div>
-                    </button>
-                    <button
-                      type="button"
-                      id='payment-cod'
-                      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'COD' }))}
-                      className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 ${formData.paymentMethod === 'COD' ? 'border-primary bg-primary/3' : 'border-slate-100 hover:border-slate-200 bg-white'
-                        }`}
-                    >
-                      <Truck size={20} className={formData.paymentMethod === 'COD' ? 'text-primary' : 'text-slate-400'} />
-                      <div className="space-y-1 text-center">
-                        <div className={`text-base font-bold ${formData.paymentMethod === 'COD' ? 'text-primary' : 'text-slate-800'}`}>Cash on delivery</div>
-                        <div className="text-xs font-medium text-slate-500">Pay at door, just a little more!</div>
-                      </div>
-                    </button>
-                  </div>
-                ) : (
-                  <div className="w-full grid sm:grid-cols-2 gap-3.5">
-                    {/* Option 1: Credit / Debit Card */}
-                    <button
-                      type="button"
-                      id="payment-card"
-                      onClick={() => setIntlPaymentMethod('CARD')}
-                      className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 text-center cursor-pointer ${
-                        intlPaymentMethod === 'CARD'
-                          ? 'border-primary bg-primary/5 ring-1 ring-primary/20 shadow-sm'
-                          : 'border-slate-100 hover:border-slate-200 bg-white'
-                      }`}
-                    >
-                      <CreditCard size={22} className={intlPaymentMethod === 'CARD' ? 'text-primary' : 'text-slate-400'} />
-                      <div className="space-y-1">
-                        <div className={`text-sm font-bold ${intlPaymentMethod === 'CARD' ? 'text-primary' : 'text-slate-800'}`}>
-                          Debit or Credit Card
-                        </div>
-                        <div className="text-[11px] font-medium text-slate-500">
-                          Visa, Mastercard, AMEX, Discover
-                        </div>
-                      </div>
-                    </button>
-
-                    {/* Option 2: PayPal */}
-                    <button
-                      type="button"
-                      id="payment-paypal"
-                      onClick={() => setIntlPaymentMethod('PAYPAL')}
-                      className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-2.5 text-center cursor-pointer ${
-                        intlPaymentMethod === 'PAYPAL'
-                          ? 'border-[#0070BA] bg-[#0070BA]/5 ring-1 ring-[#0070BA]/20 shadow-sm'
-                          : 'border-slate-100 hover:border-slate-200 bg-white'
-                      }`}
-                    >
-                      <div className={`w-5 h-5 flex items-center justify-center font-black italic text-base ${intlPaymentMethod === 'PAYPAL' ? 'text-[#0070BA]' : 'text-slate-400'}`}>
-                        P
-                      </div>
-                      <div className="space-y-1">
-                        <div className={`text-sm font-bold ${intlPaymentMethod === 'PAYPAL' ? 'text-[#0070BA]' : 'text-slate-800'}`}>
-                          PayPal Wallet
-                        </div>
-                        <div className="text-[11px] font-medium text-slate-500">
-                          1-Click Express checkout
-                        </div>
-                      </div>
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {error && (
-                <div className="p-4 bg-rose-50 border border-rose-100 text-rose-600 rounded-lg text-xs font-semibold flex items-center gap-3">
-                  <AlertCircle size={18} /> {error}
-                </div>
-              )}
-
-              {/* Action area */}
-              {region === 'IN' ? (
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    disabled={processing || pincodeLoading}
-                    className="w-full py-4 bg-primary text-white rounded-lg font-bold text-base hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
-                  >
-                    {processing ? (
-                      <>
-                        <Loader2 className="animate-spin" size={20} />
-                        Processing securely...
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingBag size={20} />
-                        {formData.paymentMethod === 'ONLINE' 
-                          ? `Pay ${formatPrice(total, false)} & place order`
-                          : `Place order via COD (${formatPrice(total, false)})`
-                        }
-                      </>
-                    )}
-                  </button>
-                </div>
-              ) : intlPaymentMethod === 'CARD' ? (
-                <div key="intl-card-view" className="pt-2 space-y-3">
-                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                        <CreditCard size={15} className="text-primary" /> Debit or Credit Card
-                      </span>
-                      <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
-                        <Lock size={10} /> 256-bit Encrypted
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 font-medium">
-                      Pay directly with Visa, Mastercard, American Express, or Discover via secure PayPal guest checkout. No PayPal account needed.
-                    </p>
-                  </div>
-
-                  <div id="paypal-card-container" className="w-full min-h-[48px]" />
-
-                  {!paypalReady && (
-                    <div className="w-full py-4 bg-slate-50 border border-slate-200 text-slate-500 rounded-lg font-bold text-sm flex items-center justify-center gap-2">
-                      <Loader2 className="animate-spin text-primary" size={18} /> Connecting to Secure Card Gateway...
-                    </div>
-                  )}
-
-                  {initiatingPayment && (
-                    <div className="flex items-center justify-center gap-2.5 py-3 px-4 text-xs font-bold text-slate-800 bg-primary/5 border border-primary/20 rounded-xl shadow-xs animate-pulse">
-                      <Loader2 className="animate-spin text-primary shrink-0" size={16} />
-                      <span>Opening Secure Card Gateway... Please wait.</span>
-                    </div>
-                  )}
-
-                  {processing && (
-                    <div className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-primary bg-primary/5 rounded-xl border border-primary/20">
-                      <Loader2 className="animate-spin" size={18} /> Processing card payment & verifying order...
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div key="intl-paypal-view" className="pt-2 space-y-3">
-                  <div id="paypal-wallet-container" className="w-full min-h-[48px]" />
-
-                  {!paypalReady && (
-                    <div className="w-full py-4 bg-slate-50 border border-slate-200 text-slate-500 rounded-lg font-bold text-sm flex items-center justify-center gap-2">
-                      <Loader2 className="animate-spin text-primary" size={18} /> Connecting to PayPal...
-                    </div>
-                  )}
-
-                  {initiatingPayment && (
-                    <div className="flex items-center justify-center gap-2.5 py-3 px-4 text-xs font-bold text-slate-800 bg-primary/5 border border-primary/20 rounded-xl shadow-xs animate-pulse">
-                      <Loader2 className="animate-spin text-primary shrink-0" size={16} />
-                      <span>Connecting to PayPal... Please wait.</span>
-                    </div>
-                  )}
-
-                  {processing && (
-                    <div className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-primary bg-primary/5 rounded-xl border border-primary/20">
-                      <Loader2 className="animate-spin" size={18} /> Processing payment & verifying shipping details...
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Trust Badges */}
-              <div className="pt-5 border-t border-slate-100 grid grid-cols-3 gap-3 text-center">
-                <div className="space-y-1">
-                  <div className="text-emerald-600 font-black text-xs">🔒 256-bit SSL</div>
-                  <p className="text-[10px] text-slate-400 font-medium">Bank-grade security</p>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-primary font-black text-xs">🛡️ Buyer Protection</div>
-                  <p className="text-[10px] text-slate-400 font-medium">{region === 'IN' ? 'Verified guarantee' : 'PayPal guarantee'}</p>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-slate-700 font-black text-xs">✈️ Tracked Post</div>
-                  <p className="text-[10px] text-slate-400 font-medium">Delivered to {countryName}</p>
-                </div>
-              </div>
-
-              <p className="text-center text-slate-500 text-[10px] font-medium pt-2">
-                By placing order, you agree to our <Link href={getLocalizedLink("/legal#terms")} className="underline underline-offset-2 hover:text-primary transition-colors">Terms</Link> and <Link href={getLocalizedLink("/legal#privacy")} className="underline underline-offset-2 hover:text-primary transition-colors">Privacy Policy</Link>.
-              </p>
-            </form>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
@@ -1490,8 +1110,8 @@ function CheckoutContent() {
 export default function CheckoutPage() {
   return (
     <React.Suspense fallback={
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Loader2 className="animate-spin text-primary" size={48} />
+      <div className="min-h-screen bg-[#FBF8F6] flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#C2456A]" size={42} />
       </div>
     }>
       <CheckoutContent />

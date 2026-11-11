@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ShoppingCart, Book as BookIcon, Gift, ArrowRight } from 'lucide-react';
-import { Book } from '@/services/shop.service';
+import { Book, getBookSlug } from '@/services/shop.service';
 import { useRegion } from '@/hooks/use-region';
 
 interface PurchaseOptionsProps {
@@ -26,7 +26,7 @@ export function PurchaseOptions({ book }: PurchaseOptionsProps) {
                 </div>
                 <h3 className="font-bold font-heading text-xl mb-3 text-slate-900 tracking-tight">Individual Purchase</h3>
                 <p className="text-slate-500 text-sm leading-relaxed mb-8">Buy online — delivered to your door. Available in English, Hindi, Tamil, and Telugu.</p>
-                <Link href={getLocalizedLink(book ? `/checkout?bookId=${book.id}` : '/checkout')} className="mt-auto text-primary font-bold hover:underline flex items-center gap-2">Order Now <ArrowRight size={16} /></Link>
+                <Link href={getLocalizedLink(`/checkout?book=${getBookSlug(book)}`)} className="mt-auto text-primary font-bold hover:underline flex items-center gap-2">Order Now <ArrowRight size={16} /></Link>
              </div>
 
              <div className="flex flex-col items-center text-center p-8 bg-gradient-to-b from-[#F0FDF4] to-white rounded-xl border border-emerald-500/10 shadow-[0_4px_20px_-4px_rgba(16,185,129,0.05)] hover:shadow-[0_20px_35px_-10px_rgba(16,185,129,0.12)] hover:border-emerald-500/30 transition-all duration-300 hover:-translate-y-2">
@@ -44,7 +44,7 @@ export function PurchaseOptions({ book }: PurchaseOptionsProps) {
                 </div>
                 <h3 className="font-bold font-heading text-xl mb-3 text-slate-900 tracking-tight">Gift a Copy</h3>
                 <p className="text-slate-500 text-sm leading-relaxed mb-8">Beautiful gift packaging available. Give the gift of self-knowledge to a girl you care about.</p>
-                <Link href={getLocalizedLink(book ? `/checkout?bookId=${book.id}&gift=true` : '/checkout?gift=true')} className="mt-auto text-rose-500 font-bold hover:underline flex items-center gap-2">Send as Gift <ArrowRight size={16} /></Link>
+                <Link href={getLocalizedLink(`/checkout?book=${getBookSlug(book)}&gift=true`)} className="mt-auto text-rose-500 font-bold hover:underline flex items-center gap-2">Send as Gift <ArrowRight size={16} /></Link>
              </div>
           </div>
        </div>

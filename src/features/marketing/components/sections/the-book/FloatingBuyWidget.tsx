@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, X, Sparkles, Star } from 'lucide-react';
-import { Book } from '@/services/shop.service';
+import { Book, getBookSlug } from '@/services/shop.service';
 import { useRegion, getBookPrice } from '@/hooks/use-region';
 
 interface FloatingBuyWidgetProps {
@@ -28,7 +28,7 @@ export function FloatingBuyWidget({ book }: FloatingBuyWidgetProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const checkoutHref = getLocalizedLink(book ? `/checkout?bookId=${book.id}` : '/checkout');
+  const checkoutHref = getLocalizedLink(`/checkout?book=${getBookSlug(book)}`);
 
   return (
     <AnimatePresence>

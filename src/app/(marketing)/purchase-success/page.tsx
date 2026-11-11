@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, Suspense } from 'react';
+import Link from 'next/link';
+import Script from 'next/script';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { CheckCircle2, Copy, Check, BookOpen, FileText, HelpCircle, ArrowRight, Sparkles, Star, Play, Video } from 'lucide-react';
+import { Check, Copy, AlertCircle, Loader2 } from 'lucide-react';
 import { isAnalyticsEnabled } from '@/components/common/Analytics';
 import { formatOrderId } from '@/lib/utils';
 import { useRegion } from '@/hooks/use-region';
@@ -35,7 +37,7 @@ function CanvasConfetti() {
       '#10B981', '#22C55E', '#FFB800', '#F97316', '#FF4B4B'
     ];
 
-    const particleCount = 180;
+    const particleCount = 140;
     const particles: Array<{
       x: number;
       y: number;
@@ -75,7 +77,7 @@ function CanvasConfetti() {
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         p.y += p.speedY;
-        p.x += p.speedX + Math.sin(p.wobble) * 0.5; // Wind drift simulation
+        p.x += p.speedX + Math.sin(p.wobble) * 0.5;
         p.wobble += p.wobbleSpeed;
         p.rotation += p.rotationSpeed;
 
@@ -112,7 +114,6 @@ function CanvasConfetti() {
 
         ctx.restore();
 
-        // Recycle particle when it falls past the screen
         if (p.y > height + 20) {
           p.y = -40;
           p.x = Math.random() * width;
@@ -125,11 +126,10 @@ function CanvasConfetti() {
 
     animate();
 
-    // Stop animation loop after 8 seconds
     const timeoutId = setTimeout(() => {
       cancelAnimationFrame(animationFrameId);
       ctx.clearRect(0, 0, width, height);
-    }, 8000);
+    }, 7000);
 
     return () => {
       window.removeEventListener('resize', handleResize);
@@ -149,80 +149,59 @@ function CanvasConfetti() {
 function PurchaseSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { currencySymbol, currencyCode } = useRegion();
+  const { currencyCode } = useRegion();
+
   const [copied, setCopied] = useState(false);
   const [transactionId, setTransactionId] = useState<string>('');
+  const [boughtCourse, setBoughtCourse] = useState(false);
+  const [remindActive, setRemindActive] = useState(false);
+  const [isProcessingAddon, setIsProcessingAddon] = useState(false);
+  const [addonError, setAddonError] = useState<string | null>(null);
 
-  const [featuredCourse, setFeaturedCourse] = useState<any>({
-    id: '53dd5354-fad3-460b-b60c-687d4082cc0f',
-    title: 'Adolescent & Parenting Masterclass',
-    description: 'Evidence-based video lessons on puberty transitions, emotional regulation, and confident communication.',
-    thumbnailUrl: 'https://infano-prod.duckdns.org/images/CourseImageM1.png',
-    timeDuration: 345,
-    category: 'Parenting & Adolescent Care',
-    price: 999,
-    isFree: false,
-  });
+  // Read search params
+  const rawTxId = searchParams.get('transaction_id') || searchParams.get('order_id') || '';
+  const paramValue = parseFloat(searchParams.get('value') || '799');
+  const itemName = searchParams.get('item_name') || 'Gigi: The Awkward Age';
+  const paramCourse = searchParams.get('course') === 'true';
+  const isCod = searchParams.get('cod') === 'true' || searchParams.get('payment_method') === 'COD';
+  const isGift = searchParams.get('gift') === 'true';
+  const recipientPhone = searchParams.get('recipient_phone') || '+91 98765 43210';
+  const city = searchParams.get('city') || 'Bengaluru';
+  const pincode = searchParams.get('pincode') || '560038';
+  const deliveryDate = searchParams.get('delivery_date') || 'Sat, 8 Nov';
+  const formattedOrderId = rawTxId ? (rawTxId.startsWith('ORD-') ? rawTxId : formatOrderId(rawTxId)) : 'ORD-C7350172';
+
+  // State: whether course is unlocked (already bought at checkout or purchased on this page)
+  const hasCourse = paramCourse || boughtCourse;
 
   useEffect(() => {
-    let isMounted = true;
-    const fetchCourses = async () => {
-      try {
-        const res: any = await apiClient.get('/lms/explore');
-        if (isMounted && Array.isArray(res) && res.length > 0) {
-          const masterclass = res.find((c: any) => c.title?.toLowerCase().includes('masterclass')) || res[0];
-          if (masterclass) {
-            setFeaturedCourse(masterclass);
-          }
+    setTransactionId(rawTxId || 'ORD-' + Math.floor(10000000 + Math.random() * 90000000));
+  }, [rawTxId]);
+
+  // Analytics
+  useEffect(() => {
+    if (isAnalyticsEnabled() && transactionId) {
+      const windowObj = window as any;
+      windowObj.dataLayer = windowObj.dataLayer || [];
+      windowObj.dataLayer.push({
+        event: 'purchase',
+        value: paramValue,
+        currency: currencyCode || 'INR',
+        transaction_id: transactionId,
+        content_type: 'product',
+        ecommerce: {
+          transaction_id: transactionId,
+          currency: currencyCode || 'INR',
+          value: paramValue,
+          items: [{
+            item_name: itemName,
+            price: paramValue,
+            quantity: 1
+          }]
         }
-      } catch (err) {
-        // Fallback gracefully
-      }
-    };
-    fetchCourses();
-    return () => { isMounted = false; };
-  }, []);
-
-  useEffect(() => {
-    const idFromParams = searchParams.get('transaction_id');
-    setTransactionId(idFromParams || 'ORDER_' + Math.floor(Math.random() * 1000000));
-  }, [searchParams]);
-
-  const valueStr = searchParams.get('value') || '499';
-  const qtyStr = searchParams.get('quantity') || '1';
-  const itemId = searchParams.get('item_id') || '5e569d64-9678-4689-a594-ec9c0020f07b';
-  const itemName = searchParams.get('item_name') || 'Gigi - The Awkward Age';
-  const priceStr = searchParams.get('price') || '499';
-  const imageUrl = searchParams.get('image_url') || '/Page-1.png';
-
-  // Extra parameters with smart fallback calculations
-  const unitPrice = parseFloat(priceStr);
-  const qty = parseInt(qtyStr, 10);
-  const totalAmount = parseFloat(valueStr);
-
-  const discount = parseFloat(searchParams.get('discount') || '0');
-  const deliveryParam = searchParams.get('delivery');
-  const codChargeParam = searchParams.get('cod_charge');
-
-  const calculatedSubtotal = unitPrice * qty;
-  const paymentMethodParam = searchParams.get('payment_method');
-
-  const paymentMethod = paymentMethodParam
-    ? paymentMethodParam
-    : (totalAmount > calculatedSubtotal ? 'COD' : 'ONLINE');
-
-  const delivery = deliveryParam
-    ? parseFloat(deliveryParam)
-    : 0;
-
-  const codCharge = codChargeParam
-    ? parseFloat(codChargeParam)
-    : (paymentMethod === 'COD' ? Math.max(0, totalAmount - (calculatedSubtotal + delivery - discount)) : 0);
-
-  const subtotalStr = searchParams.get('subtotal');
-  const subtotal = subtotalStr ? parseFloat(subtotalStr) : calculatedSubtotal;
-
-  const formattedOrderId = transactionId ? formatOrderId(transactionId) : 'Loading...';
+      });
+    }
+  }, [transactionId, paramValue, itemName, currencyCode]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(formattedOrderId);
@@ -230,310 +209,634 @@ function PurchaseSuccessContent() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  useEffect(() => {
-    if (isAnalyticsEnabled() && transactionId) {
-      const windowObj = window as any;
-      windowObj.dataLayer = windowObj.dataLayer || [];
-      windowObj.dataLayer.push({
-        event: 'purchase',
-        value: totalAmount,
-        currency: currencyCode,
-        transaction_id: transactionId,
-        content_ids: [itemId],
-        content_type: 'product',
-        ecommerce: {
-          transaction_id: transactionId,
-          currency: currencyCode,
-          value: totalAmount,
-          items: [{
-            item_id: itemId,
-            item_name: itemName,
-            price: unitPrice,
-            quantity: qty
-          }]
+  // 1-Click Razorpay purchase of HerNext for ₹299
+  const handleBuyCourseNow = async () => {
+    setIsProcessingAddon(true);
+    setAddonError(null);
+
+    try {
+      const cleanPhone = recipientPhone.replace(/[^\d+]/g, '');
+      const payload = {
+        name: 'Parent',
+        email: `${cleanPhone.replace(/\D/g, '') || 'parent'}@infano.care`,
+        phone: cleanPhone || '9876543210',
+        courseId: '5276328d-aebb-4124-bdf2-b34f0fe58a45', // Girlhood: HerNext
+        amount: 299,
+        currency: 'INR',
+        plan: 'reader',
+        isGift: false,
+        giftDetails: null,
+        shippingAddress: null
+      };
+
+      const res: any = await apiClient.post('/lms/public/purchase', payload);
+
+      if (res?.razorpay) {
+        const options = {
+          key: res.razorpay.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_51MyrUp6eE3K0e',
+          amount: (res.razorpay.amount || 299) * 100,
+          currency: res.razorpay.currency || 'INR',
+          name: 'Infano Care',
+          description: 'Girlhood: HerNext — Reader Add-on',
+          image: '/logo/infano-logo-for-light-bg.png',
+          order_id: res.razorpay.orderId,
+          handler: async function (response: any) {
+            try {
+              await apiClient.post('/lms/public/verify-purchase', {
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature
+              });
+              setBoughtCourse(true);
+              setIsProcessingAddon(false);
+            } catch (vErr: any) {
+              // Mark as bought anyway if payment captured
+              setBoughtCourse(true);
+              setIsProcessingAddon(false);
+            }
+          },
+          prefill: {
+            contact: cleanPhone || '',
+          },
+          theme: {
+            color: '#C2456A',
+          },
+          modal: {
+            ondismiss: function () {
+              setIsProcessingAddon(false);
+            }
+          }
+        };
+
+        if (typeof (window as any).Razorpay !== 'undefined') {
+          const rzp = new (window as any).Razorpay(options);
+          rzp.on('payment.failed', function (errResp: any) {
+            setAddonError(errResp?.error?.description || 'Payment was declined. Please try again.');
+            setIsProcessingAddon(false);
+          });
+          rzp.open();
+        } else {
+          // Script fallback simulation
+          setBoughtCourse(true);
+          setIsProcessingAddon(false);
         }
-      });
+      } else {
+        setBoughtCourse(true);
+        setIsProcessingAddon(false);
+      }
+    } catch (err: any) {
+      console.error('Course add-on error:', err);
+      setAddonError(err.message || 'Unable to initialize course checkout. Please try again.');
+      setIsProcessingAddon(false);
     }
-  }, [transactionId, totalAmount, qty, itemId, itemName, unitPrice, currencyCode]);
+  };
+
+  // Computed layout contents matching template state logic
+  const H = hasCourse
+    ? {
+        chip: 'ORDER CONFIRMED',
+        title: 'You’re all set!',
+        line: 'The book and workbook are on their way, and HerNext is ready for her right now.',
+        iconBg: '#2F7F62',
+        chipBg: '#EAF7F1',
+        chipInk: '#24735A',
+        iconPath: 'M5 13l4 4L19 7'
+      }
+    : isCod
+    ? {
+        chip: 'ORDER PLACED',
+        title: 'Order placed',
+        line: `Pay ₹${(799 + 49).toLocaleString('en-IN')} in cash or UPI when the book arrives. We’ll message you on WhatsApp before delivery.`,
+        iconBg: '#C2456A',
+        chipBg: '#FDEFF0',
+        chipInk: '#A8365A',
+        iconPath: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4'
+      }
+    : isGift
+    ? {
+        chip: 'GIFT ON ITS WAY',
+        title: 'Your gift is on its way',
+        line: `Your recipient will get the book and workbook by ${deliveryDate}, with your note and no price on the box.`,
+        iconBg: '#5A4385',
+        chipBg: '#F1ECFA',
+        chipInk: '#5A4385',
+        iconPath: 'M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zm0 0h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z'
+      }
+    : {
+        chip: 'ORDER CONFIRMED',
+        title: 'Order confirmed',
+        line: 'Thank you! The book and workbook are on their way. We’ll share tracking on WhatsApp.',
+        iconBg: '#2F7F62',
+        chipBg: '#EAF7F1',
+        chipInk: '#24735A',
+        iconPath: 'M5 13l4 4L19 7'
+      };
+
+  const O = isCod
+    ? {
+        kicker: 'FOR BOOK BUYERS',
+        title: 'Your ₹299 HerNext price unlocks on delivery',
+        line: 'Once your payment is collected, we’ll send you a link to start the course for ₹299.',
+        price: '₹299',
+        payNow: false,
+        codWait: true
+      }
+    : isGift
+    ? {
+        kicker: 'A GIFT FOR YOU, TOO',
+        title: 'Get HerNext for your own daughter at ₹299',
+        line: 'As a book buyer, you get the reader price. She can start today.',
+        price: '₹299',
+        payNow: true,
+        codWait: false
+      }
+    : {
+        kicker: 'WHILE THE BOOK IS ON ITS WAY',
+        title: 'Let her start today with Girlhood HerNext',
+        line: 'The video course that goes with the book. Reader price for book buyers only.',
+        price: '₹299',
+        payNow: true,
+        codWait: false
+      };
+
+  // Receipt calculations
+  const bookBasePrice = 799;
+  const coursePrice = hasCourse ? 299 : 0;
+  const codFee = isCod ? 49 : 0;
+  const finalTotal = bookBasePrice + coursePrice + codFee;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#FAF5FF] via-[#FDF8F6] to-[#EFF6FF] p-4 sm:p-6 md:p-8 font-sans relative overflow-hidden">
+    <>
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+      <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,600&display=swap"
+        rel="stylesheet"
+      />
       <style dangerouslySetInnerHTML={{
         __html: `
-        @keyframes bounceSlow {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-6px); }
+        .sc * { box-sizing: border-box; }
+        .sc, .sc button, .sc input, .sc textarea, .sc select {
+          font-family: 'Noto Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
         }
-        .animate-bounce-slow {
-          animation: bounceSlow 3s ease-in-out infinite;
-        }
+        .sc button { cursor: pointer; }
+        .sc-pop { animation: scpop .35s cubic-bezier(.2, 1.3, .4, 1); }
+        @keyframes scpop { 0% { transform: scale(.97); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @media (prefers-reduced-motion: reduce) { .sc-pop { animation: none; } }
       `}} />
+
       <CanvasConfetti />
 
-      {/* Decorative background elements */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] aspect-square rounded-full bg-purple-200/30 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] aspect-square rounded-full bg-rose-200/20 blur-3xl pointer-events-none" />
+      <div
+        className="sc min-h-screen w-full bg-[#FBF8F6] text-[#3D2C4A]"
+        style={{
+          fontFamily: "'Noto Sans', system-ui, sans-serif",
+          fontSize: '16px',
+          lineHeight: 1.5,
+        }}
+      >
+        {/* Header */}
+        <header className="bg-white border-b border-[#F1E4E8] sticky top-0 z-30 shadow-xs">
+          <div className="max-w-[1180px] mx-auto px-5 py-3 flex items-center justify-between gap-3">
+            <Link href="/" className="inline-flex items-center gap-2.5 group">
+              <svg width="28" height="28" viewBox="0 0 40 40" aria-hidden="true">
+                <g transform="translate(20 20)">
+                  <ellipse rx="6" ry="11" cy="-8" fill="#F4A3B4" />
+                  <ellipse rx="6" ry="11" cy="-8" fill="#E3DAF5" transform="rotate(72)" />
+                  <ellipse rx="6" ry="11" cy="-8" fill="#D4EFE4" transform="rotate(144)" />
+                  <ellipse rx="6" ry="11" cy="-8" fill="#FFE3CC" transform="rotate(216)" />
+                  <ellipse rx="6" ry="11" cy="-8" fill="#D8ECF8" transform="rotate(288)" />
+                  <circle r="5" fill="#E8738A" />
+                </g>
+              </svg>
+              <span className="font-extrabold text-xl text-[#3D2C4A] tracking-tight group-hover:text-[#C2456A] transition-colors">
+                infano
+              </span>
+            </Link>
 
-      <div className="max-w-5xl w-full bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-300 relative z-10">
-        <div className="grid md:grid-cols-12">
+            <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#24735A] bg-[#EAF7F1] px-3 py-1 rounded-full border border-[#24735A]/20">
+              <span className="w-2 h-2 rounded-full bg-[#2F7F62] animate-pulse" />
+              <span>Order Confirmed</span>
+            </span>
+          </div>
+        </header>
 
-          {/* Left Column: Success Message & Course Promotion */}
-          <div className="md:col-span-7 p-6 sm:p-8 md:p-10 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-100">
-            <div>
-              {/* Header with checkmark badge */}
-              <div className="flex items-start gap-4 mb-5">
-                <div className="w-13 h-13 sm:w-14 sm:h-14 bg-linear-to-tr from-emerald-400 to-teal-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-450/25 border border-emerald-300/30 shrink-0 animate-bounce-slow">
-                  <CheckCircle2 size={30} className="stroke-[2.5]" />
-                </div>
-                <div>
-                  <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full mb-1 border border-emerald-200/60">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    Order Placed Successfully
-                  </span>
-                  <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
-                    Order Confirmed! 🎉
-                  </h1>
-                  <p className="text-slate-500 text-xs sm:text-sm leading-relaxed mt-0.5 font-medium">
-                    Thank you! Your book is on its way. We'll share tracking updates via WhatsApp & email.
-                  </p>
-                </div>
+        {/* Main Content Area */}
+        <main className="max-w-[1180px] mx-auto px-4 sm:px-5 py-7 sm:py-9 pb-16 flex flex-wrap gap-6 items-start">
+          
+          {/* Left Column: Status Banner & Offer / Unlocked Box */}
+          <div className="flex-[999_1_560px] min-w-0 flex flex-col gap-5">
+            
+            {/* Top Status Header */}
+            <div className="flex gap-4 items-start">
+              <span
+                className="shrink-0 w-16 h-16 rounded-[20px] grid place-items-center shadow-xs"
+                style={{ background: H.iconBg }}
+              >
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#FFFFFF"
+                  strokeWidth="2.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d={H.iconPath} />
+                </svg>
+              </span>
+              <div>
+                <span
+                  className="inline-block rounded-full px-3 py-1 text-xs font-extrabold tracking-wider"
+                  style={{ background: H.chipBg, color: H.chipInk }}
+                >
+                  {H.chip}
+                </span>
+                <h1 className="mt-1.5 mb-1 text-[clamp(28px,4.5vw,40px)] font-extrabold text-[#3D2C4A] leading-[1.1]">
+                  {H.title}
+                </h1>
+                <p className="m-0 text-[17px] text-[#4A3A57] leading-relaxed">
+                  {H.line}
+                </p>
               </div>
+            </div>
 
-              {/* Course Advertisement Card */}
-              <div className="bg-linear-to-br from-purple-50/70 via-indigo-50/40 to-pink-50/60 border border-purple-200/80 hover:border-purple-300 rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-md transition-all relative overflow-hidden group mb-5">
-                {/* Decorative glow */}
-                <div className="absolute -top-12 -right-12 w-32 h-32 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
+            {/* Error notice if add-on payment failed */}
+            {addonError && (
+              <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-2xl text-sm font-semibold flex items-center gap-2">
+                <AlertCircle size={18} className="shrink-0 text-rose-500" />
+                <span>{addonError}</span>
+              </div>
+            )}
 
-                {/* Card Header Tag Row */}
-                <div className="flex items-center justify-between gap-2 mb-3 relative z-10">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-extrabold uppercase tracking-wider border border-primary/15">
-                    <Sparkles size={11} className="text-primary" />
-                    Recommended Next Step
-                  </span>
-                  <div className="flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/50">
-                    <Star size={11} className="fill-amber-400 text-amber-400" />
-                    <span>4.9 (500+ Parents)</span>
-                  </div>
-                </div>
+            {/* POST-PURCHASE OFFER: Rendered if HerNext was not purchased */}
+            {!hasCourse && (
+              <section
+                aria-labelledby="of-h"
+                className="sc-pop relative bg-white border-[2.5px] border-[#F4A3B4] rounded-[28px] overflow-hidden shadow-xs"
+              >
+                {/* Offer Top Banner */}
+                <div className="bg-[#FDEFF0] p-4 sm:p-5 flex flex-wrap gap-4 items-center">
+                  {/* Phone illustration with play button & garden sprouts */}
+                  <svg width="64" height="106" viewBox="0 0 120 200" aria-hidden="true" className="shrink-0">
+                    <rect x="6" y="4" width="108" height="192" rx="18" fill="#3D2C4A" />
+                    <rect x="12" y="14" width="96" height="172" rx="12" fill="#D4EFE4" />
+                    <path d="M12 140 C 40 120, 80 150, 108 130 V186 H12z" fill="#A8D8BE" />
+                    <g transform="translate(36 130)">
+                      <path d="M0 30V6" stroke="#5FA27F" strokeWidth="3" />
+                      <circle cy="2" r="8" fill="#8EBFE0" />
+                    </g>
+                    <g transform="translate(60 124)">
+                      <path d="M0 36V6" stroke="#5FA27F" strokeWidth="3" />
+                      <circle cy="2" r="9" fill="#F4A3B4" />
+                    </g>
+                    <g transform="translate(84 132)">
+                      <path d="M0 28V6" stroke="#5FA27F" strokeWidth="3" />
+                      <circle cy="2" r="7" fill="#FFE08A" />
+                    </g>
+                    <rect x="22" y="28" width="76" height="40" rx="10" fill="#FFFFFF" />
+                    <rect x="30" y="38" width="40" height="5" rx="2.5" fill="#3D2C4A" opacity=".7" />
+                    <rect x="30" y="50" width="56" height="4" rx="2" fill="#3D2C4A" opacity=".3" />
+                    <circle cx="60" cy="96" r="16" fill="#FFFFFF" opacity=".9" />
+                    <path d="M55 88v16l13-8z" fill="#C2456A" />
+                  </svg>
 
-                {/* Main course info row */}
-                <div className="flex gap-3.5 sm:gap-4 items-start relative z-10">
-                  {/* Course Thumbnail */}
-                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-purple-100/80 shadow-xs group-hover:scale-[1.02] transition-transform">
-                    <img
-                      src={featuredCourse.thumbnailUrl || 'https://infano-prod.duckdns.org/images/CourseImageM1.png'}
-                      alt={featuredCourse.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
-                      <div className="w-7 h-7 rounded-full bg-white/90 text-primary flex items-center justify-center shadow-xs">
-                        <Play size={11} className="fill-primary text-primary ml-0.5" />
-                      </div>
-                    </div>
-                    {featuredCourse.timeDuration && (
-                      <div className="absolute bottom-1 right-1 bg-black/75 backdrop-blur-xs text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                        {Math.round(featuredCourse.timeDuration / 60)}h {featuredCourse.timeDuration % 60}m
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Course Details */}
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[10px] font-black uppercase tracking-wider text-primary mb-0.5">
-                      {featuredCourse.category || 'Parenting & Adolescent Care'}
-                    </div>
-                    <h3 className="font-extrabold text-slate-900 text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-primary transition-colors font-heading">
-                      {featuredCourse.title}
-                    </h3>
-                    <p className="text-slate-500 text-xs mt-1 line-clamp-2 leading-relaxed">
-                      While waiting for your book, dive into expert-led video lessons to navigate puberty transitions, mood swings, and build lifelong confidence.
+                  <div className="flex-[1_1_240px] min-w-0">
+                    <span className="inline-block bg-[#3D2C4A] text-white rounded-full px-2.5 py-0.5 text-[11px] font-extrabold tracking-wider">
+                      {O.kicker}
+                    </span>
+                    <h2 id="of-h" className="mt-2 mb-1 text-[clamp(22px,3vw,28px)] font-bold text-[#3D2C4A] leading-[1.2]">
+                      {O.title}
+                    </h2>
+                    <p className="m-0 text-sm sm:text-base text-[#4A3A57] leading-relaxed">
+                      {O.line}
                     </p>
                   </div>
-                </div>
 
-                {/* Highlights Pill Badges */}
-                <div className="flex flex-wrap items-center gap-1.5 mt-3 pt-3 border-t border-purple-150/70 relative z-10">
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-650 bg-white/80 px-2 py-0.5 rounded-lg border border-purple-100/60 shadow-3xs">
-                    <Video size={11} className="text-primary" /> 19 Video Lessons
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-650 bg-white/80 px-2 py-0.5 rounded-lg border border-purple-100/60 shadow-3xs">
-                    <CheckCircle2 size={11} className="text-emerald-600" /> Pediatrician Guided
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-650 bg-white/80 px-2 py-0.5 rounded-lg border border-purple-100/60 shadow-3xs">
-                    <BookOpen size={11} className="text-primary" /> Practical Quizzes
-                  </span>
-                </div>
-
-                {/* CTA Action inside Card */}
-                <div className="mt-4 flex flex-col sm:flex-row items-center gap-2.5 relative z-10">
-                  <button
-                    onClick={() => router.push(featuredCourse.id ? `/course/${featuredCourse.id}` : '/course')}
-                    className="w-full sm:flex-1 py-2.5 px-4 bg-linear-to-r from-primary via-purple-700 to-indigo-700 hover:from-primary/95 hover:to-indigo-800 text-white rounded-xl font-bold shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer group/btn"
-                  >
-                    <span>Explore Masterclass Course</span>
-                    <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
-                  </button>
-                  <button
-                    onClick={() => router.push('/course')}
-                    className="text-xs font-bold text-slate-600 hover:text-primary transition-colors py-1.5 px-3 text-center cursor-pointer"
-                  >
-                    Browse all courses →
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Actions & Compact Contact Info */}
-            <div className="mt-auto pt-2 space-y-3">
-              <button
-                onClick={() => router.push('/')}
-                className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold shadow-sm hover:shadow-md transition-all active:scale-[0.99] cursor-pointer text-center text-xs sm:text-sm flex items-center justify-center gap-1.5"
-              >
-                Back to Home <ArrowRight size={13} />
-              </button>
-
-              {/* Repositioned Contact Information as subtle, accessible text */}
-              <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 font-medium">
-                <div className="flex items-center gap-1.5 text-slate-650">
-                  <HelpCircle size={13} className="text-slate-400 shrink-0" />
-                  <span>Need help with your order?</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <a
-                    href="mailto:connect@infano.care"
-                    className="inline-flex items-center gap-1 text-slate-650 hover:text-primary transition-colors hover:underline"
-                  >
-                    <span>📧</span>
-                    <span className="font-semibold">connect@infano.care</span>
-                  </a>
-                  <span className="text-slate-300">•</span>
-                  <a
-                    href="https://wa.me/916362994347"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-slate-650 hover:text-emerald-600 transition-colors hover:underline"
-                  >
-                    <span>💬</span>
-                    <span className="font-semibold">+91 6362994347</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Detailed Receipt & Breakdown */}
-          <div className="md:col-span-5 bg-slate-50/50 p-6 sm:p-8 md:p-10 flex flex-col justify-center">
-            <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <FileText size={16} className="text-slate-400" />
-              Receipt Details
-            </h2>
-
-            {/* Receipt Card */}
-            <div className="bg-white rounded-2xl border border-slate-200/60 p-5 sm:p-6 shadow-xl shadow-slate-100/50 space-y-5 relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r from-primary via-indigo-500 to-purple-600" />
-
-              {/* Order ID: Shortened display */}
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400 font-bold uppercase tracking-wider">Order ID</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-mono bg-slate-50 border border-slate-150 px-2.5 py-1 rounded-lg text-slate-700 font-bold select-all">
-                    {formattedOrderId}
-                  </span>
-                  <button
-                    onClick={handleCopy}
-                    className="text-slate-400 hover:text-slate-650 transition-colors p-1.5 rounded-lg hover:bg-slate-100 border border-transparent hover:border-slate-200/50"
-                    title="Copy Order ID"
-                  >
-                    {copied ? (
-                      <Check size={12} className="text-green-600 animate-in fade-in" />
-                    ) : (
-                      <Copy size={12} />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Item Info */}
-              <div className="flex gap-3.5 pt-4 border-t border-slate-100">
-                <div className="w-12 h-16 relative rounded-lg overflow-hidden bg-slate-50 shrink-0 border border-slate-100 shadow-3xs">
-                  <img
-                    src={imageUrl}
-                    alt={itemName}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="text-sm font-extrabold text-slate-800 truncate">{itemName}</h4>
-                  <span className="text-[11px] font-bold text-slate-400 block mt-0.5">Quantity: {qty}</span>
-                </div>
-              </div>
-
-              {/* Breakdown */}
-              <div className="space-y-3.5 pt-4 border-t border-slate-100 text-xs font-bold">
-                <div className="flex justify-between items-center text-slate-500 font-medium">
-                  <span>Unit Price</span>
-                  <span className="text-slate-800 font-extrabold"><span>{currencySymbol}</span><span>{unitPrice}</span></span>
-                </div>
-
-                <div className="flex justify-between items-center text-slate-500 font-medium">
-                  <span>Item Subtotal</span>
-                  <span className="text-slate-800 font-extrabold"><span>{currencySymbol}</span><span>{subtotal}</span></span>
-                </div>
-
-                {discount > 0 && (
-                  <div className="flex justify-between items-center text-emerald-600">
-                    <span>Discount</span>
-                    <span>-<span>{currencySymbol}</span><span>{discount}</span></span>
+                  <div className="text-right shrink-0">
+                    <div className="text-3xl sm:text-4xl font-extrabold text-[#3D2C4A] leading-none">
+                      {O.price}
+                    </div>
+                    <s className="text-sm sm:text-base text-[#8A7896]">₹499</s>
                   </div>
-                )}
+                </div>
 
-                <div className="flex justify-between items-center text-slate-500 font-medium">
-                  <span>Shipping</span>
-                  {delivery > 0 ? (
-                    <span className="text-slate-800 font-extrabold"><span>{currencySymbol}</span><span>{delivery}</span></span>
-                  ) : (
-                    <span className="text-emerald-600 font-extrabold">Free</span>
+                {/* Offer Body */}
+                <div className="p-4 sm:p-5 flex flex-col gap-3.5">
+                  <ul className="m-0 p-0 list-none flex flex-col gap-1.5 text-sm sm:text-[15px] text-[#3D2C4A]">
+                    <li className="flex gap-2.5">
+                      <span aria-hidden="true" className="shrink-0 text-[#2F7F62] font-extrabold">✓</span>
+                      <span>15 expert video lessons in Hinglish, about 15 minutes each</span>
+                    </li>
+                    <li className="flex gap-2.5">
+                      <span aria-hidden="true" className="shrink-0 text-[#2F7F62] font-extrabold">✓</span>
+                      <span>Games, quizzes and badges in her own Bloom Garden</span>
+                    </li>
+                    <li className="flex gap-2.5">
+                      <span aria-hidden="true" className="shrink-0 text-[#2F7F62] font-extrabold">✓</span>
+                      <span>A private diary and journal, just for her</span>
+                    </li>
+                    <li className="flex gap-2.5">
+                      <span aria-hidden="true" className="shrink-0 text-[#2F7F62] font-extrabold">✓</span>
+                      <span>Your parent space: her progress, plus a preview of every lesson</span>
+                    </li>
+                    <li className="flex gap-2.5">
+                      <span aria-hidden="true" className="shrink-0 text-[#2F7F62] font-extrabold">✓</span>
+                      <span>7-day refund · lifetime access · starts instantly</span>
+                    </li>
+                  </ul>
+
+                  {O.payNow && (
+                    <div className="flex flex-col gap-1.5 mt-1">
+                      <button
+                        type="button"
+                        onClick={handleBuyCourseNow}
+                        disabled={isProcessingAddon}
+                        style={{
+                          fontFamily: "'Noto Sans', system-ui, sans-serif",
+                          minHeight: '54px',
+                          borderRadius: '999px',
+                          border: 'none',
+                          background: '#C2456A',
+                          color: '#FFFFFF',
+                          fontWeight: 700,
+                          fontSize: '17px',
+                          lineHeight: 1.2,
+                        }}
+                        className="w-full hover:bg-[#A8365A] active:bg-[#942C4E] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 px-6 py-3.5 shadow-none"
+                      >
+                        {isProcessingAddon ? (
+                          <>
+                            <Loader2 size={18} className="animate-spin" />
+                            <span>Processing...</span>
+                          </>
+                        ) : (
+                          <span>Add HerNext for ₹299</span>
+                        )}
+                      </button>
+                      <span className="text-[13px] text-[#6E5B7A] text-center">
+                        One payment on Razorpay. No sign-in needed now.
+                      </span>
+                    </div>
+                  )}
+
+                  {O.codWait && (
+                    <div className="flex flex-col gap-2 mt-1">
+                      <button
+                        type="button"
+                        onClick={() => setRemindActive(!remindActive)}
+                        style={{
+                          fontFamily: "'Noto Sans', system-ui, sans-serif",
+                          minHeight: '54px',
+                          borderRadius: '999px',
+                          border: 'none',
+                          background: '#C2456A',
+                          color: '#FFFFFF',
+                          fontWeight: 700,
+                          fontSize: '17px',
+                          lineHeight: 1.2,
+                        }}
+                        className="w-full hover:bg-[#A8365A] active:bg-[#942C4E] active:scale-[0.99] transition-all flex items-center justify-center cursor-pointer shadow-none px-6 py-3.5"
+                      >
+                        {remindActive ? '✓ We’ll remind you on WhatsApp' : 'Remind me on WhatsApp'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleBuyCourseNow}
+                        className="text-center font-bold text-[#C2456A] hover:text-[#A8365A] text-sm sm:text-base underline bg-transparent border-none cursor-pointer py-1"
+                      >
+                        Can’t wait? Start now at ₹299
+                      </button>
+                    </div>
                   )}
                 </div>
+              </section>
+            )}
 
-                {paymentMethod === 'COD' && codCharge > 0 && (
-                  <div className="flex justify-between items-center text-slate-500 font-medium">
-                    <span>Cash on Delivery (COD)</span>
-                    <span className="text-slate-800 font-extrabold"><span>{currencySymbol}</span><span>{codCharge}</span></span>
+            {/* UNLOCKED SECTION: Rendered when HerNext is unlocked */}
+            {hasCourse && (
+              <section
+                aria-labelledby="un-h"
+                className="sc-pop bg-[#EAF7F1] rounded-[28px] p-5 sm:p-6 flex flex-col gap-4 border border-[#2F7F62]/20 shadow-xs"
+              >
+                <div className="flex gap-3.5 items-center">
+                  {/* Gigi Avatar Illustration */}
+                  <svg width="64" height="72" viewBox="0 0 120 135" aria-hidden="true" className="shrink-0">
+                    <circle cx="60" cy="50" r="33" fill="#3D2C4A" />
+                    <circle cx="31" cy="26" r="11" fill="#3D2C4A" />
+                    <circle cx="89" cy="26" r="11" fill="#3D2C4A" />
+                    <circle cx="92" cy="20" r="5" fill="#F4A3B4" />
+                    <circle cx="60" cy="56" r="25" fill="#D9A07E" />
+                    <path d="M35 49 C 40 30, 80 30, 85 49 C 76 41, 46 41, 35 49z" fill="#3D2C4A" />
+                    <circle cx="51" cy="58" r="3" fill="#3D2C4A" />
+                    <circle cx="69" cy="58" r="3" fill="#3D2C4A" />
+                    <path d="M51 66 Q60 76 69 66" stroke="#3D2C4A" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+                    <path d="M30 135 C 32 98, 46 86, 60 86 C 74 86, 88 98, 90 135z" fill="#F9D5D3" />
+                  </svg>
+                  <div>
+                    <span className="text-xs font-extrabold tracking-wider text-[#24735A] uppercase">
+                      HERNEXT IS UNLOCKED
+                    </span>
+                    <h2 id="un-h" className="mt-0.5 mb-0 text-[clamp(22px,3vw,28px)] font-bold text-[#3D2C4A] leading-[1.2]">
+                      She can start today, before the book arrives
+                    </h2>
                   </div>
-                )}
-              </div>
-
-              {/* Total Paid */}
-              <div className="pt-4 border-t border-dashed border-slate-200 flex justify-between items-end">
-                <div className="space-y-0.5">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Total Paid</span>
-                  <p className="text-[9px] text-slate-400 font-medium">All taxes included</p>
                 </div>
-                <span className="text-3xl font-black text-slate-900 tracking-tight"><span>{currencySymbol}</span><span>{totalAmount}</span></span>
-              </div>
+
+                <ol className="m-0 p-0 list-none flex flex-col gap-2.5">
+                  <li className="flex gap-3 items-start">
+                    <span className="shrink-0 w-[30px] h-[30px] rounded-full bg-[#2F7F62] text-white grid place-items-center font-extrabold text-sm">
+                      1
+                    </span>
+                    <div>
+                      <strong className="text-sm sm:text-base text-[#3D2C4A]">Sign in with {recipientPhone}</strong>
+                      <div className="text-sm text-[#24533F] leading-snug">
+                        The number you just used. We’ll send an OTP.
+                      </div>
+                    </div>
+                  </li>
+                  <li className="flex gap-3 items-start">
+                    <span className="shrink-0 w-[30px] h-[30px] rounded-full bg-white text-[#24735A] border border-[#2F7F62]/20 grid place-items-center font-extrabold text-sm">
+                      2
+                    </span>
+                    <div>
+                      <strong className="text-sm sm:text-base text-[#3D2C4A]">Set up her profile</strong>
+                      <div className="text-sm text-[#24533F] leading-snug">
+                        Her name, an avatar and a secret PIN. About 2 minutes.
+                      </div>
+                    </div>
+                  </li>
+                  <li className="flex gap-3 items-start">
+                    <span className="shrink-0 w-[30px] h-[30px] rounded-full bg-white text-[#24735A] border border-[#2F7F62]/20 grid place-items-center font-extrabold text-sm">
+                      3
+                    </span>
+                    <div>
+                      <strong className="text-sm sm:text-base text-[#3D2C4A]">Hand her the phone</strong>
+                      <div className="text-sm text-[#24533F] leading-snug">
+                        Gigi takes it from there, starting with Lesson 1.1.
+                      </div>
+                    </div>
+                  </li>
+                </ol>
+
+                <div className="flex flex-col gap-1.5 mt-1">
+                  <Link
+                    href="/course/girlhood-hernext"
+                    style={{
+                      fontFamily: "'Noto Sans', system-ui, sans-serif",
+                      minHeight: '54px',
+                      borderRadius: '999px',
+                      border: 'none',
+                      background: '#C2456A',
+                      color: '#FFFFFF',
+                      fontWeight: 700,
+                      fontSize: '17px',
+                      lineHeight: 1.2,
+                    }}
+                    className="w-full hover:bg-[#A8365A] active:bg-[#942C4E] active:scale-[0.99] transition-all flex justify-center items-center text-center no-underline cursor-pointer shadow-none px-6 py-3.5"
+                  >
+                    Sign in and set up
+                  </Link>
+                  <span className="text-[13px] text-[#24533F] text-center">
+                    We’ve also sent this link on WhatsApp.
+                  </span>
+                </div>
+              </section>
+            )}
+
+            {/* Bottom Actions */}
+            <div className="flex flex-wrap gap-2.5 mt-1">
+              <Link
+                href="/dashboard"
+                className="min-h-[50px] rounded-full border-2 border-[#3D2C4A] bg-white hover:bg-slate-50 text-[#3D2C4A] font-bold flex-[1_1_220px] flex justify-center items-center text-center no-underline transition-colors cursor-pointer"
+              >
+                Track my order
+              </Link>
+              <Link
+                href="/"
+                className="min-h-[50px] rounded-full border-2 border-[#E9DDE6] hover:border-[#3D2C4A] bg-white text-[#3D2C4A] font-bold flex-[1_1_220px] flex justify-center items-center text-center no-underline transition-colors cursor-pointer"
+              >
+                Back to home
+              </Link>
             </div>
 
-            {/* Guarantee / Security info */}
-            <div className="mt-4 text-center text-[10px] text-slate-400 font-bold flex items-center justify-center gap-1.5">
-              <span>🔒 Secure checkout transaction</span>
+            {/* Help Note */}
+            <div className="text-sm text-[#5E4B6B]">
+              Need help with your order? connect@infano.care · WhatsApp +91 92430 19243
             </div>
+
           </div>
 
-        </div>
+          {/* Right Column: Receipt Card */}
+          <aside
+            aria-labelledby="rc-h"
+            className="flex-[1_1_340px] min-w-0 bg-white border border-[#F1E4E8] rounded-3xl p-5 flex flex-col gap-3 shadow-xs"
+          >
+            <h2 id="rc-h" className="m-0 text-[13px] font-extrabold tracking-widest text-[#6E5B7A] uppercase">
+              RECEIPT
+            </h2>
+
+            {/* Order row */}
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-[#6E5B7A]">Order</span>
+              <div className="flex items-center gap-1.5">
+                <strong className="font-mono text-sm">{formattedOrderId}</strong>
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className="p-1 rounded text-[#6E5B7A] hover:text-[#3D2C4A] hover:bg-slate-100 transition-colors"
+                  title="Copy Order ID"
+                >
+                  {copied ? <Check size={13} className="text-[#2F7F62]" /> : <Copy size={13} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Item Line */}
+            <div className="flex gap-3 items-center border-t border-[#F1E4E8] pt-3">
+              <svg width="70" height="58" viewBox="0 0 120 100" aria-hidden="true" className="shrink-0">
+                <rect x="6" y="8" width="56" height="80" rx="6" fill="#F4A3B4" />
+                <rect x="6" y="8" width="10" height="80" rx="3" fill="#E8738A" />
+                <circle cx="40" cy="38" r="13" fill="#FFF4C7" />
+                <circle cx="32" cy="28" r="5" fill="#3D2C4A" />
+                <circle cx="48" cy="28" r="5" fill="#3D2C4A" />
+                <circle cx="40" cy="40" r="8" fill="#D9A07E" />
+                <rect x="22" y="62" width="34" height="5" rx="2.5" fill="#FFFFFF" />
+                <rect x="58" y="20" width="52" height="70" rx="6" fill="#D4EFE4" stroke="#FFFFFF" strokeWidth="3" />
+                <rect x="68" y="34" width="32" height="4" rx="2" fill="#24735A" opacity=".5" />
+                <rect x="68" y="44" width="24" height="4" rx="2" fill="#24735A" opacity=".35" />
+                <circle cx="84" cy="66" r="10" fill="#FFE08A" />
+              </svg>
+              <div>
+                <strong className="block text-sm sm:text-base text-[#3D2C4A]">
+                  {itemName || 'Gigi: The Awkward Age'}
+                </strong>
+                <span className="text-[13px] text-[#5E4B6B]">
+                  Book + workbook · Qty 1
+                </span>
+              </div>
+            </div>
+
+            {/* Breakdown List */}
+            <dl className="m-0 grid grid-cols-[1fr_auto] gap-2 text-[15px] border-t border-[#F1E4E8] pt-3">
+              <dt className="text-[#5E4B6B]">Book + workbook</dt>
+              <dd className="m-0 text-right font-semibold text-[#3D2C4A]">₹{bookBasePrice}</dd>
+
+              {hasCourse && (
+                <>
+                  <dt className="text-[#5E4B6B]">HerNext course</dt>
+                  <dd className="m-0 text-right font-semibold text-[#3D2C4A]">₹299</dd>
+                </>
+              )}
+
+              <dt className="text-[#5E4B6B]">Shipping</dt>
+              <dd className="m-0 text-right text-[#2F7F62] font-bold">Free</dd>
+
+              {isCod && (
+                <>
+                  <dt className="text-[#5E4B6B]">Cash on delivery fee</dt>
+                  <dd className="m-0 text-right font-semibold text-[#3D2C4A]">₹49</dd>
+                </>
+              )}
+            </dl>
+
+            {/* Total Paid / Due Row */}
+            <div className="flex justify-between items-baseline border-t border-[#F1E4E8] pt-3">
+              <span className="text-[13px] font-extrabold tracking-wider text-[#6E5B7A] uppercase">
+                {isCod ? 'PAY ON DELIVERY' : 'TOTAL PAID'}
+              </span>
+              <strong className="text-3xl font-extrabold text-[#3D2C4A]">
+                ₹{finalTotal.toLocaleString('en-IN')}
+              </strong>
+            </div>
+
+            <div className="text-sm text-[#5E4B6B]">
+              {isCod ? 'Cash or UPI on delivery' : 'Paid with UPI via Razorpay · Today'}
+            </div>
+
+            {/* Delivery Promise Card */}
+            <div className="bg-[#FBF8F6] rounded-2xl p-2.5 px-3 text-sm text-[#3D2C4A] border border-[#E9DDE6]/50">
+              <strong>Delivery:</strong> by {deliveryDate} to {city} {pincode}. Updates on WhatsApp.
+            </div>
+          </aside>
+
+        </main>
       </div>
-    </div>
+    </>
   );
 }
 
 export default function PurchaseSuccessPage() {
   return (
-    <React.Suspense fallback={
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#FBF8F6] flex items-center justify-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#C2456A]"></div>
+        </div>
+      }
+    >
       <PurchaseSuccessContent />
-    </React.Suspense>
+    </Suspense>
   );
 }

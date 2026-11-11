@@ -17,6 +17,7 @@ export interface Coupon {
 
 export interface Book {
   id: string;
+  slug?: string | null;
   title: string;
   description: string;
   price: number;           // India price (INR)
@@ -96,8 +97,8 @@ export const ShopService = {
     return apiClient.get<Book[]>('/shop/books');
   },
 
-  async getBook(id: string): Promise<Book> {
-    return apiClient.get<Book>(`/shop/books/${id}`);
+  async getBook(idOrSlug: string): Promise<Book> {
+    return apiClient.get<Book>(`/shop/books/${idOrSlug}`);
   },
 
   async validateCoupon(code: string, items: { bookId: string; quantity: number; price: number }[]): Promise<{ coupon: any, discountAmount: number }> {
@@ -238,3 +239,23 @@ export const ShopService = {
     return apiClient.delete(`/shop/admin/coupons/${id}`);
   },
 };
+
+
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
+export function getBookSlug(book?: { id?: string; title?: string; slug?: string | null } | null): string {
+  if (!book) return '';
+  if (book.slug && typeof book.slug === 'string' && book.slug.trim()) {
+    return book.slug.trim();
+  }
+  if (book.title) {
+    return slugify(book.title);
+  }
+  return book.id || '';
+}

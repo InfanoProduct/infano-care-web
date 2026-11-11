@@ -2,8 +2,8 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const code = searchParams.get('code')?.trim();
-  const regionParam = searchParams.get('region');
+  const code = (searchParams.get('code') || searchParams.get('pincode'))?.trim();
+  const regionParam = searchParams.get('region') || 'IN';
 
   if (!code) {
     return NextResponse.json({ error: 'Code is required' }, { status: 400 });

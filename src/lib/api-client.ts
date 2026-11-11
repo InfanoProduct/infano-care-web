@@ -124,8 +124,8 @@ class ApiClient {
     try {
       response = await fetchWithToken(token);
     } catch (err: any) {
-      // Catch network errors (like CORS, DNS, or server down) and throw a clearer error
-      console.error(`[ApiClient] Network Error when fetching ${url}:`, err);
+      // Log network issue as warning so Next.js dev overlay does not flag it as an unhandled Console TypeError
+      console.warn(`[ApiClient] Network unavailable when fetching ${url}:`, err?.message || err);
       throw new Error(`Network Error: Unable to reach the server at ${url}. Please check if the backend is running.`);
     }
 

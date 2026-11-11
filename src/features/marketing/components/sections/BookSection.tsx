@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ArrowRight, CheckCircle2, Shield, Users, BookOpen } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { ShopService, Book } from '@/services/shop.service';
+import { ShopService, Book, getBookSlug } from '@/services/shop.service';
 import { useRegion, getBookPrice } from '@/hooks/use-region';
 
 export function BookSection() {
@@ -194,7 +194,7 @@ export function BookSection() {
               </div>
 
               <div className="flex flex-wrap gap-2 xl:gap-4 w-full sm:w-auto">
-                <Link href={getLocalizedLink(book ? `/checkout?bookId=${book.id}` : '/checkout')} className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 xl:gap-3 px-5 py-3 xl:px-8 xl:py-4 bg-slate-900 text-white rounded-full font-bold text-sm xl:text-base hover:bg-primary transition-all shadow-lg shadow-slate-900/5 active:scale-95 group whitespace-nowrap">
+                <Link href={getLocalizedLink(`/checkout?book=${getBookSlug(book)}`)} className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 xl:gap-3 px-5 py-3 xl:px-8 xl:py-4 bg-slate-900 text-white rounded-full font-bold text-sm xl:text-base hover:bg-primary transition-all shadow-lg shadow-slate-900/5 active:scale-95 group whitespace-nowrap">
                   Buy Now <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                 </Link>
                 <Link href={getLocalizedLink("/gigi-the-awkward-age-book#read")} className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 xl:gap-3 px-5 py-3 xl:px-8 xl:py-4 bg-white text-slate-900 border border-slate-200 rounded-full font-bold text-xs xl:text-sm hover:bg-slate-50 transition-all active:scale-95 whitespace-nowrap">

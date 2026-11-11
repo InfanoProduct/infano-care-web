@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -H 0.0.0.0",
-    "build": "next build",
-    "start": "next start",
+    "dev": "cross-env NODE_OPTIONS=\"--disable-warning=DEP0205 --no-experimental-webstorage\" next dev -H 0.0.0.0",
+    "build": "cross-env NODE_OPTIONS=\"--disable-warning=DEP0205 --no-experimental-webstorage\" next build",
+    "start": "cross-env NODE_OPTIONS=\"--disable-warning=DEP0205 --no-experimental-webstorage\" next start",
     "lint": "eslint"
   },
   "dependencies": {
@@ -47,6 +47,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
+    "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "tailwindcss": "^4",

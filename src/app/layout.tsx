@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Outfit, Poppins, Inter, Noto_Sans, Playfair_Display, Caveat } from "next/font/google";
+import { Geist, Geist_Mono, Outfit, Poppins, Inter, Noto_Sans, Playfair_Display, Caveat, Baloo_2 } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/providers/query-provider";
 import { Analytics, AnalyticsNoScript } from "@/components/common/Analytics";
@@ -46,6 +46,12 @@ const caveat = Caveat({
   variable: "--font-caveat",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+});
+
+const baloo2 = Baloo_2({
+  variable: "--font-baloo-2",
+  subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
 });
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://infano.care";
@@ -127,7 +133,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} ${poppins.variable} ${inter.variable} ${notoSans.variable} ${playfairDisplay.variable} ${caveat.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} ${poppins.variable} ${inter.variable} ${notoSans.variable} ${playfairDisplay.variable} ${caveat.variable} ${baloo2.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>

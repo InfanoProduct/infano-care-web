@@ -708,7 +708,7 @@ function PurchaseSuccessContent() {
             {/* Bottom Actions */}
             <div className="flex flex-wrap gap-2.5 mt-1">
               <Link
-                href="/dashboard"
+                href="/dashboard/orders"
                 className="min-h-[50px] rounded-full border-2 border-[#3D2C4A] bg-white hover:bg-slate-50 text-[#3D2C4A] font-bold flex-[1_1_220px] flex justify-center items-center text-center no-underline transition-colors cursor-pointer"
               >
                 Track my order

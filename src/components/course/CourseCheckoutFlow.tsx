@@ -778,8 +778,7 @@ export default function CourseCheckoutFlow() {
               <button
                 type="button"
                 onClick={() => {
-                  const targetId = course?.id || "5276328d-aebb-4124-bdf2-b34f0fe58a45";
-                  router.push(`/dashboard/courses/${targetId}/overview`);
+                  router.push('/dashboard/courses');
                 }}
                 className="w-full py-4 rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white font-extrabold text-base sm:text-lg shadow-lg shadow-[#C2456A]/25 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
@@ -883,8 +882,7 @@ export default function CourseCheckoutFlow() {
                 <button
                   type="button"
                   onClick={() => {
-                    const targetId = course?.id || "5276328d-aebb-4124-bdf2-b34f0fe58a45";
-                    router.push(`/dashboard/courses/${targetId}/overview`);
+                    router.push('/dashboard/courses');
                   }}
                   className="w-full py-4 rounded-full bg-[#3D2C4A] text-white font-bold text-sm cursor-pointer"
                 >

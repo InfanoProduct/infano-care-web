@@ -177,7 +177,7 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
 
   const handlePurchase = (planKey?: string | React.MouseEvent) => {
     if (isAuthenticated && isEnrolled) {
-      router.push(`/dashboard/courses/${course?.id || ""}/overview`);
+      router.push('/dashboard/courses');
       return;
     }
     const key = typeof planKey === "string" ? planKey : undefined;
@@ -207,7 +207,7 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
           { icon: "ℹ️" }
         );
         setIsEnrollModalOpen(false);
-        router.push(`/login?redirect=/dashboard/courses/${course.id}/overview`);
+        router.push('/login?redirect=/dashboard/courses');
         return;
       }
 
@@ -222,7 +222,7 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
       if (course.isFree || !purchaseRes.razorpay) {
         toast.success("Successfully enrolled!");
         setIsEnrollModalOpen(false);
-        router.push(`/login?redirect=/dashboard/courses/${course.id}/overview`);
+        router.push('/login?redirect=/dashboard/courses');
         return;
       }
 
@@ -244,7 +244,7 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
             });
             toast.success("Payment successful! Please login to start learning.");
             setIsEnrollModalOpen(false);
-            router.push(`/login?redirect=/dashboard/courses/${course.id}/overview`);
+            router.push('/login?redirect=/dashboard/courses');
           } catch (verifyError: any) {
             toast.error(verifyError.message || "Payment verification failed.");
           }
@@ -782,10 +782,10 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
               {isEnrolled ? (
                 <button
                   type="button"
-                  onClick={() => router.push(`/dashboard/courses/${course?.id || ""}/overview`)}
-                  style={{ display: "inline-flex", alignItems: "center", minHeight: "44px", padding: "0 20px", borderRadius: "999px", background: "#2F8F6B", color: "#FFFFFF", fontWeight: 800, fontSize: "15px", border: "none" }}
+                  onClick={() => router.push('/dashboard/courses')}
+                  style={{ display: "inline-flex", alignItems: "center", minHeight: "44px", padding: "0 20px", borderRadius: "999px", background: "#2F8F6B", color: "#FFFFFF", fontWeight: 800, fontSize: "15px", border: "none", cursor: "pointer" }}
                 >
-                  Go to Overview
+                  Go to Course
                 </button>
               ) : (
                 <button
@@ -855,8 +855,8 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
                 {isEnrolled ? (
                   <button
                     type="button"
-                    onClick={() => router.push(`/dashboard/courses/${course?.id || ""}/overview`)}
-                    style={{ display: "inline-flex", alignItems: "center", gap: "10px", minHeight: "56px", padding: "0 28px", borderRadius: "999px", background: "#2F8F6B", color: "#FFFFFF", fontWeight: 800, fontSize: "18px", border: "none", boxShadow: "0 12px 28px rgba(47,143,107,.28)" }}
+                    onClick={() => router.push('/dashboard/courses')}
+                    style={{ display: "inline-flex", alignItems: "center", gap: "10px", minHeight: "56px", padding: "0 28px", borderRadius: "999px", background: "#2F8F6B", color: "#FFFFFF", fontWeight: 800, fontSize: "18px", border: "none", boxShadow: "0 12px 28px rgba(47,143,107,.28)", cursor: "pointer" }}
                   >
                     Go to Course Dashboard →
                   </button>

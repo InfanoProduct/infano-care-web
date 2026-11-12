@@ -487,7 +487,7 @@ export default function ProfilePickerPage() {
                   </button>
                 </div>
 
-                <p className="text-xs text-[#6E5B7A] -mt-1">Use keyboard numbers or tap the keypad below.</p>
+                <p className="text-xs text-[#6E5B7A] -mt-1">Type your 4-digit PIN using the keyboard.</p>
 
                 {pinError && (
                   <div className="text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 rounded-xl p-2.5 text-center">
@@ -495,7 +495,7 @@ export default function ProfilePickerPage() {
                   </div>
                 )}
 
-                <div className="flex justify-center gap-4 py-2" aria-live="polite">
+                <div className="flex justify-center gap-4 py-4" aria-live="polite">
                   {[0, 1, 2, 3].map((i) => (
                     <span
                       key={i}
@@ -504,26 +504,6 @@ export default function ProfilePickerPage() {
                       }`}
                     />
                   ))}
-                </div>
-
-                <div className="grid grid-cols-3 gap-2.5">
-                  {['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'].map((k, idx) => {
-                    if (k === '') return <div key={idx} className="min-h-[56px]" />;
-                    if (k === '⌫') {
-                      return (
-                        <button key={idx} type="button" onClick={handlePinDelete}
-                          className="min-h-[56px] rounded-[18px] bg-transparent text-[#3D2C4A] font-semibold text-2xl flex items-center justify-center hover:bg-[#FFFAF6] cursor-pointer transition-colors">
-                          ⌫
-                        </button>
-                      );
-                    }
-                    return (
-                      <button key={idx} type="button" onClick={() => handlePinPress(k)}
-                        className="min-h-[56px] rounded-[18px] bg-[#FFFAF6] hover:bg-[#F1E4E8] text-[#3D2C4A] font-semibold text-2xl flex items-center justify-center cursor-pointer transition-colors active:scale-95 shadow-2xs">
-                        {k}
-                      </button>
-                    );
-                  })}
                 </div>
 
                 {pin.length === 4 && (

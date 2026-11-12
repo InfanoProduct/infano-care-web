@@ -11,11 +11,19 @@ import { ProgramsService, ProgramEnrollment } from '@/services/programs.service'
 import { ShopService } from '@/services/shop.service';
 import { useAuthStore } from '@/store/auth-store';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { InvoiceModal } from '@/components/common/InvoiceModal';
 import { getCurrencySymbol } from '@/lib/utils';
 
 export default function CustomerPaymentsOverview() {
   const { user } = useAuthStore();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user && user.role !== 'EXPERT' && user.role !== 'ADMIN') {
+      router.replace('/dashboard/orders');
+    }
+  }, [user, router]);
   const [enrollments, setEnrollments] = useState<ProgramEnrollment[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

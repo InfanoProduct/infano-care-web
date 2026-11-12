@@ -6,10 +6,18 @@ import { useAuthStore } from '@/store/auth-store';
 import { User, Bell, Camera, Loader2, Save, HelpCircle, ShieldAlert, Sparkles, Send, BookOpen, Calendar, X, Edit3, ArrowLeft, Check } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 
 export default function ProfilePage() {
+  const router = useRouter();
   const { user, setAuth } = useAuthStore();
+
+  useEffect(() => {
+    if (user && user.role !== 'EXPERT' && user.role !== 'ADMIN') {
+      router.replace('/dashboard/settings');
+    }
+  }, [user, router]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'notifications' | 'faq'>('profile');
   

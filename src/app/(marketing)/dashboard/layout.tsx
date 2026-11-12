@@ -22,7 +22,7 @@ export default function CustomerDashboardLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, clearAuth, user, refreshToken, accessToken, setAuth } = useAuthStore();
+  const { isAuthenticated, clearAuth, user, refreshToken, accessToken, setAuth, setActiveProfile, setLearners } = useAuthStore();
   const [mounted, setMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -34,6 +34,7 @@ export default function CustomerDashboardLayout({
   const [hasEnrollments, setHasEnrollments] = useState<boolean>(false);
 
   // Compute new dashboard flow status early so legacy sidebar fetches don't run unnecessarily
+  const isLegacyPortalRole = user?.role === 'EXPERT' || user?.role === 'ADMIN';
   const isNewDashboardFlow = Boolean(
     user && (
       pathname === '/dashboard/picker' ||
@@ -42,7 +43,16 @@ export default function CustomerDashboardLayout({
       pathname.startsWith('/dashboard/badges') ||
       pathname.startsWith('/dashboard/diary') ||
       pathname.startsWith('/dashboard/journal') ||
-      (pathname === '/dashboard' && user.role !== 'EXPERT' && user.role !== 'ADMIN' && user.role !== 'PEER')
+      pathname.startsWith('/dashboard/courses') ||
+      pathname.startsWith('/dashboard/orders') ||
+      pathname.startsWith('/dashboard/settings') ||
+      pathname.startsWith('/dashboard/help') ||
+      (!isLegacyPortalRole && (
+        pathname.startsWith('/dashboard/my-courses') ||
+        pathname.startsWith('/dashboard/payments') ||
+        pathname.startsWith('/dashboard/profile')
+      )) ||
+      (pathname === '/dashboard' && !isLegacyPortalRole && user.role !== 'PEER')
     )
   );
 
@@ -133,6 +143,7 @@ export default function CustomerDashboardLayout({
       try {
         const fullUser = await AuthService.getMe();
         if (fullUser) {
+          const prevState = useAuthStore.getState();
           setAuth(accessToken, refreshToken || '', {
             ...user,
             email: fullUser.email,
@@ -146,7 +157,14 @@ export default function CustomerDashboardLayout({
             birthYear: fullUser.birthYear,
             birthMonth: fullUser.birthMonth,
             contentTier: fullUser.contentTier,
+            learners: fullUser.learners ?? user.learners ?? prevState.learners,
           });
+          if (prevState.learners?.length && !fullUser.learners?.length) {
+            setLearners(prevState.learners);
+          }
+          if (prevState.activeProfile) {
+            setActiveProfile(prevState.activeProfile);
+          }
           if (fullUser.profile?.avatarUrl && fullUser.id) {
             localStorage.setItem(`profileAvatar_${fullUser.id}`, fullUser.profile.avatarUrl);
           }
@@ -215,11 +233,10 @@ export default function CustomerDashboardLayout({
     );
   }
 
-  // Episode & Course Player Isolation check: bypass dashboard shell for cleaner full-screen player experience
+  // New Dashboard & Player Isolation check: bypass legacy dashboard shell
   if (
     isNewDashboardFlow ||
-    pathname.includes('/episodes/') ||
-    (pathname.includes('/dashboard/courses/') && !pathname.endsWith('/courses') && !pathname.includes('/explore') && !pathname.includes('/overview'))
+    pathname.includes('/episodes/')
   ) {
     return <div className="min-h-screen bg-[#FFFAF6]">{children}</div>;
   }
@@ -235,12 +252,10 @@ export default function CustomerDashboardLayout({
     { href: '/dashboard/profile', label: 'Profile', icon: User },
   ] : [
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-    { href: '/dashboard/my-courses', label: 'My Courses', icon: BookOpen, matchPrefix: true },
-    { href: '/dashboard/courses', label: 'Explore Courses', icon: Video, matchPrefix: true },
-    { href: '/dashboard/orders', label: 'My Orders', icon: Package },
-    ...(!isTeen ? [{ href: '/dashboard/resources', label: 'Library', icon: BookOpen }] : []),
+    { href: '/dashboard/courses', label: 'Courses', icon: BookOpen, matchPrefix: true },
+    { href: '/dashboard/orders', label: 'Orders', icon: Package },
     ...(user.role === 'PEER' ? [{ href: '/dashboard/my-chats', label: 'My Chats', icon: MessageSquare }] : []),
-    { href: '/dashboard/profile', label: 'Profile', icon: User },
+    { href: '/dashboard/settings', label: 'Settings', icon: User },
   ];
 
   const menuItems = baseMenuItems;

@@ -108,7 +108,7 @@ export default function CustomerDashboardOverview() {
   useEffect(() => {
     setMounted(true);
   }, []);
-  const { user, activeProfile } = useAuthStore();
+  const { user, activeProfile, learners } = useAuthStore();
 
   useEffect(() => {
     if (mounted && user) {
@@ -417,8 +417,15 @@ export default function CustomerDashboardOverview() {
     }
   };
 
-  // Render Daughter Bloom Garden for learners/parents
-  if (mounted && user && user.role !== 'EXPERT' && (user.role === 'PARENT' || activeProfile?.type === 'DAUGHTER' || (user.learners && user.learners.length > 0))) {
+  // Render Daughter Bloom Garden for learners/parents in the new dashboard
+  const hasLearners = Boolean((user?.learners && user.learners.length > 0) || (learners && learners.length > 0));
+  if (
+    mounted &&
+    user &&
+    user.role !== 'EXPERT' &&
+    user.role !== 'ADMIN' &&
+    (user.role !== 'PEER' || activeProfile?.type === 'DAUGHTER' || activeProfile?.type === 'PARENT' || hasLearners)
+  ) {
     if (activeProfile?.type === 'PARENT') {
       return (
         <div className="min-h-screen bg-[#FBF8F6] flex items-center justify-center">

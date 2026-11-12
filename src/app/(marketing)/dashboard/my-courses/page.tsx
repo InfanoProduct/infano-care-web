@@ -12,11 +12,15 @@ export default function MyCoursesPage() {
   const [myCourses, setMyCourses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const { token } = useAuthStore();
+  const { token, user } = useAuthStore();
 
   useEffect(() => {
+    if (user && user.role !== 'EXPERT' && user.role !== 'ADMIN') {
+      router.replace('/dashboard/courses');
+      return;
+    }
     if (token) fetchData();
-  }, [token]);
+  }, [token, user, router]);
 
   const fetchData = async () => {
     setIsLoading(true);

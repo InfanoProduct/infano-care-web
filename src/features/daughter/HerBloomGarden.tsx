@@ -4,18 +4,59 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { DaughterShell } from './DaughterShell';
 import { useDaughterState } from './daughter-state';
+import { useCourseCurriculum, useLearnerCourseState, useInvalidateCourse } from '@/hooks/use-course';
+import { CourseService } from '@/services/course.service';
 import {
   Play, Check, Lock, Sparkles, Heart, Award
 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 export function HerBloomGarden() {
-  const { currentLearner, totalPetals, doneCount } = useDaughterState();
+  const { currentLearner, totalPetals: localPetals, doneCount: localDoneCount } = useDaughterState();
+  const { data: curriculum } = useCourseCurriculum();
+  const { data: learnerState } = useLearnerCourseState();
+  const invalidateCourse = useInvalidateCourse();
 
   const [mythOpen, setMythOpen] = useState(false);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
 
+  const completedLessons = learnerState?.completedLessons || [];
+  const doneCount = learnerState ? completedLessons.length : localDoneCount;
+  const totalPetals = learnerState ? learnerState.learner.petalsCount : localPetals;
+
+  const backendChapters = curriculum?.course?.chapters || [];
+  const unlockedChapters = new Set(learnerState?.unlockedChapters || ['ch1']);
+  const passedCheckins = new Set(learnerState?.passedCheckins || []);
+  const nextLessonId = learnerState?.nextLessonId || 'l1-1';
+
+  // Resolve next lesson metadata dynamically
+  let nextLesson = {
+    id: nextLessonId,
+    code: '1.1',
+    title: 'The Menstrual Cycle',
+    chapterNumber: 1,
+    chapterColor: '#D8ECF8',
+    chapterInk: '#2F6494',
+    durationMins: 15,
+  };
+  for (const ch of backendChapters) {
+    const found = ch.lessons?.find((l) => l.id === nextLessonId);
+    if (found) {
+      nextLesson = {
+        id: found.id,
+        code: found.code,
+        title: found.title,
+        chapterNumber: ch.number,
+        chapterColor: ch.colors?.background || '#FFE3CC',
+        chapterInk: ch.colors?.ink || '#9A4A16',
+        durationMins: Math.round((found.video?.duration_seconds || 900) / 60),
+      };
+      break;
+    }
+  }
+
   const totalPlots = 15;
-  const currentChapterIndex = 2; // Chapter 3 (index 2)
+  const passedCount = passedCheckins.size;
 
   const chapterColors = ['#8EBFE0', '#7FC3A3', '#F0AF7E', '#A992D6'];
   const getChapterIndex = (k: number) => (k < 3 ? 0 : k < 7 ? 1 : k < 10 ? 2 : 3);
@@ -29,48 +70,70 @@ export function HerBloomGarden() {
     title: k < doneCount ? `Lesson ${k + 1} done` : k === doneCount ? `Lesson ${k + 1} up next` : `Lesson ${k + 1}`
   }));
 
-  const chapters = [
-    {
-      n: 1,
-      title: 'The Moon Inside Me',
-      bg: '#D8ECF8',
-      ink: '#2F6494',
-      status: 'DONE ✓',
-      meta: '3 of 3 lessons · badge earned',
-      isDone: true,
-      isCurrent: false
-    },
-    {
-      n: 2,
-      title: 'My Care Kit',
-      bg: '#D4EFE4',
-      ink: '#24735A',
-      status: 'DONE ✓',
-      meta: '4 of 4 lessons · badge earned',
-      isDone: true,
-      isCurrent: false
-    },
-    {
-      n: 3,
-      title: 'Listening to My Body',
-      bg: '#FFE3CC',
-      ink: '#9A4A16',
-      status: 'NOW',
-      meta: '0 of 3 lessons',
-      isDone: false,
-      isCurrent: true
-    },
-    {
-      n: 4,
-      title: 'Safe, Strong & Me',
-      bg: '#F6F1F4',
-      ink: '#8A7896',
-      status: 'LOCKED',
-      meta: 'Opens after Chapter 3',
-      isDone: false,
-      isCurrent: false
+  const chapters = backendChapters.length > 0
+    ? backendChapters.map((ch) => {
+        const chDone = ch.lessons.filter((l) => completedLessons.includes(l.id)).length;
+        const chTotal = ch.lessons.length;
+        const isDone = ch.checkinId ? passedCheckins.has(ch.checkinId) : chDone === chTotal;
+        const isOpen = unlockedChapters.has(ch.id);
+        const isCurrent = isOpen && !isDone;
+        return {
+          id: ch.id,
+          n: ch.number,
+          title: ch.worldName,
+          bg: isOpen ? ch.colors.background : '#F6F1F4',
+          ink: isOpen ? ch.colors.ink : '#8A7896',
+          status: isDone ? 'DONE ✓' : isCurrent ? 'NOW' : 'LOCKED',
+          meta: isDone
+            ? `${chDone} of ${chTotal} lessons · badge earned`
+            : isCurrent
+            ? `${chDone} of ${chTotal} lessons`
+            : `Opens after Chapter ${ch.number - 1}`,
+          isDone,
+          isCurrent,
+          isOpen,
+        };
+      })
+    : [
+        { id: 'ch1', n: 1, title: 'Moon Meadow', bg: '#D8ECF8', ink: '#2F6494', status: 'NOW', meta: '0 of 3 lessons', isDone: false, isCurrent: true, isOpen: true },
+        { id: 'ch2', n: 2, title: 'Care Cove', bg: '#F6F1F4', ink: '#8A7896', status: 'LOCKED', meta: 'Opens after Chapter 1', isDone: false, isCurrent: false, isOpen: false },
+        { id: 'ch3', n: 3, title: 'Comfort Hills', bg: '#F6F1F4', ink: '#8A7896', status: 'LOCKED', meta: 'Opens after Chapter 2', isDone: false, isCurrent: false, isOpen: false },
+        { id: 'ch4', n: 4, title: 'Brave Heart Valley', bg: '#F6F1F4', ink: '#8A7896', status: 'LOCKED', meta: 'Opens after Chapter 3', isDone: false, isCurrent: false, isOpen: false },
+      ];
+
+  // Dynamic myth of the day from seeded pool
+  const mythPool = curriculum?.pools?.app_copy?.myth_of_the_day || [];
+  const todayMyth = mythPool.length > 0
+    ? mythPool[new Date().getDate() % mythPool.length]
+    : {
+        statement: "You can't wash your hair during your period.",
+        verdict: "Myth!",
+        explanation: "A warm bath or hair wash is safe and can even ease cramps.",
+      };
+
+  const handleFlipMyth = async () => {
+    const nextOpen = !mythOpen;
+    setMythOpen(nextOpen);
+    if (nextOpen && currentLearner.id && currentLearner.id !== 'default') {
+      try {
+        const res = await CourseService.recordMythAnswered(currentLearner.id);
+        if (res.petalsAwarded > 0) {
+          invalidateCourse();
+          toast.success(`+${res.petalsAwarded} petals for myth busting! 🌸`);
+        }
+      } catch {
+        // non-blocking
+      }
     }
-  ];
+  };
+
+  const earnedBadgeIds = new Set((learnerState?.earnedBadges || []).map((b) => b.badgeId));
+  const previewBadges = (curriculum?.badges || []).slice(0, 8).map((b) => ({
+    label: b.name,
+    earned: earnedBadgeIds.has(b.id),
+    bg: earnedBadgeIds.has(b.id) ? '#D4EFE4' : '#F6F1F4',
+    ink: earnedBadgeIds.has(b.id) ? '#24735A' : '#8A7896',
+  }));
 
   const moods = [
     { label: 'Happy', bg: '#FFF4C7', reply: 'Love that! Keep shining.' },
@@ -79,15 +142,15 @@ export function HerBloomGarden() {
     { label: 'Worried', bg: '#D8ECF8', reply: "That's okay. Want to write about it in your private journal?" }
   ];
 
-  const badges = [
+  const badges = previewBadges.length > 0 ? previewBadges : [
     { label: 'Seedling', earned: true, bg: '#D4EFE4', ink: '#24735A' },
-    { label: 'Cycle Explorer', earned: true, bg: '#D8ECF8', ink: '#2F6494' },
-    { label: 'Care Captain', earned: true, bg: '#D4EFE4', ink: '#24735A' },
-    { label: 'Myth Buster', earned: true, bg: '#FFF4C7', ink: '#8A6410' },
-    { label: 'Steady Learner', earned: true, bg: '#F9D5D3', ink: '#A8365A' },
+    { label: 'First Bloom', earned: false, bg: '#F6F1F4', ink: '#8A7896' },
+    { label: 'Cycle Explorer', earned: false, bg: '#F6F1F4', ink: '#8A7896' },
+    { label: 'Care Captain', earned: false, bg: '#F6F1F4', ink: '#8A7896' },
+    { label: 'Myth Buster', earned: false, bg: '#F6F1F4', ink: '#8A7896' },
     { label: 'Body Listener', earned: false, bg: '#F6F1F4', ink: '#8A7896' },
     { label: 'Brave Heart', earned: false, bg: '#F6F1F4', ink: '#8A7896' },
-    { label: 'Kit Packer', earned: true, bg: '#D4EFE4', ink: '#24735A' }
+    { label: 'Kit Packer', earned: false, bg: '#F6F1F4', ink: '#8A7896' }
   ];
 
   const moodHit = moods.find((m) => m.label === selectedMood);
@@ -172,23 +235,24 @@ export function HerBloomGarden() {
           {/* Continue Learning Hero Card */}
           <section
             aria-label="Continue learning"
-            className="bg-[#FFE3CC] rounded-[30px] p-5 sm:p-6 flex flex-wrap gap-5 items-center relative overflow-hidden shadow-sm"
+            style={{ backgroundColor: nextLesson.chapterColor }}
+            className="rounded-[30px] p-5 sm:p-6 flex flex-wrap gap-5 items-center relative overflow-hidden shadow-sm"
           >
             {/* Thumbnail */}
             <div className="w-full sm:w-[220px] aspect-16/10 rounded-2xl bg-white flex items-center justify-center relative shrink-0 shadow-xs">
-              <Heart size={64} className="text-[#9A4A16] stroke-[1.4]" />
+              <Heart size={64} style={{ color: nextLesson.chapterInk }} className="stroke-[1.4]" />
               <span className="absolute left-2.5 bottom-2.5 bg-[#3D2C4A] text-white rounded-full px-2.5 py-0.5 text-xs font-semibold">
-                15 min video + 3 activities
+                {nextLesson.durationMins} min video + 3 steps
               </span>
             </div>
 
             {/* Meta */}
             <div className="flex-1 min-w-[240px] flex flex-col gap-2">
-              <span className="text-xs font-bold tracking-wider text-[#9A4A16] uppercase">
-                UP NEXT · CHAPTER 3 · LESSON 3.1
+              <span style={{ color: nextLesson.chapterInk }} className="text-xs font-bold tracking-wider uppercase">
+                UP NEXT · CHAPTER {nextLesson.chapterNumber} · LESSON {nextLesson.code}
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-[#3D2C4A] font-['Baloo_2',sans-serif] leading-tight m-0">
-                Understanding Menstrual Discomfort
+                {nextLesson.title}
               </h2>
               <div className="flex flex-wrap gap-1.5 py-0.5">
                 {['Watch', 'Play', 'Discover', 'Reflect'].map((step) => (
@@ -200,13 +264,19 @@ export function HerBloomGarden() {
                   </span>
                 ))}
               </div>
-              <div className="pt-1">
+              <div className="pt-1 flex flex-wrap gap-2.5">
                 <Link
-                  href="/dashboard/journey"
+                  href={`/dashboard/courses/lesson/${nextLesson.id}`}
                   className="pulse-btn inline-flex items-center gap-2 min-h-[48px] px-6 rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white font-bold text-sm shadow-md transition-all"
                 >
                   <Play size={16} fill="currentColor" />
                   Start lesson
+                </Link>
+                <Link
+                  href="/dashboard/courses"
+                  className="inline-flex items-center gap-2 min-h-[48px] px-5 rounded-full bg-white/85 hover:bg-white text-[#3D2C4A] font-bold text-sm shadow-2xs transition-all"
+                >
+                  All worlds
                 </Link>
               </div>
             </div>
@@ -224,7 +294,7 @@ export function HerBloomGarden() {
                   My Bloom Garden
                 </h2>
                 <span className="font-bold text-xs sm:text-sm text-[#24533F]">
-                  {doneCount} of 15 flowers · Chapter 3 is next
+                  {doneCount} of 15 flowers · Chapter {nextLesson.chapterNumber} is next
                 </span>
               </div>
 
@@ -286,17 +356,17 @@ export function HerBloomGarden() {
                     <span
                       key={i}
                       className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                        i < currentChapterIndex
+                        i < passedCount
                           ? 'bg-[#2F7F62] text-white'
                           : 'bg-[#F6F1F4] text-[#6E5B7A]'
                       }`}
                     >
-                      {i < currentChapterIndex ? '✓' : i + 1}
+                      {i < passedCount ? '✓' : i + 1}
                     </span>
                   ))}
                 </div>
               </div>
-              <div className="text-xs font-bold text-[#3D2C4A]">2 of 4 check-ins done</div>
+              <div className="text-xs font-bold text-[#3D2C4A]">{passedCount} of 4 check-ins done</div>
               <div className="text-xs text-[#5E4B6B]">Each chapter check-in fills one seal.</div>
             </section>
           </div>
@@ -308,12 +378,14 @@ export function HerBloomGarden() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {chapters.map((ch) => (
-                <div
+                <Link
                   key={ch.n}
+                  href={ch.isOpen ? `/dashboard/courses/chapter/${ch.id}` : '#'}
+                  onClick={(e) => { if (!ch.isOpen) e.preventDefault(); }}
                   style={{ backgroundColor: ch.bg }}
                   className={`rounded-2xl p-4 flex flex-col gap-2 transition-all ${
                     ch.isCurrent ? 'ring-2 ring-[#9A4A16] shadow-sm' : ''
-                  }`}
+                  } ${ch.isOpen ? 'hover:scale-[1.02] cursor-pointer' : 'opacity-80 cursor-not-allowed'}`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-xs">
@@ -334,7 +406,7 @@ export function HerBloomGarden() {
                     {ch.title}
                   </div>
                   <div className="text-xs font-semibold text-[#4A3A57] mt-auto pt-1">{ch.meta}</div>
-                </div>
+                </Link>
               ))}
             </div>
           </section>
@@ -344,7 +416,7 @@ export function HerBloomGarden() {
             {/* Myth of the Day */}
             <button
               type="button"
-              onClick={() => setMythOpen(!mythOpen)}
+              onClick={handleFlipMyth}
               className={`text-left rounded-[26px] p-5 min-h-[170px] flex flex-col justify-between transition-all cursor-pointer shadow-sm ${
                 mythOpen ? 'bg-[#3D2C4A] text-[#FFFAF6]' : 'bg-[#F9D5D3] text-[#3D2C4A]'
               }`}
@@ -353,7 +425,7 @@ export function HerBloomGarden() {
               {!mythOpen ? (
                 <>
                   <span className="font-bold text-lg leading-snug font-['Baloo_2',sans-serif]">
-                    "You can't wash your hair during your period."
+                    &ldquo;{todayMyth.statement}&rdquo;
                   </span>
                   <span className="text-xs font-bold text-[#A8365A] mt-auto">
                     Myth or fact? Tap to see →
@@ -362,10 +434,10 @@ export function HerBloomGarden() {
               ) : (
                 <>
                   <span className="font-bold text-xl text-[#FFE3CC] font-['Baloo_2',sans-serif]">
-                    Myth!
+                    {todayMyth.verdict || 'Myth!'}
                   </span>
                   <span className="text-xs leading-relaxed">
-                    A warm bath or hair wash is safe and can even ease cramps. +5 petals!
+                    {todayMyth.explanation} +5 petals!
                   </span>
                   <span className="text-[11px] font-semibold text-[#F9D5D3] mt-auto">
                     Tap to flip back

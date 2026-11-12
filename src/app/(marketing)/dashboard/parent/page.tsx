@@ -6,6 +6,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuthStore, LearnerProfile } from '@/store/auth-store';
 import { OnboardingService } from '@/services/onboarding.service';
+import { CourseService } from '@/services/course.service';
+import { useQuery } from '@tanstack/react-query';
 import {
   Lock, ArrowRight, Check, Download, Heart, MessageSquare, Phone,
   Mail, ChevronDown, Plus, Sparkles, ExternalLink, ShieldCheck, X, Loader2
@@ -128,26 +130,62 @@ export default function ParentDashboardPage() {
     setPinError('');
   };
 
-  if (!mounted) return null;
-
   const currentLearner: LearnerProfile = learners[activeLearnerIndex] || {
     id: 'default',
     name: 'Aanya',
     age: '11',
     periodStatus: 'Not yet',
-    flowersCount: 7,
-    petalsCount: 340,
-    streakDays: 3
+    flowersCount: 0,
+    petalsCount: 0,
+    streakDays: 0
   };
+
+  const { data: parentOverview } = useQuery({
+    queryKey: ['parent-course-overview', currentLearner.id],
+    queryFn: () => CourseService.getParentOverview(currentLearner.id),
+    enabled: Boolean(mounted && isAuthenticated && currentLearner.id && currentLearner.id !== 'default'),
+  });
+
+  if (!mounted) return null;
 
   const parentName = user?.profile?.displayName || 'Priya';
 
-  const chapters = [
-    { n: 1, title: 'The Moon Inside Me', bg: '#EAF4FB', bar: '#8EBFE0', pct: '100%', lessons: '3 of 3 lessons', check: 'Check-in 9/10' },
-    { n: 2, title: 'My Care Kit', bg: '#EAF7F1', bar: '#7FC3A3', pct: '100%', lessons: '4 of 4 lessons', check: 'Check-in 8/10' },
-    { n: 3, title: 'Listening to My Body', bg: '#FFF1E6', bar: '#F0AF7E', pct: '0%', lessons: '0 of 3 lessons', check: 'Up next' },
-    { n: 4, title: 'Safe, Strong & Me', bg: '#F4F0FB', bar: '#A992D6', pct: '0%', lessons: '0 of 5 lessons', check: 'Locked for her' }
-  ];
+  const metrics = parentOverview?.metrics || {
+    completedLessons: currentLearner.flowersCount || 0,
+    totalLessons: 15,
+    percentComplete: Math.round(((currentLearner.flowersCount || 0) / 15) * 100),
+    estimatedMinutesLearned: 0,
+    earnedBadgesCount: 0,
+    totalBadgesCount: 18,
+  };
+
+  const ringDash = `${((metrics.percentComplete / 100) * 301.6).toFixed(1)} 301.6`;
+
+  const chapters = parentOverview?.chapters
+    ? parentOverview.chapters.map((ch: any) => ({
+        id: ch.id,
+        n: ch.number,
+        title: ch.worldName,
+        bg: ch.colors?.soft || '#EAF4FB',
+        bar: ch.colors?.accent || '#8EBFE0',
+        pct: `${ch.percent}%`,
+        lessons: `${ch.completedLessons} of ${ch.totalLessons} lessons`,
+        check: ch.checkinPassed
+          ? `Check-in ${ch.bestCheckinScore}/10`
+          : ch.completedLessons === ch.totalLessons
+          ? 'Ready for check-in'
+          : ch.completedLessons > 0
+          ? 'In progress'
+          : ch.number === 1
+          ? 'Up next'
+          : 'Locked for her',
+      }))
+    : [
+        { id: 'ch1', n: 1, title: 'Moon Meadow', bg: '#EAF4FB', bar: '#8EBFE0', pct: '0%', lessons: '0 of 3 lessons', check: 'Up next' },
+        { id: 'ch2', n: 2, title: 'Care Cove', bg: '#EAF7F1', bar: '#7FC3A3', pct: '0%', lessons: '0 of 4 lessons', check: 'Locked for her' },
+        { id: 'ch3', n: 3, title: 'Comfort Hills', bg: '#FFF1E6', bar: '#F0AF7E', pct: '0%', lessons: '0 of 3 lessons', check: 'Locked for her' },
+        { id: 'ch4', n: 4, title: 'Brave Heart Valley', bg: '#F4F0FB', bar: '#A992D6', pct: '0%', lessons: '0 of 5 lessons', check: 'Locked for her' },
+      ];
 
   const cardData = [
     {
@@ -216,16 +254,16 @@ export default function ParentDashboardPage() {
             </span>
           </div>
 
-          <nav className="flex items-center gap-2 sm:gap-4 text-[15px] font-semibold">
-            <Link href="/dashboard/orders" className="hidden sm:inline-flex text-[#3D2C4A] hover:text-[#C2456A] px-2 py-1">
+          <nav className="flex flex-wrap items-center gap-2 sm:gap-4 text-[14px] sm:text-[15px] font-semibold">
+            <Link href="/dashboard/orders" className="inline-flex text-[#3D2C4A] hover:text-[#C2456A] px-2 py-1">
               Orders
             </Link>
-            <Link href="/dashboard/profile" className="hidden sm:inline-flex text-[#3D2C4A] hover:text-[#C2456A] px-2 py-1">
+            <Link href="/dashboard/settings" className="inline-flex text-[#3D2C4A] hover:text-[#C2456A] px-2 py-1">
               Settings
             </Link>
-            <a href="mailto:connect@infano.care" className="hidden sm:inline-flex text-[#3D2C4A] hover:text-[#C2456A] px-2 py-1">
+            <Link href="/dashboard/help" className="inline-flex text-[#3D2C4A] hover:text-[#C2456A] px-2 py-1">
               Help
-            </a>
+            </Link>
             <Link
               href="/dashboard/picker"
               className="inline-flex items-center gap-1.5 text-[#3D2C4A] hover:text-[#C2456A] bg-[#FFFAF6] sm:bg-transparent border border-[#F1E4E8] sm:border-0 rounded-full px-3 py-1.5 text-sm"
@@ -295,7 +333,7 @@ export default function ParentDashboardPage() {
             <div className="flex flex-wrap items-center gap-5">
               {/* Circular Progress Ring */}
               <div className="relative w-[130px] h-[130px] shrink-0">
-                <svg width="130" height="130" viewBox="0 0 120 120" role="img" aria-label="47 percent complete">
+                <svg width="130" height="130" viewBox="0 0 120 120" role="img" aria-label={`${metrics.percentComplete} percent complete`}>
                   <circle cx="60" cy="60" r="48" fill="none" stroke="#F3E9EE" strokeWidth="13" />
                   <circle
                     cx="60"
@@ -305,11 +343,11 @@ export default function ParentDashboardPage() {
                     stroke="#E8738A"
                     strokeWidth="13"
                     strokeLinecap="round"
-                    strokeDasharray="141.7 301.6"
+                    strokeDasharray={ringDash}
                     transform="rotate(-90 60 60)"
                   />
                   <text x="60" y="58" textAnchor="middle" fontFamily="inherit" fontSize="27" fontWeight="700" fill="#3D2C4A">
-                    47%
+                    {metrics.percentComplete}%
                   </text>
                   <text x="60" y="78" textAnchor="middle" fontFamily="inherit" fontSize="12" fontWeight="800" fill="#6E5B7A">
                     complete
@@ -321,19 +359,19 @@ export default function ParentDashboardPage() {
               <dl className="flex-1 grid grid-cols-2 gap-3 m-0 min-w-[200px]">
                 <div className="bg-[#FBF8F6] rounded-2xl p-2.5 sm:p-3">
                   <dt className="text-xs font-semibold text-[#6E5B7A]">Lessons</dt>
-                  <dd className="m-0 text-xl font-bold text-[#3D2C4A]">7 of 15</dd>
+                  <dd className="m-0 text-xl font-bold text-[#3D2C4A]">{metrics.completedLessons} of {metrics.totalLessons}</dd>
                 </div>
                 <div className="bg-[#FBF8F6] rounded-2xl p-2.5 sm:p-3">
-                  <dt className="text-xs font-semibold text-[#6E5B7A]">This week</dt>
-                  <dd className="m-0 text-xl font-bold text-[#3D2C4A]">42 min</dd>
+                  <dt className="text-xs font-semibold text-[#6E5B7A]">Video watched</dt>
+                  <dd className="m-0 text-xl font-bold text-[#3D2C4A]">{metrics.estimatedMinutesLearned} min</dd>
                 </div>
                 <div className="bg-[#FBF8F6] rounded-2xl p-2.5 sm:p-3">
-                  <dt className="text-xs font-semibold text-[#6E5B7A]">Last active</dt>
-                  <dd className="m-0 text-sm font-bold text-[#3D2C4A]">Yesterday, 6:20 pm</dd>
+                  <dt className="text-xs font-semibold text-[#6E5B7A]">Petals</dt>
+                  <dd className="m-0 text-xl font-bold text-[#3D2C4A]">{parentOverview?.learner?.petalsCount ?? currentLearner.petalsCount ?? 0}</dd>
                 </div>
                 <div className="bg-[#FBF8F6] rounded-2xl p-2.5 sm:p-3">
                   <dt className="text-xs font-semibold text-[#6E5B7A]">Badges</dt>
-                  <dd className="m-0 text-xl font-bold text-[#3D2C4A]">7 of 18</dd>
+                  <dd className="m-0 text-xl font-bold text-[#3D2C4A]">{metrics.earnedBadgesCount} of {metrics.totalBadgesCount}</dd>
                 </div>
               </dl>
             </div>
@@ -393,9 +431,17 @@ export default function ParentDashboardPage() {
 
         {/* Row 2: Chapter by chapter */}
         <section aria-labelledby="ch-h" className="bg-white border border-[#F1E4E8] rounded-[26px] p-5 sm:p-6 shadow-sm">
-          <h2 id="ch-h" className="text-[17px] font-bold text-[#3D2C4A] mb-3">Chapter by chapter</h2>
+          <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+            <h2 id="ch-h" className="text-[17px] font-bold text-[#3D2C4A] m-0">Chapter by chapter</h2>
+            <Link
+              href="/dashboard/parent/preview"
+              className="text-xs font-bold text-[#C2456A] hover:underline"
+            >
+              Preview full course →
+            </Link>
+          </div>
           <div className="flex flex-col gap-2.5">
-            {chapters.map((c) => (
+            {chapters.map((c: any) => (
               <div
                 key={c.n}
                 style={{ backgroundColor: c.bg }}
@@ -417,13 +463,12 @@ export default function ParentDashboardPage() {
                 <span className="text-xs font-bold bg-white text-[#3D2C4A] rounded-full px-2.5 py-1 shadow-xs shrink-0">
                   {c.check}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => toast('Preview mode for Chapter ' + c.n, { icon: '📖' })}
+                <Link
+                  href={`/dashboard/parent/preview?chapter=${c.id}`}
                   className="text-xs font-bold text-[#C2456A] hover:underline cursor-pointer shrink-0"
                 >
                   Preview chapter
-                </button>
+                </Link>
               </div>
             ))}
           </div>
@@ -604,9 +649,9 @@ export default function ParentDashboardPage() {
             </div>
             <div className="bg-[#F1ECFA] rounded-2xl p-3 text-xs text-[#3D2C4A] leading-relaxed mt-auto">
               <strong>Parent community, coming soon.</strong> Swap notes with other parents, moderated by our experts.{' '}
-              <a href="#community-waitlist" className="text-[#5A4385] font-bold hover:underline">
+              <Link href="/dashboard/help#waitlist" className="text-[#5A4385] font-bold hover:underline">
                 Join waitlist
-              </a>
+              </Link>
             </div>
           </section>
         </div>

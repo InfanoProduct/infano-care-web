@@ -4,32 +4,33 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { DaughterShell } from '@/features/daughter/DaughterShell';
 import { useDaughterState } from '@/features/daughter/daughter-state';
-import { Volume2, VolumeX, Lock, X, Play, Sparkles, CheckCircle2, Star } from 'lucide-react';
+import { useCourseCurriculum, useLearnerCourseState } from '@/hooks/use-course';
+import { Volume2, VolumeX, Lock, X, Play, Sparkles, CheckCircle2, Star, Award } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
-const LESSONS = [
-  ['1.1', 'The Menstrual Cycle', 'Build-a-Cycle Moon'],
-  ['1.2', 'Menstruation and Puberty', 'Puberty Passport'],
-  ['1.3', 'Flow and Irregularities', 'Flow Detective'],
-  ['2.1', 'Importance of Hygiene', 'My Care Clock'],
-  ['2.2', 'Menstrual Products & Sustainability', 'Product Matchmaker'],
-  ['2.3', 'Usage and Disposal', 'Wrap It Right'],
-  ['2.4', 'Hygiene in Public', 'School Day Surprise'],
-  ['3.1', 'Understanding Discomfort', 'Comfort Toolbox'],
-  ['3.2', 'Menstrual Disorders', 'Symptom Sorter'],
-  ['3.3', 'Menstrual Infections', 'Germ Defender'],
-  ['4.1', 'Safe School Environment', 'Upstander Choices'],
-  ['4.2', 'Abuse and Touch', 'No, Go, Tell'],
-  ['4.3', 'The POCSO Act', 'Know Your Rights'],
-  ['4.4', 'Nurturing Positive Relationships', 'Green Flag, Red Flag'],
-  ['4.5', 'Emotional Wellbeing', 'Mood Garden'],
+const FALLBACK_LESSONS = [
+  ['l1-1', '1.1', 'The Menstrual Cycle', 'Build-a-Cycle Moon'],
+  ['l1-2', '1.2', 'Menstruation and Puberty', 'Puberty Passport'],
+  ['l1-3', '1.3', 'Flow and Irregularities', 'Flow Detective'],
+  ['l2-1', '2.1', 'Importance of Hygiene', 'My Care Clock'],
+  ['l2-2', '2.2', 'Menstrual Products & Sustainability', 'Product Matchmaker'],
+  ['l2-3', '2.3', 'Usage and Disposal', 'Wrap It Right'],
+  ['l2-4', '2.4', 'Hygiene in Public', 'School Day Surprise'],
+  ['l3-1', '3.1', 'Understanding Discomfort', 'Comfort Toolbox'],
+  ['l3-2', '3.2', 'Menstrual Disorders', 'Symptom Sorter'],
+  ['l3-3', '3.3', 'Menstrual Infections', 'Germ Defender'],
+  ['l4-1', '4.1', 'Safe School Environment', 'Upstander Choices'],
+  ['l4-2', '4.2', 'Abuse and Touch', 'No, Go, Tell'],
+  ['l4-3', '4.3', 'The POCSO Act', 'Know Your Rights'],
+  ['l4-4', '4.4', 'Nurturing Positive Relationships', 'Green Flag, Red Flag'],
+  ['l4-5', '4.5', 'Emotional Wellbeing', 'Mood Garden'],
 ] as const;
 
 const WORLDS = [
-  { name: 'Moon Meadow', bg: '#E3F0FA', cardBg: '#D8ECF8', col: '#8EBFE0', ink: '#2F6494', ch: 1 },
-  { name: 'Care Cove', bg: '#E3F4EC', cardBg: '#D4EFE4', col: '#7FC3A3', ink: '#24735A', ch: 2 },
-  { name: 'Comfort Hills', bg: '#FFEBDD', cardBg: '#FFE3CC', col: '#F0AF7E', ink: '#9A4A16', ch: 3 },
-  { name: 'Brave Heart Valley', bg: '#EDE6F8', cardBg: '#E3DAF5', col: '#A992D6', ink: '#5A4385', ch: 4 },
+  { id: 'ch1', checkinId: 'checkin-ch1', name: 'Moon Meadow', bg: '#E3F0FA', cardBg: '#D8ECF8', col: '#8EBFE0', ink: '#2F6494', ch: 1 },
+  { id: 'ch2', checkinId: 'checkin-ch2', name: 'Care Cove', bg: '#E3F4EC', cardBg: '#D4EFE4', col: '#7FC3A3', ink: '#24735A', ch: 2 },
+  { id: 'ch3', checkinId: 'checkin-ch3', name: 'Comfort Hills', bg: '#FFEBDD', cardBg: '#FFE3CC', col: '#F0AF7E', ink: '#9A4A16', ch: 3 },
+  { id: 'ch4', checkinId: 'checkin-ch4', name: 'Brave Heart Valley', bg: '#EDE6F8', cardBg: '#E3DAF5', col: '#A992D6', ink: '#5A4385', ch: 4 },
 ];
 
 const chOf = (i: number) => (i < 3 ? 0 : i < 7 ? 1 : i < 10 ? 2 : 3);
@@ -38,16 +39,37 @@ const STARTS = [0, 3, 7, 10];
 const XS = [195, 300, 195, 90];
 
 export default function JourneyMapPage() {
-  const { doneCount, totalPetals, data, updateData } = useDaughterState();
+  const { doneCount: localDoneCount, totalPetals: localPetals, data, updateData } = useDaughterState();
+  const { data: curriculum } = useCourseCurriculum();
+  const { data: learnerState } = useLearnerCourseState();
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [sound, setSound] = useState(true);
   const [taps, setTaps] = useState(0);
 
-  const currentIdx = Math.min(doneCount, LESSONS.length - 1);
+  // Merge live backend lessons if loaded
+  const backendChapters = curriculum?.course?.chapters || [];
+  const flatLessons = backendChapters.length > 0
+    ? backendChapters.flatMap((ch) =>
+        ch.lessons.map((l) => [l.id, l.code, l.title, l.activity?.name || 'Activity'] as const)
+      )
+    : FALLBACK_LESSONS;
+
+  const completedSet = new Set(learnerState?.completedLessons || []);
+  const unlockedSet = new Set(learnerState?.unlockedLessons || ['l1-1']);
+  const passedCheckins = new Set(learnerState?.passedCheckins || []);
+  const doneCount = learnerState ? completedSet.size : localDoneCount;
+  const totalPetals = learnerState ? learnerState.learner.petalsCount : localPetals;
+
+  const currentIdx = Math.min(
+    learnerState
+      ? Math.max(0, flatLessons.findIndex((l) => l[0] === learnerState.nextLessonId))
+      : doneCount,
+    flatLessons.length - 1
+  );
   const currentChapter = chOf(currentIdx) + 1;
 
   // Compute SVG points for all 15 stepping stones
-  const pts = LESSONS.map((_, i) => {
+  const pts = flatLessons.map((_, i) => {
     const c = chOf(i);
     const k = i - STARTS[c];
     const n = COUNTS[c];
@@ -86,23 +108,25 @@ export default function JourneyMapPage() {
       ? (() => {
           const i = selectedIdx;
           const c = chOf(i);
-          const done = i < currentIdx;
+          const l = flatLessons[i];
+          const lessonId = l[0];
+          const done = learnerState ? completedSet.has(lessonId) : i < currentIdx;
           const isCur = i === currentIdx;
-          const locked = c === 3 && currentIdx < 10;
-          const later = i > currentIdx && !locked;
+          const isUnlocked = learnerState ? unlockedSet.has(lessonId) : i <= currentIdx;
           return {
             index: i,
-            num: LESSONS[i][0],
-            title: LESSONS[i][1],
-            activity: LESSONS[i][2],
+            id: lessonId,
+            num: l[1],
+            title: l[2],
+            activity: l[3],
             world: WORLDS[c].name,
             bg: WORLDS[c].cardBg,
             ink: WORLDS[c].ink,
             done,
             isCur,
-            isLocked: locked || later,
-            canGo: !(locked || later),
-            cta: done ? 'Watch again' : 'Start lesson',
+            isLocked: !isUnlocked,
+            canGo: isUnlocked,
+            cta: done ? 'Review lesson' : 'Start lesson',
           };
         })()
       : null;
@@ -129,7 +153,7 @@ export default function JourneyMapPage() {
             My journey
           </h1>
           <div className="text-xs sm:text-sm font-semibold text-[#6E5B7A]">
-            Chapter {currentChapter} of 4 · {doneCount} of {LESSONS.length} lessons completed
+            Chapter {currentChapter} of 4 · {doneCount} of {flatLessons.length} lessons completed
           </div>
         </div>
 
@@ -273,11 +297,12 @@ export default function JourneyMapPage() {
             </span>
 
             {/* Stepping Stones */}
-            {LESSONS.map((l, i) => {
+            {flatLessons.map((l, i) => {
               const c = chOf(i);
-              const done = i < currentIdx;
+              const lessonId = l[0];
+              const done = learnerState ? completedSet.has(lessonId) : i < currentIdx;
               const isCur = i === currentIdx;
-              const locked = c === 3 && currentIdx < 10;
+              const locked = learnerState ? !unlockedSet.has(lessonId) : (c === 3 && currentIdx < 10);
               const col = WORLDS[c].col;
               const isSelected = selectedIdx === i;
 
@@ -286,7 +311,7 @@ export default function JourneyMapPage() {
                   key={l[0]}
                   type="button"
                   onClick={() => setSelectedIdx(i)}
-                  aria-label={`Lesson ${l[0]}: ${l[1]}`}
+                  aria-label={`Lesson ${l[1]}: ${l[2]}`}
                   style={{
                     left: `calc(${((pts[i].x / 390) * 100).toFixed(2)}% - 29px)`,
                     top: `${pts[i].y - 29}px`,
@@ -317,7 +342,7 @@ export default function JourneyMapPage() {
                     <Lock size={18} className="text-[#8A7896]" />
                   ) : (
                     <span className="font-['Baloo_2',sans-serif] font-bold text-[17px] text-[#3D2C4A]">
-                      {l[0]}
+                      {l[1]}
                     </span>
                   )}
                 </button>
@@ -406,7 +431,7 @@ export default function JourneyMapPage() {
                 </div>
               ) : (
                 <Link
-                  href="/dashboard/learning-journeys"
+                  href={`/dashboard/courses/lesson/${activeLesson.id}`}
                   className="flex justify-center items-center gap-2 min-h-[52px] rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white font-bold text-base shadow-md transition-colors"
                 >
                   <Play size={16} fill="currentColor" />
@@ -421,18 +446,18 @@ export default function JourneyMapPage() {
                 <span>Next on your path</span>
               </div>
               <h2 className="font-['Baloo_2',sans-serif] font-bold text-2xl text-[#3D2C4A] m-0">
-                {LESSONS[currentIdx][0]} · {LESSONS[currentIdx][1]}
+                {flatLessons[currentIdx][1]} · {flatLessons[currentIdx][2]}
               </h2>
               <p className="text-sm text-[#5E4B6B] m-0">
                 Tap any stepping stone on the journey map to inspect its video and interactive game.
               </p>
-              <button
-                type="button"
-                onClick={() => setSelectedIdx(currentIdx)}
-                className="mt-1 self-start min-h-[44px] px-5 rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white font-bold text-sm cursor-pointer transition-colors"
+              <Link
+                href={`/dashboard/courses/lesson/${flatLessons[currentIdx][0]}`}
+                className="mt-1 self-start min-h-[44px] px-5 rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white font-bold text-sm inline-flex items-center gap-2 transition-colors"
               >
-                Inspect Lesson {LESSONS[currentIdx][0]}
-              </button>
+                <Play size={15} fill="currentColor" />
+                <span>Open Lesson {flatLessons[currentIdx][1]}</span>
+              </Link>
             </div>
           )}
 
@@ -442,38 +467,65 @@ export default function JourneyMapPage() {
             {WORLDS.map((w, idx) => {
               const start = STARTS[idx];
               const count = COUNTS[idx];
-              const doneInWorld = Math.max(0, Math.min(count, currentIdx - start));
-              const isDone = doneInWorld === count;
-              const isCur = idx === currentChapter - 1;
+              const chLessons = flatLessons.slice(start, start + count);
+              const doneInWorld = learnerState
+                ? chLessons.filter((l) => completedSet.has(l[0])).length
+                : Math.max(0, Math.min(count, currentIdx - start));
+              const isDone = passedCheckins.has(w.checkinId);
+              const allLessonsDone = doneInWorld === count;
+              const isUnlocked = learnerState
+                ? (learnerState.unlockedChapters || ['ch1']).includes(w.id)
+                : idx === 0 || currentIdx >= start;
+              const isCur = isUnlocked && !isDone;
 
               return (
                 <div
                   key={w.name}
-                  onClick={() => setSelectedIdx(start)}
-                  className="flex items-center gap-3 p-3 rounded-2xl border border-[#F1E4E8] hover:border-[#C2456A]/40 cursor-pointer transition-all"
+                  className="flex flex-col gap-2 p-3 rounded-2xl border border-[#F1E4E8] hover:border-[#C2456A]/40 transition-all"
                 >
-                  <div
-                    style={{ backgroundColor: w.cardBg, color: w.ink }}
-                    className="w-10 h-10 rounded-full font-extrabold text-sm grid place-items-center shrink-0"
-                  >
-                    {w.ch}
+                  <div className="flex items-center gap-3">
+                    <div
+                      onClick={() => setSelectedIdx(start)}
+                      style={{ backgroundColor: w.cardBg, color: w.ink }}
+                      className="w-10 h-10 rounded-full font-extrabold text-sm grid place-items-center shrink-0 cursor-pointer"
+                    >
+                      {w.ch}
+                    </div>
+                    <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setSelectedIdx(start)}>
+                      <strong className="block text-sm font-bold text-[#3D2C4A]">{w.name}</strong>
+                      <span className="text-xs text-[#6E5B7A]">
+                        {doneInWorld} of {count} lessons
+                      </span>
+                    </div>
+                    {isDone ? (
+                      <span className="text-xs font-bold text-[#24735A] bg-[#D4EFE4] px-2.5 py-1 rounded-full inline-flex items-center gap-1">
+                        <CheckCircle2 size={12} /> Done
+                      </span>
+                    ) : isCur ? (
+                      <span className="text-xs font-bold text-[#9A4A16] bg-[#FFE3CC] px-2.5 py-1 rounded-full">
+                        Active
+                      </span>
+                    ) : (
+                      <Lock size={15} className="text-[#8A7896]" />
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <strong className="block text-sm font-bold text-[#3D2C4A]">{w.name}</strong>
-                    <span className="text-xs text-[#6E5B7A]">
-                      {doneInWorld} of {count} lessons
-                    </span>
-                  </div>
-                  {isDone ? (
-                    <span className="text-xs font-bold text-[#24735A] bg-[#D4EFE4] px-2.5 py-1 rounded-full inline-flex items-center gap-1">
-                      <CheckCircle2 size={12} /> Done
-                    </span>
-                  ) : isCur ? (
-                    <span className="text-xs font-bold text-[#9A4A16] bg-[#FFE3CC] px-2.5 py-1 rounded-full">
-                      Active
-                    </span>
-                  ) : (
-                    <Lock size={15} className="text-[#8A7896]" />
+                  {isUnlocked && (
+                    <div className="flex gap-2 pl-12">
+                      <Link
+                        href={`/dashboard/courses/chapter/${w.id}`}
+                        className="text-xs font-bold text-[#3D2C4A] hover:underline"
+                      >
+                        World intro →
+                      </Link>
+                      {(allLessonsDone || isDone) && (
+                        <Link
+                          href={`/dashboard/courses/checkin/${w.checkinId}`}
+                          className="text-xs font-bold text-[#A8365A] hover:underline inline-flex items-center gap-1"
+                        >
+                          <Award size={12} /> {isDone ? 'Retake check-in' : 'Take check-in'}
+                        </Link>
+                      )}
+                    </div>
                   )}
                 </div>
               );
@@ -515,7 +567,7 @@ export default function JourneyMapPage() {
               </div>
             ) : (
               <Link
-                href="/dashboard/learning-journeys"
+                href={`/dashboard/courses/lesson/${activeLesson.id}`}
                 className="flex justify-center items-center min-h-[52px] rounded-full bg-[#C2456A] text-white font-bold text-base"
               >
                 {activeLesson.cta}

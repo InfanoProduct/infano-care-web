@@ -64,11 +64,67 @@ export function useCheckinDetail(checkinId: string, explicitLearnerId?: string |
 
 export function useInvalidateCourse() {
   const queryClient = useQueryClient();
-  return () => {
-    queryClient.invalidateQueries({ queryKey: ["course-learner-state"] });
-    queryClient.invalidateQueries({ queryKey: ["course-lesson"] });
-    queryClient.invalidateQueries({ queryKey: ["course-checkin"] });
-    queryClient.invalidateQueries({ queryKey: ["parent-course-overview"] });
+  return async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["course-learner-state"] }),
+      queryClient.invalidateQueries({ queryKey: ["course-lesson"] }),
+      queryClient.invalidateQueries({ queryKey: ["course-checkin"] }),
+      queryClient.invalidateQueries({ queryKey: ["parent-course-overview"] }),
+    ]);
+  };
+}
+
+export function resolveResumeStepPath(
+  lessonId: string,
+  progress?: { stepsDone?: string[]; watchPositionS?: number; watchPercent?: number } | null
+): {
+  stepKey: "watch" | "play" | "discover" | "reflect" | "done";
+  href: string;
+  label: string;
+  hasStarted: boolean;
+} {
+  const steps = new Set(progress?.stepsDone || []);
+  const pos = progress?.watchPositionS || 0;
+  const pct = progress?.watchPercent || 0;
+  const hasStarted = steps.size > 0 || pos > 0 || pct > 0;
+
+  if (!steps.has("watch")) {
+    return {
+      stepKey: "watch",
+      href: `/dashboard/courses/lesson/${lessonId}/watch`,
+      label: pos > 5 ? `Resume Watch (${pct}%)` : "Start Watch",
+      hasStarted,
+    };
+  }
+  if (!steps.has("play")) {
+    return {
+      stepKey: "play",
+      href: `/dashboard/courses/lesson/${lessonId}/play`,
+      label: "Resume Play",
+      hasStarted: true,
+    };
+  }
+  if (!steps.has("discover")) {
+    return {
+      stepKey: "discover",
+      href: `/dashboard/courses/lesson/${lessonId}/discover`,
+      label: "Resume Discover",
+      hasStarted: true,
+    };
+  }
+  if (!steps.has("reflect")) {
+    return {
+      stepKey: "reflect",
+      href: `/dashboard/courses/lesson/${lessonId}/reflect`,
+      label: "Resume Reflect",
+      hasStarted: true,
+    };
+  }
+  return {
+    stepKey: "done",
+    href: `/dashboard/courses/lesson/${lessonId}`,
+    label: "Review lesson",
+    hasStarted: true,
   };
 }
 

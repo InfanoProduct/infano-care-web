@@ -18,11 +18,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ShopService } from '@/services/shop.service';
-import { LearningService, LearningJourney, UserProgress } from '@/services/learning.service';
+import { ParentSpaceService, ParentOrdersSummaryResponse } from '@/services/parent-space.service';
 import Script from 'next/script';
 import { isAnalyticsEnabled } from '@/components/common/Analytics';
 import { getCurrencySymbol } from '@/lib/utils';
 import { HerBloomGarden } from '@/features/daughter/HerBloomGarden';
+import { WelcomeNoPurchaseSpace } from '@/components/course/WelcomeNoPurchaseSpace';
 
 // Same STYLES_MAP as ParentsPrograms.tsx for exact match
 const STYLES_MAP: Record<string, any> = {
@@ -109,14 +110,20 @@ export default function CustomerDashboardOverview() {
     setMounted(true);
   }, []);
   const { user, activeProfile, learners } = useAuthStore();
+  const [ordersSummary, setOrdersSummary] = useState<ParentOrdersSummaryResponse | null>(null);
+  const [enrollmentChecked, setEnrollmentChecked] = useState(false);
+
+  const hasCourseEnrollment = Boolean(
+    ordersSummary?.courseEnrollments?.some((e: any) => e?.status === 'ACTIVE')
+  );
 
   useEffect(() => {
-    if (mounted && user) {
+    if (mounted && user && enrollmentChecked && hasCourseEnrollment) {
       if (activeProfile?.type === 'PARENT') {
         router.push('/dashboard/parent');
       }
     }
-  }, [mounted, user, activeProfile, router]);
+  }, [mounted, user, enrollmentChecked, hasCourseEnrollment, activeProfile, router]);
   const [enrollments, setEnrollments] = useState<ProgramEnrollment[]>([]);
   const [allPrograms, setAllPrograms] = useState<Program[]>([]);
   const [isLinked, setIsLinked] = useState(false);
@@ -124,8 +131,6 @@ export default function CustomerDashboardOverview() {
   const [parentBookmarks, setParentBookmarks] = useState<any[]>([]);
   const [demoSessions, setDemoSessions] = useState<any[]>([]);
   const [demosLoading, setDemosLoading] = useState(false);
-  const [learningJourneys, setLearningJourneys] = useState<LearningJourney[]>([]);
-  const [learningProgress, setLearningProgress] = useState<UserProgress[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [peerStats, setPeerStats] = useState<any>(null);
 
@@ -154,9 +159,12 @@ export default function CustomerDashboardOverview() {
     if (!user) return;
     try {
       setLoading(true);
-      if (user.role === 'EXPERT') {
-        const response = await apiClient.get<any[]>('/expert/sessions').catch(() => []);
-        setExpertSessions(Array.isArray(response) ? response : []);
+      if (user.role === 'EXPERT' || user.role === 'ADMIN') {
+        if (user.role === 'EXPERT') {
+          const response = await apiClient.get<any[]>('/expert/sessions').catch(() => []);
+          setExpertSessions(Array.isArray(response) ? response : []);
+        }
+        setEnrollmentChecked(true);
         setLoading(false);
         return;
       }
@@ -167,20 +175,18 @@ export default function CustomerDashboardOverview() {
         linksRes,
         demosRes,
         ordersRes,
-        learningJourneysRes,
-        learningProgressRes,
         bookmarksRes,
-        mentorStatsRes
+        mentorStatsRes,
+        courseOrdersRes
       ] = await Promise.all([
         ProgramsService.getUserEnrollments().catch(() => ({ success: true, data: [] })),
         ProgramsService.getPrograms().catch(() => []),
         ParentService.getLinks().catch(() => []),
         ProgramsService.getUserDemos().catch(() => ({ success: true, data: [] })),
         ShopService.getUserOrders().catch(() => []),
-        LearningService.getJourneys().catch(() => []),
-        LearningService.getMyProgress().catch(() => []),
         isTeen ? ParentService.getTeenParentBookmarks().catch(() => []) : Promise.resolve([]),
-        user.role === 'PEER' ? apiClient.get('/peerline/mentor/stats').catch(() => null) : Promise.resolve(null)
+        user.role === 'PEER' ? apiClient.get('/peerline/mentor/stats').catch(() => null) : Promise.resolve(null),
+        ParentSpaceService.getOrdersSummary().catch(() => null)
       ]);
 
       const linked = linksRes.some((link: any) => link.status === 'LINKED');
@@ -192,13 +198,8 @@ export default function CustomerDashboardOverview() {
       setOrders(ordersRes || []);
       setParentBookmarks(linked ? (bookmarksRes || []) : []);
       setPeerStats(mentorStatsRes || null);
-
-      // Exclude peerline certification from main user dashboard
-      const userJourneys = learningJourneysRes.filter(
-        journey => journey.slug !== 'peerline-mentor-certification'
-      );
-      setLearningJourneys(userJourneys);
-      setLearningProgress(learningProgressRes);
+      setOrdersSummary(courseOrdersRes);
+      setEnrollmentChecked(true);
     } catch {
       toast.error('Failed to load dashboard data.');
     } finally {
@@ -417,7 +418,7 @@ export default function CustomerDashboardOverview() {
     }
   };
 
-  // Render Daughter Bloom Garden for learners/parents in the new dashboard
+  // Render Welcome Space (signed in, no purchase) or Daughter Bloom Garden / Parent redirect
   const hasLearners = Boolean((user?.learners && user.learners.length > 0) || (learners && learners.length > 0));
   if (
     mounted &&
@@ -426,6 +427,24 @@ export default function CustomerDashboardOverview() {
     user.role !== 'ADMIN' &&
     (user.role !== 'PEER' || activeProfile?.type === 'DAUGHTER' || activeProfile?.type === 'PARENT' || hasLearners)
   ) {
+    if (!enrollmentChecked) {
+      return (
+        <div className="min-h-screen bg-[#FBF8F6] flex items-center justify-center">
+          <Loader2 className="animate-spin text-[#C2456A]" size={32} />
+        </div>
+      );
+    }
+
+    if (!hasCourseEnrollment && activeProfile?.type !== 'DAUGHTER') {
+      return (
+        <WelcomeNoPurchaseSpace
+          user={user}
+          learners={learners}
+          ordersSummary={ordersSummary}
+        />
+      );
+    }
+
     if (activeProfile?.type === 'PARENT') {
       return (
         <div className="min-h-screen bg-[#FBF8F6] flex items-center justify-center">
@@ -862,8 +881,8 @@ export default function CustomerDashboardOverview() {
       <DashboardSummary
         enrollments={enrollments}
         demoSessions={demoSessions}
-        learningJourneys={learningJourneys}
-        learningProgress={learningProgress}
+        learningJourneys={[]}
+        learningProgress={[]}
       />
 
       {/* Peer Mentor Stats (if PEER) */}
@@ -990,84 +1009,6 @@ export default function CustomerDashboardOverview() {
 
 
           {/* AVAILABLE PROGRAMS CATALOG */}
-
-          {/* LEARNING JOURNEYS COMPACT PROGRESS */}
-          {learningJourneys.length > 0 && (() => {
-            const journeyStats = learningJourneys.map(journey => {
-              const episodeIds = new Set(journey.episodes?.map(e => e.id) || []);
-              const completedCount = learningProgress.filter(p => episodeIds.has(p.episodeId) && p.completed).length;
-              const totalCount = journey.episodes?.length || 0;
-              const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-              const isMastered = totalCount > 0 && completedCount === totalCount;
-              return { journey, completedCount, totalCount, pct, isMastered };
-            });
-
-            return (
-              <div className="bg-white border border-slate-100 rounded-[26px] p-6 sm:p-8 shadow-[0_4px_25px_rgba(0,0,0,0.03)]">
-                <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-5">
-                  <div>
-                    <h3 className="text-xl font-extrabold text-slate-800 flex items-center gap-2">
-                      <GraduationCap className="text-purple-500" size={24} /> Learning Journeys
-                    </h3>
-                    <p className="text-xs font-semibold text-slate-400 mt-1">Interactive learning paths with episodes and XP</p>
-                  </div>
-                  <Link href="/dashboard/learning-journeys" className="text-xs font-extrabold text-primary hover:underline flex items-center gap-1">
-                    View All <ChevronRight size={14} />
-                  </Link>
-                </div>
-
-                <div className="space-y-4">
-                  {journeyStats.slice(0, 3).map(({ journey, completedCount, totalCount, pct, isMastered }) => (
-                    <Link
-                      key={journey.id}
-                      href={`/dashboard/learning-journeys/${journey.id}`}
-                      className={`block p-4.5 bg-white border ${isMastered ? 'border-emerald-200' : 'border-slate-100'} rounded-2xl hover:shadow-md transition-all group`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`w-11 h-11 rounded-xl shrink-0 flex items-center justify-center ${isMastered ? 'bg-emerald-100' : 'bg-purple-100'
-                          }`}>
-                          {isMastered
-                            ? <Check size={18} className="text-emerald-500" />
-                            : <GraduationCap size={18} className="text-purple-500" />
-                          }
-                        </div>
-                        <div className="flex-1 min-w-0 space-y-2">
-                          <div className="flex items-center justify-between gap-2">
-                            <h4 className="font-extrabold text-slate-800 truncate text-sm">{journey.title}</h4>
-                            <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shrink-0 ${isMastered
-                              ? 'bg-emerald-50 border border-emerald-200 text-emerald-700'
-                              : 'bg-purple-50 border border-purple-100 text-purple-700'
-                              }`}>
-                              {isMastered ? 'Mastered' : pct > 0 ? 'In Progress' : 'New'}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-[11px] font-semibold text-slate-500">
-                            <span>{completedCount}/{totalCount} episodes</span>
-                            <span className={isMastered ? 'text-emerald-600 font-bold' : 'text-purple-600 font-bold'}>{pct}%</span>
-                          </div>
-                          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full ${isMastered ? 'bg-linear-to-r from-emerald-400 to-emerald-500' : 'bg-linear-to-r from-purple-400 to-indigo-500'} transition-all duration-700 rounded-full`}
-                              style={{ width: `${pct}%` }}
-                            />
-                          </div>
-                        </div>
-                        <ChevronRight size={16} className="text-slate-300 shrink-0 group-hover:text-primary transition-colors" />
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-
-                {journeyStats.length > 3 && (
-                  <div className="text-center mt-4 pt-4 border-t border-slate-100">
-                    <Link href="/dashboard/learning-journeys" className="inline-flex items-center gap-2 text-xs font-extrabold text-primary hover:underline">
-                      View All {journeyStats.length} Journeys <ChevronRight size={14} />
-                    </Link>
-                  </div>
-                )}
-              </div>
-            );
-          })()}
 
 
 

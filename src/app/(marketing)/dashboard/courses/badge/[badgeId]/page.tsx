@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { DaughterShell } from "@/features/daughter/DaughterShell";
+import { CoursePlayerShell } from "@/components/course/CoursePlayerShell";
 import { useActiveLearnerId, useCourseCurriculum, useInvalidateCourse, useLearnerCourseState } from "@/hooks/use-course";
 import { CourseService } from "@/services/course.service";
 import { Loader2 } from "lucide-react";
@@ -20,11 +20,11 @@ export default function BadgeUnlockPage() {
 
   if (isLoading || !curriculum) {
     return (
-      <DaughterShell>
+      <CoursePlayerShell darkTheme backHref="/dashboard/badges" backLabel="Badges">
         <div className="flex items-center justify-center py-24">
-          <Loader2 size={32} className="animate-spin text-[#C2456A]" />
+          <Loader2 size={32} className="animate-spin text-[#F4A3B4]" />
         </div>
-      </DaughterShell>
+      </CoursePlayerShell>
     );
   }
 
@@ -57,7 +57,16 @@ export default function BadgeUnlockPage() {
   };
 
   return (
-    <DaughterShell gigiTip="You earned this! Only your badge is shared if you choose — your journal stays private.">
+    <CoursePlayerShell
+      darkTheme
+      backHref="/dashboard/journey"
+      backLabel="Journey"
+      worldName={chapter?.worldName}
+      activeStep="badge"
+      colors={chapter?.colors}
+      gigiTip="You earned this! Only your badge is shared if you choose — your journal stays private."
+      maxWidthClass="max-w-3xl"
+    >
       <style jsx global>{`
         @keyframes bwrot { to { transform: rotate(360deg); } }
         @keyframes bwin { 0% { transform: scale(0) rotate(-200deg); } 100% { transform: scale(1) rotate(0); } }
@@ -152,7 +161,7 @@ export default function BadgeUnlockPage() {
           </div>
         </div>
       </div>
-    </DaughterShell>
+    </CoursePlayerShell>
   );
 }
 

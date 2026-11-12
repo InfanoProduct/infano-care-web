@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { DaughterShell } from "@/features/daughter/DaughterShell";
-import { useCourseCurriculum, useLearnerCourseState } from "@/hooks/use-course";
+import { resolveResumeStepPath, useCourseCurriculum, useLearnerCourseState } from "@/hooks/use-course";
 import { ArrowRight, Award, Check, Lock, Play, Sparkles, Compass, Loader2 } from "lucide-react";
 
 export default function CourseHomePage() {
@@ -14,7 +14,10 @@ export default function CourseHomePage() {
   const completedSet = new Set(learnerState?.completedLessons || []);
   const unlockedChapters = new Set(learnerState?.unlockedChapters || ["ch1"]);
   const passedCheckins = new Set(learnerState?.passedCheckins || []);
+  const pendingCheckinId = learnerState?.pendingCheckinId || null;
   const nextLessonId = learnerState?.nextLessonId || "l1-1";
+  const nextLessonProg = learnerState?.lessonProgress?.[nextLessonId];
+  const nextResume = resolveResumeStepPath(nextLessonId, nextLessonProg);
   const doneCount = completedSet.size;
   const totalLessons = curriculum?.course?.lessonCount || 15;
   const totalPetals = learnerState?.learner?.petalsCount ?? 0;
@@ -31,6 +34,9 @@ export default function CourseHomePage() {
       break;
     }
   }
+  const pendingChapter = pendingCheckinId
+    ? chapters.find((ch) => ch.checkinId === pendingCheckinId) || null
+    : null;
 
   return (
     <DaughterShell gigiTip="Pick any open world to explore, or jump right back into your next lesson!">
@@ -71,28 +77,77 @@ export default function CourseHomePage() {
         </div>
       ) : (
         <>
+          {learnerState?.isEnrolled === false && (
+            <section className="bg-[#FFF1E6] border border-[#F5DAC5] rounded-[24px] p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="w-10 h-10 rounded-xl bg-white text-[#9A4A16] grid place-items-center shrink-0">
+                  <Lock size={18} />
+                </span>
+                <div>
+                  <div className="text-sm font-bold text-[#3D2C4A]">
+                    Free Preview Mode · Lesson 1.1 is unlocked
+                  </div>
+                  <div className="text-xs text-[#5E4B6B]">
+                    Lessons 1.2–4.5 and check-ins open as soon as a parent unlocks the full course.
+                  </div>
+                </div>
+              </div>
+              <Link
+                href="/course/checkout?plan=course"
+                className="inline-flex items-center gap-1.5 min-h-[40px] px-4 rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white text-xs sm:text-sm font-bold transition-colors shrink-0"
+              >
+                <span>Unlock Full Course</span>
+                <ArrowRight size={14} />
+              </Link>
+            </section>
+          )}
+
           {/* Continue Learning Hero */}
-          <section className="bg-[#FFE3CC] rounded-[28px] p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4 shadow-sm">
-            <div className="flex flex-col gap-1.5">
-              <span className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-[#9A4A16]">
-                <Sparkles size={14} />
-                UP NEXT · {nextWorldName} · LESSON {nextLessonCode}
-              </span>
-              <h2 className="m-0 font-['Baloo_2',sans-serif] text-2xl sm:text-3xl font-bold text-[#3D2C4A]">
-                {nextLessonTitle}
-              </h2>
-              <p className="m-0 text-sm text-[#5E4B6B]">
-                Watch the expert video, play the interactive game, discover 3 quick cards, and reflect.
-              </p>
-            </div>
-            <Link
-              href={`/dashboard/courses/lesson/${nextLessonId}`}
-              className="inline-flex items-center gap-2 min-h-[52px] px-6 rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white font-bold text-base shadow-md transition-colors shrink-0"
-            >
-              <Play size={16} fill="currentColor" />
-              <span>{doneCount > 0 ? "Continue lesson" : "Start lesson"}</span>
-            </Link>
-          </section>
+          {pendingChapter && pendingCheckinId ? (
+            <section className="bg-[#FFF4C7] rounded-[28px] p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4 shadow-sm border border-[#F3E3A1]">
+              <div className="flex flex-col gap-1.5">
+                <span className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-[#8A6410]">
+                  <Award size={14} />
+                  CHAPTER {pendingChapter.number} CHECK-IN READY · {pendingChapter.worldName}
+                </span>
+                <h2 className="m-0 font-['Baloo_2',sans-serif] text-2xl sm:text-3xl font-bold text-[#3D2C4A]">
+                  Unlock the next world!
+                </h2>
+                <p className="m-0 text-sm text-[#5E4B6B]">
+                  All lessons in {pendingChapter.worldName} are done. Pass the check-in to earn your badge and open Chapter {pendingChapter.number + 1}.
+                </p>
+              </div>
+              <Link
+                href={`/dashboard/courses/checkin/${pendingCheckinId}`}
+                className="inline-flex items-center gap-2 min-h-[52px] px-6 rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white font-bold text-base shadow-md transition-colors shrink-0"
+              >
+                <Award size={17} />
+                <span>Take Check-in</span>
+              </Link>
+            </section>
+          ) : (
+            <section className="bg-[#FFE3CC] rounded-[28px] p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+              <div className="flex flex-col gap-1.5">
+                <span className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-[#9A4A16]">
+                  <Sparkles size={14} />
+                  UP NEXT · {nextWorldName} · LESSON {nextLessonCode}
+                </span>
+                <h2 className="m-0 font-['Baloo_2',sans-serif] text-2xl sm:text-3xl font-bold text-[#3D2C4A]">
+                  {nextLessonTitle}
+                </h2>
+                <p className="m-0 text-sm text-[#5E4B6B]">
+                  Watch the expert video, play the interactive game, discover 3 quick cards, and reflect.
+                </p>
+              </div>
+              <Link
+                href={nextResume.href}
+                className="inline-flex items-center gap-2 min-h-[52px] px-6 rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white font-bold text-base shadow-md transition-colors shrink-0"
+              >
+                <Play size={16} fill="currentColor" />
+                <span>{nextResume.hasStarted ? nextResume.label : doneCount > 0 ? "Continue lesson" : "Start lesson"}</span>
+              </Link>
+            </section>
+          )}
 
           {/* 4 Worlds Grid */}
           <section className="grid grid-cols-1 md:grid-cols-2 gap-5">

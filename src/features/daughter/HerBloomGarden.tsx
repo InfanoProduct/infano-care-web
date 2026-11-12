@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { DaughterShell } from './DaughterShell';
 import { useDaughterState } from './daughter-state';
-import { useCourseCurriculum, useLearnerCourseState, useInvalidateCourse } from '@/hooks/use-course';
+import { resolveResumeStepPath, useCourseCurriculum, useLearnerCourseState, useInvalidateCourse } from '@/hooks/use-course';
 import { CourseService } from '@/services/course.service';
 import {
   Play, Check, Lock, Sparkles, Heart, Award
@@ -27,7 +27,13 @@ export function HerBloomGarden() {
   const backendChapters = curriculum?.course?.chapters || [];
   const unlockedChapters = new Set(learnerState?.unlockedChapters || ['ch1']);
   const passedCheckins = new Set(learnerState?.passedCheckins || []);
+  const pendingCheckinId = learnerState?.pendingCheckinId || null;
   const nextLessonId = learnerState?.nextLessonId || 'l1-1';
+  const nextLessonProgress = learnerState?.lessonProgress?.[nextLessonId];
+  const nextResume = resolveResumeStepPath(nextLessonId, nextLessonProgress);
+  const pendingChapter = pendingCheckinId
+    ? backendChapters.find((ch) => ch.checkinId === pendingCheckinId) || null
+    : null;
 
   // Resolve next lesson metadata dynamically
   let nextLesson = {
@@ -249,10 +255,14 @@ export function HerBloomGarden() {
             {/* Meta */}
             <div className="flex-1 min-w-[240px] flex flex-col gap-2">
               <span style={{ color: nextLesson.chapterInk }} className="text-xs font-bold tracking-wider uppercase">
-                UP NEXT · CHAPTER {nextLesson.chapterNumber} · LESSON {nextLesson.code}
+                {pendingCheckinId && pendingChapter
+                  ? `CHECK-IN READY · CHAPTER ${pendingChapter.number}`
+                  : `UP NEXT · CHAPTER ${nextLesson.chapterNumber} · LESSON ${nextLesson.code}`}
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-[#3D2C4A] font-['Baloo_2',sans-serif] leading-tight m-0">
-                {nextLesson.title}
+                {pendingCheckinId && pendingChapter
+                  ? `${pendingChapter.worldName} Check-in`
+                  : nextLesson.title}
               </h2>
               <div className="flex flex-wrap gap-1.5 py-0.5">
                 {['Watch', 'Play', 'Discover', 'Reflect'].map((step) => (
@@ -265,13 +275,23 @@ export function HerBloomGarden() {
                 ))}
               </div>
               <div className="pt-1 flex flex-wrap gap-2.5">
-                <Link
-                  href={`/dashboard/courses/lesson/${nextLesson.id}`}
-                  className="pulse-btn inline-flex items-center gap-2 min-h-[48px] px-6 rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white font-bold text-sm shadow-md transition-all"
-                >
-                  <Play size={16} fill="currentColor" />
-                  Start lesson
-                </Link>
+                {pendingCheckinId && pendingChapter ? (
+                  <Link
+                    href={`/dashboard/courses/checkin/${pendingCheckinId}`}
+                    className="pulse-btn inline-flex items-center gap-2 min-h-[48px] px-6 rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white font-bold text-sm shadow-md transition-all"
+                  >
+                    <Award size={16} />
+                    Take Chapter {pendingChapter.number} Check-in
+                  </Link>
+                ) : (
+                  <Link
+                    href={nextResume.href}
+                    className="pulse-btn inline-flex items-center gap-2 min-h-[48px] px-6 rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white font-bold text-sm shadow-md transition-all"
+                  >
+                    <Play size={16} fill="currentColor" />
+                    {nextResume.hasStarted ? nextResume.label : 'Start lesson'}
+                  </Link>
+                )}
                 <Link
                   href="/dashboard/courses"
                   className="inline-flex items-center gap-2 min-h-[48px] px-5 rounded-full bg-white/85 hover:bg-white text-[#3D2C4A] font-bold text-sm shadow-2xs transition-all"

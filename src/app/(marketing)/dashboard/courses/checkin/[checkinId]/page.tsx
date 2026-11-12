@@ -3,10 +3,11 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { DaughterShell } from "@/features/daughter/DaughterShell";
+import { CoursePlayerShell } from "@/components/course/CoursePlayerShell";
+import { LessonLockedCard } from "@/components/course/LessonLockedCard";
 import { useActiveLearnerId, useCheckinDetail, useInvalidateCourse } from "@/hooks/use-course";
 import { CourseService } from "@/services/course.service";
-import { ArrowLeft, ArrowRight, Lightbulb, Loader2 } from "lucide-react";
+import { ArrowRight, Lightbulb, Loader2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 // Map seed target_screen (e.g. "L11-Watch", "L12-Play") to Next.js routes
@@ -23,7 +24,7 @@ export default function CheckinQuizPage() {
   const { checkinId } = useParams<{ checkinId: string }>();
   const learnerId = useActiveLearnerId();
   const invalidateCourse = useInvalidateCourse();
-  const { data, isLoading } = useCheckinDetail(checkinId);
+  const { data, isLoading, isError } = useCheckinDetail(checkinId);
 
   const [qIdx, setQIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -38,13 +39,24 @@ export default function CheckinQuizPage() {
     petalsAwarded: number;
   } | null>(null);
 
+  if (isError) {
+    return (
+      <CoursePlayerShell backHref="/dashboard/journey" backLabel="Journey">
+        <LessonLockedCard
+          title="Unlock HerNext to take chapter check-ins"
+          description="Chapter check-ins and certificates unlock with full course enrollment. Lesson 1.1 remains free to try anytime."
+        />
+      </CoursePlayerShell>
+    );
+  }
+
   if (isLoading || !data?.checkin) {
     return (
-      <DaughterShell>
+      <CoursePlayerShell backHref="/dashboard/journey" backLabel="Journey">
         <div className="flex items-center justify-center py-24">
           <Loader2 size={32} className="animate-spin text-[#C2456A]" />
         </div>
-      </DaughterShell>
+      </CoursePlayerShell>
     );
   }
 
@@ -80,7 +92,7 @@ export default function CheckinQuizPage() {
     try {
       if (learnerId && learnerId !== "default") {
         const res = await CourseService.submitCheckin(learnerId, checkin.id, answers);
-        invalidateCourse();
+        await invalidateCourse();
         setServerResult(res);
         if (res.petalsAwarded > 0) {
           toast.success(`+${res.petalsAwarded} petals earned! 🌸`);
@@ -121,20 +133,21 @@ export default function CheckinQuizPage() {
   const badgeId = checkin.badgeOnPass || chapter?.badgeId || "badge-cycle-explorer";
 
   return (
-    <DaughterShell gigiTip="No timer, and Gigi's hints are completely free! Take your time.">
+    <CoursePlayerShell
+      backHref="/dashboard/journey"
+      backLabel="Journey"
+      worldName={chapter?.worldName || "Final Challenge"}
+      activeStep="checkin"
+      colors={chapter?.colors}
+      gigiTip="No timer, and Gigi's hints are completely free! Take your time."
+      maxWidthClass="max-w-3xl"
+    >
       <div
         style={{ backgroundColor: softBg }}
-        className="rounded-[32px] p-5 sm:p-8 border border-[#F1E4E8] shadow-xs flex flex-col gap-5 max-w-3xl mx-auto w-full min-h-[70vh]"
+        className="rounded-[32px] p-5 sm:p-8 border border-[#F1E4E8] shadow-xs flex flex-col gap-5 w-full min-h-[70vh]"
       >
         {/* Header */}
         <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard/journey"
-            aria-label="Back to journey"
-            className="w-11 h-11 rounded-full bg-white grid place-items-center text-[#3D2C4A] shadow-2xs shrink-0"
-          >
-            <ArrowLeft size={20} />
-          </Link>
           <div className="flex-1 min-w-0">
             <div style={{ color: ink }} className="text-xs font-extrabold uppercase tracking-wider">
               {chapter ? `CHAPTER ${chapter.number} CHECK-IN` : "FINAL CHALLENGE"}
@@ -375,7 +388,7 @@ export default function CheckinQuizPage() {
           </div>
         )}
       </div>
-    </DaughterShell>
+    </CoursePlayerShell>
   );
 }
 

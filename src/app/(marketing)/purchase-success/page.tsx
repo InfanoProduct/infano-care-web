@@ -220,7 +220,7 @@ function PurchaseSuccessContent() {
         name: 'Parent',
         email: `${cleanPhone.replace(/\D/g, '') || 'parent'}@infano.care`,
         phone: cleanPhone || '9876543210',
-        courseId: '5276328d-aebb-4124-bdf2-b34f0fe58a45', // Girlhood: HerNext
+        courseId: 'hernext-foundation', // Girlhood: HerNext
         amount: 299,
         currency: 'INR',
         plan: 'reader',
@@ -229,7 +229,7 @@ function PurchaseSuccessContent() {
         shippingAddress: null
       };
 
-      const res: any = await apiClient.post('/lms/public/purchase', payload);
+      const res: any = await apiClient.post('/course/public/purchase', payload);
 
       if (res?.razorpay) {
         const options = {
@@ -242,7 +242,7 @@ function PurchaseSuccessContent() {
           order_id: res.razorpay.orderId,
           handler: async function (response: any) {
             try {
-              await apiClient.post('/lms/public/verify-purchase', {
+              await apiClient.post('/course/public/verify-purchase', {
                 razorpayOrderId: response.razorpay_order_id,
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpaySignature: response.razorpay_signature

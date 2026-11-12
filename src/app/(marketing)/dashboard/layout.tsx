@@ -48,7 +48,6 @@ export default function CustomerDashboardLayout({
       pathname.startsWith('/dashboard/settings') ||
       pathname.startsWith('/dashboard/help') ||
       (!isLegacyPortalRole && (
-        pathname.startsWith('/dashboard/my-courses') ||
         pathname.startsWith('/dashboard/payments') ||
         pathname.startsWith('/dashboard/profile')
       )) ||
@@ -73,7 +72,7 @@ export default function CustomerDashboardLayout({
     if (!isAuthenticated || !user?.id || user.role === 'EXPERT' || isNewDashboardFlow) return;
     const fetchEnrollments = async () => {
       try {
-        const res = await apiClient.get<any[]>('/lms/my-courses');
+        const res = await apiClient.get<any[]>('/course/my-enrollments');
         setHasEnrollments(Array.isArray(res) && res.length > 0);
       } catch (err) {
         console.warn('Failed to fetch enrollments for sidebar list:', err);
@@ -144,6 +143,17 @@ export default function CustomerDashboardLayout({
         const fullUser = await AuthService.getMe();
         if (fullUser) {
           const prevState = useAuthStore.getState();
+          let resolvedLearners = fullUser.learners ?? user.learners ?? prevState.learners ?? [];
+          if (resolvedLearners.length === 0 && !isLegacyPortalRole && fullUser.role !== 'PEER') {
+            try {
+              const learnersRes: any = await apiClient.get('/onboarding/learners');
+              if (Array.isArray(learnersRes?.learners) && learnersRes.learners.length > 0) {
+                resolvedLearners = learnersRes.learners;
+              }
+            } catch {
+              // ignore if user has not created learner profiles yet
+            }
+          }
           setAuth(accessToken, refreshToken || '', {
             ...user,
             email: fullUser.email,
@@ -157,13 +167,15 @@ export default function CustomerDashboardLayout({
             birthYear: fullUser.birthYear,
             birthMonth: fullUser.birthMonth,
             contentTier: fullUser.contentTier,
-            learners: fullUser.learners ?? user.learners ?? prevState.learners,
+            learners: resolvedLearners,
           });
-          if (prevState.learners?.length && !fullUser.learners?.length) {
-            setLearners(prevState.learners);
+          if (resolvedLearners.length > 0) {
+            setLearners(resolvedLearners);
           }
           if (prevState.activeProfile) {
             setActiveProfile(prevState.activeProfile);
+          } else if (resolvedLearners.length > 0) {
+            setActiveProfile({ type: 'DAUGHTER', learner: resolvedLearners[0] });
           }
           if (fullUser.profile?.avatarUrl && fullUser.id) {
             localStorage.setItem(`profileAvatar_${fullUser.id}`, fullUser.profile.avatarUrl);
@@ -261,12 +273,8 @@ export default function CustomerDashboardLayout({
   const menuItems = baseMenuItems;
 
   const isLinkActive = (item: { href: string; label: string; icon: any; matchPrefix?: boolean }) => {
-    if (item.href === '/dashboard/my-courses') {
-      return pathname === '/dashboard/my-courses' ||
-        (pathname.startsWith('/dashboard/courses/') && !pathname.startsWith('/dashboard/courses/explore/'));
-    }
     if (item.href === '/dashboard/courses') {
-      return pathname === '/dashboard/courses' || pathname.startsWith('/dashboard/courses/explore/');
+      return pathname === '/dashboard/courses' || pathname.startsWith('/dashboard/courses/');
     }
     if (item.matchPrefix) {
       return pathname === item.href || pathname.startsWith(item.href + '/');

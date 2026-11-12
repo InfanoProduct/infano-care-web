@@ -89,9 +89,8 @@ export default function AdminLayout({
         ]
       },
       { name: 'User Management', icon: Users, href: '/admin/users' },
-      { name: 'Learning Journeys', icon: BookOpen, href: '/admin/learning' },
+      { name: 'HerNext Course', icon: MonitorPlay, href: '/admin/course' },
       { name: 'Learning Programs', icon: Award, href: '/admin/programs' },
-      { name: 'LMS Courses', icon: MonitorPlay, href: '/admin/lms/courses' },
       { name: 'Blogs', icon: FileText, href: '/admin/blogs' },
       { name: 'Assets', icon: Image, href: '/admin/assets' },
       { name: 'Transactions', icon: CreditCard, href: '/admin/transactions' },

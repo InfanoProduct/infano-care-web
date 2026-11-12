@@ -3,9 +3,9 @@
 import React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { DaughterShell } from "@/features/daughter/DaughterShell";
+import { CoursePlayerShell } from "@/components/course/CoursePlayerShell";
 import { useCourseCurriculum, useLearnerCourseState } from "@/hooks/use-course";
-import { ArrowLeft, Check, Heart, Lock, Play, Award, Loader2 } from "lucide-react";
+import { Check, Heart, Lock, Play, Award, Loader2 } from "lucide-react";
 
 const CHAPTER_HOOKS: Record<string, { hook: string; outcomes: string[] }> = {
   ch1: {
@@ -54,11 +54,11 @@ export default function ChapterIntroPage() {
 
   if (isLoading || !chapter) {
     return (
-      <DaughterShell>
+      <CoursePlayerShell backHref="/dashboard/journey" backLabel="Journey">
         <div className="flex items-center justify-center py-24">
           <Loader2 size={32} className="animate-spin text-[#C2456A]" />
         </div>
-      </DaughterShell>
+      </CoursePlayerShell>
     );
   }
 
@@ -68,21 +68,23 @@ export default function ChapterIntroPage() {
     chapter.lessons[0];
 
   return (
-    <DaughterShell gigiTip={`Welcome to ${chapter.worldName}! Take each lesson at your own pace.`}>
-      <div className="max-w-5xl mx-auto w-full flex flex-col gap-6">
+    <CoursePlayerShell
+      backHref="/dashboard/journey"
+      backLabel="Journey"
+      worldName={chapter.worldName}
+      activeStep="chapter"
+      colors={chapter.colors}
+      calmMode={chapter.number === 4}
+      gigiTip={`Welcome to ${chapter.worldName}! Take each lesson at your own pace.`}
+      maxWidthClass="max-w-5xl"
+    >
+      <div className="w-full flex flex-col gap-6">
         {/* Top Hero Splash */}
         <section
           style={{ backgroundColor: chapter.colors.background }}
           className="relative rounded-[32px] p-6 sm:p-8 overflow-hidden shadow-sm"
         >
-          <div className="relative z-10 flex items-center justify-between mb-4">
-            <Link
-              href="/dashboard/journey"
-              aria-label="Back to journey"
-              className="w-11 h-11 rounded-full bg-white/90 hover:bg-white grid place-items-center text-[#3D2C4A] shadow-xs transition-colors"
-            >
-              <ArrowLeft size={20} />
-            </Link>
+          <div className="relative z-10 flex items-center justify-end mb-4">
             <span
               style={{ color: chapter.colors.ink }}
               className="bg-white/85 rounded-full px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider"
@@ -256,7 +258,7 @@ export default function ChapterIntroPage() {
           </section>
         </div>
       </div>
-    </DaughterShell>
+    </CoursePlayerShell>
   );
 }
 

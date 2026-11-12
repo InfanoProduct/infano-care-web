@@ -216,6 +216,7 @@ export interface LearnerLessonProgress {
 }
 
 export interface LearnerCourseState {
+  isEnrolled?: boolean;
   learner: {
     id: string;
     name: string;
@@ -246,6 +247,9 @@ export interface LearnerCourseState {
   }>;
   unlockedChapters: string[];
   unlockedLessons: string[];
+  readyCheckins?: string[];
+  pendingCheckinId?: string | null;
+  pendingCheckinChapterId?: string | null;
   nextLessonId: string;
   bloomChallengeUnlocked: boolean;
   certificateUnlocked: boolean;
@@ -264,6 +268,7 @@ export const CourseService = {
     lesson: CourseLesson;
     progress: LearnerLessonProgress | null;
     activityResult: any;
+    journalEntry?: { id: string; text: string; updatedAt: string } | null;
     prevLesson: { id: string; code: string; title: string; chapterId: string } | null;
     nextLesson: { id: string; code: string; title: string; chapterId: string } | null;
   }> {

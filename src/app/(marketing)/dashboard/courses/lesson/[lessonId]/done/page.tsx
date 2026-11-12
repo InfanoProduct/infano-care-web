@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { DaughterShell } from "@/features/daughter/DaughterShell";
+import { CoursePlayerShell } from "@/components/course/CoursePlayerShell";
 import { useCourseCurriculum, useLearnerCourseState, useLessonDetail } from "@/hooks/use-course";
 import { Star, Loader2 } from "lucide-react";
 
@@ -33,11 +33,11 @@ export default function LessonDonePage() {
 
   if (isLoading || !data?.lesson) {
     return (
-      <DaughterShell>
+      <CoursePlayerShell backHref={`/dashboard/courses/lesson/${lessonId}`} backLabel="Lesson Hub">
         <div className="flex items-center justify-center py-24">
           <Loader2 size={32} className="animate-spin text-[#C2456A]" />
         </div>
-      </DaughterShell>
+      </CoursePlayerShell>
     );
   }
 
@@ -51,6 +51,7 @@ export default function LessonDonePage() {
   const chapterLessons =
     curriculum?.course?.chapters?.find((c) => c.id === chapter?.id)?.lessons || [];
   const completedSet = new Set(learnerState?.completedLessons || [lesson.id]);
+  completedSet.add(lesson.id);
   const doneInChapter = chapterLessons.filter((l) => completedSet.has(l.id)).length || lesson.orderInChapter;
   const totalInChapter = chapterLessons.length || 3;
   const chapterPct = Math.round((doneInChapter / totalInChapter) * 100);
@@ -60,22 +61,38 @@ export default function LessonDonePage() {
   const earnedBadge = curriculum?.badges?.find((b) => b.id === badgeId);
 
   const nextObj = lesson.completion?.next;
+  const isChapterFinished = remainCount === 0 && Boolean(chapter?.checkinId);
   const nextHref =
     nextObj?.type === "checkin"
       ? `/dashboard/courses/checkin/${nextObj.id}`
+      : isChapterFinished && chapter?.checkinId
+      ? `/dashboard/courses/checkin/${chapter.checkinId}`
       : nextObj?.id
       ? `/dashboard/courses/lesson/${nextObj.id}`
+      : data.nextLesson
+      ? `/dashboard/courses/lesson/${data.nextLesson.id}`
       : "/dashboard/journey";
 
   const nextLabel =
-    nextObj?.type === "checkin"
+    nextObj?.type === "checkin" || (isChapterFinished && !nextObj?.id)
       ? "Take the Chapter Check-in!"
       : data.nextLesson
       ? `Next lesson: ${data.nextLesson.title}`
       : "Continue journey";
 
   return (
-    <DaughterShell gigiTip="Two lessons a day is plenty. Rest your eyes and celebrate your new flower!">
+    <CoursePlayerShell
+      backHref={`/dashboard/courses/lesson/${lesson.id}`}
+      backLabel="Lesson Hub"
+      worldName={chapter?.worldName}
+      lessonCode={lesson.code}
+      lessonId={lesson.id}
+      activeStep="done"
+      stepsDone={["watch", "play", "discover", "reflect"]}
+      colors={chapter?.colors}
+      gigiTip="Two lessons a day is plenty. Rest your eyes and celebrate your new flower!"
+      maxWidthClass="max-w-3xl"
+    >
       <style jsx global>{`
         @keyframes ldseed {
           0% { transform: translateY(-130px); opacity: 0; }
@@ -190,7 +207,7 @@ export default function LessonDonePage() {
           </div>
         </div>
       </div>
-    </DaughterShell>
+    </CoursePlayerShell>
   );
 }
 

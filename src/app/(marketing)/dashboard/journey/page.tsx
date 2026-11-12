@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { DaughterShell } from '@/features/daughter/DaughterShell';
 import { useDaughterState } from '@/features/daughter/daughter-state';
-import { useCourseCurriculum, useLearnerCourseState } from '@/hooks/use-course';
+import { resolveResumeStepPath, useCourseCurriculum, useLearnerCourseState } from '@/hooks/use-course';
 import { Volume2, VolumeX, Lock, X, Play, Sparkles, CheckCircle2, Star, Award } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -56,7 +56,11 @@ export default function JourneyMapPage() {
 
   const completedSet = new Set(learnerState?.completedLessons || []);
   const unlockedSet = new Set(learnerState?.unlockedLessons || ['l1-1']);
+  const unlockedChaptersSet = new Set(learnerState?.unlockedChapters || ['ch1']);
   const passedCheckins = new Set(learnerState?.passedCheckins || []);
+  const readyCheckins = new Set(learnerState?.readyCheckins || []);
+  const pendingCheckinId = learnerState?.pendingCheckinId || null;
+  const lessonProgressMap = learnerState?.lessonProgress || {};
   const doneCount = learnerState ? completedSet.size : localDoneCount;
   const totalPetals = learnerState ? learnerState.learner.petalsCount : localPetals;
 
@@ -67,6 +71,25 @@ export default function JourneyMapPage() {
     flatLessons.length - 1
   );
   const currentChapter = chOf(currentIdx) + 1;
+
+  // Smooth scroll to #world-1 .. #world-4 on mount or hash change
+  useEffect(() => {
+    const scrollToHashWorld = () => {
+      if (typeof window === 'undefined') return;
+      const hash = window.location.hash?.replace('#', '');
+      if (!hash) return;
+      const el = document.getElementById(hash);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    };
+    const timer = setTimeout(scrollToHashWorld, 120);
+    window.addEventListener('hashchange', scrollToHashWorld);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('hashchange', scrollToHashWorld);
+    };
+  }, []);
 
   // Compute SVG points for all 15 stepping stones
   const pts = flatLessons.map((_, i) => {
@@ -111,8 +134,11 @@ export default function JourneyMapPage() {
           const l = flatLessons[i];
           const lessonId = l[0];
           const done = learnerState ? completedSet.has(lessonId) : i < currentIdx;
-          const isCur = i === currentIdx;
+          const isCur = learnerState ? (!done && unlockedSet.has(lessonId) && lessonId === learnerState.nextLessonId) : i === currentIdx;
           const isUnlocked = learnerState ? unlockedSet.has(lessonId) : i <= currentIdx;
+          const prog = lessonProgressMap[lessonId];
+          const resumeInfo = resolveResumeStepPath(lessonId, prog);
+          const stepsCount = Array.isArray(prog?.stepsDone) ? prog.stepsDone.length : 0;
           return {
             index: i,
             id: lessonId,
@@ -126,10 +152,20 @@ export default function JourneyMapPage() {
             isCur,
             isLocked: !isUnlocked,
             canGo: isUnlocked,
-            cta: done ? 'Review lesson' : 'Start lesson',
+            href: done ? `/dashboard/courses/lesson/${lessonId}` : resumeInfo.href,
+            cta: done ? 'Review lesson' : resumeInfo.label,
+            hasStarted: resumeInfo.hasStarted,
+            stepsCount,
+            watchPercent: prog?.watchPercent || 0,
           };
         })()
       : null;
+
+  const pendingCheckinWorld = pendingCheckinId
+    ? WORLDS.find((w) => w.checkinId === pendingCheckinId) || null
+    : null;
+  const nextLessonId = flatLessons[currentIdx][0];
+  const nextResumeInfo = resolveResumeStepPath(nextLessonId, lessonProgressMap[nextLessonId]);
 
   return (
     <DaughterShell gigiTip="Tap any glowing stepping stone to explore your lesson, or tap Gigi on the map for a surprise!">
@@ -191,6 +227,21 @@ export default function JourneyMapPage() {
       )}
 
       {/* Quick Chapter Jump Bar */}
+      {learnerState?.isEnrolled === false && (
+        <div className="bg-[#FFF1E6] border border-[#F5DAC5] rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 text-xs sm:text-sm font-semibold text-[#3D2C4A]">
+            <Lock size={15} className="text-[#9A4A16] shrink-0" />
+            <span>Free preview: Lesson 1.1 is open! Ask a parent to unlock all 15 lessons.</span>
+          </div>
+          <Link
+            href="/course/checkout?plan=course"
+            className="inline-flex items-center gap-1.5 rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white text-xs font-bold px-3.5 py-1.5 transition-colors"
+          >
+            Unlock Full Course
+          </Link>
+        </div>
+      )}
+
       <div className="flex flex-wrap gap-2">
         {WORLDS.map((w) => (
           <a
@@ -210,10 +261,10 @@ export default function JourneyMapPage() {
         <div className="lg:col-span-7 flex justify-center">
           <div className="relative w-full max-w-[540px] h-[1640px] rounded-[34px] overflow-hidden shadow-lg border-2 border-[#F1E4E8] bg-[#FFFAF6]">
             {/* World Bands (Top: Chapter 4, Bottom: Chapter 1) */}
-            <div id="world-4" className="absolute left-0 right-0 top-0 h-[410px] bg-[#EDE6F8]" />
-            <div id="world-3" className="absolute left-0 right-0 top-[410px] h-[410px] bg-[#FFEBDD]" />
-            <div id="world-2" className="absolute left-0 right-0 top-[820px] h-[410px] bg-[#E3F4EC]" />
-            <div id="world-1" className="absolute left-0 right-0 top-[1230px] h-[410px] bg-[#E3F0FA]" />
+            <div id="world-4" className="scroll-mt-24 absolute left-0 right-0 top-0 h-[410px] bg-[#EDE6F8]" />
+            <div id="world-3" className="scroll-mt-24 absolute left-0 right-0 top-[410px] h-[410px] bg-[#FFEBDD]" />
+            <div id="world-2" className="scroll-mt-24 absolute left-0 right-0 top-[820px] h-[410px] bg-[#E3F4EC]" />
+            <div id="world-1" className="scroll-mt-24 absolute left-0 right-0 top-[1230px] h-[410px] bg-[#E3F0FA]" />
 
             {/* Decorative Scenery + Curved Path SVG */}
             <svg
@@ -283,25 +334,33 @@ export default function JourneyMapPage() {
             </svg>
 
             {/* World Labels */}
-            <span className="absolute left-3.5 top-[1580px] text-[#2F6494] font-['Baloo_2',sans-serif] font-bold text-lg bg-white/80 rounded-full px-3 py-0.5 shadow-2xs">
-              1 · Moon Meadow {currentIdx >= 3 ? '✓' : ''}
-            </span>
-            <span className="absolute left-3.5 top-[1170px] text-[#24735A] font-['Baloo_2',sans-serif] font-bold text-lg bg-white/80 rounded-full px-3 py-0.5 shadow-2xs">
-              2 · Care Cove {currentIdx >= 7 ? '✓' : ''}
-            </span>
-            <span className="absolute left-3.5 top-[760px] text-[#9A4A16] font-['Baloo_2',sans-serif] font-bold text-lg bg-white rounded-full px-3 py-0.5 shadow-sm">
-              3 · Comfort Hills {currentChapter === 3 ? '· now' : currentIdx >= 10 ? '✓' : ''}
-            </span>
-            <span className="absolute left-3.5 top-[350px] text-[#5A4385] font-['Baloo_2',sans-serif] font-bold text-lg bg-white/80 rounded-full px-3 py-0.5 shadow-2xs">
-              4 · Brave Heart Valley
-            </span>
+            {([
+              { ch: 1, label: '1 · Moon Meadow', top: 'top-[1580px]', cls: 'text-[#2F6494] bg-white/85', id: 'ch1', checkin: 'checkin-ch1' },
+              { ch: 2, label: '2 · Care Cove', top: 'top-[1170px]', cls: 'text-[#24735A] bg-white/85', id: 'ch2', checkin: 'checkin-ch2' },
+              { ch: 3, label: '3 · Comfort Hills', top: 'top-[760px]', cls: 'text-[#9A4A16] bg-white/90', id: 'ch3', checkin: 'checkin-ch3' },
+              { ch: 4, label: '4 · Brave Heart Valley', top: 'top-[350px]', cls: 'text-[#5A4385] bg-white/85', id: 'ch4', checkin: 'checkin-ch4' },
+            ] as const).map((wl) => {
+              const isPassed = passedCheckins.has(wl.checkin);
+              const isUnlockedWorld = unlockedChaptersSet.has(wl.id);
+              const suffix = isPassed ? ' ✓' : isUnlockedWorld ? ' · now' : '';
+              return (
+                <span
+                  key={wl.id}
+                  className={`absolute left-3.5 ${wl.top} ${wl.cls} font-['Baloo_2',sans-serif] font-bold text-lg rounded-full px-3 py-0.5 shadow-xs`}
+                >
+                  {wl.label}{suffix}
+                </span>
+              );
+            })}
 
             {/* Stepping Stones */}
             {flatLessons.map((l, i) => {
               const c = chOf(i);
               const lessonId = l[0];
               const done = learnerState ? completedSet.has(lessonId) : i < currentIdx;
-              const isCur = i === currentIdx;
+              const isCur = learnerState
+                ? !done && !pendingCheckinId && unlockedSet.has(lessonId) && lessonId === learnerState.nextLessonId
+                : i === currentIdx;
               const locked = learnerState ? !unlockedSet.has(lessonId) : (c === 3 && currentIdx < 10);
               const col = WORLDS[c].col;
               const isSelected = selectedIdx === i;
@@ -350,11 +409,11 @@ export default function JourneyMapPage() {
             })}
 
             {/* Misty Lock Banner on Chapter 4 */}
-            {currentIdx < 10 && (
+            {!unlockedChaptersSet.has('ch4') && (
               <>
                 <div className="absolute left-0 right-0 top-[60px] h-[280px] bg-linear-to-b from-transparent to-white/45 pointer-events-none" />
                 <div className="absolute left-1/2 top-[150px] -translate-x-1/2 bg-white/95 rounded-2xl px-3.5 py-2 text-xs font-bold text-[#5A4385] shadow-md whitespace-nowrap">
-                  Opens after Comfort Hills
+                  Opens after Comfort Hills Check-in
                 </div>
               </>
             )}
@@ -422,6 +481,11 @@ export default function JourneyMapPage() {
                 <span className="bg-[#FBF8F6] border border-[#F1E4E8] rounded-xl px-3 py-1.5">
                   Play · {activeLesson.activity}
                 </span>
+                {activeLesson.hasStarted && !activeLesson.done && (
+                  <span className="bg-[#FFF4C7] text-[#8A6410] rounded-xl px-3 py-1.5 font-bold">
+                    In progress · {activeLesson.stepsCount}/4 steps{activeLesson.watchPercent > 0 ? ` (${activeLesson.watchPercent}% watched)` : ''}
+                  </span>
+                )}
               </div>
 
               {activeLesson.isLocked ? (
@@ -430,20 +494,50 @@ export default function JourneyMapPage() {
                   <span>This one opens after you finish the lessons before it. You&apos;re doing great!</span>
                 </div>
               ) : (
-                <Link
-                  href={`/dashboard/courses/lesson/${activeLesson.id}`}
-                  className="flex justify-center items-center gap-2 min-h-[52px] rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white font-bold text-base shadow-md transition-colors"
-                >
-                  <Play size={16} fill="currentColor" />
-                  <span>{activeLesson.cta}</span>
-                </Link>
+                <div className="flex flex-col gap-2">
+                  <Link
+                    href={activeLesson.href}
+                    className="flex justify-center items-center gap-2 min-h-[52px] rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white font-bold text-base shadow-md transition-colors"
+                  >
+                    <Play size={16} fill="currentColor" />
+                    <span>{activeLesson.cta}</span>
+                  </Link>
+                  {activeLesson.hasStarted && !activeLesson.done && (
+                    <Link
+                      href={`/dashboard/courses/lesson/${activeLesson.id}`}
+                      className="text-center text-xs font-bold text-[#5E4B6B] hover:text-[#3D2C4A] py-1"
+                    >
+                      Open Lesson Hub (all 4 steps) →
+                    </Link>
+                  )}
+                </div>
               )}
+            </div>
+          ) : pendingCheckinId && pendingCheckinWorld ? (
+            <div className="bg-[#FFF4C7] rounded-[28px] p-6 flex flex-col gap-3 shadow-xs border border-[#F3E3A1]">
+              <div className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-[#8A6410]">
+                <Award size={14} />
+                <span>Chapter Check-in Ready!</span>
+              </div>
+              <h2 className="font-['Baloo_2',sans-serif] font-bold text-2xl text-[#3D2C4A] m-0">
+                Finish {pendingCheckinWorld.name} Check-in
+              </h2>
+              <p className="text-sm text-[#5E4B6B] m-0">
+                You completed every lesson in {pendingCheckinWorld.name}! Pass this check-in to earn your world badge and unlock the next world.
+              </p>
+              <Link
+                href={`/dashboard/courses/checkin/${pendingCheckinId}`}
+                className="mt-1 self-start min-h-[46px] px-6 rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white font-bold text-sm inline-flex items-center gap-2 transition-colors shadow-sm"
+              >
+                <Award size={16} />
+                <span>Take Chapter {pendingCheckinWorld.ch} Check-in</span>
+              </Link>
             </div>
           ) : (
             <div className="bg-[#FFE3CC] rounded-[28px] p-6 flex flex-col gap-3 shadow-xs">
               <div className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-[#9A4A16]">
                 <Sparkles size={14} />
-                <span>Next on your path</span>
+                <span>{nextResumeInfo.hasStarted ? 'Resume where you left off' : 'Next on your path'}</span>
               </div>
               <h2 className="font-['Baloo_2',sans-serif] font-bold text-2xl text-[#3D2C4A] m-0">
                 {flatLessons[currentIdx][1]} · {flatLessons[currentIdx][2]}
@@ -452,11 +546,15 @@ export default function JourneyMapPage() {
                 Tap any stepping stone on the journey map to inspect its video and interactive game.
               </p>
               <Link
-                href={`/dashboard/courses/lesson/${flatLessons[currentIdx][0]}`}
+                href={nextResumeInfo.href}
                 className="mt-1 self-start min-h-[44px] px-5 rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white font-bold text-sm inline-flex items-center gap-2 transition-colors"
               >
                 <Play size={15} fill="currentColor" />
-                <span>Open Lesson {flatLessons[currentIdx][1]}</span>
+                <span>
+                  {nextResumeInfo.hasStarted
+                    ? `${nextResumeInfo.label} · ${flatLessons[currentIdx][1]}`
+                    : `Open Lesson ${flatLessons[currentIdx][1]}`}
+                </span>
               </Link>
             </div>
           )}
@@ -517,12 +615,14 @@ export default function JourneyMapPage() {
                       >
                         World intro →
                       </Link>
-                      {(allLessonsDone || isDone) && (
+                      {(allLessonsDone || isDone || readyCheckins.has(w.checkinId)) && (
                         <Link
                           href={`/dashboard/courses/checkin/${w.checkinId}`}
-                          className="text-xs font-bold text-[#A8365A] hover:underline inline-flex items-center gap-1"
+                          className={`text-xs font-bold hover:underline inline-flex items-center gap-1 ${
+                            allLessonsDone && !isDone ? 'text-[#C2456A]' : 'text-[#A8365A]'
+                          }`}
                         >
-                          <Award size={12} /> {isDone ? 'Retake check-in' : 'Take check-in'}
+                          <Award size={12} /> {isDone ? 'Retake check-in' : 'Take check-in to unlock next →'}
                         </Link>
                       )}
                     </div>
@@ -567,7 +667,7 @@ export default function JourneyMapPage() {
               </div>
             ) : (
               <Link
-                href={`/dashboard/courses/lesson/${activeLesson.id}`}
+                href={activeLesson.href}
                 className="flex justify-center items-center min-h-[52px] rounded-full bg-[#C2456A] text-white font-bold text-base"
               >
                 {activeLesson.cta}

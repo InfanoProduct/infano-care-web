@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     // Forward to backend API if available
     const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4005/api";
     try {
-      const apiRes = await fetch(`${apiBase}/lms/public/check-reader-status`, {
+      const apiRes = await fetch(`${apiBase}/course/public/check-reader-status`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone: tenDigit }),

@@ -3,22 +3,36 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { DaughterShell } from "@/features/daughter/DaughterShell";
-import { useLessonDetail } from "@/hooks/use-course";
-import { ArrowLeft, Gamepad2, Heart, Lightbulb, Lock, Play, Volume2, VolumeX, Loader2 } from "lucide-react";
+import { CoursePlayerShell } from "@/components/course/CoursePlayerShell";
+import { LessonLockedCard } from "@/components/course/LessonLockedCard";
+import { resolveResumeStepPath, useLessonDetail } from "@/hooks/use-course";
+import { Gamepad2, Heart, Lightbulb, Lock, Play, Loader2 } from "lucide-react";
+
+const formatSec = (sec: number) => {
+  const s = Math.max(0, Math.floor(sec));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+};
 
 export default function LessonHubPage() {
   const { lessonId } = useParams<{ lessonId: string }>();
-  const { data, isLoading } = useLessonDetail(lessonId);
+  const { data, isLoading, isError } = useLessonDetail(lessonId);
   const [sound, setSound] = useState(true);
+
+  if (isError) {
+    return (
+      <CoursePlayerShell backHref="/dashboard/journey" backLabel="Journey">
+        <LessonLockedCard />
+      </CoursePlayerShell>
+    );
+  }
 
   if (isLoading || !data?.lesson) {
     return (
-      <DaughterShell>
+      <CoursePlayerShell backHref="/dashboard/journey" backLabel="Journey">
         <div className="flex items-center justify-center py-24">
           <Loader2 size={32} className="animate-spin text-[#C2456A]" />
         </div>
-      </DaughterShell>
+      </CoursePlayerShell>
     );
   }
 
@@ -78,6 +92,9 @@ export default function LessonHubPage() {
   // Sequential step unlocking inside the lesson
   const firstUndoneIdx = stepOrder.findIndex((s) => !stepsDone.has(s));
   const activeStepIdx = firstUndoneIdx === -1 ? 4 : firstUndoneIdx;
+  const resumeInfo = resolveResumeStepPath(lesson.id, progress);
+  const watchPositionS = progress?.watchPositionS || 0;
+  const watchPercent = progress?.watchPercent || 0;
 
   const flowerLines = [
     "Four steps, four petals. Start with the video!",
@@ -88,34 +105,22 @@ export default function LessonHubPage() {
   ];
 
   return (
-    <DaughterShell gigiTip="Complete all 4 petals to make your lesson flower bloom!">
-      <div className="max-w-5xl mx-auto w-full flex flex-col gap-5">
-        {/* Top Bar */}
-        <div className="flex items-center justify-between gap-3">
-          <Link
-            href="/dashboard/journey"
-            aria-label="Back to journey"
-            className="w-11 h-11 rounded-full bg-white border border-[#F1E4E8] hover:border-[#3D2C4A] grid place-items-center text-[#3D2C4A] shadow-2xs transition-colors"
-          >
-            <ArrowLeft size={20} />
-          </Link>
-          <span
-            style={{ backgroundColor: bg, color: ink }}
-            className="rounded-full px-4 py-1.5 text-xs sm:text-sm font-bold"
-          >
-            {chapter?.worldName || "World"} · Lesson {lesson.code}
-          </span>
-          <button
-            type="button"
-            onClick={() => setSound((s) => !s)}
-            aria-pressed={sound}
-            aria-label="Music and sounds"
-            className="w-11 h-11 rounded-full border border-[#F1E4E8] bg-white hover:bg-[#FDEFF0] grid place-items-center text-[#3D2C4A] cursor-pointer transition-colors"
-          >
-            {sound ? <Volume2 size={18} /> : <VolumeX size={18} />}
-          </button>
-        </div>
-
+    <CoursePlayerShell
+      backHref="/dashboard/journey"
+      backLabel="Journey"
+      worldName={chapter?.worldName || "World"}
+      lessonCode={lesson.code}
+      lessonId={lesson.id}
+      activeStep="hub"
+      stepsDone={progress?.stepsDone || []}
+      colors={chapter?.colors}
+      soundEnabled={sound}
+      onToggleSound={() => setSound((s) => !s)}
+      calmMode={Boolean(lesson.calmMode)}
+      gigiTip="Complete all 4 petals to make your lesson flower bloom!"
+      maxWidthClass="max-w-5xl"
+    >
+      <div className="w-full flex flex-col gap-5">
         {/* Desktop 2-Col Layout / Mobile Stack */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Left Column: Splash + Title + 4-Petal Flower + Topics */}
@@ -239,12 +244,26 @@ export default function LessonHubPage() {
 
           {/* Right Column: 4 Interactive Steps + Calm Banner */}
           <div className="lg:col-span-7 flex flex-col gap-4">
+            {doneCount < 4 && (
+              <Link
+                href={resumeInfo.href}
+                className="min-h-[54px] rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white font-bold text-base flex items-center justify-center gap-2 shadow-md transition-colors px-6"
+              >
+                <Play size={16} fill="currentColor" />
+                <span>{resumeInfo.label}</span>
+              </Link>
+            )}
+
             <ol className="list-none m-0 p-0 flex flex-col gap-3">
               {stepDefs.map((st, i) => {
                 const isDone = stepsDone.has(st.key);
                 const isNext = i === activeStepIdx;
                 const isOpen = isDone || isNext;
                 const Icon = st.Icon;
+                const isWatchResumable = st.key === "watch" && !isDone && watchPositionS > 5;
+                const stepSub = isWatchResumable
+                  ? `Paused at ${formatSec(watchPositionS)} · ${watchPercent}% watched`
+                  : st.sub;
 
                 if (!isOpen) {
                   return (
@@ -260,7 +279,7 @@ export default function LessonHubPage() {
                         <span className="block font-bold text-base">
                           {st.n} · {st.title}
                         </span>
-                        <span className="block text-xs sm:text-sm">{st.sub}</span>
+                        <span className="block text-xs sm:text-sm">{stepSub}</span>
                       </div>
                     </li>
                   );
@@ -286,7 +305,7 @@ export default function LessonHubPage() {
                         <span className="block font-bold text-base sm:text-lg">
                           {st.n} · {st.title}
                         </span>
-                        <span className="block text-xs sm:text-sm text-[#5E4B6B]">{st.sub}</span>
+                        <span className="block text-xs sm:text-sm text-[#5E4B6B]">{stepSub}</span>
                       </div>
                       <span
                         className={`shrink-0 text-xs font-bold rounded-full px-3 py-1.5 ${
@@ -295,7 +314,7 @@ export default function LessonHubPage() {
                             : "bg-[#C2456A] text-white"
                         }`}
                       >
-                        {isDone ? "Done ✓" : "Up next"}
+                        {isDone ? "Done ✓" : isWatchResumable ? "Resume" : "Up next"}
                       </span>
                     </Link>
                   </li>
@@ -325,7 +344,7 @@ export default function LessonHubPage() {
           </div>
         </div>
       </div>
-    </DaughterShell>
+    </CoursePlayerShell>
   );
 }
 

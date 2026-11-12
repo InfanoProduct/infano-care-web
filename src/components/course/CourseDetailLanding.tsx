@@ -91,16 +91,16 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
       // 1. If slugOrId is given, try fetching directly
       if (slugOrId) {
         try {
-          data = await apiClient.get(`/lms/${slugOrId}`);
+          data = await apiClient.get(`/course/details/${slugOrId}`);
         } catch (e) {
-          // If not found by specific slug, will fallback to explore
+          // If not found by specific slug, will fallback to catalog
         }
       }
 
-      // 2. If no data yet, fetch from explore courses (single active course)
+      // 2. If no data yet, fetch from catalog courses (single active course)
       if (!data) {
         try {
-          const exploreRes = (await apiClient.get<any[]>("/lms/explore")) as any;
+          const exploreRes = (await apiClient.get<any[]>("/course/catalog")) as any;
           const coursesList = Array.isArray(exploreRes)
             ? exploreRes
             : exploreRes?.courses || [];
@@ -117,7 +117,7 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
               });
             }
             const targetCourse = matched || coursesList[0];
-            data = await apiClient.get(`/lms/${targetCourse.id}`);
+            data = await apiClient.get(`/course/details/${targetCourse.id}`);
           }
         } catch (e) {
           // Ignore
@@ -127,7 +127,7 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
       // 3. Check enrollment status if authenticated
       if (token && data?.id) {
         try {
-          const enrolledRes = (await apiClient.get<any[]>("/lms/my-courses")) as any;
+          const enrolledRes = (await apiClient.get<any[]>("/course/my-enrollments")) as any;
           const enrolledList = Array.isArray(enrolledRes) ? enrolledRes : [];
           const isAlreadyEnrolled = enrolledList.some(
             (e: any) => e.course?.id === data.id || e.courseId === data.id
@@ -194,7 +194,7 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
 
     setIsEnrolling(true);
     try {
-      const checkRes = (await apiClient.post("/lms/public/check-enrollment", {
+      const checkRes = (await apiClient.post("/course/public/check-enrollment", {
         email: enrollForm.email,
         phone: enrollForm.phone,
         courseId: course.id,
@@ -211,7 +211,7 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
         return;
       }
 
-      const purchaseRes = (await apiClient.post("/lms/public/purchase", {
+      const purchaseRes = (await apiClient.post("/course/public/purchase", {
         name: enrollForm.name,
         email: enrollForm.email,
         phone: enrollForm.phone,
@@ -237,7 +237,7 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
         order_id: orderId,
         handler: async function (response: any) {
           try {
-            await apiClient.post(`/lms/public/verify-purchase`, {
+            await apiClient.post(`/course/public/verify-purchase`, {
               razorpayOrderId: response.razorpay_order_id,
               razorpayPaymentId: response.razorpay_payment_id,
               razorpaySignature: response.razorpay_signature,

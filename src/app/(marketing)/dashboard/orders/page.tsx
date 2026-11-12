@@ -35,7 +35,7 @@ function getBookStepIndex(status?: string): number {
 export default function ParentOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<any[]>([]);
-  const [lmsEnrollments, setLmsEnrollments] = useState<any[]>([]);
+  const [courseEnrollments, setCourseEnrollments] = useState<any[]>([]);
   const [programEnrollments, setProgramEnrollments] = useState<any[]>([]);
   const [learnerName, setLearnerName] = useState("your daughter");
 
@@ -59,14 +59,14 @@ export default function ParentOrdersPage() {
       setLoading(true);
       const res = await ParentSpaceService.getOrdersSummary();
       setOrders(res.orders || []);
-      setLmsEnrollments(res.lmsEnrollments || []);
+      setCourseEnrollments(res.courseEnrollments || res.lmsEnrollments || []);
       setProgramEnrollments(res.programEnrollments || []);
       if (res.learners && res.learners.length > 0) {
         setLearnerName(res.learners[0].name);
       }
 
       // Auto-select latest order/enrollment for 7-day refund sidebar
-      const latestOrder = res.orders?.[0] || res.lmsEnrollments?.[0] || res.programEnrollments?.[0];
+      const latestOrder = res.orders?.[0] || res.courseEnrollments?.[0] || res.lmsEnrollments?.[0] || res.programEnrollments?.[0];
       if (latestOrder) {
         setRefundOrderId(latestOrder.id);
         if (latestOrder.refundRequest) {
@@ -115,8 +115,8 @@ export default function ParentOrdersPage() {
       raw: o,
       refundRequest: o.refundRequest || null,
     })),
-    ...lmsEnrollments.map((e) => ({
-      kind: "LMS" as const,
+    ...courseEnrollments.map((e) => ({
+      kind: "COURSE" as const,
       id: e.id,
       orderCode: e.id.slice(-8).toUpperCase(),
       title: e.course?.title || "Girlhood: HerNext",
@@ -276,7 +276,7 @@ export default function ParentOrdersPage() {
 
                     {/* Invoice & Problem Actions */}
                     <div className="px-5 pb-4 flex flex-wrap items-center gap-3">
-                      {ord.kind !== "LMS" && (
+                      {ord.kind !== "COURSE" && (
                         <button
                           type="button"
                           onClick={() =>

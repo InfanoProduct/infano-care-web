@@ -2,7 +2,8 @@ import { apiClient } from "@/lib/api-client";
 
 export interface ParentOrdersSummaryResponse {
   orders: any[];
-  lmsEnrollments: any[];
+  courseEnrollments: any[];
+  lmsEnrollments?: any[];
   programEnrollments: any[];
   refunds: any[];
   learners: Array<{ id: string; name: string; age: string }>;

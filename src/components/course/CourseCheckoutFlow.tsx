@@ -175,7 +175,7 @@ export default function CourseCheckoutFlow() {
 
   const fetchActiveCourse = async () => {
     try {
-      const res = (await apiClient.get<any[]>("/lms/explore")) as any;
+      const res = (await apiClient.get<any[]>("/course/catalog")) as any;
       const list = Array.isArray(res) ? res : res?.courses || [];
       if (list.length > 0) {
         setCourse(list[0]);
@@ -333,7 +333,7 @@ export default function CourseCheckoutFlow() {
     }
 
     setIsProcessingPay(true);
-    const targetCourseId = course?.id || "5276328d-aebb-4124-bdf2-b34f0fe58a45";
+    const targetCourseId = course?.id || "hernext-foundation";
 
     try {
       const payload = {
@@ -351,7 +351,7 @@ export default function CourseCheckoutFlow() {
           : null
       };
 
-      const res: any = await apiClient.post("/lms/public/purchase", payload);
+      const res: any = await apiClient.post("/course/public/purchase", payload);
 
       if (res?.razorpay) {
         const options = {
@@ -365,7 +365,7 @@ export default function CourseCheckoutFlow() {
           handler: async function (response: any) {
             setFlowStep("confirming");
             try {
-              const verifyRes: any = await apiClient.post("/lms/public/verify-purchase", {
+              const verifyRes: any = await apiClient.post("/course/public/verify-purchase", {
                 razorpayOrderId: response.razorpay_order_id,
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpaySignature: response.razorpay_signature

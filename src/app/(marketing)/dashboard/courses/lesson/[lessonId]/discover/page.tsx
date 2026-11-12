@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { DaughterShell } from "@/features/daughter/DaughterShell";
+import { CoursePlayerShell } from "@/components/course/CoursePlayerShell";
+import { LessonLockedCard } from "@/components/course/LessonLockedCard";
 import { useActiveLearnerId, useInvalidateCourse, useLessonDetail } from "@/hooks/use-course";
 import { CourseService } from "@/services/course.service";
-import { ArrowLeft, ArrowRight, Heart, Moon, Sparkles, Loader2 } from "lucide-react";
+import { ArrowRight, Heart, Moon, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 const CARD_STYLES: Record<string, { bg: string; ink: string; Icon: any }> = {
@@ -20,19 +20,27 @@ export default function LessonDiscoverPage() {
   const router = useRouter();
   const learnerId = useActiveLearnerId();
   const invalidateCourse = useInvalidateCourse();
-  const { data, isLoading } = useLessonDetail(lessonId);
+  const { data, isLoading, isError } = useLessonDetail(lessonId);
 
   const [idx, setIdx] = useState(0);
   const [revealed, setRevealed] = useState<Record<number, boolean>>({});
   const [submitting, setSubmitting] = useState(false);
 
+  if (isError) {
+    return (
+      <CoursePlayerShell backHref="/dashboard/journey" backLabel="Journey">
+        <LessonLockedCard />
+      </CoursePlayerShell>
+    );
+  }
+
   if (isLoading || !data?.lesson) {
     return (
-      <DaughterShell>
+      <CoursePlayerShell backHref={`/dashboard/courses/lesson/${lessonId}`} backLabel="Lesson Hub">
         <div className="flex items-center justify-center py-24">
           <Loader2 size={32} className="animate-spin text-[#C2456A]" />
         </div>
-      </DaughterShell>
+      </CoursePlayerShell>
     );
   }
 
@@ -54,7 +62,7 @@ export default function LessonDiscoverPage() {
         const res: any = await CourseService.completeDiscover(learnerId, lesson.id, {
           bustedMythIds: mythIds,
         });
-        invalidateCourse();
+        await invalidateCourse();
         if (res?.petalsAwarded > 0) {
           toast.success(`Discover complete! +${res.petalsAwarded} petals ✨`);
         }
@@ -68,17 +76,22 @@ export default function LessonDiscoverPage() {
   };
 
   return (
-    <DaughterShell gigiTip="Tap to flip open each myth and curiosity card!">
-      <div className="bg-[#FFF8E1] rounded-[32px] p-5 sm:p-8 border border-[#F3E3A1] shadow-xs flex flex-col gap-6 max-w-3xl mx-auto w-full min-h-[70vh]">
+    <CoursePlayerShell
+      backHref={`/dashboard/courses/lesson/${lesson.id}`}
+      backLabel="Lesson Hub"
+      worldName={lesson.chapter?.worldName}
+      lessonCode={lesson.code}
+      lessonId={lesson.id}
+      activeStep="discover"
+      stepsDone={data?.progress?.stepsDone || []}
+      colors={lesson.chapter?.colors}
+      calmMode={Boolean(lesson.calmMode)}
+      gigiTip="Tap to flip open each myth and curiosity card!"
+      maxWidthClass="max-w-3xl"
+    >
+      <div className="bg-[#FFF8E1] rounded-[32px] p-5 sm:p-8 border border-[#F3E3A1] shadow-xs flex flex-col gap-6 w-full min-h-[70vh]">
         {/* Header */}
         <div className="flex items-center gap-3">
-          <Link
-            href={`/dashboard/courses/lesson/${lesson.id}`}
-            aria-label="Back to lesson"
-            className="w-11 h-11 rounded-full bg-white grid place-items-center text-[#3D2C4A] shadow-2xs"
-          >
-            <ArrowLeft size={20} />
-          </Link>
           <div className="flex-1 min-w-0">
             <div className="text-xs font-extrabold uppercase tracking-wider text-[#8A6410]">
               STEP 3 · DISCOVER · LESSON {lesson.code}
@@ -192,7 +205,7 @@ export default function LessonDiscoverPage() {
           )}
         </div>
       </div>
-    </DaughterShell>
+    </CoursePlayerShell>
   );
 }
 

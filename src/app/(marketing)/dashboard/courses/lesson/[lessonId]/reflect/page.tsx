@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { DaughterShell } from "@/features/daughter/DaughterShell";
+import { CoursePlayerShell } from "@/components/course/CoursePlayerShell";
+import { LessonLockedCard } from "@/components/course/LessonLockedCard";
 import { useActiveLearnerId, useInvalidateCourse, useLessonDetail } from "@/hooks/use-course";
 import { CourseService } from "@/services/course.service";
-import { ArrowLeft, Lock, Sparkles, Loader2 } from "lucide-react";
+import { Lock, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 export default function LessonReflectPage() {
@@ -14,19 +14,39 @@ export default function LessonReflectPage() {
   const router = useRouter();
   const learnerId = useActiveLearnerId();
   const invalidateCourse = useInvalidateCourse();
-  const { data, isLoading } = useLessonDetail(lessonId);
+  const { data, isLoading, isError } = useLessonDetail(lessonId);
 
   const [journalText, setJournalText] = useState("");
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const hydratedRef = useRef(false);
+
+  useEffect(() => {
+    if (!data || hydratedRef.current) return;
+    if (data.progress?.reflectAnswers && typeof data.progress.reflectAnswers === "object") {
+      setAnswers(data.progress.reflectAnswers);
+    }
+    if (data.journalEntry?.text) {
+      setJournalText(data.journalEntry.text);
+    }
+    hydratedRef.current = true;
+  }, [data]);
+
+  if (isError) {
+    return (
+      <CoursePlayerShell backHref="/dashboard/journey" backLabel="Journey">
+        <LessonLockedCard />
+      </CoursePlayerShell>
+    );
+  }
 
   if (isLoading || !data?.lesson) {
     return (
-      <DaughterShell>
+      <CoursePlayerShell backHref={`/dashboard/courses/lesson/${lessonId}`} backLabel="Lesson Hub">
         <div className="flex items-center justify-center py-24">
           <Loader2 size={32} className="animate-spin text-[#C2456A]" />
         </div>
-      </DaughterShell>
+      </CoursePlayerShell>
     );
   }
 
@@ -54,7 +74,7 @@ export default function LessonReflectPage() {
           journalText,
           quickCheckAnswers: answers,
         });
-        invalidateCourse();
+        await invalidateCourse();
         if (res.petalsAwarded > 0) {
           toast.success(`Flower bloomed! +${res.petalsAwarded} petals 🌸`);
         }
@@ -73,25 +93,28 @@ export default function LessonReflectPage() {
   };
 
   return (
-    <DaughterShell gigiTip="Your journal entries are 100% private — only you can ever read them.">
-      <div className="max-w-5xl mx-auto w-full flex flex-col gap-5">
+    <CoursePlayerShell
+      backHref={`/dashboard/courses/lesson/${lesson.id}`}
+      backLabel="Lesson Hub"
+      worldName={lesson.chapter?.worldName}
+      lessonCode={lesson.code}
+      lessonId={lesson.id}
+      activeStep="reflect"
+      stepsDone={data?.progress?.stepsDone || []}
+      colors={lesson.chapter?.colors}
+      calmMode={Boolean(lesson.calmMode)}
+      gigiTip="Your journal entries are 100% private — only you can ever read them."
+      maxWidthClass="max-w-5xl"
+    >
+      <div className="w-full flex flex-col gap-5">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <Link
-            href={`/dashboard/courses/lesson/${lesson.id}`}
-            aria-label="Back to lesson"
-            className="w-11 h-11 rounded-full bg-white border border-[#F1E4E8] hover:border-[#3D2C4A] grid place-items-center text-[#3D2C4A] shrink-0"
-          >
-            <ArrowLeft size={20} />
-          </Link>
-          <div>
-            <div className="text-xs font-extrabold uppercase tracking-wider text-[#5A4385]">
-              STEP 4 · REFLECT · LESSON {lesson.code}
-            </div>
-            <h1 className="m-0 font-['Baloo_2',sans-serif] font-bold text-2xl sm:text-3xl text-[#3D2C4A]">
-              Your thoughts
-            </h1>
+        <div>
+          <div className="text-xs font-extrabold uppercase tracking-wider text-[#5A4385]">
+            STEP 4 · REFLECT · LESSON {lesson.code}
           </div>
+          <h1 className="m-0 font-['Baloo_2',sans-serif] font-bold text-2xl sm:text-3xl text-[#3D2C4A]">
+            Your thoughts
+          </h1>
         </div>
 
         {/* Desktop 2-Col / Mobile Stack */}
@@ -241,7 +264,7 @@ export default function LessonReflectPage() {
           </section>
         </div>
       </div>
-    </DaughterShell>
+    </CoursePlayerShell>
   );
 }
 

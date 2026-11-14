@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import { Layers, CheckCircle2, Lock, Play, Calendar, ChevronRight, Loader2, Info, BookOpen, ArrowLeft } from 'lucide-react';
-import { ProgramsService, ProgramEnrollment, ProgramSession } from '@/services/programs.service';
+import { ProgramSession } from '@/services/programs.service';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
+import { useDashboardOverview } from '@/hooks/use-dashboard-data';
 
 const THEMES_MAP: Record<string, { accent: string; gradient: string; badge: string }> = {
   'SPARK':       { accent: 'text-rose-600',    gradient: 'from-rose-500 to-pink-600',     badge: 'bg-rose-50 border-rose-100 text-rose-700' },
@@ -30,31 +31,34 @@ export default function EnrolledProgramDetailsPage() {
   const { user } = useAuthStore();
   const params = useParams();
   const router = useRouter();
-  const [enrollment, setEnrollment] = useState<ProgramEnrollment | null>(null);
-  const [loading, setLoading] = useState(true);
+  const isTeen = user?.role === 'TEEN' || (user?.role === 'PEER' && user?.contentTier && user?.contentTier !== 'ADULT');
+  const {
+    data,
+    isPending: loading,
+    isError,
+    refetch,
+  } = useDashboardOverview(user?.id, user?.role, Boolean(isTeen));
+  const enrollment = data?.enrollments.find((item) => item.id === params.id) || null;
 
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await ProgramsService.getUserEnrollments().catch(() => ({ success: true, data: [] }));
-      const data = res.data || [];
-      const found = data.find(e => e.id === params.id);
-      if (found) {
-        setEnrollment(found);
-      } else {
-        toast.error('Enrollment not found');
-        setTimeout(() => {
-          router.push('/dashboard/enrolled-programs');
-        }, 100);
-      }
-    } catch {
-      toast.error('Failed to load details.');
-    } finally {
-      setLoading(false);
-    }
-  }, [params.id, router]);
+  useEffect(() => {
+    if (loading || isError || !data || enrollment) return;
+    toast.error('Enrollment not found');
+    const timer = setTimeout(() => {
+      router.push('/dashboard/enrolled-programs');
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [data, enrollment, isError, loading, router]);
 
-  useEffect(() => { load(); }, [load]);
+  if (isError && !data) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 gap-4">
+        <p className="font-bold text-slate-500 text-sm">Could not load session details.</p>
+        <button type="button" onClick={() => { void refetch(); }} className="text-sm font-bold text-primary hover:underline">
+          Try again
+        </button>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

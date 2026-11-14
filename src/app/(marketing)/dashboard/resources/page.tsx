@@ -1,47 +1,41 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ParentService } from '@/services/parent.service';
 import { ResourceCard } from '@/features/parent/components/ResourceCard';
 import { BookOpen, Bookmark, Library, Search, Loader2 } from 'lucide-react';
+import { useAuthStore } from '@/store/auth-store';
 
 export default function ResourceLibraryPage() {
+  const { user } = useAuthStore();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'all' | 'puberty' | 'parenting' | 'mental-health' | 'bookmarks'>('all');
-  const [resources, setResources] = useState<any[]>([]);
-  const [bookmarks, setBookmarks] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      // Resources are public — always loads
-      const resData = await ParentService.getResources();
-      setResources(resData);
-
-      // Bookmarks require auth — fail silently if not logged in or token expired
-      ParentService.getBookmarks()
-        .then(bookmarkData => setBookmarks(bookmarkData))
-        .catch(() => setBookmarks([]));
-    } catch (error) {
-      console.error("Failed to fetch library data", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: resources = [], isPending: loading } = useQuery({
+    queryKey: ['dashboard-resources'],
+    queryFn: () => ParentService.getResources(),
+  });
+  const { data: bookmarks = [] } = useQuery({
+    queryKey: ['dashboard-bookmarks', user?.id],
+    queryFn: () => ParentService.getBookmarks().catch(() => []),
+    enabled: Boolean(user?.id),
+  });
 
   const handleBookmarkChange = (postId: string, isBookmarked: boolean) => {
     if (isBookmarked) {
       const resource = resources.find(r => r.id === postId);
       if (resource && !bookmarks.find(b => b.id === postId)) {
-        setBookmarks(prev => [resource, ...prev]);
+        queryClient.setQueryData(
+          ['dashboard-bookmarks', user?.id],
+          [resource, ...bookmarks]
+        );
       }
     } else {
-      setBookmarks(prev => prev.filter(b => b.id !== postId));
+      queryClient.setQueryData(
+        ['dashboard-bookmarks', user?.id],
+        bookmarks.filter(b => b.id !== postId)
+      );
     }
   };
 

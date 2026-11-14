@@ -8,6 +8,12 @@ import {
   ChevronDown, RefreshCw, CalendarCheck, Check
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
+import { useQueryClient } from '@tanstack/react-query';
+import {
+  dashboardOverviewQueryKey,
+  DashboardOverviewData,
+  useDashboardOverview,
+} from '@/hooks/use-dashboard-data';
 import { toast } from 'react-hot-toast';
 
 interface SessionUser {
@@ -72,8 +78,6 @@ function Avatar({ name }: { name: string }) {
 }
 
 export default function ExpertConsultationsPage() {
-  const [sessions, setSessions] = useState<ExpertSession[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
@@ -87,6 +91,15 @@ export default function ExpertConsultationsPage() {
   const [customEndDate, setCustomEndDate] = useState('');
 
   const { user } = useAuthStore();
+  const queryClient = useQueryClient();
+  const {
+    data: dashboardData,
+    isPending: loading,
+    isError,
+    refetch: refetchSessions,
+  } = useDashboardOverview(user?.id, user?.role, false);
+  const sessions = (dashboardData?.expertSessions || [])
+    .filter((session: ExpertSession) => !session.programId);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [linkInput, setLinkInput] = useState('');
@@ -101,7 +114,11 @@ export default function ExpertConsultationsPage() {
   const [rescheduleError, setRescheduleError] = useState('');
   const [rescheduleSuccess, setRescheduleSuccess] = useState('');
 
-  useEffect(() => { fetchSessions(); }, [user]);
+  useEffect(() => {
+    if (isError && !dashboardData) {
+      console.error('Failed to fetch expert sessions.');
+    }
+  }, [dashboardData, isError]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -112,27 +129,22 @@ export default function ExpertConsultationsPage() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const fetchSessions = async () => {
-    if (!user) return;
-    try {
-      setLoading(true);
-      const response = await apiClient.get<ExpertSession[]>('/expert/sessions');
-      const allFetched = Array.isArray(response) ? response : [];
-      // Keep only paid 1:1 sessions (exclude program-benefit consultations)
-      const directPaidSessions = allFetched.filter(s => !s.programId);
-      setSessions(directPaidSessions);
-    } catch (error) {
-      console.error('Failed to fetch expert sessions', error);
-      setSessions([]);
-    } finally {
-      setLoading(false);
-    }
+  const updateCachedSession = (sessionId: string, updates: Partial<ExpertSession>) => {
+    queryClient.setQueryData<DashboardOverviewData>(
+      dashboardOverviewQueryKey(user?.id, user?.role, false),
+      current => current ? {
+        ...current,
+        expertSessions: current.expertSessions.map((session: ExpertSession) =>
+          session.id === sessionId ? { ...session, ...updates } : session
+        ),
+      } : current
+    );
   };
 
   const handleUpdateStatus = async (sessionId: string, newStatus: string) => {
     try {
       await apiClient.patch(`/expert/sessions/${sessionId}/status`, { status: newStatus });
-      setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, status: newStatus } : s));
+      updateCachedSession(sessionId, { status: newStatus });
       toast.success(`Session status updated to ${newStatus}`);
     } catch (error: any) {
       toast.error(error.message || 'Failed to update status.');
@@ -162,7 +174,7 @@ export default function ExpertConsultationsPage() {
     setSaveError('');
     try {
       await apiClient.patch(`/expert/sessions/${sessionId}/meet-link`, { meetLink: trimmed });
-      setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, meetLink: trimmed } : s));
+      updateCachedSession(sessionId, { meetLink: trimmed });
       setSaveSuccess('Saved!');
       toast.success("Meeting link saved successfully!");
       setTimeout(() => { setEditingId(null); setSaveSuccess(''); }, 1000);
@@ -216,7 +228,10 @@ export default function ExpertConsultationsPage() {
     setRescheduleError('');
     try {
       await apiClient.patch(`/expert/sessions/${sessionId}/reschedule`, { scheduledAt: selectedDate.toISOString() });
-      setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, scheduledAt: selectedDate.toISOString(), status: 'RESCHEDULED' } : s));
+      updateCachedSession(sessionId, {
+        scheduledAt: selectedDate.toISOString(),
+        status: 'RESCHEDULED',
+      });
       setRescheduleSuccess('Rescheduled!');
       toast.success("Session rescheduled successfully!");
       setTimeout(() => {
@@ -401,7 +416,7 @@ export default function ExpertConsultationsPage() {
 
             {/* Refresh Button */}
             <button
-              onClick={fetchSessions}
+              onClick={() => { void refetchSessions(); }}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-600 transition-all shadow-sm cursor-pointer"
             >
               <RefreshCw size={14} />

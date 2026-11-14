@@ -2,16 +2,19 @@
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuthStore } from '@/store/auth-store';
 import { OnboardingService } from '@/services/onboarding.service';
+import { hasActiveCourseEnrollment, ParentSpaceService } from '@/services/parent-space.service';
 import {
   ArrowLeft, Shield, Check, Play, Lock, ChevronRight,
   Loader2, Bell, Heart, Sparkles, FileText, Download, CheckCircle2,
   ShieldCheck, HelpCircle, Eye, EyeOff
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { dashboardLearnersQueryKey } from '@/hooks/use-dashboard-data';
 
 const AGES = ['9', '10', '11', '12', '13', '14', '15+'];
 const PERIOD_STATUSES = ['Yes', 'Not yet', 'Not sure', 'Prefer not to say'];
@@ -49,6 +52,7 @@ const NUDGE_TIMES = ['5:30 PM', '6:30 PM', '7:30 PM', 'Weekends only'];
 
 function OnboardingWizard() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { user, isAuthenticated, setAuth, setActiveProfile, setLearners } = useAuthStore();
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
@@ -105,6 +109,22 @@ function OnboardingWizard() {
     let isMounted = true;
 
     const fetchStatusAndResume = async () => {
+      let ordersSummary;
+      try {
+        ordersSummary = await ParentSpaceService.getOrdersSummary();
+      } catch {
+        if (isMounted) {
+          toast.error('We couldn’t verify course access. Please continue from your dashboard.');
+          router.replace('/dashboard');
+        }
+        return;
+      }
+
+      if (!hasActiveCourseEnrollment(ordersSummary)) {
+        router.replace('/dashboard');
+        return;
+      }
+
       try {
         const res = await OnboardingService.getStatus();
         if (!isMounted) return;
@@ -134,6 +154,7 @@ function OnboardingWizard() {
           if (first.periodStatus) setPeriodStatus(first.periodStatus);
           if (first.worries && first.worries.length > 0) setSelectedWorries(first.worries);
           setLearners(res.learners);
+          queryClient.setQueryData(dashboardLearnersQueryKey(user?.id), res.learners);
         }
 
         // Populate previously saved parent preferences
@@ -164,7 +185,7 @@ function OnboardingWizard() {
     return () => {
       isMounted = false;
     };
-  }, [isAuthenticated, user?.id, router, setLearners]);
+  }, [isAuthenticated, user?.id, router, setLearners, queryClient]);
 
   const toggleWorry = (item: string) => {
     setSelectedWorries((prev) =>
@@ -221,6 +242,7 @@ function OnboardingWizard() {
 
       const updatedLearners = res.learner ? [res.learner] : user?.learners || [];
       if (res.learner) {
+        queryClient.setQueryData(dashboardLearnersQueryKey(user?.id), updatedLearners);
         setLearners(updatedLearners);
       }
 
@@ -234,6 +256,7 @@ function OnboardingWizard() {
           });
           if (sisterRes.learner) {
             updatedLearners.push(sisterRes.learner);
+            queryClient.setQueryData(dashboardLearnersQueryKey(user?.id), [...updatedLearners]);
             setLearners([...updatedLearners]);
           }
         } catch {

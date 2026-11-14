@@ -9,6 +9,12 @@ export interface ParentOrdersSummaryResponse {
   learners: Array<{ id: string; name: string; age: string }>;
 }
 
+export function hasActiveCourseEnrollment(
+  summary: ParentOrdersSummaryResponse | null | undefined
+): boolean {
+  return Boolean(summary?.courseEnrollments?.some((enrollment) => enrollment?.status === "ACTIVE"));
+}
+
 export interface ParentSettingsResponse {
   id: string;
   phone?: string | null;

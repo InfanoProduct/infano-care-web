@@ -2,16 +2,19 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter, useParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import Script from 'next/script';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
 import { ShopService, Book, getBookSlug, slugify } from '@/services/shop.service';
 import { useRegion, getBookPrice, getShippingCharge } from '@/hooks/use-region';
+import { parentOrdersSummaryQueryKey } from '@/hooks/use-parent-space-data';
+import { dashboardOverviewQueryKey } from '@/hooks/use-dashboard-data';
 import {
   ArrowLeft, CheckCircle2, ShoppingBag, Tag,
   Loader2, CreditCard, Truck, AlertCircle,
-  Plus, Minus, Lock, Check, Gift, ChevronRight,
+  Plus, Minus, Check, Gift, ChevronRight,
   ChevronLeft, X, Sparkles, Star, Eye
 } from 'lucide-react';
 import { isAnalyticsEnabled } from '@/components/common/Analytics';
@@ -79,6 +82,7 @@ const INDIAN_STATES = [
 
 function CheckoutContent() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const params = useParams();
   const routeSlug = (params?.slug as string) || '';
@@ -137,6 +141,7 @@ function CheckoutContent() {
 
   // Pincode auto-lookup status
   const [pincodeLoading, setPincodeLoading] = useState(false);
+  const [pincodeError, setPincodeError] = useState('');
 
   const deliveryDateString = useMemo(() => getEstimatedDeliveryDate(), []);
 
@@ -222,29 +227,39 @@ function CheckoutContent() {
   // Pincode auto-lookup
   useEffect(() => {
     const cleanPin = pincode.replace(/\D/g, '');
-    if (cleanPin.length === 6 && region === 'IN') {
-      setPincodeLoading(true);
-      fetch(`/api/pincode?code=${cleanPin}&region=IN`)
-        .then(res => res.json())
-        .then(data => {
-          if (data && data.success) {
-            if (data.city) {
-              setCity(data.city);
-            }
-            if (data.state) {
-              const matchedState = INDIAN_STATES.find(
-                s => s.toLowerCase() === data.state.toLowerCase() ||
-                     s.toLowerCase().replace(/\s+/g, '') === data.state.toLowerCase().replace(/\s+/g, '')
-              );
-              setState(matchedState || data.state);
-            }
-          }
-        })
-        .catch(err => {
-          console.warn('Pincode lookup error:', err);
-        })
-        .finally(() => setPincodeLoading(false));
-    }
+    if (cleanPin.length !== 6 || region !== 'IN') return;
+
+    const controller = new AbortController();
+
+    fetch(`/api/pincode?code=${encodeURIComponent(cleanPin)}&region=IN`, {
+      signal: controller.signal,
+    })
+      .then(async res => {
+        const data = await res.json();
+        if (!res.ok || !data?.success || !data.city || !data.state) {
+          throw new Error(res.status === 404 ? 'not-found' : 'lookup-failed');
+        }
+
+        setCity(data.city);
+        const matchedState = INDIAN_STATES.find(
+          s => s.toLowerCase() === data.state.toLowerCase() ||
+               s.toLowerCase().replace(/\s+/g, '') === data.state.toLowerCase().replace(/\s+/g, '')
+        );
+        setState(matchedState || data.state);
+      })
+      .catch(err => {
+        if (err.name === 'AbortError') return;
+        setPincodeError(
+          err.message === 'not-found'
+            ? "We couldn't find this pincode. Check the 6-digit number and try again."
+            : "We couldn't look up this pincode. Please try again or enter your city and state manually."
+        );
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setPincodeLoading(false);
+      });
+
+    return () => controller.abort();
   }, [pincode, region]);
 
   // Auto-disable course addon if COD is chosen
@@ -394,6 +409,12 @@ function CheckoutContent() {
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpaySignature: response.razorpay_signature
               });
+              void queryClient.invalidateQueries({
+                queryKey: parentOrdersSummaryQueryKey(),
+              });
+              void queryClient.invalidateQueries({
+                queryKey: dashboardOverviewQueryKey(user?.id),
+              });
 
               const successParams = new URLSearchParams({
                 transaction_id: response.razorpay_order_id,
@@ -439,6 +460,12 @@ function CheckoutContent() {
         razorpay.open();
       } else {
         // Cash on delivery - immediate success
+        void queryClient.invalidateQueries({
+          queryKey: parentOrdersSummaryQueryKey(),
+        });
+        void queryClient.invalidateQueries({
+          queryKey: dashboardOverviewQueryKey(user?.id),
+        });
         const successParams = new URLSearchParams({
           transaction_id: res.id || `ORD-${Date.now().toString().slice(-8)}`,
           value: totalAmount.toString(),
@@ -489,30 +516,6 @@ function CheckoutContent() {
         .ck-pop { animation: ckpop .35s cubic-bezier(.2, 1.3, .4, 1); }
         @keyframes ckpop { 0% { transform: scale(0.97); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
       `}} />
-
-      {/* Header */}
-      <header className="bg-white border-b border-[#F1E4E8] sticky top-0 z-30 shadow-xs">
-        <div className="max-w-[1180px] mx-auto px-5 py-3 flex items-center justify-between gap-3">
-          <Link href="/" className="inline-flex items-center gap-2.5 group">
-            <svg width="28" height="28" viewBox="0 0 40 40" aria-hidden="true">
-              <g transform="translate(20 20)">
-                <ellipse rx="6" ry="11" cy="-8" fill="#F4A3B4" />
-                <ellipse rx="6" ry="11" cy="-8" fill="#E3DAF5" transform="rotate(72)" />
-                <ellipse rx="6" ry="11" cy="-8" fill="#D4EFE4" transform="rotate(144)" />
-                <ellipse rx="6" ry="11" cy="-8" fill="#FFE3CC" transform="rotate(216)" />
-                <ellipse rx="6" ry="11" cy="-8" fill="#D8ECF8" transform="rotate(288)" />
-                <circle r="5" fill="#E8738A" />
-              </g>
-            </svg>
-            <span className="font-extrabold text-xl text-[#3D2C4A] tracking-tight group-hover:text-[#C2456A] transition-colors">infano</span>
-          </Link>
-
-          <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#24735A] bg-[#EAF7F1] px-3 py-1 rounded-full border border-[#24735A]/20">
-            <Lock size={14} className="stroke-[2.5]" />
-            <span>Secure checkout</span>
-          </span>
-        </div>
-      </header>
 
       {/* Main Checkout Area */}
       <main className="max-w-[1180px] mx-auto px-4 sm:px-5 py-6 sm:py-8 pb-16 flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
@@ -596,7 +599,14 @@ function CheckoutContent() {
                     inputMode="numeric"
                     maxLength={6}
                     value={pincode}
-                    onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
+                    onChange={(e) => {
+                      const nextPincode = e.target.value.replace(/\D/g, '');
+                      setPincode(nextPincode);
+                      setCity('');
+                      setState('');
+                      setPincodeError('');
+                      setPincodeLoading(nextPincode.length === 6 && region === 'IN');
+                    }}
                     placeholder="e.g. 560038"
                     className="w-full min-h-[48px] rounded-xl border-[1.5px] border-[#E9DDE6] px-3.5 text-base text-[#3D2C4A] focus:outline-none focus:border-[#C2456A] transition-colors"
                   />
@@ -607,6 +617,11 @@ function CheckoutContent() {
                     </div>
                   )}
                 </div>
+                {pincodeError && (
+                  <span role="alert" className="text-xs font-medium text-[#A8365A]">
+                    {pincodeError}
+                  </span>
+                )}
               </label>
 
               <label className="sm:col-span-2 flex flex-col gap-1 text-sm font-semibold text-[#3D2C4A]">
@@ -681,10 +696,12 @@ function CheckoutContent() {
             </div>
 
             {/* Delivery Promise Badge */}
-            <div className="text-sm font-semibold text-[#24735A] flex items-center gap-1.5 mt-1 bg-[#EAF7F1] px-3 py-1.5 rounded-xl border border-[#24735A]/20 w-fit">
-              <Check size={16} className="stroke-[3]" />
-              <span>Delivers to {city || 'your city'} {pincode} by {deliveryDateString}</span>
-            </div>
+            {city && state && pincode.length === 6 && (
+              <div className="text-sm font-semibold text-[#24735A] flex items-center gap-1.5 mt-1 bg-[#EAF7F1] px-3 py-1.5 rounded-xl border border-[#24735A]/20 w-fit">
+                <Check size={16} className="stroke-[3]" />
+                <span>Delivers to {city}, {state} {pincode} by {deliveryDateString}</span>
+              </div>
+            )}
 
             {/* Gift option */}
             <div className="border-t border-[#F1E4E8] pt-3 mt-1">

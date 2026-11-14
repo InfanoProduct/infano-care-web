@@ -1,47 +1,59 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import { useAuthStore } from '@/store/auth-store';
 import { MessageSquare, Clock, User, Loader2, Power, Sparkles, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 
+interface PeerMentorSession {
+  id: string;
+  status: string;
+  createdAt: string;
+  topic?: string;
+}
+
 export default function MyChatsPage() {
   const { user } = useAuthStore();
-  const [loading, setLoading] = useState(true);
-  const [isAvailable, setIsAvailable] = useState(false);
-  const [sessions, setSessions] = useState<any[]>([]);
+  const queryClient = useQueryClient();
+  const queryKey = ['peer-mentor-chats', user?.id];
+  const {
+    data: chatData,
+    isPending: loading,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey,
+    enabled: Boolean(user?.id),
+    queryFn: async () => {
+      const [statusRes, sessionsRes] = await Promise.all([
+        apiClient.get<{ isAvailable: boolean }>('/peerline/mentor/status'),
+        apiClient.get<{ sessions: PeerMentorSession[] }>('/peerline/sessions?role=mentor')
+      ]);
+      return {
+        isAvailable: statusRes.isAvailable,
+        sessions: sessionsRes.sessions || [],
+      };
+    },
+  });
+  const isAvailable = chatData?.isAvailable || false;
+  const sessions = chatData?.sessions || [];
 
   useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const [statusRes, sessionsRes]: [any, any] = await Promise.all([
-        apiClient.get('/peerline/mentor/status'),
-        apiClient.get('/peerline/sessions?role=mentor')
-      ]);
-      
-      setIsAvailable(statusRes.isAvailable);
-      setSessions(sessionsRes.sessions || []);
-    } catch (error) {
-      console.error('Failed to fetch data', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    if (isError && !chatData) console.error('Failed to fetch peer chat data.');
+  }, [chatData, isError]);
 
   const toggleAvailability = async () => {
+    if (!chatData) return;
     try {
       const newStatus = !isAvailable;
-      setIsAvailable(newStatus);
+      queryClient.setQueryData(queryKey, { ...chatData, isAvailable: newStatus });
       await apiClient.patch('/peerline/mentor/availability', { isAvailable: newStatus });
       toast.success(newStatus ? 'You are now online & visible!' : 'You are now offline.');
-    } catch (error) {
-      setIsAvailable(!isAvailable);
+    } catch {
+      queryClient.setQueryData(queryKey, chatData);
       toast.error('Failed to update availability');
     }
   };
@@ -224,8 +236,8 @@ export default function MyChatsPage() {
                           try {
                             await apiClient.post(`/peerline/mentor/sessions/${session.id}/accept`);
                             toast.success('Chat request accepted!');
-                            fetchData();
-                          } catch (err) {
+                            void refetch();
+                          } catch {
                             toast.error('Failed to accept request');
                           }
                         }}

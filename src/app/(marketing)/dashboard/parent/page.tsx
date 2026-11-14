@@ -7,12 +7,78 @@ import Image from 'next/image';
 import { useAuthStore, LearnerProfile } from '@/store/auth-store';
 import { OnboardingService } from '@/services/onboarding.service';
 import { CourseService } from '@/services/course.service';
+import { hasActiveCourseEnrollment } from '@/services/parent-space.service';
+import { WelcomeNoPurchaseSpace } from '@/components/course/WelcomeNoPurchaseSpace';
+import { useParentOrdersSummary } from '@/hooks/use-parent-space-data';
+import { useDashboardLearners } from '@/hooks/use-dashboard-data';
 import { useQuery } from '@tanstack/react-query';
 import {
-  Lock, ArrowRight, Check, Download, Heart, MessageSquare, Phone,
+  Lock, ArrowRight, BookOpen, Check, Download, Heart, MessageSquare, Phone,
   Mail, ChevronDown, Plus, Sparkles, ExternalLink, ShieldCheck, X, Loader2
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+
+function ParentSpaceLoadingState() {
+  return (
+    <div className="min-h-screen bg-[#FBF8F6] text-[#3D2C4A] font-['Noto_Sans',sans-serif]">
+      <header className="bg-white border-b border-[#F1E4E8]">
+        <div className="max-w-[1180px] mx-auto px-5 py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard/parent" className="relative h-8 w-28 sm:w-32 block shrink-0">
+              <Image
+                src="/logo/infano-logo-for-light-bg.png"
+                alt="Infano"
+                fill
+                className="object-contain object-left"
+                priority
+              />
+            </Link>
+            <span className="font-bold text-[18px] sm:text-[20px] border-l border-[#F1E4E8] pl-3">
+              Parent space
+            </span>
+          </div>
+          <div className="hidden sm:flex items-center gap-4" aria-hidden="true">
+            <span className="h-4 w-12 rounded bg-[#F1E4E8] animate-pulse" />
+            <span className="h-4 w-16 rounded bg-[#F1E4E8] animate-pulse" />
+            <span className="h-9 w-28 rounded-full bg-[#F1E4E8] animate-pulse" />
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-[1180px] mx-auto px-5 py-6 sm:py-8 flex flex-col gap-6">
+        <section
+          className="rounded-[26px] border border-[#F1E4E8] bg-white p-5 sm:p-7 shadow-sm"
+          aria-hidden="true"
+        >
+          <div className="h-4 w-36 rounded bg-[#F1E4E8] animate-pulse" />
+          <div className="mt-4 h-8 w-2/3 max-w-lg rounded bg-[#F1E4E8] animate-pulse" />
+          <div className="mt-3 h-4 w-full max-w-2xl rounded bg-[#F1E4E8] animate-pulse" />
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[0, 1, 2].map((item) => (
+              <div key={item} className="h-20 rounded-2xl bg-[#FBF8F6] animate-pulse" />
+            ))}
+          </div>
+        </section>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" aria-hidden="true">
+          {[0, 1, 2].map((item) => (
+            <section key={item} className="rounded-[26px] border border-[#F1E4E8] bg-white p-5 sm:p-6">
+              <div className="h-5 w-2/3 rounded bg-[#F1E4E8] animate-pulse" />
+              <div className="mt-4 h-4 w-full rounded bg-[#F1E4E8] animate-pulse" />
+              <div className="mt-2 h-4 w-4/5 rounded bg-[#F1E4E8] animate-pulse" />
+              <div className="mt-6 h-10 w-32 rounded-full bg-[#F1E4E8] animate-pulse" />
+            </section>
+          ))}
+        </div>
+
+        <div role="status" className="flex items-center justify-center gap-2 text-sm font-semibold text-[#6E5B7A]">
+          <Loader2 className="animate-spin text-[#C2456A]" size={18} />
+          <span>Preparing your Parent Space…</span>
+        </div>
+      </main>
+    </div>
+  );
+}
 
 export default function ParentDashboardPage() {
   const router = useRouter();
@@ -29,9 +95,17 @@ export default function ParentDashboardPage() {
 
   const [mounted, setMounted] = useState(false);
   const [activeLearnerIndex, setActiveLearnerIndex] = useState(0);
+  const {
+    data: ordersSummary = null,
+    isPending: ownershipLoading,
+    isError: ownershipError,
+    refetch: refetchOrdersSummary,
+  } = useParentOrdersSummary(user?.id);
+  const { data: cachedLearners = learners, isSuccess: learnersLoaded } =
+    useDashboardLearners(user?.id, learners);
 
-  // PIN guard modal state if accessed directly without PIN
-  const [pinModalOpen, setPinModalOpen] = useState(false);
+  const hasCourseEnrollment = hasActiveCourseEnrollment(ordersSummary);
+  const pinModalOpen = hasCourseEnrollment && !isParentPinUnlocked;
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState('');
   const [pinVerifying, setPinVerifying] = useState(false);
@@ -46,35 +120,20 @@ export default function ParentDashboardPage() {
     setMounted(true);
   }, []);
 
-  // Check auth & PIN guard
+  // Only course owners have completed onboarding and need the Parent Space PIN.
   useEffect(() => {
     if (!mounted) return;
     if (!isAuthenticated || !user?.id) {
       router.push('/login');
-      return;
     }
+  }, [mounted, isAuthenticated, user?.id, router]);
 
-    if (!isParentPinUnlocked) {
-      setPinModalOpen(true);
-    }
-  }, [mounted, isAuthenticated, user?.id, isParentPinUnlocked, router]);
-
-  // Refresh learners once per user session
+  // Keep the shared learner cache and auth store aligned.
   useEffect(() => {
-    if (!mounted || !isAuthenticated || !user?.id) return;
-
-    const fetchLearners = async () => {
-      try {
-        const res = await OnboardingService.getLearners();
-        if (res.learners && Array.isArray(res.learners)) {
-          setLearners(res.learners);
-        }
-      } catch (err) {
-        console.warn('Failed to load learners:', err);
-      }
-    };
-    fetchLearners();
-  }, [mounted, isAuthenticated, user?.id, setLearners]);
+    if (learnersLoaded && cachedLearners !== learners) {
+      setLearners(cachedLearners);
+    }
+  }, [cachedLearners, learners, learnersLoaded, setLearners]);
 
   // Handle keyboard typing for PIN on desktop
   useEffect(() => {
@@ -100,7 +159,6 @@ export default function ParentDashboardPage() {
       if (res.verified) {
         setParentPinUnlocked(true);
         setActiveProfile({ type: 'PARENT' });
-        setPinModalOpen(false);
         setPin('');
       } else {
         setPinError('Incorrect PIN. Please try again.');
@@ -143,12 +201,63 @@ export default function ParentDashboardPage() {
   const { data: parentOverview } = useQuery({
     queryKey: ['parent-course-overview', currentLearner.id],
     queryFn: () => CourseService.getParentOverview(currentLearner.id),
-    enabled: Boolean(mounted && isAuthenticated && currentLearner.id && currentLearner.id !== 'default'),
+    enabled: Boolean(
+      mounted &&
+      isAuthenticated &&
+      currentLearner.id &&
+      currentLearner.id !== 'default' &&
+      ordersSummary?.courseEnrollments?.some((enrollment) => enrollment?.status === 'ACTIVE')
+    ),
   });
 
   if (!mounted) return null;
 
   const parentName = user?.profile?.displayName || 'Priya';
+  const bookOrders = (ordersSummary?.orders || []).filter((order) =>
+    order?.isActive !== false &&
+    order?.orderStatus !== 'CANCELLED' &&
+    order?.paymentStatus !== 'FAILED' &&
+    Array.isArray(order?.items) &&
+    order.items.length > 0
+  );
+  const hasBookOrder = bookOrders.length > 0;
+  const bookReaderPriceAvailable = bookOrders.some((order) =>
+    order.paymentStatus === 'COMPLETED' || order.paymentMethod === 'COD'
+  );
+
+  if (ownershipLoading) {
+    return <ParentSpaceLoadingState />;
+  }
+
+  if (ownershipError && !ordersSummary) {
+    return (
+      <div className="min-h-screen bg-[#FBF8F6] flex items-center justify-center px-5">
+        <div className="max-w-md rounded-3xl border border-[#F1E4E8] bg-white p-7 text-center shadow-sm">
+          <h1 className="text-xl font-bold text-[#3D2C4A]">We couldn’t load your dashboard</h1>
+          <p className="mt-2 text-sm text-[#6E5B7A]">Please try again in a moment.</p>
+          <button
+            type="button"
+            onClick={() => { void refetchOrdersSummary(); }}
+            className="mt-5 min-h-11 rounded-full bg-[#C2456A] px-5 font-bold text-white hover:bg-[#A8365A]"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasCourseEnrollment) {
+    return (
+      <WelcomeNoPurchaseSpace
+        user={user}
+        learners={learners}
+        ordersSummary={ordersSummary}
+        ownsBook={hasBookOrder}
+        bookReaderPriceAvailable={bookReaderPriceAvailable}
+      />
+    );
+  }
 
   const metrics = parentOverview?.metrics || {
     completedLessons: currentLearner.flowersCount || 0,
@@ -276,6 +385,29 @@ export default function ParentDashboardPage() {
 
       {/* Main Content */}
       <main className="max-w-[1180px] mx-auto px-5 py-6 sm:py-8 flex flex-col gap-6">
+        {!hasBookOrder && (
+          <section className="flex flex-col gap-4 rounded-[26px] border border-[#F0DC8A] bg-[#FFF4C7] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <div className="flex items-start gap-3">
+              <BookOpen size={22} className="mt-1 shrink-0 text-[#8A6410]" />
+              <div>
+                <h2 className="m-0 text-lg font-bold text-[#3D2C4A]">
+                  A keepsake to go with her course
+                </h2>
+                <p className="m-0 mt-1 text-sm text-[#544010]">
+                  Explore the Gigi book and workbook for more ways to learn together.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/checkout?book=the-awkward-age"
+              className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-full bg-[#3D2C4A] px-5 text-sm font-bold text-white transition-colors hover:bg-[#2F213A]"
+            >
+              Get the book + workbook
+              <ArrowRight size={16} />
+            </Link>
+          </section>
+        )}
+
         {/* Top Hero Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -598,7 +730,7 @@ export default function ParentDashboardPage() {
           </section>
 
           {/* Book order status */}
-          <section className="bg-white border border-[#F1E4E8] rounded-[26px] p-5 sm:p-6 flex flex-col justify-between gap-3 shadow-sm">
+          {hasBookOrder && <section className="bg-white border border-[#F1E4E8] rounded-[26px] p-5 sm:p-6 flex flex-col justify-between gap-3 shadow-sm">
             <div className="flex justify-between items-center">
               <h3 className="font-bold text-base text-[#3D2C4A]">Your Gigi book</h3>
               <span className="text-xs font-semibold text-[#6E5B7A]">Arrives Saturday</span>
@@ -624,7 +756,7 @@ export default function ParentDashboardPage() {
             <Link href="/dashboard/orders" className="text-xs font-bold text-[#C2456A] hover:underline">
               Track delivery →
             </Link>
-          </section>
+          </section>}
 
           {/* Help & Support */}
           <section className="bg-white border border-[#F1E4E8] rounded-[26px] p-5 sm:p-6 flex flex-col gap-3 shadow-sm">
@@ -667,7 +799,7 @@ export default function ParentDashboardPage() {
               </div>
               <h2 className="text-xl font-bold text-[#3D2C4A]">Parent Space is Locked</h2>
               <p className="text-xs text-[#6E5B7A]">
-                Enter your 4-digit PIN to access parent tools and settings.
+                Type your 4-digit PIN using the keyboard to access parent tools and settings.
               </p>
             </div>
 
@@ -689,35 +821,6 @@ export default function ParentDashboardPage() {
                   }`}
                 />
               ))}
-            </div>
-
-            {/* Keypad */}
-            <div className="grid grid-cols-3 gap-2">
-              {['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'].map((k, idx) => {
-                if (k === '') return <div key={idx} className="min-h-[52px]" />;
-                if (k === '⌫') {
-                  return (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={handlePinDelete}
-                      className="min-h-[52px] rounded-2xl bg-transparent text-[#3D2C4A] font-semibold text-2xl flex items-center justify-center hover:bg-[#FFFAF6] cursor-pointer"
-                    >
-                      ⌫
-                    </button>
-                  );
-                }
-                return (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handlePinPress(k)}
-                    className="min-h-[52px] rounded-2xl bg-[#FFFAF6] hover:bg-[#F1E4E8] text-[#3D2C4A] font-semibold text-2xl flex items-center justify-center cursor-pointer active:scale-95 transition-all"
-                  >
-                    {k}
-                  </button>
-                );
-              })}
             </div>
 
             <div className="flex justify-between items-center pt-2">

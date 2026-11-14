@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import { Layers, ChevronRight, Loader2, ArrowLeft, Calendar, Play, Sparkles } from 'lucide-react';
-import { ProgramsService, ProgramEnrollment, ProgramSession } from '@/services/programs.service';
+import { ProgramSession } from '@/services/programs.service';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
+import { useDashboardOverview } from '@/hooks/use-dashboard-data';
 
 const THEMES_MAP: Record<string, { accent: string; gradient: string; border: string; badge: string; pill: string }> = {
   'SPARK':       { accent: 'text-rose-600',    gradient: 'from-rose-500 to-pink-600',     border: 'border-rose-100',    badge: 'bg-rose-50 border-rose-100 text-rose-700',    pill: 'bg-rose-100 text-rose-600' },
@@ -18,22 +19,13 @@ const DEFAULT_THEME = { accent: 'text-primary', gradient: 'from-primary to-accen
 
 export default function EnrolledProgramsPage() {
   const { user } = useAuthStore();
-  const [enrollments, setEnrollments] = useState<ProgramEnrollment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const isTeen = user?.role === 'TEEN' || (user?.role === 'PEER' && user?.contentTier && user?.contentTier !== 'ADULT');
+  const { data, isPending: loading, isError } = useDashboardOverview(user?.id, user?.role, Boolean(isTeen));
+  const enrollments = data?.enrollments || [];
 
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await ProgramsService.getUserEnrollments().catch(() => ({ success: true, data: [] }));
-      setEnrollments(res.data || []);
-    } catch {
-      toast.error('Failed to load programs.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (isError && !data) toast.error('Failed to load programs.');
+  }, [data, isError]);
 
   if (loading) {
     return (

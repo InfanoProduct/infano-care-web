@@ -94,10 +94,24 @@ export const useAuthStore = create<AuthState>()(
         isAuthenticated: false
       }),
       setActiveProfile: (profile) => set({ activeProfile: profile }),
-      setLearners: (learners) => set((state) => ({
-        learners,
-        user: state.user ? { ...state.user, learners } : state.user
-      })),
+      setLearners: (learners) => set((state) => {
+        const baseState = {
+          learners,
+          user: state.user ? { ...state.user, learners } : state.user,
+        };
+        if (state.activeProfile?.type !== 'DAUGHTER') return baseState;
+
+        const selectedLearnerId = state.activeProfile.learner.id;
+        const activeLearner =
+          learners.find((learner) => learner.id === selectedLearnerId) ||
+          learners[0];
+        return {
+          ...baseState,
+          activeProfile: activeLearner
+            ? { type: 'DAUGHTER', learner: activeLearner }
+            : { type: 'PARENT' },
+        };
+      }),
       setParentPinUnlocked: (isParentPinUnlocked) => set({ isParentPinUnlocked }),
     }),
     {

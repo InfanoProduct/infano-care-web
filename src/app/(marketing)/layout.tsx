@@ -25,7 +25,7 @@ export default function MarketingLayout({
   const isPurchaseSuccess = cleanPathname.startsWith("/purchase-success");
 
   // Portal routes where the website main navbar, footer, and top padding must be hidden
-  const isPortal = isDashboard || isLogin || isOnboarding || isProgramDetail || isCoursePage;
+  const isPortal = isDashboard || isLogin || isOnboarding || isProgramDetail || isCoursePage || isPurchaseSuccess;
 
   const hideWidgets =
     cleanPathname.startsWith("/checkout") ||

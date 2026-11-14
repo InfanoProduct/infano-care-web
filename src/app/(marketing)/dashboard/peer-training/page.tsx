@@ -1,44 +1,43 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { CheckCircle2, PlayCircle, Lock, Trophy, ArrowRight, Loader2, BookOpen, Shield, AlertCircle, Download } from 'lucide-react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 import { useAuthStore } from '@/store/auth-store';
 import { getCertificateTemplate } from './certificate-template';
 
+interface PeerTrainingEpisode {
+  id: string;
+  slug: string;
+  title: string;
+  description?: string;
+}
+
 export default function MentorTrainingPage() {
-  const { token, user } = useAuthStore();
-  const [episodes, setEpisodes] = useState<any[]>([]);
-  const [completedEpisodes, setCompletedEpisodes] = useState<string[]>([]);
-  const [certificationStatus, setCertificationStatus] = useState<string>('pending_training');
-  const [userName, setUserName] = useState<string>('');
-  const [certificateId, setCertificateId] = useState<string>('');
-  const [certifiedAt, setCertifiedAt] = useState<string>('');
-  const [loading, setLoading] = useState(true);
-
-  const fetchData = useCallback(async () => {
-    try {
-      const [statusRes, journeyRes]: [any, any] = await Promise.all([
-        apiClient.get('/peerline/training/status'),
-        apiClient.get('/peerline/training/course'),
-      ]);
-      setEpisodes(journeyRes.episodes || []);
-      setCompletedEpisodes(statusRes.completedEpisodes || []);
-      setCertificationStatus(statusRes.certificationStatus || 'pending_training');
-      setUserName(statusRes.name || '');
-      setCertificateId(statusRes.certificateId || '');
-      setCertifiedAt(statusRes.certifiedAt || '');
-    } catch (err) {
-      console.error('Failed to fetch training data:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const { user } = useAuthStore();
+  const {
+    data: status,
+    isPending: statusLoading,
+  } = useQuery({
+    queryKey: ['peer-training-status', user?.id],
+    enabled: Boolean(user?.id),
+    queryFn: () => apiClient.get<any>('/peerline/training/status'),
+  });
+  const {
+    data: trainingCourse,
+    isPending: courseLoading,
+  } = useQuery({
+    queryKey: ['peer-training-course'],
+    queryFn: () => apiClient.get<any>('/peerline/training/course'),
+  });
+  const episodes: PeerTrainingEpisode[] = trainingCourse?.episodes || [];
+  const completedEpisodes: string[] = status?.completedEpisodes || [];
+  const certificationStatus = status?.certificationStatus || 'pending_training';
+  const userName = status?.name || '';
+  const certificateId = status?.certificateId || '';
+  const certifiedAt = status?.certifiedAt || '';
+  const loading = statusLoading || courseLoading;
 
   const handleDownloadCertificate = () => {
     const printWindow = window.open('', '_blank');

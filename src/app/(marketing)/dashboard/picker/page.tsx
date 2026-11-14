@@ -2,9 +2,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useAuthStore, LearnerProfile } from '@/store/auth-store';
 import { OnboardingService } from '@/services/onboarding.service';
+import { hasActiveCourseEnrollment, ParentSpaceService } from '@/services/parent-space.service';
+import { useDashboardLearners, dashboardLearnersQueryKey } from '@/hooks/use-dashboard-data';
+import { parentOrdersSummaryQueryKey } from '@/hooks/use-parent-space-data';
 import { Lock, X, Plus, Loader2, Sparkles, UserPlus, KeyRound, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -13,17 +17,22 @@ const PERIOD_STATUSES = ['Yes', 'Not yet', 'Not sure', 'Prefer not to say'];
 
 export default function ProfilePickerPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const {
     user,
     isAuthenticated,
-    learners,
+    learners: storedLearners,
     setLearners,
     setActiveProfile,
     setParentPinUnlocked,
     clearAuth
   } = useAuthStore();
 
-  const [loading, setLoading] = useState(true);
+  const {
+    data: learners = storedLearners,
+    isPending: loading,
+    isSuccess: learnersLoaded,
+  } = useDashboardLearners(user?.id, storedLearners);
   const [pinOpen, setPinOpen] = useState(false);
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState('');
@@ -46,39 +55,36 @@ export default function ProfilePickerPage() {
   const [sisterPeriodStatus, setSisterPeriodStatus] = useState('Not yet');
   const [addingSister, setAddingSister] = useState(false);
 
-  // Load learners once per user session
-  const learnersFetchedRef = useRef(false);
   useEffect(() => {
     if (!isAuthenticated || !user?.id) {
       router.push('/login');
-      return;
     }
+  }, [isAuthenticated, user?.id, router]);
 
-    if (learnersFetchedRef.current) {
-      setLoading(false);
-      return;
+  useEffect(() => {
+    if (learnersLoaded && learners !== storedLearners) {
+      setLearners(learners);
     }
-    learnersFetchedRef.current = true;
+  }, [learners, learnersLoaded, setLearners, storedLearners]);
 
-    const loadData = async () => {
+  useEffect(() => {
+    if (!learnersLoaded || learners.length > 0 || !user?.id) return;
+
+    const redirectWithoutLearners = async () => {
       try {
-        const res = await OnboardingService.getLearners();
-        if (res.learners && Array.isArray(res.learners)) {
-          setLearners(res.learners);
-          if (res.learners.length === 0) {
-            router.push('/onboarding');
-            return;
-          }
-        }
-      } catch (err) {
-        console.warn('Failed to load learners:', err);
-      } finally {
-        setLoading(false);
+        const summary = await queryClient.fetchQuery({
+          queryKey: parentOrdersSummaryQueryKey(user.id),
+          queryFn: () => ParentSpaceService.getOrdersSummary(),
+        });
+        router.replace(hasActiveCourseEnrollment(summary) ? '/onboarding' : '/dashboard');
+      } catch {
+        toast.error('We couldn’t verify course access. Please continue from your dashboard.');
+        router.replace('/dashboard');
       }
     };
 
-    loadData();
-  }, [isAuthenticated, user?.id, router, setLearners]);
+    void redirectWithoutLearners();
+  }, [learners.length, learnersLoaded, queryClient, router, user?.id]);
 
   // Handle keyboard input for PIN when modal is open
   useEffect(() => {
@@ -159,7 +165,11 @@ export default function ProfilePickerPage() {
       });
       if (res.learner) {
         const updated = [...learners, res.learner];
+        queryClient.setQueryData(dashboardLearnersQueryKey(user?.id), updated);
         setLearners(updated);
+        void queryClient.invalidateQueries({
+          queryKey: parentOrdersSummaryQueryKey(user?.id),
+        });
         toast.success(`${sisterName} has been added!`);
         setAddSisterOpen(false);
         setSisterName('');

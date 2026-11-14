@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
   BookOpen, Calendar, ShieldCheck, Star, Sparkles,
@@ -8,17 +8,19 @@ import {
   Package, ShoppingBag, Truck, Video, Clock, DollarSign, Settings
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
-import { apiClient } from '@/lib/api-client';
-import { ProgramsService, Program, ProgramEnrollment } from '@/services/programs.service';
+import { ProgramsService, Program } from '@/services/programs.service';
 import { toast } from 'react-hot-toast';
-import { ParentService } from '@/services/parent.service';
 import { DashboardSummary } from "@/features/parent/components/DashboardSummary";
 import { ResourceCard } from '@/features/parent/components/ResourceCard';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ShopService } from '@/services/shop.service';
-import { ParentSpaceService, ParentOrdersSummaryResponse } from '@/services/parent-space.service';
+import { useQueryClient } from '@tanstack/react-query';
+import { useParentOrdersSummary } from '@/hooks/use-parent-space-data';
+import {
+  dashboardOverviewQueryKey,
+  useDashboardOverview,
+} from '@/hooks/use-dashboard-data';
 import Script from 'next/script';
 import { isAnalyticsEnabled } from '@/components/common/Analytics';
 import { getCurrencySymbol } from '@/lib/utils';
@@ -75,6 +77,18 @@ const ENROLLED_THEMES: Record<string, { accent: string; gradient: string; border
 };
 const DEFAULT_ENROLLED_THEME = { accent: 'text-primary', gradient: 'from-primary to-accent', border: 'border-primary/20', badge: 'bg-primary/10 border-primary/20 text-primary' };
 
+const looksLikeBookItem = (item: any) => {
+  if (!item) return false;
+  if (item.book || item.productType === 'BOOK' || item.type === 'BOOK' || item.category === 'BOOK') return true;
+  const name = String(item.productName || item.name || item.book?.title || item.book?.name || '').toLowerCase();
+  return name.includes('book') || name.includes('workbook') || name.includes('gigi');
+};
+
+const isCourseActive = (entry: any) => {
+  const status = String(entry?.status || '').toUpperCase();
+  return status === 'ACTIVE' || status === 'ENROLLED' || status === 'PAID';
+};
+
 const getProgramStyles = (program: any, index: number) => {
   const titleUpper = (program?.title || '').toUpperCase();
   const metaTheme = program?.metadata?.themeColor || program?.themeColor || program?.metadata?.theme;
@@ -105,16 +119,47 @@ const getEnrolledTheme = (title: string = '') => {
 
 export default function CustomerDashboardOverview() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
   }, []);
   const { user, activeProfile, learners } = useAuthStore();
-  const [ordersSummary, setOrdersSummary] = useState<ParentOrdersSummaryResponse | null>(null);
-  const [enrollmentChecked, setEnrollmentChecked] = useState(false);
+  const isTeen = user?.role === 'TEEN' || (user?.role === 'PEER' && user?.contentTier && user?.contentTier !== 'ADULT');
+  const dashboardQuery = useDashboardOverview(user?.id, user?.role, Boolean(isTeen));
+  const shouldLoadOrdersSummary = user?.role !== 'EXPERT' && user?.role !== 'ADMIN';
+  const {
+    data: ordersSummary = null,
+    isPending: ordersSummaryLoading,
+  } = useParentOrdersSummary(user?.id, shouldLoadOrdersSummary);
+  const dashboardData = dashboardQuery.data;
+  const enrollments = dashboardData?.enrollments || [];
+  const allPrograms = dashboardData?.programs || [];
+  const isLinked = dashboardData?.isLinked || false;
+  const parentBookmarks = dashboardData?.parentBookmarks || [];
+  const demoSessions = dashboardData?.demoSessions || [];
+  const orders = dashboardData?.orders || [];
+  const peerStats = dashboardData?.peerStats || null;
+  const expertSessions = dashboardData?.expertSessions || [];
+  const enrollmentChecked =
+    !dashboardQuery.isPending &&
+    (!shouldLoadOrdersSummary || !ordersSummaryLoading);
+  const loading = !enrollmentChecked;
 
   const hasCourseEnrollment = Boolean(
-    ordersSummary?.courseEnrollments?.some((e: any) => e?.status === 'ACTIVE')
+    (ordersSummary?.courseEnrollments || []).some(isCourseActive) ||
+    (enrollments || []).some(isCourseActive)
+  );
+  const bookOrders = [...(ordersSummary?.orders || []), ...orders].filter((order: any) =>
+    order?.isActive !== false &&
+    order?.orderStatus !== 'CANCELLED' &&
+    order?.paymentStatus !== 'FAILED' &&
+    Array.isArray(order?.items) &&
+    order.items.some((item: any) => looksLikeBookItem(item))
+  );
+  const hasBookOrder = bookOrders.length > 0;
+  const bookReaderPriceAvailable = bookOrders.some((order: any) =>
+    order.paymentStatus === 'COMPLETED' || order.paymentMethod === 'COD'
   );
 
   useEffect(() => {
@@ -124,15 +169,6 @@ export default function CustomerDashboardOverview() {
       }
     }
   }, [mounted, user, enrollmentChecked, hasCourseEnrollment, activeProfile, router]);
-  const [enrollments, setEnrollments] = useState<ProgramEnrollment[]>([]);
-  const [allPrograms, setAllPrograms] = useState<Program[]>([]);
-  const [isLinked, setIsLinked] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [parentBookmarks, setParentBookmarks] = useState<any[]>([]);
-  const [demoSessions, setDemoSessions] = useState<any[]>([]);
-  const [demosLoading, setDemosLoading] = useState(false);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [peerStats, setPeerStats] = useState<any>(null);
 
   // Demo booking modal state
   const [demoModalProg, setDemoModalProg] = useState<Program | null>(null);
@@ -151,63 +187,6 @@ export default function CustomerDashboardOverview() {
       setDemoPhone(user.phone || '');
     }
   }, [user]);
-
-  const isTeen = user?.role === 'TEEN' || (user?.role === 'PEER' && user?.contentTier && user?.contentTier !== 'ADULT');
-  const [expertSessions, setExpertSessions] = useState<any[]>([]);
-
-  const loadDashboardData = useCallback(async () => {
-    if (!user) return;
-    try {
-      setLoading(true);
-      if (user.role === 'EXPERT' || user.role === 'ADMIN') {
-        if (user.role === 'EXPERT') {
-          const response = await apiClient.get<any[]>('/expert/sessions').catch(() => []);
-          setExpertSessions(Array.isArray(response) ? response : []);
-        }
-        setEnrollmentChecked(true);
-        setLoading(false);
-        return;
-      }
-
-      const [
-        enrollRes,
-        programsRes,
-        linksRes,
-        demosRes,
-        ordersRes,
-        bookmarksRes,
-        mentorStatsRes,
-        courseOrdersRes
-      ] = await Promise.all([
-        ProgramsService.getUserEnrollments().catch(() => ({ success: true, data: [] })),
-        ProgramsService.getPrograms().catch(() => []),
-        ParentService.getLinks().catch(() => []),
-        ProgramsService.getUserDemos().catch(() => ({ success: true, data: [] })),
-        ShopService.getUserOrders().catch(() => []),
-        isTeen ? ParentService.getTeenParentBookmarks().catch(() => []) : Promise.resolve([]),
-        user.role === 'PEER' ? apiClient.get('/peerline/mentor/stats').catch(() => null) : Promise.resolve(null),
-        ParentSpaceService.getOrdersSummary().catch(() => null)
-      ]);
-
-      const linked = linksRes.some((link: any) => link.status === 'LINKED');
-      setIsLinked(linked);
-
-      setEnrollments(enrollRes.data || []);
-      setAllPrograms(programsRes);
-      setDemoSessions(demosRes.data || []);
-      setOrders(ordersRes || []);
-      setParentBookmarks(linked ? (bookmarksRes || []) : []);
-      setPeerStats(mentorStatsRes || null);
-      setOrdersSummary(courseOrdersRes);
-      setEnrollmentChecked(true);
-    } catch {
-      toast.error('Failed to load dashboard data.');
-    } finally {
-      setLoading(false);
-    }
-  }, [user, isTeen]);
-
-  useEffect(() => { loadDashboardData(); }, [loadDashboardData]);
 
   const handleBookDemoClick = (program: Program) => {
     setDemoModalProg(program);
@@ -335,7 +314,9 @@ export default function CustomerDashboardOverview() {
 
                 setDemoSuccess(true);
                 toast.success('Demo session booked successfully! (Paid ₹9)');
-                loadDashboardData();
+                void queryClient.invalidateQueries({
+                  queryKey: dashboardOverviewQueryKey(user?.id),
+                });
               } catch (err: any) {
                 toast.error(err.message || 'Payment verification failed. Please contact support.');
               } finally {
@@ -405,7 +386,9 @@ export default function CustomerDashboardOverview() {
 
           setDemoSuccess(true);
           toast.success('Demo session booked successfully!');
-          loadDashboardData();
+          void queryClient.invalidateQueries({
+            queryKey: dashboardOverviewQueryKey(user?.id),
+          });
           setDemoSubmitting(false);
         }
       } else {
@@ -418,7 +401,7 @@ export default function CustomerDashboardOverview() {
     }
   };
 
-  // Render Welcome Space (signed in, no purchase) or Daughter Bloom Garden / Parent redirect
+  // Render the correct shell for each real ownership state instead of assuming a single "enrolled" dashboard.
   const hasLearners = Boolean((user?.learners && user.learners.length > 0) || (learners && learners.length > 0));
   if (
     mounted &&
@@ -435,24 +418,63 @@ export default function CustomerDashboardOverview() {
       );
     }
 
-    if (!hasCourseEnrollment && activeProfile?.type !== 'DAUGHTER') {
-      return (
-        <WelcomeNoPurchaseSpace
-          user={user}
-          learners={learners}
-          ordersSummary={ordersSummary}
-        />
-      );
+    if (hasCourseEnrollment) {
+      if (activeProfile?.type === 'PARENT') {
+        return (
+          <div className="min-h-screen bg-[#FBF8F6] flex items-center justify-center">
+            <Loader2 className="animate-spin text-[#C2456A]" size={32} />
+          </div>
+        );
+      }
+      return <HerBloomGarden />;
     }
 
-    if (activeProfile?.type === 'PARENT') {
+    if (activeProfile?.type === 'DAUGHTER') {
       return (
-        <div className="min-h-screen bg-[#FBF8F6] flex items-center justify-center">
-          <Loader2 className="animate-spin text-[#C2456A]" size={32} />
+        <div className="min-h-screen bg-[#FBF8F6] px-5 py-10 text-[#3D2C4A]">
+          <main className="mx-auto flex min-h-[70vh] max-w-3xl flex-col items-center justify-center text-center">
+            <div className="w-full rounded-[28px] border border-[#B7D8EF] bg-gradient-to-br from-[#D8ECF8] to-[#B7D8EF] p-7 shadow-sm sm:p-10">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-[#2F6494]">
+                <Sparkles size={14} />
+                Your free preview
+              </span>
+              <h1 className="mt-4 font-['Baloo_2',sans-serif] text-3xl font-bold sm:text-4xl">
+                Welcome, {activeProfile.learner.name}!
+              </h1>
+              <p className="mx-auto mt-3 max-w-xl text-base text-[#3E4F63] sm:text-lg">
+                Your first lesson is ready. Let’s learn about the menstrual cycle with Gigi.
+              </p>
+              <Link
+                href="/dashboard/courses/lesson/l1-1"
+                className="mt-7 inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full bg-[#C2456A] px-6 font-bold text-white shadow-md transition-colors hover:bg-[#A8365A]"
+              >
+                <Play size={16} fill="currentColor" />
+                Start Lesson 1.1
+                <ArrowRight size={16} />
+              </Link>
+              <div className="mt-5">
+                <Link
+                  href="/dashboard/picker"
+                  className="text-sm font-bold text-[#3D2C4A] underline decoration-[#8A7896] underline-offset-4 hover:text-[#A8365A]"
+                >
+                  Switch profile
+                </Link>
+              </div>
+            </div>
+          </main>
         </div>
       );
     }
-    return <HerBloomGarden />;
+
+    return (
+      <WelcomeNoPurchaseSpace
+        user={user}
+        learners={learners}
+        ordersSummary={ordersSummary}
+        ownsBook={hasBookOrder}
+        bookReaderPriceAvailable={bookReaderPriceAvailable}
+      />
+    );
   }
 
   if (loading) {

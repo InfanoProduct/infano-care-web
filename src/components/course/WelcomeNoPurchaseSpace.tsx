@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   BookOpen,
@@ -12,14 +11,13 @@ import {
   HelpCircle,
   Loader2,
   Lock,
-  LogOut,
   MessageCircle,
   Play,
   Sparkles,
   X,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { useAuthStore, LearnerProfile } from "@/store/auth-store";
+import { LearnerProfile } from "@/store/auth-store";
 import { useCourseCurriculum } from "@/hooks/use-course";
 import {
   ParentOrdersSummaryResponse,
@@ -30,6 +28,8 @@ interface WelcomeNoPurchaseSpaceProps {
   user: any;
   learners: LearnerProfile[];
   ordersSummary: ParentOrdersSummaryResponse | null;
+  ownsBook?: boolean;
+  bookReaderPriceAvailable?: boolean;
 }
 
 const FALLBACK_CHAPTERS = [
@@ -76,9 +76,9 @@ export function WelcomeNoPurchaseSpace({
   user,
   learners,
   ordersSummary,
+  ownsBook = false,
+  bookReaderPriceAvailable = false,
 }: WelcomeNoPurchaseSpaceProps) {
-  const router = useRouter();
-  const { clearAuth } = useAuthStore();
   const { data: curriculum } = useCourseCurriculum();
 
   const [whatsappUpdates, setWhatsappUpdates] = useState<boolean>(
@@ -87,12 +87,6 @@ export function WelcomeNoPurchaseSpace({
   const [savingWhatsapp, setSavingWhatsapp] = useState(false);
 
   const [giftModalOpen, setGiftModalOpen] = useState(false);
-  const [readerPhone, setReaderPhone] = useState("");
-  const [checkingReader, setCheckingReader] = useState(false);
-  const [readerResult, setReaderResult] = useState<{
-    verified: boolean;
-    message: string;
-  } | null>(null);
 
   const [previewOpen, setPreviewOpen] = useState(false);
 
@@ -131,48 +125,6 @@ export function WelcomeNoPurchaseSpace({
     }
   };
 
-  const handleCheckReader = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const digits = readerPhone.replace(/\D/g, "").slice(-10);
-    if (digits.length !== 10) {
-      setReaderResult({
-        verified: false,
-        message: "Please enter a valid 10-digit mobile number.",
-      });
-      return;
-    }
-    setCheckingReader(true);
-    setReaderResult(null);
-    try {
-      const res = await fetch("/api/course/check-reader", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: digits }),
-      });
-      const json = await res.json();
-      setReaderResult({
-        verified: Boolean(json?.isReader || json?.verified),
-        message:
-          json?.message ||
-          (json?.verified
-            ? "Verified Gigi Reader! Your ₹299 price is unlocked."
-            : "We couldn't find a book order for this number."),
-      });
-    } catch {
-      setReaderResult({
-        verified: false,
-        message: "Unable to verify right now. Please try again.",
-      });
-    } finally {
-      setCheckingReader(false);
-    }
-  };
-
-  const handleSignOut = () => {
-    clearAuth();
-    router.push("/login");
-  };
-
   const displayName =
     user?.profile?.displayName?.trim() ||
     user?.username?.trim() ||
@@ -185,10 +137,18 @@ export function WelcomeNoPurchaseSpace({
   const primaryLearner = learners[0] || null;
   const lessonSetupHref = primaryLearner
     ? "/dashboard/courses/lesson/l1-1"
-    : "/onboarding";
+    : ownsBook
+      ? bookReaderPriceAvailable
+        ? "/course/checkout?plan=reader"
+        : "/dashboard/orders"
+      : "/course/checkout?plan=course";
   const lessonCtaLabel = primaryLearner
     ? `Try Lesson 1.1 with ${primaryLearner.name}`
-    : "Set up her free lesson";
+    : ownsBook
+      ? bookReaderPriceAvailable
+        ? "Add the course for ₹299"
+        : "View your book order"
+      : "Choose a course plan";
 
   const liveCourse: any = curriculum?.course || null;
   const courseChapters =
@@ -210,32 +170,35 @@ export function WelcomeNoPurchaseSpace({
 
   return (
     <div className="min-h-screen bg-[#FBF8F6] text-[#3D2C4A] font-['Noto_Sans',sans-serif]">
-      {/* Top Navbar */}
+      {/* Parent space navigation */}
       <header className="bg-white border-b border-[#F1E4E8] sticky top-0 z-20">
-        <div className="max-w-[1180px] mx-auto px-5 py-3.5 flex items-center justify-between gap-4">
-          <Link
-            href="/"
-            className="relative h-8 w-28 sm:w-32 block shrink-0 hover:opacity-90 transition-opacity"
-          >
-            <Image
-              src="/logo/infano-logo-for-light-bg.png"
-              alt="Infano"
-              fill
-              className="object-contain object-left"
-              priority
-            />
-          </Link>
+        <div className="max-w-[1180px] mx-auto px-5 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/dashboard/parent"
+              className="relative z-10 block h-12 w-40 shrink-0 -ml-2 hover:opacity-90 transition-opacity md:h-14 md:w-48 lg:h-16 lg:w-52"
+            >
+              <Image
+                src="/logo/infano-logo-for-light-bg.png"
+                alt="Infano"
+                fill
+                sizes="(max-width: 768px) 160px, (max-width: 1024px) 192px, 208px"
+                className="object-contain object-left"
+                priority
+              />
+            </Link>
+            <span className="font-bold text-[18px] sm:text-[20px] text-[#3D2C4A] border-l border-[#F1E4E8] pl-3">
+              Parent space
+            </span>
+          </div>
 
-          <nav className="flex items-center gap-3 sm:gap-5 text-sm font-semibold">
-            {primaryLearner && (
-              <Link
-                href="/dashboard/journey"
-                className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-[#FFF4EB] border border-[#F5DAC5] px-3.5 py-1.5 text-xs font-bold text-[#9A4A16] hover:bg-[#FFEAD9] transition-colors"
-              >
-                <Sparkles size={13} />
-                {primaryLearner.name}&apos;s free preview
-              </Link>
-            )}
+          <nav aria-label="Parent space navigation" className="flex flex-wrap items-center gap-2 sm:gap-4 text-[14px] sm:text-[15px] font-semibold">
+            <Link href="/dashboard/orders" className="inline-flex text-[#3D2C4A] hover:text-[#C2456A] px-2 py-1">
+              Orders
+            </Link>
+            <Link href="/dashboard/settings" className="inline-flex text-[#3D2C4A] hover:text-[#C2456A] px-2 py-1">
+              Settings
+            </Link>
             <Link
               href="/dashboard/help"
               className="inline-flex items-center gap-1.5 text-[#3D2C4A] hover:text-[#C2456A] transition-colors"
@@ -243,14 +206,14 @@ export function WelcomeNoPurchaseSpace({
               <HelpCircle size={15} />
               <span>Help</span>
             </Link>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="inline-flex items-center gap-1.5 rounded-full border border-[#E9DDE6] bg-[#FFFAF6] hover:border-[#C2456A] hover:text-[#C2456A] px-3.5 py-1.5 text-xs sm:text-sm font-bold text-[#3D2C4A] transition-colors cursor-pointer"
-            >
-              <LogOut size={14} />
-              <span>Sign out</span>
-            </button>
+            {primaryLearner && (
+              <Link
+                href="/dashboard/picker"
+                className="inline-flex items-center gap-1.5 text-[#3D2C4A] hover:text-[#C2456A] bg-[#FFFAF6] border border-[#F1E4E8] rounded-full px-3 py-1.5 text-sm"
+              >
+                Switch profile
+              </Link>
+            )}
           </nav>
         </div>
       </header>
@@ -270,21 +233,37 @@ export function WelcomeNoPurchaseSpace({
           ) : (
             <div className="bg-[#FFF1E6] border border-[#F5DAC5] rounded-[24px] px-6 py-5 sm:px-7 sm:py-6 flex flex-col justify-center">
               <div className="text-xs font-extrabold uppercase tracking-wider text-[#9A4A16] mb-1">
-                Hi {firstName}
+                {ownsBook ? `Welcome back, ${firstName}` : `Hi ${firstName}`}
               </div>
               <h1 className="m-0 font-['Baloo_2',sans-serif] text-2xl sm:text-[28px] font-bold leading-tight text-[#3D2C4A]">
-                Let&apos;s start with one free lesson — no payment needed
+                {ownsBook
+                  ? bookReaderPriceAvailable
+                    ? "Your Gigi book is a lovely place to start"
+                    : "Your Gigi book order is underway"
+                  : "Let’s start with one free lesson — no payment needed"}
               </h1>
               <p className="m-0 mt-1.5 text-sm sm:text-[15px] text-[#5E4B6B] leading-relaxed">
-                Try Lesson 1.1 with your daughter first. Buy the full course only if it feels right for both of you.
+                {ownsBook
+                  ? bookReaderPriceAvailable
+                    ? "Add the full HerNext course for ₹299 as a Gigi book owner."
+                    : "Once your book arrives and payment is collected, you can add the full HerNext course for ₹299."
+                  : "Try Lesson 1.1 with your daughter first. Buy the full course only if it feels right for both of you."}
               </p>
+              {ownsBook && bookReaderPriceAvailable && (
+                <Link
+                  href="/course/checkout?plan=reader"
+                  className="mt-4 inline-flex min-h-[44px] w-fit items-center justify-center gap-2 rounded-full bg-[#C2456A] px-5 text-sm font-bold text-white transition-colors hover:bg-[#A8365A]"
+                >
+                  Add HerNext for ₹299
+                  <ArrowRight size={16} />
+                </Link>
+              )}
             </div>
           )}
 
           <button
             type="button"
             onClick={() => {
-              setReaderResult(null);
               setGiftModalOpen(true);
             }}
             className="text-left bg-white hover:bg-[#FFFAF6] border border-[#E9DDE6] hover:border-[#C2456A]/50 rounded-[24px] px-5 py-4 flex items-center gap-4 transition-all shadow-2xs cursor-pointer"
@@ -294,10 +273,10 @@ export function WelcomeNoPurchaseSpace({
             </span>
             <div className="min-w-0 flex-1">
               <div className="font-['Baloo_2',sans-serif] text-lg font-bold text-[#3D2C4A] leading-tight">
-                Got a gift code or Gigi book?
+                Have a gift code?
               </div>
               <div className="text-xs sm:text-[13px] text-[#6E5B7A] mt-0.5 leading-snug">
-                Verify your Gigi book order for ₹299 reader access, or redeem a gift with support.
+                Redeem a HerNext gift or contact our team for help.
               </div>
             </div>
             <ArrowRight size={17} className="text-[#8A7896] shrink-0" />
@@ -316,25 +295,43 @@ export function WelcomeNoPurchaseSpace({
               <div>
                 <span className="inline-flex items-center gap-1.5 bg-white/90 text-[#2F6494] text-[11px] font-extrabold uppercase tracking-wider px-3.5 py-1 rounded-full">
                   <Sparkles size={12} />
-                  FREE · NO PAYMENT NEEDED
+                  {primaryLearner
+                    ? "FREE · NO PAYMENT NEEDED"
+                    : ownsBook
+                      ? "GIGI BOOK OWNER OFFER"
+                      : "EXPLORE HERNEXT"}
                 </span>
               </div>
 
               <h2 className="m-0 font-['Baloo_2',sans-serif] text-2xl sm:text-[34px] font-bold text-[#3D2C4A] leading-tight">
-                Start with Lesson 1.1: The Menstrual Cycle
+                {primaryLearner
+                  ? "Start with Lesson 1.1: The Menstrual Cycle"
+                  : ownsBook
+                    ? "Continue with the HerNext course"
+                    : "Start her learning journey with HerNext"}
               </h2>
 
               <p className="m-0 text-sm sm:text-[15px] text-[#3E4F63] max-w-2xl leading-relaxed">
-                Meet Gigi, watch the expert video together, play Build-a-Cycle Moon and earn her first badge.
-                Everything she unlocks today stays saved if you decide to buy.
+                {primaryLearner
+                  ? "Meet Gigi, watch the expert video together, play Build-a-Cycle Moon and earn her first badge. Everything she unlocks today stays saved if you decide to buy."
+                  : ownsBook
+                    ? "Your Gigi book is ready to pair with the HerNext course. Add the course whenever you’re ready."
+                    : "Explore expert-led lessons, activities and parent guidance. Her profile setup will be ready when you choose a course."}
               </p>
 
               <div className="flex flex-wrap gap-2.5 pt-1">
-                {[
-                  { n: "1.", label: "Expert video (15m)" },
-                  { n: "2.", label: "Build-a-Cycle Moon game" },
-                  { n: "3.", label: "First flower + badge" },
-                ].map((step) => (
+                {(primaryLearner
+                  ? [
+                      { n: "1.", label: "Expert video (15m)" },
+                      { n: "2.", label: "Build-a-Cycle Moon game" },
+                      { n: "3.", label: "First flower + badge" },
+                    ]
+                  : [
+                      { n: "1.", label: `${totalChapters} chapters · ${totalLessons} lessons` },
+                      { n: "2.", label: "Activities and badges" },
+                      { n: "3.", label: "Parent guidance" },
+                    ]
+                ).map((step) => (
                   <span
                     key={step.label}
                     className="inline-flex items-center gap-1.5 bg-white/90 border border-white rounded-full px-3.5 py-1.5 text-xs sm:text-[13px] font-bold text-[#3D2C4A] shadow-2xs"
@@ -366,8 +363,10 @@ export function WelcomeNoPurchaseSpace({
                       Switch profile
                     </Link>
                   </>
+                ) : ownsBook && !bookReaderPriceAvailable ? (
+                  "Reader pricing unlocks after your book order is paid"
                 ) : (
-                  "Takes 30 seconds · Her profile stays private"
+                  "Choose a plan to get started"
                 )}
               </div>
             </div>
@@ -379,17 +378,19 @@ export function WelcomeNoPurchaseSpace({
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <div>
               <h2 className="m-0 font-['Baloo_2',sans-serif] text-xl sm:text-2xl font-bold text-[#3D2C4A]">
-                Choose how to start
+                {ownsBook ? "Add the HerNext course" : "Choose how to start"}
               </h2>
               <p className="m-0 text-sm text-[#6E5B7A]">
-                One-time family purchase · Lifetime access · 7-day no-questions refund
+                {ownsBook
+                  ? "Your book-owner price includes the full course."
+                  : "One-time family purchase · Lifetime access · 7-day no-questions refund"}
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+          <div className={`grid grid-cols-1 gap-4 items-stretch ${ownsBook ? "md:max-w-md" : "md:grid-cols-3"}`}>
             {/* Plan 1: The Course */}
-            <div className="bg-white border border-[#E9DDE6] rounded-[24px] p-6 flex flex-col justify-between gap-5 shadow-2xs">
+            {!ownsBook && <div className="bg-white border border-[#E9DDE6] rounded-[24px] p-6 flex flex-col justify-between gap-5 shadow-2xs">
               <div className="flex flex-col gap-3">
                 <div>
                   <span className="inline-block rounded-full bg-[#FDEFF0] text-[#C2456A] text-[11px] font-extrabold uppercase tracking-wider px-3 py-1">
@@ -431,10 +432,10 @@ export function WelcomeNoPurchaseSpace({
                 <span>Unlock full course</span>
                 <ArrowRight size={15} />
               </Link>
-            </div>
+            </div>}
 
             {/* Plan 2: Best Value Bundle */}
-            <div className="bg-white border-2 border-[#E8738A] rounded-[24px] p-6 flex flex-col justify-between gap-5 shadow-md relative">
+            {!ownsBook && <div className="bg-white border-2 border-[#E8738A] rounded-[24px] p-6 flex flex-col justify-between gap-5 shadow-md relative">
               <div className="flex flex-col gap-3">
                 <div>
                   <span className="inline-block rounded-full bg-[#E8738A] text-white text-[11px] font-extrabold uppercase tracking-wider px-3 py-1">
@@ -476,48 +477,79 @@ export function WelcomeNoPurchaseSpace({
                 <span>Get course + book</span>
                 <ArrowRight size={15} />
               </Link>
-            </div>
+            </div>}
 
-            {/* Plan 3: Reader Price */}
-            <div className="bg-[#FFF4C7] border border-[#F0DC8A] rounded-[24px] p-6 flex flex-col justify-between gap-5 shadow-2xs">
-              <div className="flex flex-col gap-3">
-                <div>
-                  <span className="inline-block rounded-full bg-white text-[#8A6410] text-[11px] font-extrabold uppercase tracking-wider px-3 py-1">
-                    ALREADY OWN THE GIGI BOOK?
+            {/* Recommend the book to non-owners, and the course-owner price to book owners. */}
+            {ownsBook ? (
+              <div className="bg-[#FFF4C7] border border-[#F0DC8A] rounded-[24px] p-6 flex flex-col justify-between gap-5 shadow-2xs">
+                <div className="flex flex-col gap-3">
+                  <span className="inline-block self-start rounded-full bg-white text-[#8A6410] text-[11px] font-extrabold uppercase tracking-wider px-3 py-1">
+                    YOUR GIGI BOOK PRICE
                   </span>
-                </div>
-                <div>
-                  <div className="font-['Baloo_2',sans-serif] text-xl font-bold text-[#3D2C4A]">
-                    Gigi Reader Price
+                  <div>
+                    <div className="font-['Baloo_2',sans-serif] text-xl font-bold text-[#3D2C4A]">
+                      Add the HerNext Course
+                    </div>
+                    <div className="flex items-baseline gap-2 mt-1">
+                      <span className="font-['Baloo_2',sans-serif] text-3xl font-extrabold text-[#3D2C4A]">
+                        ₹299
+                      </span>
+                      <span className="text-sm text-[#8A6410]/80 line-through">
+                        ₹{coursePrice.toLocaleString("en-IN")}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className="font-['Baloo_2',sans-serif] text-3xl font-extrabold text-[#3D2C4A]">
-                      ₹299
-                    </span>
-                    <span className="text-sm text-[#8A6410]/80 line-through">
-                      ₹{coursePrice.toLocaleString("en-IN")}
-                    </span>
-                  </div>
+                  <p className="m-0 text-sm text-[#544010]">
+                    Get the full course at the Gigi book-owner price.
+                  </p>
                 </div>
-                <ul className="m-0 p-0 list-none flex flex-col gap-2 text-sm text-[#544010]">
-                  <li className="flex items-start gap-2">
-                    <Check size={16} className="text-[#8A6410] shrink-0 mt-0.5" />
-                    <span>Same full course — save ₹700 as a book owner</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check size={16} className="text-[#8A6410] shrink-0 mt-0.5" />
-                    <span>Verify with the phone number used on your book order</span>
-                  </li>
-                </ul>
+                {!bookReaderPriceAvailable ? (
+                  <Link
+                    href="/dashboard/orders"
+                    className="inline-flex items-center justify-center gap-2 min-h-[46px] rounded-full bg-white text-[#3D2C4A] font-bold text-sm border border-[#E2C86B] transition-colors"
+                  >
+                    <BookOpen size={15} />
+                    <span>View book order</span>
+                  </Link>
+                ) : (
+                  <Link
+                    href="/course/checkout?plan=reader"
+                    className="inline-flex items-center justify-center gap-2 min-h-[46px] rounded-full bg-white hover:bg-[#3D2C4A] hover:text-white text-[#3D2C4A] font-bold text-sm border border-[#E2C86B] transition-colors"
+                  >
+                    <BookOpen size={15} />
+                    <span>Unlock for ₹299</span>
+                  </Link>
+                )}
               </div>
-              <Link
-                href="/course/checkout?plan=reader"
-                className="inline-flex items-center justify-center gap-2 min-h-[46px] rounded-full bg-white hover:bg-[#3D2C4A] hover:text-white text-[#3D2C4A] font-bold text-sm border border-[#E2C86B] transition-colors"
-              >
-                <BookOpen size={15} />
-                <span>Unlock for ₹299</span>
-              </Link>
-            </div>
+            ) : (
+              <div className="bg-[#FFF4C7] border border-[#F0DC8A] rounded-[24px] p-6 flex flex-col justify-between gap-5 shadow-2xs">
+                <div className="flex flex-col gap-3">
+                  <span className="inline-block self-start rounded-full bg-white text-[#8A6410] text-[11px] font-extrabold uppercase tracking-wider px-3 py-1">
+                    START WITH THE BOOK
+                  </span>
+                  <div>
+                    <div className="font-['Baloo_2',sans-serif] text-xl font-bold text-[#3D2C4A]">
+                      Gigi Book + Workbook
+                    </div>
+                    <div className="flex items-baseline gap-2 mt-1">
+                      <span className="font-['Baloo_2',sans-serif] text-3xl font-extrabold text-[#3D2C4A]">
+                        ₹799
+                      </span>
+                    </div>
+                  </div>
+                  <p className="m-0 text-sm text-[#544010]">
+                    The book and workbook delivered home. Add the course later for ₹299.
+                  </p>
+                </div>
+                <Link
+                  href="/gigi-the-awkward-age-book"
+                  className="inline-flex items-center justify-center gap-2 min-h-[46px] rounded-full bg-white hover:bg-[#3D2C4A] hover:text-white text-[#3D2C4A] font-bold text-sm border border-[#E2C86B] transition-colors"
+                >
+                  <BookOpen size={15} />
+                  <span>Get the book · ₹799</span>
+                </Link>
+              </div>
+            )}
           </div>
         </section>
 
@@ -619,7 +651,7 @@ export function WelcomeNoPurchaseSpace({
         </section>
       </main>
 
-      {/* Gift / Book Reader Verification Modal */}
+      {/* Gift code help */}
       {giftModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-[28px] border border-[#E9DDE6] max-w-md w-full p-6 shadow-xl flex flex-col gap-4">
@@ -630,10 +662,10 @@ export function WelcomeNoPurchaseSpace({
                 </span>
                 <div>
                   <h3 className="m-0 font-['Baloo_2',sans-serif] text-xl font-bold text-[#3D2C4A]">
-                    Gift code or Gigi Book?
+                    Have a gift code?
                   </h3>
                   <p className="m-0 text-xs text-[#6E5B7A]">
-                    Unlock reader pricing (₹299) or get gift help
+                    Our team can help you redeem your HerNext gift.
                   </p>
                 </div>
               </div>
@@ -646,50 +678,8 @@ export function WelcomeNoPurchaseSpace({
               </button>
             </div>
 
-            <form onSubmit={handleCheckReader} className="flex flex-col gap-3">
-              <label className="text-xs font-bold text-[#3D2C4A]">
-                Verify your Gigi Book mobile number (saves ₹700)
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="tel"
-                  value={readerPhone}
-                  onChange={(e) => setReaderPhone(e.target.value)}
-                  placeholder="10-digit mobile number"
-                  className="flex-1 rounded-xl border border-[#DFD2DA] px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#C2456A]"
-                />
-                <button
-                  type="submit"
-                  disabled={checkingReader}
-                  className="px-4 py-2.5 rounded-xl bg-[#C2456A] hover:bg-[#A8365A] text-white text-sm font-bold disabled:opacity-60 cursor-pointer"
-                >
-                  {checkingReader ? "Checking..." : "Verify"}
-                </button>
-              </div>
-            </form>
-
-            {readerResult && (
-              <div
-                className={`rounded-2xl p-3.5 text-xs font-semibold ${
-                  readerResult.verified
-                    ? "bg-[#EAF7F1] text-[#24735A]"
-                    : "bg-[#FFF1E6] text-[#9A4A16]"
-                }`}
-              >
-                <p className="m-0">{readerResult.message}</p>
-                {readerResult.verified && (
-                  <Link
-                    href="/course/checkout?plan=reader"
-                    className="inline-flex items-center gap-1.5 mt-2 font-bold text-[#C2456A] underline"
-                  >
-                    Continue to ₹299 checkout <ArrowRight size={13} />
-                  </Link>
-                )}
-              </div>
-            )}
-
             <div className="border-t border-[#F1E4E8] pt-3 flex items-center justify-between text-xs text-[#6E5B7A]">
-              <span>Received a WhatsApp gift link or voucher?</span>
+              <span>Need help with your gift?</span>
               <Link
                 href="/dashboard/help"
                 className="font-bold text-[#C2456A] hover:underline"

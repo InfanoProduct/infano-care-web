@@ -2,18 +2,20 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   ShieldCheck, LogOut, LayoutDashboard, Calendar, Compass, User,
   Sparkles, CreditCard, BookOpen, Layers, GraduationCap, Menu, X,
   ChevronLeft, ChevronRight, Package, MessageSquare, Video
 } from 'lucide-react';
 import Link from 'next/link';
-import { useAuthStore } from '@/store/auth-store';
+import { LearnerProfile, useAuthStore } from '@/store/auth-store';
 import { AuthService } from '@/services/auth.service';
 import { NotificationBell } from '@/features/parent/components/NotificationBell';
 import { OnboardingModal } from '@/components/common/OnboardingModal';
 import { apiClient } from '@/lib/api-client';
 import { BecomePeerMentorModal } from '@/components/peerline/BecomePeerMentorModal';
+import { dashboardLearnersQueryKey } from '@/hooks/use-dashboard-data';
 
 export default function CustomerDashboardLayout({
   children,
@@ -22,6 +24,7 @@ export default function CustomerDashboardLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const queryClient = useQueryClient();
   const { isAuthenticated, clearAuth, user, refreshToken, accessToken, setAuth, setActiveProfile, setLearners } = useAuthStore();
   const [mounted, setMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -143,7 +146,7 @@ export default function CustomerDashboardLayout({
         const fullUser = await AuthService.getMe();
         if (fullUser) {
           const prevState = useAuthStore.getState();
-          let resolvedLearners = fullUser.learners ?? user.learners ?? prevState.learners ?? [];
+          let resolvedLearners: LearnerProfile[] = fullUser.learners ?? user.learners ?? prevState.learners ?? [];
           if (resolvedLearners.length === 0 && !isLegacyPortalRole && fullUser.role !== 'PEER') {
             try {
               const learnersRes: any = await apiClient.get('/onboarding/learners');
@@ -171,8 +174,22 @@ export default function CustomerDashboardLayout({
           });
           if (resolvedLearners.length > 0) {
             setLearners(resolvedLearners);
+            queryClient.setQueryData(
+              dashboardLearnersQueryKey(fullUser.id),
+              resolvedLearners,
+            );
           }
-          if (prevState.activeProfile) {
+          if (prevState.activeProfile?.type === 'DAUGHTER') {
+            const selectedLearnerId = prevState.activeProfile.learner.id;
+            const activeLearner =
+              resolvedLearners.find((learner) => learner.id === selectedLearnerId) ||
+              resolvedLearners[0];
+            setActiveProfile(
+              activeLearner
+                ? { type: 'DAUGHTER', learner: activeLearner }
+                : { type: 'PARENT' },
+            );
+          } else if (prevState.activeProfile) {
             setActiveProfile(prevState.activeProfile);
           } else if (resolvedLearners.length > 0) {
             setActiveProfile({ type: 'DAUGHTER', learner: resolvedLearners[0] });
@@ -195,7 +212,7 @@ export default function CustomerDashboardLayout({
     const handleFocus = () => fetchUserProfile();
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [isAuthenticated, accessToken]);
+  }, [isAuthenticated, accessToken, queryClient]);
 
   // Auth Guard
   useEffect(() => {

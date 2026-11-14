@@ -1,30 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 import { Search, ArrowRight, Layers, Loader2, User, BookOpen } from 'lucide-react';
 import { format } from 'date-fns';
+import { useAuthStore } from '@/store/auth-store';
 
 export default function ExpertProgramSessionsPage() {
   const router = useRouter();
-  const [enrollments, setEnrollments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuthStore();
   const [search, setSearch] = useState('');
-
-  useEffect(() => {
-    const fetchEnrollments = async () => {
-      try {
-        const data = await apiClient.request<any[]>('/expert/enrollments');
-        setEnrollments(data || []);
-      } catch (error) {
-        console.error('Error fetching enrollments:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchEnrollments();
-  }, []);
+  const {
+    data: enrollments = [],
+    isPending: loading,
+  } = useQuery({
+    queryKey: ['expert-program-enrollments', user?.id],
+    enabled: Boolean(user?.id),
+    queryFn: async () => {
+      const data = await apiClient.request<any[]>('/expert/enrollments');
+      return data || [];
+    },
+  });
 
   const filteredEnrollments = enrollments.filter(env => {
     const name = env.guestName || env.user?.profile?.displayName || env.user?.username || '';

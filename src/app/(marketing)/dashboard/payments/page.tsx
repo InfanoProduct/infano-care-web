@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { 
   CreditCard, Award, ShoppingBag, Calendar, CheckCircle2, 
   Loader2, ShieldCheck, ArrowRight, MessageCircle, ExternalLink,
   DollarSign, FileText, AlertCircle, HelpCircle, BadgeCheck, MapPin,
   GraduationCap, BookOpen
 } from 'lucide-react';
-import { ProgramsService, ProgramEnrollment } from '@/services/programs.service';
+import { ProgramsService } from '@/services/programs.service';
 import { ShopService } from '@/services/shop.service';
 import { useAuthStore } from '@/store/auth-store';
 import Link from 'next/link';
@@ -24,35 +25,28 @@ export default function CustomerPaymentsOverview() {
       router.replace('/dashboard/orders');
     }
   }, [user, router]);
-  const [enrollments, setEnrollments] = useState<ProgramEnrollment[]>([]);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'all' | 'programs' | 'books'>('all');
   const [activeInvoice, setActiveInvoice] = useState<{
     type: 'PROGRAM' | 'BOOK';
     data: any;
   } | null>(null);
 
-  const loadPaymentData = useCallback(async () => {
-    try {
-      setLoading(true);
+  const { data: paymentData, isPending: loading } = useQuery({
+    queryKey: ['dashboard-payments', user?.id],
+    enabled: Boolean(user?.id && (user.role === 'EXPERT' || user.role === 'ADMIN')),
+    queryFn: async () => {
       const [enrollRes, ordersRes] = await Promise.all([
         ProgramsService.getUserEnrollments().catch(() => ({ success: true, data: [] })),
         ShopService.getUserOrders().catch(() => [])
       ]);
-
-      setEnrollments(enrollRes.data || []);
-      setOrders(ordersRes || []);
-    } catch (err) {
-      console.error('Failed to load payment & invoice data:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadPaymentData();
-  }, [loadPaymentData]);
+      return {
+        enrollments: enrollRes.data || [],
+        orders: ordersRes || [],
+      };
+    },
+  });
+  const enrollments = paymentData?.enrollments || [];
+  const orders = paymentData?.orders || [];
 
   if (loading) {
     return (

@@ -1,10 +1,16 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { Download, Gift, Loader2, ShoppingBag } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Download, Gift, ShoppingBag } from "lucide-react";
 import { ParentSpaceSubHeader } from "@/components/parent/ParentSpaceSubHeader";
 import { ParentSpaceService } from "@/services/parent-space.service";
+import { useAuthStore } from "@/store/auth-store";
+import {
+  parentOrdersSummaryQueryKey,
+  useParentOrdersSummary,
+} from "@/hooks/use-parent-space-data";
 import { InvoiceModal } from "@/components/common/InvoiceModal";
 import { getCurrencySymbol } from "@/lib/utils";
 import { toast } from "react-hot-toast";
@@ -32,12 +38,56 @@ function getBookStepIndex(status?: string): number {
   }
 }
 
+function OrdersLoadingSkeleton() {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start" aria-hidden="true">
+      <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-5">
+        {[0, 1].map((item) => (
+          <section key={item} className="overflow-hidden rounded-[24px] border border-[#F1E4E8] bg-white">
+            <div className="flex items-center gap-4 bg-[#EAF7F1] p-5">
+              <div className="h-12 w-11 shrink-0 rounded bg-white/70 animate-pulse" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3 w-24 rounded bg-[#D4E9DE] animate-pulse" />
+                <div className="h-5 w-2/3 rounded bg-[#D4E9DE] animate-pulse" />
+              </div>
+              <div className="h-8 w-20 rounded bg-[#D4E9DE] animate-pulse" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-5">
+              {[0, 1, 2].map((detail) => (
+                <div key={detail} className="space-y-2">
+                  <div className="h-3 w-16 rounded bg-[#F1E4E8] animate-pulse" />
+                  <div className="h-4 w-28 rounded bg-[#F1E4E8] animate-pulse" />
+                </div>
+              ))}
+            </div>
+            <div className="mx-5 mb-5 h-10 w-40 rounded-full bg-[#F1E4E8] animate-pulse" />
+          </section>
+        ))}
+      </div>
+      <aside className="lg:col-span-5 xl:col-span-4 rounded-[24px] border border-[#F1E4E8] bg-white p-5">
+        <div className="h-5 w-52 rounded bg-[#F1E4E8] animate-pulse" />
+        <div className="mt-5 h-4 w-full rounded bg-[#F1E4E8] animate-pulse" />
+        <div className="mt-3 h-3 w-4/5 rounded bg-[#F1E4E8] animate-pulse" />
+        <div className="mt-6 h-10 w-full rounded-full bg-[#F1E4E8] animate-pulse" />
+      </aside>
+      <div role="status" className="sr-only">Loading orders and billing</div>
+    </div>
+  );
+}
+
 export default function ParentOrdersPage() {
-  const [loading, setLoading] = useState(true);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [courseEnrollments, setCourseEnrollments] = useState<any[]>([]);
-  const [programEnrollments, setProgramEnrollments] = useState<any[]>([]);
-  const [learnerName, setLearnerName] = useState("your daughter");
+  const { user } = useAuthStore();
+  const queryClient = useQueryClient();
+  const {
+    data: ordersSummary,
+    isPending: loading,
+    isError,
+    refetch,
+  } = useParentOrdersSummary(user?.id);
+  const orders = ordersSummary?.orders || [];
+  const courseEnrollments = ordersSummary?.courseEnrollments || ordersSummary?.lmsEnrollments || [];
+  const programEnrollments = ordersSummary?.programEnrollments || [];
+  const learnerName = ordersSummary?.learners?.[0]?.name || "your daughter";
 
   // Invoice modal
   const [activeInvoice, setActiveInvoice] = useState<{
@@ -46,48 +96,12 @@ export default function ParentOrdersPage() {
   } | null>(null);
 
   // Refund sidebar state
-  const [refundOrderId, setRefundOrderId] = useState<string | null>(null);
   const [refundStage, setRefundStage] = useState<"idle" | "form" | "requested">("idle");
   const [selectedReason, setSelectedReason] = useState(REFUND_REASONS[0]);
   const [refundFeedback, setRefundFeedback] = useState("");
   const [dataOption, setDataOption] = useState<"keep" | "delete">("keep");
   const [submittingRefund, setSubmittingRefund] = useState(false);
   const [createdRefund, setCreatedRefund] = useState<any>(null);
-
-  const loadData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await ParentSpaceService.getOrdersSummary();
-      setOrders(res.orders || []);
-      setCourseEnrollments(res.courseEnrollments || res.lmsEnrollments || []);
-      setProgramEnrollments(res.programEnrollments || []);
-      if (res.learners && res.learners.length > 0) {
-        setLearnerName(res.learners[0].name);
-      }
-
-      // Auto-select latest order/enrollment for 7-day refund sidebar
-      const latestOrder = res.orders?.[0] || res.courseEnrollments?.[0] || res.lmsEnrollments?.[0] || res.programEnrollments?.[0];
-      if (latestOrder) {
-        setRefundOrderId(latestOrder.id);
-        if (latestOrder.refundRequest) {
-          setCreatedRefund(latestOrder.refundRequest);
-          setRefundStage("requested");
-        } else if (res.refunds && res.refunds.length > 0 && res.refunds[0].orderId === latestOrder.id) {
-          setCreatedRefund(res.refunds[0]);
-          setRefundStage("requested");
-        }
-      }
-    } catch (err) {
-      console.error("Failed to load orders:", err);
-      toast.error("Could not load orders.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
 
   // Unified list of orders & enrollments
   const unifiedOrders = [
@@ -151,7 +165,19 @@ export default function ParentOrdersPage() {
     })),
   ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
-  const targetOrder = unifiedOrders.find((u) => u.id === refundOrderId) || unifiedOrders[0] || null;
+  const preferredRefundOrderId =
+    ordersSummary?.orders?.[0]?.id ||
+    ordersSummary?.courseEnrollments?.[0]?.id ||
+    ordersSummary?.lmsEnrollments?.[0]?.id ||
+    ordersSummary?.programEnrollments?.[0]?.id;
+  const targetOrder =
+    unifiedOrders.find((order) => order.id === preferredRefundOrderId) ||
+    unifiedOrders[0] ||
+    null;
+  const existingRefund =
+    targetOrder?.refundRequest ||
+    ordersSummary?.refunds?.find((refund) => refund.orderId === targetOrder?.id);
+  const refundToDisplay = createdRefund || existingRefund;
   const daysElapsed = targetOrder
     ? Math.max(0, Math.floor((Date.now() - targetOrder.createdAt.getTime()) / (1000 * 60 * 60 * 24)))
     : 0;
@@ -175,6 +201,9 @@ export default function ParentOrdersPage() {
       });
       setCreatedRefund(res);
       setRefundStage("requested");
+      void queryClient.invalidateQueries({
+        queryKey: parentOrdersSummaryQueryKey(user?.id),
+      });
       toast.success("Refund request submitted.");
     } catch (err: any) {
       toast.error(err?.message || "Could not submit refund request.");
@@ -198,8 +227,18 @@ export default function ParentOrdersPage() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-24">
-            <Loader2 size={32} className="animate-spin text-[#C2456A]" />
+          <OrdersLoadingSkeleton />
+        ) : isError && !ordersSummary ? (
+          <div className="rounded-[24px] border border-[#F1E4E8] bg-white p-8 text-center shadow-2xs">
+            <h2 className="m-0 text-xl font-bold text-[#3D2C4A]">We couldn’t load your orders</h2>
+            <p className="mt-2 text-sm text-[#5E4B6B]">Please try again in a moment.</p>
+            <button
+              type="button"
+              onClick={() => { void refetch(); }}
+              className="mt-5 min-h-11 rounded-full bg-[#C2456A] px-5 font-bold text-white hover:bg-[#A8365A]"
+            >
+              Try again
+            </button>
           </div>
         ) : unifiedOrders.length === 0 ? (
           <div className="bg-white border border-[#F1E4E8] rounded-[24px] p-10 text-center flex flex-col items-center gap-3 shadow-2xs">
@@ -356,10 +395,10 @@ export default function ParentOrdersPage() {
             <aside className="lg:col-span-5 xl:col-span-4 bg-white border border-[#F1E4E8] rounded-[24px] p-5 flex flex-col gap-4 shadow-2xs">
               <h2 className="m-0 text-lg font-bold text-[#3D2C4A]">7-day happiness promise</h2>
 
-              {refundStage === "requested" && createdRefund ? (
+              {refundToDisplay ? (
                 <div className="flex flex-col gap-3.5 animate-in fade-in">
                   <div className="bg-[#EAF7F1] rounded-2xl p-3.5 text-sm font-semibold text-[#1F5A45]">
-                    Refund requested. Reference <strong>{createdRefund.referenceCode}</strong>. We&apos;ve sent the details on WhatsApp.
+                    Refund requested. Reference <strong>{refundToDisplay.referenceCode}</strong>. We&apos;ve sent the details on WhatsApp.
                   </div>
                   <ol className="list-none m-0 p-0 flex flex-col gap-3.5">
                     <li className="flex gap-3 items-start">
@@ -369,7 +408,7 @@ export default function ParentOrdersPage() {
                       <div>
                         <strong className="text-sm font-bold block">Requested</strong>
                         <span className="text-xs text-[#5E4B6B]">
-                          {new Date(createdRefund.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                          {new Date(refundToDisplay.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                         </span>
                       </div>
                     </li>

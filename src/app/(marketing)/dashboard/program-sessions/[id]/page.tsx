@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 import { ArrowLeft, Calendar, Video, Loader2, CheckCircle2, Clock, Sparkles } from 'lucide-react';
@@ -35,11 +36,24 @@ export default function ExpertProgramSessionDetail({ params }: { params: Promise
   const resolvedParams = React.use(params);
   const router = useRouter();
   const { user } = useAuthStore();
+  const queryClient = useQueryClient();
   const isExpert = user?.role === 'EXPERT' || user?.role === 'ADMIN';
 
-  const [details, setDetails] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [experts, setExperts] = useState<any[]>([]);
+  const detailQueryKey = ['expert-enrollment-detail', user?.id, resolvedParams.id];
+  const {
+    data: details,
+    isPending: loading,
+    isError: detailError,
+    refetch: refetchDetails,
+  } = useQuery({
+    queryKey: detailQueryKey,
+    enabled: Boolean(user?.id && resolvedParams.id),
+    queryFn: () => apiClient.request<any>(`/expert/enrollments/${resolvedParams.id}`),
+  });
+  const { data: experts = [] } = useQuery({
+    queryKey: ['dashboard-experts'],
+    queryFn: () => ParentService.getExperts(),
+  });
 
   // Scheduling form state
   const [schedulingSessionNum, setSchedulingSessionNum] = useState<number | null>(null);
@@ -57,31 +71,6 @@ export default function ExpertProgramSessionDetail({ params }: { params: Promise
     const dd = String(tomorrow.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
   };
-
-  const fetchDetails = async () => {
-    try {
-      const data = await apiClient.request<any>(`/expert/enrollments/${resolvedParams.id}`);
-      setDetails(data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadExperts = async () => {
-    try {
-      const data = await ParentService.getExperts();
-      setExperts(data);
-    } catch (error) {
-      console.error('Failed to load experts:', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchDetails();
-    loadExperts();
-  }, [resolvedParams.id]);
 
   const handleSchedule = async (sessionNumber: number) => {
     const tomorrowStr = getTomorrowDateString();
@@ -109,7 +98,7 @@ export default function ExpertProgramSessionDetail({ params }: { params: Promise
       setScheduleDate('');
       setScheduleTime('');
       setMeetLink('');
-      fetchDetails();
+      void queryClient.invalidateQueries({ queryKey: detailQueryKey });
     } catch (error) {
       toast.error('Error scheduling session');
     } finally {
@@ -122,7 +111,7 @@ export default function ExpertProgramSessionDetail({ params }: { params: Promise
     try {
       await apiClient.patch(`/expert/sessions/${sessionId}/complete`);
       toast.success('Session marked as completed!');
-      fetchDetails();
+      void queryClient.invalidateQueries({ queryKey: detailQueryKey });
     } catch (error) {
       toast.error('Error completing session');
     } finally {
@@ -135,6 +124,17 @@ export default function ExpertProgramSessionDetail({ params }: { params: Promise
       <div className="flex flex-col items-center justify-center py-32 gap-4">
         <Loader2 className="animate-spin text-indigo-600" size={40} />
         <span className="font-bold text-slate-500 text-sm">Loading session details...</span>
+      </div>
+    );
+  }
+
+  if (detailError && !details) {
+    return (
+      <div className="p-8 text-center text-rose-500 font-bold">
+        Could not load enrollment details.
+        <button type="button" className="ml-2 underline" onClick={() => { void refetchDetails(); }}>
+          Try again
+        </button>
       </div>
     );
   }

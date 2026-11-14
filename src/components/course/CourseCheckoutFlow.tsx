@@ -6,9 +6,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { useAuthStore } from "@/store/auth-store";
 import { apiClient } from "@/lib/api-client";
+import { parentOrdersSummaryQueryKey } from "@/hooks/use-parent-space-data";
+import { dashboardOverviewQueryKey } from "@/hooks/use-dashboard-data";
 import {
   Lock,
   Check,
@@ -114,6 +117,7 @@ const PLANS: Record<PlanKey, PlanConfig> = {
 export default function CourseCheckoutFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const { user, token, isAuthenticated } = useAuthStore();
 
   // Query parameter plan initialization
@@ -138,6 +142,7 @@ export default function CourseCheckoutFlow() {
   const [isReaderVerified, setIsReaderVerified] = useState(false);
   const [verifiedReaderPhone, setVerifiedReaderPhone] = useState("");
   const [isVerifyingReader, setIsVerifyingReader] = useState(false);
+  const [readerEligibilityResolved, setReaderEligibilityResolved] = useState(false);
   const [readerVerificationErr, setReaderVerificationErr] = useState("");
 
   // Step 2: Personal details
@@ -200,6 +205,56 @@ export default function CourseCheckoutFlow() {
       if (uEmail && !email) setEmail(uEmail);
     }
   }, [isAuthenticated, user]);
+
+  // Check a signed-in account's book ownership before offering checkout plans.
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setIsReaderVerified(false);
+      setVerifiedReaderPhone("");
+      setReaderEligibilityResolved(true);
+      return;
+    }
+
+    setIsReaderVerified(false);
+    setVerifiedReaderPhone("");
+    const accountPhone = user?.phone?.replace(/\D/g, "").slice(-10) || "";
+    if (accountPhone.length !== 10) {
+      setReaderEligibilityResolved(true);
+      return;
+    }
+
+    let cancelled = false;
+    setReaderEligibilityResolved(false);
+
+    fetch("/api/course/check-reader", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone: accountPhone }),
+    })
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || "Could not check book ownership.");
+        if (cancelled) return;
+
+        if (data.isReader || data.verified) {
+          setIsReaderVerified(true);
+          setVerifiedReaderPhone(accountPhone);
+          setSelectedPlan("reader");
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          console.warn("Could not verify the signed-in user's book order:", error);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setReaderEligibilityResolved(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, user?.phone]);
 
   // Sync plan param if changed
   useEffect(() => {
@@ -297,9 +352,25 @@ export default function CourseCheckoutFlow() {
     }
   };
 
-  const currentPlan = PLANS[selectedPlan];
-  const isBundle = selectedPlan === "bundle";
-  const isReader = selectedPlan === "reader";
+  const effectivePlan: PlanKey = isReaderVerified ? "reader" : selectedPlan;
+  const currentPlan = PLANS[effectivePlan];
+  const isBundle = effectivePlan === "bundle";
+  const isReader = effectivePlan === "reader";
+  const hasCompletedCourseSetup = Boolean(
+    user &&
+    (user.isOnboardingCompleted || user.onboardingCompletedAt) &&
+    user.learners?.length
+  );
+  const courseSuccessHref = !isAuthenticated || !user
+    ? "/login"
+    : hasCompletedCourseSetup
+      ? "/dashboard/courses"
+      : "/onboarding";
+  const dashboardSuccessHref = !isAuthenticated || !user
+    ? "/login"
+    : hasCompletedCourseSetup
+      ? "/dashboard"
+      : "/onboarding";
 
   // Phone validity check
   const isPhoneValid = phone.trim().length === 10;
@@ -309,6 +380,7 @@ export default function CourseCheckoutFlow() {
 
   // Form validation
   const canProceed =
+    !(isAuthenticated && !readerEligibilityResolved) &&
     isPhoneValid &&
     isReaderApproved &&
     name.trim().length >= 2 &&
@@ -318,7 +390,9 @@ export default function CourseCheckoutFlow() {
   // Payment handler
   const handlePayNow = async () => {
     if (!canProceed) {
-      if (!isPhoneValid) {
+      if (isAuthenticated && !readerEligibilityResolved) {
+        toast.error("Checking your Gigi book purchase. Please wait a moment.");
+      } else if (!isPhoneValid) {
         setPhoneErr("Please enter a valid 10-digit mobile number.");
       } else if (isReader && !isReaderApproved) {
         setReaderVerificationErr("Please verify your Gigi book purchase mobile number to avail this plan.");
@@ -343,7 +417,7 @@ export default function CourseCheckoutFlow() {
         courseId: targetCourseId,
         amount: currentPlan.priceNum,
         currency: "INR",
-        plan: selectedPlan,
+        plan: effectivePlan,
         isGift,
         giftDetails: isGift ? { recipient: giftRecipient, contact: giftContact, message: giftMsg } : null,
         shippingAddress: isBundle
@@ -369,6 +443,12 @@ export default function CourseCheckoutFlow() {
                 razorpayOrderId: response.razorpay_order_id,
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpaySignature: response.razorpay_signature
+              });
+              void queryClient.invalidateQueries({
+                queryKey: parentOrdersSummaryQueryKey(user?.id),
+              });
+              void queryClient.invalidateQueries({
+                queryKey: dashboardOverviewQueryKey(user?.id),
               });
 
               setPaidOrderDetails({
@@ -397,7 +477,7 @@ export default function CourseCheckoutFlow() {
           prefill: {
             name: name.trim(),
             email: email.trim(),
-            contact: phone.trim()
+            contact: `+91${phone.trim()}`
           },
           theme: {
             color: "#C2456A"
@@ -655,9 +735,10 @@ export default function CourseCheckoutFlow() {
             </svg>
           </div>
 
-          <div className="max-w-[560px] mx-auto px-4 pt-10">
+          <div className="max-w-6xl mx-auto px-4 pt-8 sm:pt-12">
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-stretch">
             {/* Top Celebration Card */}
-            <div className="bg-[#FDEFF0] rounded-t-[36px] p-8 text-center flex flex-col items-center gap-4">
+            <div className="bg-[#FDEFF0] rounded-[36px] p-8 sm:p-10 lg:p-12 text-center flex flex-col items-center justify-center gap-4">
               <svg className="sc-bloom" width="100" height="110" viewBox="0 0 120 132" aria-hidden="true">
                 <g transform="translate(60 52)">
                   <ellipse rx="15" ry="26" cy="-22" fill="#F4A3B4" />
@@ -686,14 +767,16 @@ export default function CourseCheckoutFlow() {
                     Welcome to the HerNext family!
                   </h1>
                   <p className="text-sm sm:text-base text-[#5E4B6B] mt-1">
-                    Your journey together starts now.
+                    {hasCompletedCourseSetup
+                      ? "Your course is ready. Pick up where your journey begins."
+                      : "Complete your family setup before entering her learning space."}
                   </p>
                 </div>
               )}
             </div>
 
             {/* Receipt & Details Card */}
-            <div className="bg-[#FFFFFF] border-x border-b border-[#F1E4E8] rounded-b-[36px] p-6 sm:p-8 flex flex-col gap-5 hn-box-shadow">
+            <div className="bg-[#FFFFFF] border border-[#F1E4E8] rounded-[36px] p-6 sm:p-8 lg:p-9 flex flex-col gap-5 hn-box-shadow">
               <div className="flex justify-between items-center pb-3 border-b border-[#F1E4E8]">
                 <strong className="text-base sm:text-lg text-[#3D2C4A]">
                   {paidOrderDetails?.plan?.name || currentPlan.name}
@@ -777,21 +860,26 @@ export default function CourseCheckoutFlow() {
               {/* Action Buttons */}
               <button
                 type="button"
-                onClick={() => {
-                  router.push('/dashboard/courses');
-                }}
+                onClick={() => router.push(courseSuccessHref)}
                 className="w-full py-4 rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white font-extrabold text-base sm:text-lg shadow-lg shadow-[#C2456A]/25 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>Start the course now</span>
+                <span>
+                  {hasCompletedCourseSetup
+                    ? "Start the course now"
+                    : isAuthenticated
+                      ? "Set up her learning space"
+                      : "Log in to continue setup"}
+                </span>
                 <ArrowRight size={18} />
               </button>
 
               <Link
-                href="/dashboard"
+                href={dashboardSuccessHref}
                 className="text-center text-xs sm:text-sm font-bold text-[#6E5B7A] hover:text-[#3D2C4A]"
               >
-                Go to Dashboard
+                {hasCompletedCourseSetup ? "Go to Dashboard" : isAuthenticated ? "Continue setup" : "Log in"}
               </Link>
+            </div>
             </div>
           </div>
         </div>
@@ -971,6 +1059,28 @@ export default function CourseCheckoutFlow() {
               </div>
             </div>
 
+            {isReaderVerified && (
+              <div
+                role="status"
+                className="mb-6 flex flex-col gap-3 rounded-2xl border border-[#D4EFE4] bg-[#EAF7F1] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[#2F7F62]">
+                    <Check size={19} className="stroke-[3]" />
+                  </span>
+                  <div>
+                    <p className="m-0 font-bold text-[#245B43]">Your Gigi book purchase is verified</p>
+                    <p className="m-0 mt-1 text-sm text-[#355A49]">
+                      You’re eligible for the Gigi Reader plan. Get the full HerNext course for just <strong>₹299</strong>.
+                    </p>
+                  </div>
+                </div>
+                <span className="shrink-0 rounded-full bg-white px-4 py-2 text-sm font-extrabold text-[#2F7F62]">
+                  Reader price · ₹299
+                </span>
+              </div>
+            )}
+
             {/* Mobile collapsible Order Summary toggle button */}
             <div className="lg:hidden mb-6 bg-white border border-[#F1E4E8] rounded-2xl overflow-hidden hn-box-shadow">
               <button
@@ -1042,22 +1152,36 @@ export default function CourseCheckoutFlow() {
                     1. Choose your plan
                   </h2>
 
-                  <div role="radiogroup" aria-label="Plan options" className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {(["course", "bundle", "reader"] as PlanKey[]).map((pKey) => {
+                  {isAuthenticated && !readerEligibilityResolved && (
+                    <p role="status" className="mb-3 text-sm font-semibold text-[#6E5B7A]">
+                      Checking your Gigi book purchase…
+                    </p>
+                  )}
+
+                  <div
+                    role="radiogroup"
+                    aria-label="Plan options"
+                    className={`grid grid-cols-1 gap-3 ${isReaderVerified ? "sm:max-w-sm" : "sm:grid-cols-3"}`}
+                  >
+                    {(isReaderVerified
+                      ? (["reader"] as PlanKey[])
+                      : (["course", "bundle", "reader"] as PlanKey[])
+                    ).map((pKey) => {
                       const p = PLANS[pKey];
-                      const isSelected = selectedPlan === pKey;
+                      const isSelected = effectivePlan === pKey;
                       return (
                         <button
                           key={pKey}
                           type="button"
                           role="radio"
                           aria-checked={isSelected}
+                          disabled={isReaderVerified || (isAuthenticated && !readerEligibilityResolved)}
                           onClick={() => setSelectedPlan(pKey)}
-                          className={`relative text-left rounded-2xl p-4 flex flex-col justify-between transition-all cursor-pointer min-h-[108px] ${
+                          className={`relative text-left rounded-2xl p-4 flex flex-col justify-between transition-all min-h-[108px] ${
                             isSelected
                               ? "border-[2.5px] border-[#C2456A] shadow-md scale-[1.01]"
                               : "border border-[#E9DDE6] bg-white hover:border-[#C2456A]/50"
-                          }`}
+                          } ${isReaderVerified ? "cursor-default" : "cursor-pointer"} disabled:opacity-100`}
                           style={{ background: isSelected ? p.bg : "#FFFFFF" }}
                         >
                           <div>

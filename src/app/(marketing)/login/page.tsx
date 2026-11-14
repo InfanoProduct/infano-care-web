@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useRef, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { AuthService } from '@/services/auth.service';
 import { useAuthStore } from '@/store/auth-store';
+import { hasActiveCourseEnrollment, ParentSpaceService } from '@/services/parent-space.service';
 import { Loader2, ArrowLeft, Shield, Sparkles } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -23,21 +24,52 @@ function LoginFormContent() {
   const [canResend, setCanResend] = useState(false);
 
   const otpInputRef = useRef<HTMLInputElement>(null);
+  const redirectCheckStarted = useRef(false);
 
-  // If already authenticated and fully onboarded, redirect to dashboard or picker
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      if (user.role === 'SCHOOL_COORDINATOR') {
-        router.push('/schools/dashboard');
-      } else if (user.role === 'OPS_MANAGER' || user.role === 'ADMIN') {
-        router.push('/admin/schools');
-      } else if (!user.onboardingCompletedAt || !user.learners || user.learners.length === 0) {
-        router.push('/onboarding');
-      } else {
-        router.push('/dashboard/picker');
-      }
+  const routeSignedInUser = useCallback(async (
+    account: {
+      role?: string;
+      onboardingCompletedAt?: string | null;
+      isOnboardingCompleted?: boolean;
+      learners?: unknown[];
     }
-  }, [isAuthenticated, user, router]);
+  ) => {
+    if (account.role === 'SCHOOL_COORDINATOR') {
+      router.replace('/schools/dashboard');
+      return;
+    }
+    if (account.role === 'OPS_MANAGER' || account.role === 'ADMIN') {
+      router.replace('/admin/schools');
+      return;
+    }
+
+    try {
+      const summary = await ParentSpaceService.getOrdersSummary();
+      if (!hasActiveCourseEnrollment(summary)) {
+        router.replace('/dashboard');
+        return;
+      }
+
+      const hasLearners = Boolean(account.learners && account.learners.length > 0);
+      if ((!account.isOnboardingCompleted && !account.onboardingCompletedAt) || !hasLearners) {
+        router.replace('/onboarding');
+      } else {
+        router.replace('/dashboard/picker');
+      }
+    } catch (error) {
+      console.error('Unable to check course access after login:', error);
+      toast.error('We couldn’t check your course access. You can continue to your dashboard.');
+      router.replace('/dashboard');
+    }
+  }, [router]);
+
+  // Route signed-in accounts according to course access, not just profile setup status.
+  useEffect(() => {
+    if (isAuthenticated && user && !redirectCheckStarted.current) {
+      redirectCheckStarted.current = true;
+      void routeSignedInUser(user);
+    }
+  }, [isAuthenticated, user, routeSignedInUser]);
 
   // Resend OTP countdown
   useEffect(() => {
@@ -122,6 +154,7 @@ function LoginFormContent() {
       const res: any = await AuthService.verifyOtp(fullPhone, code);
 
       if (res && res.accessToken) {
+        redirectCheckStarted.current = true;
         setAuth(res.accessToken, res.refreshToken, {
           id: res.userId,
           phone: fullPhone,
@@ -136,12 +169,12 @@ function LoginFormContent() {
 
         toast.success('Welcome back!');
 
-        // Check if user has completed onboarding
-        if (!res.isOnboardingCompleted || !res.learners || res.learners.length === 0) {
-          router.push('/onboarding');
-        } else {
-          router.push('/dashboard/picker');
-        }
+        await routeSignedInUser({
+          role: res.role || 'PARENT',
+          onboardingCompletedAt: res.isOnboardingCompleted ? new Date().toISOString() : null,
+          isOnboardingCompleted: res.isOnboardingCompleted,
+          learners: res.learners || [],
+        });
       } else {
         throw new Error('Invalid verification response');
       }

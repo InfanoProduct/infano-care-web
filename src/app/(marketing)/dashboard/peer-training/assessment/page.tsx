@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Trophy, CheckCircle2, AlertCircle, ArrowRight, Loader2,
   HelpCircle, Shield, Award, ChevronRight, PlayCircle
 } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
+import { useAuthStore } from '@/store/auth-store';
 
 const ASSESSMENT_QUESTIONS = [
   // --- Episode 1: What Is Peer Support? ---
@@ -238,35 +240,28 @@ const ASSESSMENT_QUESTIONS = [
 
 export default function FinalAssessmentPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState<any>(null);
+  const { user } = useAuthStore();
+  const queryClient = useQueryClient();
+  const statusQueryKey = ['peer-training-status', user?.id];
+  const {
+    data: status,
+    isPending: loading,
+  } = useQuery({
+    queryKey: statusQueryKey,
+    enabled: Boolean(user?.id),
+    queryFn: () => apiClient.get<any>('/peerline/training/status'),
+  });
   const [started, setStarted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<any>(null);
 
-  const checkStatus = useCallback(async () => {
-    try {
-      const res: any = await apiClient.get('/peerline/training/status');
-      setStatus(res);
-      // If already certified or submitted, don't allow re-taking unless specifically enabled
-      if (res.lockUntil && new Date(res.lockUntil) > new Date()) {
-        // Locked
-      }
-      if (res.certificationStatus === 'submitted' || res.certificationStatus === 'certified') {
-        router.push('/dashboard/peer-training');
-      }
-    } catch (err) {
-      console.error('Failed to check status:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [router]);
-
   useEffect(() => {
-    checkStatus();
-  }, [checkStatus]);
+    if (status?.certificationStatus === 'submitted' || status?.certificationStatus === 'certified') {
+      router.push('/dashboard/peer-training');
+    }
+  }, [router, status?.certificationStatus]);
 
   const handleAnswer = (optionIdx: number) => {
     setAnswers(prev => ({ ...prev, [currentQuestion]: optionIdx }));
@@ -301,7 +296,7 @@ export default function FinalAssessmentPage() {
       setResult({ score: finalScore, passed: finalScore >= 80 });
       // Refresh status from server response to get the correct certificationStatus
       if (res.result) {
-        setStatus(res.result);
+        queryClient.setQueryData(statusQueryKey, res.result);
       }
     } catch (err) {
       console.error('Failed to submit assessment:', err);

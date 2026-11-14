@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Loader2, X } from "lucide-react";
 import { ParentSpaceService } from "@/services/parent-space.service";
+import { useParentOrdersSummary, parentOrdersSummaryQueryKey } from "@/hooks/use-parent-space-data";
+import { useAuthStore } from "@/store/auth-store";
 import { toast } from "react-hot-toast";
 
 const PROBLEMS = [
@@ -36,8 +39,15 @@ function mapOrderStatusToStage(status?: string): "placed" | "packed" | "shipped"
 
 export default function BookTrackingPage() {
   const { id } = useParams<{ id: string }>();
-  const [loading, setLoading] = useState(true);
-  const [order, setOrder] = useState<any>(null);
+  const { user } = useAuthStore();
+  const queryClient = useQueryClient();
+  const {
+    data: ordersSummary,
+    isPending: loading,
+    isError,
+    refetch,
+  } = useParentOrdersSummary(user?.id);
+  const order = ordersSummary?.orders?.find((item) => item.id === id) || null;
 
   // Report modal
   const [reportOpen, setReportOpen] = useState(false);
@@ -52,28 +62,6 @@ export default function BookTrackingPage() {
   const [addrCity, setAddrCity] = useState("");
   const [addrPin, setAddrPin] = useState("");
   const [savingAddr, setSavingAddr] = useState(false);
-
-  const loadOrder = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await ParentSpaceService.getOrdersSummary();
-      const found = res.orders?.find((o: any) => o.id === id);
-      if (found) {
-        setOrder(found);
-        setAddrLine(found.shippingAddress || "");
-        setAddrCity(found.city || "");
-        setAddrPin(found.pincode || "");
-      }
-    } catch {
-      toast.error("Could not load tracking details.");
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    loadOrder();
-  }, [loadOrder]);
 
   const handleSendReport = async () => {
     if (!order) return;
@@ -101,7 +89,16 @@ export default function BookTrackingPage() {
         city: addrCity,
         pincode: addrPin,
       });
-      setOrder((prev: any) => ({ ...prev, ...(updated?.order || updated || {}) }));
+      const orderUpdate = updated?.order || updated || {};
+      queryClient.setQueryData(
+        parentOrdersSummaryQueryKey(user?.id),
+        (current: any) => current ? {
+          ...current,
+          orders: current.orders.map((item: any) =>
+            item.id === order.id ? { ...item, ...orderUpdate } : item
+          ),
+        } : current
+      );
       setEditAddressOpen(false);
       toast.success("Delivery address updated!");
     } catch (err: any) {
@@ -115,6 +112,17 @@ export default function BookTrackingPage() {
     return (
       <div className="min-h-screen bg-[#FBF8F6] flex items-center justify-center">
         <Loader2 size={32} className="animate-spin text-[#C2456A]" />
+      </div>
+    );
+  }
+
+  if (isError && !ordersSummary) {
+    return (
+      <div className="min-h-screen bg-[#FBF8F6] flex flex-col items-center justify-center gap-3 p-6 text-[#3D2C4A]">
+        <p className="font-bold text-lg">Could not load tracking details.</p>
+        <button type="button" className="font-bold text-[#A8365A] underline" onClick={() => { void refetch(); }}>
+          Try again
+        </button>
       </div>
     );
   }
@@ -326,7 +334,12 @@ export default function BookTrackingPage() {
               <div className="flex flex-col gap-1.5 pt-1">
                 <button
                   type="button"
-                  onClick={() => setEditAddressOpen(true)}
+                  onClick={() => {
+                    setAddrLine(order.shippingAddress || "");
+                    setAddrCity(order.city || "");
+                    setAddrPin(order.pincode || "");
+                    setEditAddressOpen(true);
+                  }}
                   className="self-start min-h-[42px] px-4 rounded-full border-2 border-[#3D2C4A] bg-white hover:bg-[#FFFAF6] text-[#3D2C4A] font-bold text-xs sm:text-sm cursor-pointer"
                 >
                   Change address

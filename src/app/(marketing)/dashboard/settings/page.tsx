@@ -3,10 +3,15 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { ParentSpaceSubHeader } from "@/components/parent/ParentSpaceSubHeader";
 import { ParentSpaceService, ParentSettingsResponse } from "@/services/parent-space.service";
 import { useAuthStore } from "@/store/auth-store";
-import { Loader2 } from "lucide-react";
+import {
+  parentSettingsQueryKey,
+  useParentSettings,
+} from "@/hooks/use-parent-space-data";
+import { dashboardLearnersQueryKey } from "@/hooks/use-dashboard-data";
 import { toast } from "react-hot-toast";
 
 type SettingsTab = "profiles" | "account" | "pin" | "notifications" | "privacy";
@@ -21,12 +26,38 @@ const TABS: Array<{ id: SettingsTab; label: string }> = [
 
 const AGES = ["9", "10", "11", "12", "13", "14", "15+"];
 
+function SettingsLoadingSkeleton() {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start" aria-hidden="true">
+      <div className="lg:col-span-3 flex flex-row lg:flex-col gap-2">
+        {[0, 1, 2, 3, 4].map((item) => (
+          <div key={item} className="h-10 flex-1 rounded-xl bg-[#F1E4E8] animate-pulse" />
+        ))}
+      </div>
+      <section className="lg:col-span-9 rounded-3xl border border-[#F1E4E8] bg-white p-5 sm:p-7">
+        <div className="h-6 w-48 rounded bg-[#F1E4E8] animate-pulse" />
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {[0, 1, 2, 3].map((item) => (
+            <div key={item} className="h-24 rounded-2xl bg-[#FBF8F6] animate-pulse" />
+          ))}
+        </div>
+        <div className="mt-6 h-10 w-36 rounded-full bg-[#F1E4E8] animate-pulse" />
+      </section>
+    </div>
+  );
+}
+
 export default function ParentSettingsPage() {
   const router = useRouter();
-  const { clearAuth, setLearners } = useAuthStore();
+  const { user, clearAuth, setLearners } = useAuthStore();
+  const queryClient = useQueryClient();
+  const {
+    data: settings = null,
+    isPending: loading,
+    isError,
+    refetch,
+  } = useParentSettings(user?.id);
 
-  const [loading, setLoading] = useState(true);
-  const [settings, setSettings] = useState<ParentSettingsResponse | null>(null);
   const [tab, setTab] = useState<SettingsTab>("profiles");
 
   // Learner edit state
@@ -36,8 +67,8 @@ export default function ParentSettingsPage() {
   const [savingLearner, setSavingLearner] = useState(false);
 
   // Account edit state
-  const [displayName, setDisplayName] = useState("");
-  const [invoiceEmail, setInvoiceEmail] = useState("");
+  const [displayName, setDisplayName] = useState<string | null>(null);
+  const [invoiceEmail, setInvoiceEmail] = useState<string | null>(null);
   const [savingAccount, setSavingAccount] = useState(false);
 
   // PIN change state
@@ -50,33 +81,26 @@ export default function ParentSettingsPage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   const loadSettings = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await ParentSpaceService.getSettings();
-      setSettings(res);
-      setDisplayName(res.profile?.displayName || "");
-      setInvoiceEmail(res.parentEmail || res.email || "");
-      if (res.learners) {
-        setLearners(
-          res.learners.map((l) => ({
-            id: l.id,
-            name: l.name,
-            age: l.age,
-            completedLessons: l.completedLessons,
-          }))
-        );
-      }
-    } catch {
-      toast.error("Could not load settings.");
-    } finally {
-      setLoading(false);
-    }
-  }, [setLearners]);
+    const result = await refetch();
+    if (result.isError) toast.error("Could not load settings.");
+  }, [refetch]);
 
   useEffect(() => {
-    loadSettings();
-  }, [loadSettings]);
+    if (!settings) return;
+    const updatedLearners = settings.learners.map((learner) => ({
+      id: learner.id,
+      name: learner.name,
+      age: learner.age,
+      completedLessons: learner.completedLessons,
+    }));
+    setLearners(updatedLearners);
+    if (user?.id) {
+      queryClient.setQueryData(dashboardLearnersQueryKey(user.id), updatedLearners);
+    }
+  }, [queryClient, setLearners, settings, user?.id]);
 
+  const effectiveDisplayName = displayName ?? settings?.profile?.displayName ?? "";
+  const effectiveInvoiceEmail = invoiceEmail ?? settings?.parentEmail ?? settings?.email ?? "";
   const primaryLearner = settings?.learners?.[0];
 
   const handleSaveLearner = async (learnerId: string) => {
@@ -102,10 +126,12 @@ export default function ParentSettingsPage() {
     setSavingAccount(true);
     try {
       const updated = await ParentSpaceService.updateSettings({
-        displayName: displayName.trim(),
-        email: invoiceEmail.trim(),
+        displayName: effectiveDisplayName.trim(),
+        email: effectiveInvoiceEmail.trim(),
       });
-      setSettings(updated);
+      queryClient.setQueryData(parentSettingsQueryKey(user?.id), updated);
+      setDisplayName(updated.profile?.displayName ?? effectiveDisplayName);
+      setInvoiceEmail(updated.parentEmail ?? updated.email ?? effectiveInvoiceEmail);
       toast.success("Account details saved!");
     } catch (err: any) {
       toast.error(err?.message || "Could not save account details.");
@@ -135,13 +161,13 @@ export default function ParentSettingsPage() {
 
   const handleToggleSetting = async (field: keyof ParentSettingsResponse, nextVal: any) => {
     if (!settings) return;
-    setSettings({ ...settings, [field]: nextVal });
+    queryClient.setQueryData(parentSettingsQueryKey(user?.id), { ...settings, [field]: nextVal });
     try {
       const updated = await ParentSpaceService.updateSettings({ [field]: nextVal } as any);
-      setSettings(updated);
+      queryClient.setQueryData(parentSettingsQueryKey(user?.id), updated);
     } catch {
       toast.error("Could not save preference.");
-      loadSettings();
+      void loadSettings();
     }
   };
 
@@ -195,9 +221,21 @@ export default function ParentSettingsPage() {
         </h1>
 
         {loading || !settings ? (
-          <div className="flex items-center justify-center py-24">
-            <Loader2 size={32} className="animate-spin text-[#C2456A]" />
-          </div>
+          isError ? (
+            <div className="rounded-3xl border border-[#F1E4E8] bg-white p-8 text-center">
+              <h2 className="m-0 text-xl font-bold text-[#3D2C4A]">We couldn’t load your settings</h2>
+              <p className="mt-2 text-sm text-[#6E5B7A]">Please try again in a moment.</p>
+              <button
+                type="button"
+                onClick={() => { void refetch(); }}
+                className="mt-5 min-h-11 rounded-full bg-[#C2456A] px-5 font-bold text-white hover:bg-[#A8365A]"
+              >
+                Try again
+              </button>
+            </div>
+          ) : (
+            <SettingsLoadingSkeleton />
+          )
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
             {/* Left Sidebar Tabs (Desktop) / Wrap Pills (Mobile) */}
@@ -356,7 +394,7 @@ export default function ParentSettingsPage() {
                     Your name
                     <input
                       type="text"
-                      value={displayName}
+                      value={effectiveDisplayName}
                       onChange={(e) => setDisplayName(e.target.value)}
                       className="min-h-[48px] rounded-xl border border-[#E9DDE6] px-3 text-base"
                     />
@@ -366,7 +404,7 @@ export default function ParentSettingsPage() {
                     Email for invoices
                     <input
                       type="email"
-                      value={invoiceEmail}
+                      value={effectiveInvoiceEmail}
                       onChange={(e) => setInvoiceEmail(e.target.value)}
                       placeholder="you@example.com"
                       className="min-h-[48px] rounded-xl border border-[#E9DDE6] px-3 text-base"

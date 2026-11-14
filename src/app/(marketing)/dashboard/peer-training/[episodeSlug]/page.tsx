@@ -1,16 +1,37 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, CheckCircle2, ChevronRight, BookOpen, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
+import { useAuthStore } from '@/store/auth-store';
 
 export default function MentorEpisodeViewer() {
   const params = useParams();
   const router = useRouter();
-  const [episode, setEpisode] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuthStore();
+  const queryClient = useQueryClient();
+  const episodeSlug = typeof params.episodeSlug === 'string' ? params.episodeSlug : '';
+  const {
+    data: status,
+    isPending: statusLoading,
+  } = useQuery({
+    queryKey: ['peer-training-status', user?.id],
+    enabled: Boolean(user?.id),
+    queryFn: () => apiClient.get<any>('/peerline/training/status'),
+  });
+  const {
+    data: episodeResponse,
+    isPending: episodeLoading,
+  } = useQuery({
+    queryKey: ['peer-training-episode', user?.id, episodeSlug],
+    enabled: Boolean(user?.id && episodeSlug),
+    queryFn: () => apiClient.get<any>(`/peerline/training/episodes/${episodeSlug}`),
+  });
+  const episode = episodeResponse?.episode || episodeResponse || null;
+  const loading = statusLoading || episodeLoading;
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('lesson');
 
@@ -19,40 +40,20 @@ export default function MentorEpisodeViewer() {
   const [reflectionAnswers, setReflectionAnswers] = useState<Record<number, string>>({});
   const [checkAnswers, setCheckAnswers] = useState<Record<number, string>>({});
 
-  const [certificationStatus, setCertificationStatus] = useState<string>('');
-
+  const initializedEpisodeRef = useRef<string | null>(null);
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [statusRes, epRes]: [any, any] = await Promise.all([
-          apiClient.get('/peerline/training/status'),
-          apiClient.get(`/peerline/training/episodes/${params.episodeSlug}`),
-        ]);
-
-        const ep = epRes.episode || epRes;
-        setEpisode(ep);
-        setCertificationStatus(statusRes.certificationStatus);
-
-        // Pre-fill answers if they exist
-        if (statusRes.episodeAnswers?.[ep.slug]) {
-          const prev = statusRes.episodeAnswers[ep.slug];
-          if (prev.reflection) {
-            if (typeof prev.reflection === 'object') {
-              setReflectionAnswers(prev.reflection);
-            } else {
-              setReflectionAnswers({ 0: prev.reflection });
-            }
-          }
-          if (prev.checks) setCheckAnswers(prev.checks);
-        }
-      } catch (err) {
-        console.error('Failed to fetch data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [params.episodeSlug]);
+    if (!status || !episode || initializedEpisodeRef.current === episode.slug) return;
+    initializedEpisodeRef.current = episode.slug;
+    const previousAnswers = status.episodeAnswers?.[episode.slug];
+    setReflectionAnswers(
+      previousAnswers?.reflection
+        ? typeof previousAnswers.reflection === 'object'
+          ? previousAnswers.reflection
+          : { 0: previousAnswers.reflection }
+        : {}
+    );
+    setCheckAnswers(previousAnswers?.checks || {});
+  }, [episode, status]);
 
   // Effect to track tab views
   useEffect(() => {
@@ -71,6 +72,9 @@ export default function MentorEpisodeViewer() {
         episodeSlug: episode.slug,
         reflection: reflectionAnswers,
         checks: checkAnswers,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ['peer-training-status', user?.id],
       });
     } catch (err) {
       console.error('Failed to save progress:', err);
@@ -95,6 +99,7 @@ export default function MentorEpisodeViewer() {
 
   const content = episode.content || {};
 
+  const certificationStatus = status?.certificationStatus || '';
   const isReadOnly = ['pending_conduct', 'submitted', 'certified'].includes(certificationStatus);
 
   // Validation logic

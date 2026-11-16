@@ -26,6 +26,7 @@ import { isAnalyticsEnabled } from '@/components/common/Analytics';
 import { getCurrencySymbol } from '@/lib/utils';
 import { HerBloomGarden } from '@/features/daughter/HerBloomGarden';
 import { WelcomeNoPurchaseSpace } from '@/components/course/WelcomeNoPurchaseSpace';
+import { DashboardPageSkeleton } from '@/components/common/DashboardSkeletons';
 
 // Same STYLES_MAP as ParentsPrograms.tsx for exact match
 const STYLES_MAP: Record<string, any> = {
@@ -411,20 +412,12 @@ export default function CustomerDashboardOverview() {
     (user.role !== 'PEER' || activeProfile?.type === 'DAUGHTER' || activeProfile?.type === 'PARENT' || hasLearners)
   ) {
     if (!enrollmentChecked) {
-      return (
-        <div className="min-h-screen bg-[#FBF8F6] flex items-center justify-center">
-          <Loader2 className="animate-spin text-[#C2456A]" size={32} />
-        </div>
-      );
+      return <DashboardPageSkeleton />;
     }
 
     if (hasCourseEnrollment) {
       if (activeProfile?.type === 'PARENT') {
-        return (
-          <div className="min-h-screen bg-[#FBF8F6] flex items-center justify-center">
-            <Loader2 className="animate-spin text-[#C2456A]" size={32} />
-          </div>
-        );
+        return <DashboardPageSkeleton />;
       }
       return <HerBloomGarden />;
     }
@@ -478,12 +471,7 @@ export default function CustomerDashboardOverview() {
   }
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-32 gap-4 text-primary">
-        <Loader2 className="animate-spin text-primary" size={44} />
-        <span className="font-extrabold text-lg text-slate-600 tracking-wide">Assembling Workspace...</span>
-      </div>
-    );
+    return <DashboardPageSkeleton />;
   }
 
   const enrolledProgramIds = (enrollments || []).map(e => e.programId);

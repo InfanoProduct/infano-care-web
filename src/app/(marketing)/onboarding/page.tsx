@@ -70,8 +70,6 @@ function OnboardingWizard() {
   const [daughterAge, setDaughterAge] = useState('11');
   const [periodStatus, setPeriodStatus] = useState<string | null>(null);
   const [selectedWorries, setSelectedWorries] = useState<string[]>([]);
-  const [sisterName, setSisterName] = useState('');
-  const [showAddSister, setShowAddSister] = useState(false);
 
   // Step 3: Parent space
   const [parentPin, setParentPin] = useState('');
@@ -244,24 +242,6 @@ function OnboardingWizard() {
       if (res.learner) {
         queryClient.setQueryData(dashboardLearnersQueryKey(user?.id), updatedLearners);
         setLearners(updatedLearners);
-      }
-
-      // If sister added as well
-      if (showAddSister && sisterName.trim()) {
-        try {
-          const sisterRes = await OnboardingService.addLearner({
-            name: sisterName.trim(),
-            age: '11',
-            worries: []
-          });
-          if (sisterRes.learner) {
-            updatedLearners.push(sisterRes.learner);
-            queryClient.setQueryData(dashboardLearnersQueryKey(user?.id), [...updatedLearners]);
-            setLearners([...updatedLearners]);
-          }
-        } catch {
-          // non-blocking
-        }
       }
 
       // Update local auth store
@@ -731,31 +711,6 @@ function OnboardingWizard() {
                   })}
                 </div>
               </fieldset>
-
-              {/* Add sister toggle */}
-              {!showAddSister ? (
-                <button
-                  type="button"
-                  onClick={() => setShowAddSister(true)}
-                  className="text-xs font-bold text-[#A8365A] hover:underline self-start inline-flex items-center gap-1.5 min-h-[36px] cursor-pointer"
-                >
-                  <span className="w-5 h-5 rounded-full bg-[#FDEFF0] flex items-center justify-center text-sm font-bold">+</span>
-                  Add her sister too (no extra cost)
-                </button>
-              ) : (
-                <div className="bg-[#FFF8F8] border border-[#F1E4E8] rounded-2xl p-4 flex flex-col gap-2">
-                  <label className="text-xs font-bold text-[#3D2C4A]">
-                    Sister's name:
-                    <input
-                      type="text"
-                      value={sisterName}
-                      onChange={(e) => setSisterName(e.target.value)}
-                      placeholder="e.g. Meera"
-                      className="w-full mt-1.5 min-h-[44px] rounded-xl border border-[#E9DDE6] px-3.5 text-sm font-semibold text-[#3D2C4A] bg-white focus:outline-none focus:border-[#C2456A]"
-                    />
-                  </label>
-                </div>
-              )}
 
               {/* Continue Button */}
               <div className="pt-2">

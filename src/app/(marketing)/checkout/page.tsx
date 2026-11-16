@@ -325,8 +325,8 @@ function CheckoutContent() {
       setError('Please enter a valid 10-digit mobile number');
       return false;
     }
-    if (!fullName.trim()) {
-      setError('Please enter your full name');
+    if (!fullName.trim() || fullName.trim().length < 2) {
+      setError('Please enter your full name (minimum 2 characters)');
       return false;
     }
     if (!pincode.trim() || (region === 'IN' && pincode.replace(/\D/g, '').length !== 6)) {
@@ -438,8 +438,13 @@ function CheckoutContent() {
           },
           prefill: {
             name: fullName.trim(),
-            contact: cleanPhone,
+            contact: cleanPhone.startsWith('+') ? cleanPhone : `+91${cleanPhone.slice(-10)}`,
             email: email.trim() || user?.email || '',
+          },
+          readonly: {
+            contact: true,
+            email: Boolean(email.trim() || user?.email),
+            name: Boolean(fullName.trim()),
           },
           theme: {
             color: '#C2456A',

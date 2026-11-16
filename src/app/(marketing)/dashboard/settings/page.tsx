@@ -284,7 +284,7 @@ export default function ParentSettingsPage() {
                   <div>
                     <h2 className="m-0 text-xl font-bold text-[#3D2C4A]">Learner profiles</h2>
                     <p className="mt-0.5 mb-0 text-sm text-[#5E4B6B]">
-                      Your account can hold her and one sister, at no extra cost.
+                      Manage your learner profile and preferences.
                     </p>
                   </div>
 
@@ -367,21 +367,6 @@ export default function ParentSettingsPage() {
                       </div>
                     );
                   })}
-
-                  <Link
-                    href="/dashboard/picker"
-                    className="flex items-center gap-3 border-2 border-dashed border-[#D9C3CF] hover:border-[#C2456A] rounded-[20px] p-4 text-[#3D2C4A] transition-colors"
-                  >
-                    <span className="w-11 h-11 rounded-full bg-[#FDEFF0] grid place-items-center text-2xl text-[#A8365A] shrink-0">
-                      +
-                    </span>
-                    <span>
-                      <strong className="block font-bold text-sm sm:text-base">Add her sister</strong>
-                      <span className="text-xs sm:text-sm text-[#5E4B6B]">
-                        Her own garden, badges and private journal. No extra cost.
-                      </span>
-                    </span>
-                  </Link>
                 </div>
               )}
 

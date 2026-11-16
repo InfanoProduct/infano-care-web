@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { InvoiceModal } from '@/components/common/InvoiceModal';
 import { getCurrencySymbol } from '@/lib/utils';
+import { LedgerSkeleton } from '@/components/common/DashboardSkeletons';
 
 export default function CustomerPaymentsOverview() {
   const { user } = useAuthStore();
@@ -49,12 +50,7 @@ export default function CustomerPaymentsOverview() {
   const orders = paymentData?.orders || [];
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-32 gap-4 text-primary">
-        <Loader2 className="animate-spin text-primary" size={44} />
-        <span className="font-extrabold text-lg text-slate-650 tracking-wide">Compiling Financial Ledger...</span>
-      </div>
-    );
+    return <LedgerSkeleton />;
   }
 
   // Calculate totals and statistics

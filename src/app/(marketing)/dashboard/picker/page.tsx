@@ -9,11 +9,9 @@ import { OnboardingService } from '@/services/onboarding.service';
 import { hasActiveCourseEnrollment, ParentSpaceService } from '@/services/parent-space.service';
 import { useDashboardLearners, dashboardLearnersQueryKey } from '@/hooks/use-dashboard-data';
 import { parentOrdersSummaryQueryKey } from '@/hooks/use-parent-space-data';
-import { Lock, X, Plus, Loader2, Sparkles, UserPlus, KeyRound, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { Lock, X, Plus, Loader2, Sparkles, KeyRound, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-
-const AGES = ['9', '10', '11', '12', '13', '14', '15+'];
-const PERIOD_STATUSES = ['Yes', 'Not yet', 'Not sure', 'Prefer not to say'];
+import { ProfilePickerSkeleton } from '@/components/common/DashboardSkeletons';
 
 export default function ProfilePickerPage() {
   const router = useRouter();
@@ -47,13 +45,6 @@ export default function ProfilePickerPage() {
   const [resetLoading, setResetLoading] = useState(false);
   const resetOtpRef = useRef<HTMLInputElement>(null);
   const resetNewPinRef = useRef<HTMLInputElement>(null);
-
-  // Add Sister modal state
-  const [addSisterOpen, setAddSisterOpen] = useState(false);
-  const [sisterName, setSisterName] = useState('');
-  const [sisterAge, setSisterAge] = useState('11');
-  const [sisterPeriodStatus, setSisterPeriodStatus] = useState('Not yet');
-  const [addingSister, setAddingSister] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated || !user?.id) {
@@ -149,38 +140,6 @@ export default function ProfilePickerPage() {
     router.push('/dashboard');
   };
 
-  const handleAddSisterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!sisterName.trim()) {
-      toast.error('Please enter her name');
-      return;
-    }
-    setAddingSister(true);
-    try {
-      const res = await OnboardingService.addLearner({
-        name: sisterName.trim(),
-        age: sisterAge,
-        periodStatus: sisterPeriodStatus,
-        worries: []
-      });
-      if (res.learner) {
-        const updated = [...learners, res.learner];
-        queryClient.setQueryData(dashboardLearnersQueryKey(user?.id), updated);
-        setLearners(updated);
-        void queryClient.invalidateQueries({
-          queryKey: parentOrdersSummaryQueryKey(user?.id),
-        });
-        toast.success(`${sisterName} has been added!`);
-        setAddSisterOpen(false);
-        setSisterName('');
-      }
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to add learner profile');
-    } finally {
-      setAddingSister(false);
-    }
-  };
-
   const handleLogout = () => {
     clearAuth();
     router.push('/login');
@@ -247,11 +206,7 @@ export default function ProfilePickerPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#FFFAF6] flex items-center justify-center">
-        <Loader2 className="animate-spin text-[#C2456A]" size={36} />
-      </div>
-    );
+    return <ProfilePickerSkeleton />;
   }
 
   const phoneDisplay = user?.phone
@@ -358,25 +313,6 @@ export default function ProfilePickerPage() {
               PIN protected
             </span>
           </button>
-
-          {/* Add Learner Tile in Grid on Desktop */}
-          <button
-            type="button"
-            onClick={() => setAddSisterOpen(true)}
-            className="border-2 border-dashed border-[#D9C3CF] hover:border-[#A8365A] bg-[#FFFAF6]/60 hover:bg-white rounded-[32px] p-6 sm:p-7 flex flex-col items-center justify-center gap-3 transition-all duration-300 cursor-pointer text-center min-h-[240px] md:min-h-[260px] group shadow-2xs hover:shadow-md"
-          >
-            <span className="w-14 h-14 rounded-full bg-[#FDEFF0] group-hover:bg-[#C2456A] group-hover:text-white transition-colors flex items-center justify-center text-2xl text-[#A8365A] font-bold shadow-xs">
-              +
-            </span>
-            <div>
-              <strong className="block font-bold text-base sm:text-lg text-[#3D2C4A] group-hover:text-[#A8365A] transition-colors">
-                Add a learner
-              </strong>
-              <span className="text-xs font-semibold text-[#6E5B7A] block mt-0.5">
-                A sister · No extra cost
-              </span>
-            </div>
-          </button>
         </div>
 
         {/* Footer */}
@@ -391,92 +327,6 @@ export default function ProfilePickerPage() {
           </button>
         </div>
       </div>
-
-      {/* Add Sister Modal */}
-      {addSisterOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#3D2C4A]/40 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-[460px] bg-white rounded-[32px] p-6 sm:p-8 shadow-2xl relative border border-[#F1E4E8] animate-in zoom-in-95">
-            <button
-              type="button"
-              onClick={() => setAddSisterOpen(false)}
-              className="absolute top-6 right-6 w-9 h-9 rounded-full bg-[#FFFAF6] flex items-center justify-center text-[#3D2C4A] hover:bg-[#F1E4E8] cursor-pointer transition-colors"
-            >
-              <X size={18} />
-            </button>
-            <div className="flex items-center gap-2 mb-1">
-              <UserPlus size={20} className="text-[#C2456A]" />
-              <h2 className="text-2xl font-bold text-[#3D2C4A]">Add her sister</h2>
-            </div>
-            <p className="text-xs sm:text-sm text-[#6E5B7A] mb-5">
-              She gets her own personalized bloom garden and separate progress tracker.
-            </p>
-
-            <form onSubmit={handleAddSisterSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-[#3D2C4A] mb-1">Sister's name</label>
-                <input
-                  type="text"
-                  value={sisterName}
-                  onChange={(e) => setSisterName(e.target.value)}
-                  placeholder="e.g. Meera"
-                  className="w-full min-h-[48px] px-4 rounded-xl border border-[#D9C3CF] text-sm font-bold text-[#3D2C4A] focus:outline-none focus:border-[#C2456A]"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#3D2C4A] mb-1.5">Her age</label>
-                <div className="flex flex-wrap gap-2">
-                  {AGES.map((a) => (
-                    <button
-                      key={a}
-                      type="button"
-                      onClick={() => setSisterAge(a)}
-                      className={`min-h-[38px] px-4 rounded-full text-xs font-bold cursor-pointer transition-all ${
-                        sisterAge === a
-                          ? 'bg-[#3D2C4A] text-white shadow-xs'
-                          : 'bg-[#FFFAF6] text-[#3D2C4A] border border-[#E9DDE6] hover:border-[#3D2C4A]'
-                      }`}
-                    >
-                      {a}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#3D2C4A] mb-1.5">Has she had her first period?</label>
-                <div className="flex flex-wrap gap-2">
-                  {PERIOD_STATUSES.map((ps) => (
-                    <button
-                      key={ps}
-                      type="button"
-                      onClick={() => setSisterPeriodStatus(ps)}
-                      className={`min-h-[36px] px-3.5 rounded-full text-xs font-bold cursor-pointer transition-all ${
-                        sisterPeriodStatus === ps
-                          ? 'bg-[#24735A] text-white shadow-xs'
-                          : 'bg-[#EAF7F1] text-[#24735A] hover:bg-[#D4EFE4]'
-                      }`}
-                    >
-                      {ps}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-3">
-                <button
-                  type="submit"
-                  disabled={addingSister}
-                  className="w-full min-h-[50px] rounded-full bg-[#C2456A] hover:bg-[#A8365A] text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50 transition-all"
-                >
-                  {addingSister ? <Loader2 size={18} className="animate-spin" /> : 'Create profile'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* PIN Bottom Sheet / Desktop Modal */}
       {pinOpen && (

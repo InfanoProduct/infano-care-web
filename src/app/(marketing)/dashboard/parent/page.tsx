@@ -425,12 +425,7 @@ export default function ParentDashboardPage() {
                 aria-label="Choose learner"
                 value={activeLearnerIndex}
                 onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === 'add') {
-                    router.push('/dashboard/picker');
-                  } else {
-                    setActiveLearnerIndex(Number(val));
-                  }
+                  setActiveLearnerIndex(Number(e.target.value));
                 }}
                 className="bg-transparent text-sm font-bold text-[#3D2C4A] focus:outline-none cursor-pointer pr-1"
               >
@@ -439,7 +434,6 @@ export default function ParentDashboardPage() {
                     {l.name}, {l.age}
                   </option>
                 ))}
-                <option value="add">+ Add her sister</option>
               </select>
             </div>
 

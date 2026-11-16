@@ -23,6 +23,7 @@ export default function MarketingLayout({
   const isProgramDetail = cleanPathname.startsWith("/programs/") && cleanPathname !== "/programs" && cleanPathname !== "/programs/";
   const isCoursePage = cleanPathname.startsWith("/course");
   const isPurchaseSuccess = cleanPathname.startsWith("/purchase-success");
+  const isSchoolLanding = cleanPathname === "/schools" || cleanPathname.startsWith("/schools/");
 
   // Portal routes where the website main navbar, footer, and top padding must be hidden
   const isPortal = isDashboard || isLogin || isOnboarding || isProgramDetail || isCoursePage || isPurchaseSuccess;
@@ -42,17 +43,17 @@ export default function MarketingLayout({
 
   return (
     <div className="flex flex-col min-h-screen">
-      {!isPortal && (
+      {!isPortal && !isSchoolLanding && (
         <Suspense fallback={null}>
           <MarketingNavbar />
         </Suspense>
       )}
 
-      <main className={`flex-1 w-full ${!isPortal ? "pt-20" : ""}`}>
+      <main className={`flex-1 w-full ${!isPortal && !isSchoolLanding ? "pt-20" : ""}`}>
         {children}
       </main>
 
-      {!isPortal && !isPurchaseSuccess && !cleanPathname.startsWith("/webinar") && (
+      {!isPortal && !isSchoolLanding && !isPurchaseSuccess && !cleanPathname.startsWith("/webinar") && (
         <MarketingFooter />
       )}
 

@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useEnquiries } from '@/features/enquiries/hooks/use-enquiries';
+import type { Enquiry, EnquiryStatus } from '@/features/enquiries/services/enquiry-api';
 import { 
   FileQuestion, Search, Mail, Phone, 
-  Building2, Clock, Eye, UserCircle, Handshake
+  Building2, Eye, UserCircle, Handshake
 } from 'lucide-react';
 
 export default function EnquiriesPage() {
@@ -13,7 +14,7 @@ export default function EnquiriesPage() {
   
   const { data: enquiries = [], isLoading, error } = useEnquiries();
 
-  const filteredEnquiries = enquiries.filter((enq: any) => 
+  const filteredEnquiries = enquiries.filter((enq) =>
     (enq.schoolName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (enq.contactName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (enq.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -32,11 +33,21 @@ export default function EnquiriesPage() {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'school': return 'from-primary/10 to-primary-light/5 text-primary border-primary/10';
+      case 'school':
+      case 'school_health_check': return 'from-primary/10 to-primary-light/5 text-primary border-primary/10';
       case 'parent': return 'from-emerald-500/10 to-emerald-400/5 text-emerald-600 border-emerald-500/10';
       case 'partner': return 'from-blue-500/10 to-blue-400/5 text-blue-600 border-blue-500/10';
       case 'peer_connect': return 'from-violet-500/10 to-violet-400/5 text-violet-600 border-violet-500/10';
       default: return 'from-slate-100 to-slate-50 text-slate-600 border-slate-200';
+    }
+  };
+
+  const getStatusColor = (status: EnquiryStatus) => {
+    switch (status) {
+      case 'NEW': return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'CONTACTED': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'SCHEDULED': return 'bg-violet-50 text-violet-700 border-violet-200';
+      case 'COMPLETED': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
     }
   };
 
@@ -112,6 +123,7 @@ export default function EnquiriesPage() {
               <thead>
                 <tr className="bg-slate-50/50 border-b border-border">
                   <th className="px-6 py-4 text-[11px] uppercase tracking-[0.15em] font-semibold text-muted-foreground">Type</th>
+                  <th className="px-6 py-4 text-[11px] uppercase tracking-[0.15em] font-semibold text-muted-foreground">Status</th>
                   <th className="px-6 py-4 text-[11px] uppercase tracking-[0.15em] font-semibold text-muted-foreground">Subject / Entity</th>
                   <th className="px-6 py-4 text-[11px] uppercase tracking-[0.15em] font-semibold text-muted-foreground">Contact Person</th>
                   <th className="px-6 py-4 text-[11px] uppercase tracking-[0.15em] font-semibold text-muted-foreground">Phone Number</th>
@@ -126,24 +138,30 @@ export default function EnquiriesPage() {
                     <SkeletonRow key={i} />
                   ))
                 ) : (
-                  filteredEnquiries.map((enquiry: any) => (
+                  filteredEnquiries.map((enquiry: Enquiry) => (
                     <tr key={enquiry.id} className="hover:bg-primary/[0.02] transition-colors group">
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border bg-gradient-to-br ${getTypeColor(enquiry.type)}`}>
-                          {enquiry.type === 'peer_connect' ? 'peer mentor' : (enquiry.type || 'school')}
+                          {enquiry.type === 'peer_connect' ? 'peer mentor' : enquiry.type === 'school_health_check' ? 'health check' : (enquiry.type || 'school')}
+                        </span>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(enquiry.status || 'NEW')}`}>
+                          {(enquiry.status || 'NEW').toLowerCase()}
                         </span>
                       </td>
 
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className={`w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center font-bold text-sm shadow-sm border group-hover:scale-110 transition-transform shrink-0 ${getTypeColor(enquiry.type)}`}>
-                            {enquiry.type === 'school' ? <Building2 size={18} /> : enquiry.type === 'peer_connect' ? <UserCircle size={18} /> : enquiry.type === 'parent' ? <UserCircle size={18} /> : <Handshake size={18} />}
+                            {enquiry.type === 'school' || enquiry.type === 'school_health_check' ? <Building2 size={18} /> : enquiry.type === 'peer_connect' ? <UserCircle size={18} /> : enquiry.type === 'parent' ? <UserCircle size={18} /> : <Handshake size={18} />}
                           </div>
                           <div>
                             <span className="text-sm font-semibold text-slate-800 block leading-tight">
                               {enquiry.type === 'peer_connect' 
                                 ? `Session with ${enquiry.peerMentorName || 'Mentor'}` 
-                                : enquiry.type === 'school' 
+                                : enquiry.type === 'school' || enquiry.type === 'school_health_check'
                                   ? enquiry.schoolName 
                                   : (enquiry.contactName || 'General Enquiry')}
                             </span>
@@ -162,7 +180,7 @@ export default function EnquiriesPage() {
                         <div className="space-y-0.5">
                           <span className="text-sm font-medium text-slate-600 block">{enquiry.contactName || '—'}</span>
                           <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Mail size={12} /> {enquiry.email}
+                            <Mail size={12} /> {enquiry.email || '—'}
                           </span>
                         </div>
                       </td>
@@ -195,7 +213,7 @@ export default function EnquiriesPage() {
 
                 {!isLoading && filteredEnquiries.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-8 py-16 text-center">
+                    <td colSpan={7} className="px-8 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center">
                           <FileQuestion size={22} className="text-slate-300" />

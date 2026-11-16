@@ -421,7 +421,7 @@ export function WelcomeNoPurchaseSpace({
                   </li>
                   <li className="flex items-start gap-2">
                     <Check size={16} className="text-[#2F7F62] shrink-0 mt-0.5" />
-                    <span>Lifetime access · up to 2 sisters</span>
+                    <span>Lifetime family access</span>
                   </li>
                 </ul>
               </div>

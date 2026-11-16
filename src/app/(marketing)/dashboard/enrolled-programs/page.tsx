@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
 import { useDashboardOverview } from '@/hooks/use-dashboard-data';
+import { ProgramsListSkeleton } from '@/components/common/DashboardSkeletons';
 
 const THEMES_MAP: Record<string, { accent: string; gradient: string; border: string; badge: string; pill: string }> = {
   'SPARK':       { accent: 'text-rose-600',    gradient: 'from-rose-500 to-pink-600',     border: 'border-rose-100',    badge: 'bg-rose-50 border-rose-100 text-rose-700',    pill: 'bg-rose-100 text-rose-600' },
@@ -29,9 +30,12 @@ export default function EnrolledProgramsPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-32 gap-4">
-        <Loader2 className="animate-spin text-primary" size={40} />
-        <span className="font-bold text-slate-500 text-sm">Loading your programs...</span>
+      <div className="space-y-6">
+        <div>
+          <div className="h-6 w-36 rounded-md bg-slate-200 animate-pulse" />
+          <div className="h-4 w-64 rounded-md bg-slate-100 animate-pulse mt-2" />
+        </div>
+        <ProgramsListSkeleton />
       </div>
     );
   }

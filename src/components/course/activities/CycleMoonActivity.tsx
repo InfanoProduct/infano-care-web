@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, RotateCcw } from "lucide-react";
+import { ArrowRight, RotateCcw, GripVertical } from "lucide-react";
 
 export interface ActivityProps {
   config: any;
@@ -36,6 +36,10 @@ export function CycleMoonActivity({
   const [lastPlacedId, setLastPlacedId] = useState<string | null>(null);
   const [reported, setReported] = useState(false);
 
+  // Drag and drop states
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [hoveredSlotId, setHoveredSlotId] = useState<string | null>(null);
+
   const byPosition: Record<string, any> = {};
   for (const sl of slotsConfig) {
     byPosition[sl.position] = sl;
@@ -59,12 +63,15 @@ export function CycleMoonActivity({
     .sort((a, b) => cardOrder.indexOf(a.id) - cardOrder.indexOf(b.id))
     .filter((s) => !placed[s.id]);
 
-  const handleSlotTap = (slotId: string) => {
-    if (!selectedId || placed[slotId]) return;
-    if (selectedId === slotId) {
+  // Core placement logic
+  const handlePlace = (petalId: string, slotId: string) => {
+    if (!petalId || placed[slotId]) return;
+    if (petalId === slotId) {
       const nextPlaced = { ...placed, [slotId]: true };
       setPlaced(nextPlaced);
       setSelectedId(null);
+      setDraggedId(null);
+      setHoveredSlotId(null);
       setWrongId(null);
       setLastPlacedId(slotId);
       if (Object.keys(nextPlaced).length === slotsConfig.length && !reported) {
@@ -73,8 +80,84 @@ export function CycleMoonActivity({
       }
     } else {
       setWrongId(slotId);
+      setSelectedId(petalId);
       setLastPlacedId(null);
     }
+  };
+
+  const handleSlotTap = (slotId: string) => {
+    if (!selectedId || placed[slotId]) return;
+    handlePlace(selectedId, slotId);
+  };
+
+  // Drag events (Mouse / Desktop)
+  const handleDragStart = (e: React.DragEvent, cardId: string) => {
+    e.dataTransfer.setData("text/plain", cardId);
+    e.dataTransfer.effectAllowed = "move";
+    setDraggedId(cardId);
+    setSelectedId(cardId);
+    setWrongId(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedId(null);
+    setHoveredSlotId(null);
+  };
+
+  const handleDragOverSlot = (e: React.DragEvent, slotId: string) => {
+    if (placed[slotId]) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (hoveredSlotId !== slotId) {
+      setHoveredSlotId(slotId);
+    }
+  };
+
+  const handleDragLeaveSlot = (e: React.DragEvent) => {
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setHoveredSlotId(null);
+  };
+
+  const handleDropOnSlot = (e: React.DragEvent, slotId: string) => {
+    e.preventDefault();
+    setHoveredSlotId(null);
+    const droppedPetalId = e.dataTransfer.getData("text/plain") || draggedId || selectedId;
+    if (droppedPetalId) {
+      handlePlace(droppedPetalId, slotId);
+    }
+    setDraggedId(null);
+  };
+
+  // Touch drag events (Mobile / Tablet)
+  const handleTouchStart = (cardId: string) => {
+    setSelectedId(cardId);
+    setDraggedId(cardId);
+    setWrongId(null);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!draggedId) return;
+    const touch = e.touches[0];
+    if (!touch) return;
+    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+    const slotEl = target?.closest("[data-slot-id]") as HTMLElement | null;
+    const currentSlotId = slotEl?.dataset?.slotId || null;
+    setHoveredSlotId(currentSlotId);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!draggedId) return;
+    const touch = e.changedTouches[0];
+    if (touch) {
+      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+      const slotEl = target?.closest("[data-slot-id]") as HTMLElement | null;
+      const dropSlotId = slotEl?.dataset?.slotId;
+      if (dropSlotId) {
+        handlePlace(draggedId, dropSlotId);
+      }
+    }
+    setDraggedId(null);
+    setHoveredSlotId(null);
   };
 
   const reset = () => {
@@ -82,19 +165,22 @@ export function CycleMoonActivity({
     setPlaced({});
     setWrongId(null);
     setLastPlacedId(null);
+    setDraggedId(null);
+    setHoveredSlotId(null);
   };
 
-  const selectedSlot = slotsConfig.find((s) => s.id === selectedId);
+  const activeId = draggedId || selectedId;
+  const activeSlot = slotsConfig.find((s) => s.id === activeId);
   const lastSlot = slotsConfig.find((s) => s.id === lastPlacedId);
 
-  let feedback = "Pick a petal to begin.";
+  let feedback = "Drag a petal to the moon (or tap to place).";
   let fbBg = "bg-white";
-  if (selectedSlot && !wrongId) {
-    feedback = `Now tap where "${selectedSlot.label}" belongs on the moon.`;
-  } else if (wrongId && selectedSlot) {
-    feedback = `Not quite! Hint: ${selectedSlot.hint}`;
+  if (activeSlot && !wrongId) {
+    feedback = `Drop or tap where "${activeSlot.label}" belongs on the moon.`;
+  } else if (wrongId && activeSlot) {
+    feedback = `Not quite! Hint: ${activeSlot.hint}`;
     fbBg = "bg-[#FFF1E6]";
-  } else if (lastSlot && !selectedSlot) {
+  } else if (lastSlot && !activeSlot) {
     feedback = lastSlot.fact;
     fbBg = "bg-[#EAF7F1]";
   }
@@ -122,11 +208,11 @@ export function CycleMoonActivity({
           <div className="bg-white rounded-tr-2xl rounded-br-2xl rounded-bl-2xl rounded-tl-xs px-4 py-2.5 font-['Baloo_2',sans-serif] font-semibold text-base sm:text-lg leading-snug text-[#3D2C4A] shadow-xs">
             {done
               ? "Wow! You know your cycle now!"
-              : "Tap a petal, then tap its place on the moon. Start at the top right and go round!"}
+              : "Drag a petal to its place on the moon, or tap to place!"}
           </div>
         </div>
 
-        {/* Moon Wheel */}
+        {/* Moon Wheel with Drop Targets */}
         <div
           className={`relative w-[292px] h-[292px] sm:w-[320px] sm:h-[320px] transition-transform duration-1000 ${
             done ? "rotate-[360deg]" : ""
@@ -137,24 +223,45 @@ export function CycleMoonActivity({
               if (!slot) return null;
               const filled = !!placed[slot.id];
               const isWrong = wrongId === slot.id;
+              const isHovered = hoveredSlotId === slot.id && !filled;
+              const isDragActive = !!draggedId && !filled;
+
               return (
                 <button
                   key={slot.id}
                   type="button"
+                  data-slot-id={slot.id}
                   onClick={() => handleSlotTap(slot.id)}
-                  aria-label={filled ? `${slot.label}, ${slot.days}` : `Empty slot, ${slot.days}`}
+                  onDragOver={(e) => handleDragOverSlot(e, slot.id)}
+                  onDragLeave={handleDragLeaveSlot}
+                  onDrop={(e) => handleDropOnSlot(e, slot.id)}
+                  aria-label={filled ? `${slot.label}, ${slot.days}` : `Drop slot for ${slot.days}`}
                   style={{
-                    backgroundColor: filled ? slot.color : "rgba(255,255,255,0.65)",
+                    backgroundColor: filled
+                      ? slot.color
+                      : isHovered
+                      ? "rgba(194, 69, 106, 0.15)"
+                      : "rgba(255,255,255,0.65)",
                   }}
                   className={`flex flex-col justify-center p-4 gap-0.5 text-[#3D2C4A] cursor-pointer transition-all ${shape} ${
                     filled
                       ? "border-[3px] border-white shadow-sm"
+                      : isHovered
+                      ? "border-[3px] border-[#C2456A] shadow-md scale-[1.02] bg-[#FDEFF0]"
+                      : isDragActive
+                      ? "border-[3px] border-dashed border-[#C2456A]/60 animate-pulse"
                       : "border-[3px] border-dashed border-[#B9D4EA] hover:border-[#2F6494]"
                   } ${isWrong ? "animate-pulse ring-2 ring-[#F0AF7E]" : ""}`}
                 >
                   <span className="text-[11px] font-bold text-[#5E4B6B]">{slot.days}</span>
                   <span className="font-['Baloo_2',sans-serif] font-bold text-base sm:text-lg leading-tight">
-                    {filled ? slot.label : "?"}
+                    {filled ? (
+                      slot.label
+                    ) : isHovered ? (
+                      <span className="text-[#C2456A] text-sm">Drop here</span>
+                    ) : (
+                      "?"
+                    )}
                   </span>
                 </button>
               );
@@ -179,7 +286,7 @@ export function CycleMoonActivity({
         </p>
       </div>
 
-      {/* Right/Bottom: Feedback + Cards or Done Panel */}
+      {/* Right/Bottom: Feedback + Draggable Cards or Done Panel */}
       <div className="lg:col-span-6 flex flex-col gap-4 w-full max-w-lg mx-auto">
         <div className={`min-h-[76px] rounded-2xl p-4 text-sm sm:text-base font-medium text-[#3D2C4A] border border-[#F1E4E8] shadow-xs transition-colors ${fbBg}`}>
           {feedback}
@@ -189,26 +296,41 @@ export function CycleMoonActivity({
           <div className="grid grid-cols-2 gap-3">
             {remainingCards.map((card) => {
               const isSel = selectedId === card.id;
+              const isDragging = draggedId === card.id;
+
               return (
-                <button
+                <div
                   key={card.id}
-                  type="button"
+                  draggable={!done}
+                  onDragStart={(e) => handleDragStart(e, card.id)}
+                  onDragEnd={handleDragEnd}
+                  onTouchStart={() => handleTouchStart(card.id)}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
                   onClick={() => {
                     setSelectedId(card.id);
                     setWrongId(null);
                   }}
+                  role="button"
+                  tabIndex={0}
                   aria-pressed={isSel}
-                  className={`min-h-[68px] rounded-2xl rounded-bl-md px-3.5 py-2.5 flex items-center gap-2.5 text-left font-bold text-sm sm:text-base text-[#3D2C4A] bg-white cursor-pointer transition-all ${
-                    isSel
+                  aria-grabbed={isDragging}
+                  className={`min-h-[68px] rounded-2xl rounded-bl-md px-3.5 py-2.5 flex items-center justify-between gap-2 text-left font-bold text-sm sm:text-base text-[#3D2C4A] bg-white cursor-grab active:cursor-grabbing select-none transition-all ${
+                    isDragging
+                      ? "opacity-50 scale-95 border-2 border-dashed border-[#C2456A]"
+                      : isSel
                       ? "border-[3px] border-[#C2456A] shadow-md scale-[1.02]"
-                      : "border-2 border-white shadow-xs hover:border-[#C2456A]/40"
+                      : "border-2 border-white shadow-xs hover:border-[#C2456A]/40 hover:shadow-sm"
                   }`}
                 >
-                  <svg width="26" height="30" viewBox="0 0 16 22" aria-hidden="true" className="shrink-0">
-                    <ellipse cx="8" cy="11" rx="6" ry="10" fill={card.color} stroke="#3D2C4A" strokeWidth="0.8" />
-                  </svg>
-                  <span>{card.label}</span>
-                </button>
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <svg width="26" height="30" viewBox="0 0 16 22" aria-hidden="true" className="shrink-0">
+                      <ellipse cx="8" cy="11" rx="6" ry="10" fill={card.color} stroke="#3D2C4A" strokeWidth="0.8" />
+                    </svg>
+                    <span className="truncate">{card.label}</span>
+                  </div>
+                  <GripVertical size={16} className="text-[#A092A8] shrink-0 opacity-60 hover:opacity-100" />
+                </div>
               );
             })}
           </div>
@@ -241,4 +363,3 @@ export function CycleMoonActivity({
     </div>
   );
 }
-

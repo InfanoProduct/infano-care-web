@@ -5,6 +5,7 @@ import Link from "next/link";
 import { DaughterShell } from "@/features/daughter/DaughterShell";
 import { resolveResumeStepPath, useCourseCurriculum, useLearnerCourseState } from "@/hooks/use-course";
 import { ArrowRight, Award, Check, Lock, Play, Sparkles, Compass, Loader2 } from "lucide-react";
+import { CoursesGridSkeleton } from "@/components/common/DashboardSkeletons";
 
 export default function CourseHomePage() {
   const { data: curriculum, isLoading: loadingCur } = useCourseCurriculum();
@@ -72,9 +73,7 @@ export default function CourseHomePage() {
       </header>
 
       {loadingCur || loadingState ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 size={32} className="animate-spin text-[#C2456A]" />
-        </div>
+        <CoursesGridSkeleton />
       ) : (
         <>
           {learnerState?.isEnrolled === false && (

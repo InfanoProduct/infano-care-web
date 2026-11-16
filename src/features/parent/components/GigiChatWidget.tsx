@@ -393,6 +393,7 @@ export function GigiChatWidget() {
 
   const cleanPathname = pathname ? pathname.replace(/^\/en-(us|uk)/, '') : '';
   const isExcludedPage = 
+    (cleanPathname === '/schools' || cleanPathname.startsWith('/schools/')) ||
     cleanPathname.startsWith('/admin') || 
     cleanPathname.startsWith('/peerline') || 
     cleanPathname.startsWith('/dashboard/peer-training') ||

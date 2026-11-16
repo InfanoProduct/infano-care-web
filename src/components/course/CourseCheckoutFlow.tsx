@@ -62,7 +62,7 @@ const PLANS: Record<PlanKey, PlanConfig> = {
       "[40+] activities, games & 6 assessments",
       "Parent Companion Guide & conversation cards",
       "Cycle diary, badges & certificate",
-      "Lifetime access for her (and a sister)"
+      "Lifetime access for her"
     ],
     lines: [
       { label: "MRP", value: "₹1,998" },
@@ -240,6 +240,10 @@ export default function CourseCheckoutFlow() {
           setIsReaderVerified(true);
           setVerifiedReaderPhone(accountPhone);
           setSelectedPlan("reader");
+        } else {
+          setReaderVerificationErr(
+            `No Gigi book order found on your account (+91 ${accountPhone}). If you purchased the book using another mobile number, enter it below to unlock the ₹299 price.`
+          );
         }
       })
       .catch((error) => {
@@ -436,6 +440,7 @@ export default function CourseCheckoutFlow() {
           description: `${currentPlan.name} · Girlhood: HerNext`,
           image: "/logo/infano-logo-for-light-bg.png",
           order_id: res.razorpay.orderId,
+          remember_customer: false,
           handler: async function (response: any) {
             setFlowStep("confirming");
             try {
@@ -477,7 +482,13 @@ export default function CourseCheckoutFlow() {
           prefill: {
             name: name.trim(),
             email: email.trim(),
-            contact: `+91${phone.trim()}`
+            contact: phone.trim().startsWith("+")
+              ? phone.trim()
+              : `+91${phone.replace(/\D/g, "").slice(-10)}`
+          },
+          readonly: {
+            contact: true,
+            email: true
           },
           theme: {
             color: "#C2456A"
@@ -541,13 +552,13 @@ export default function CourseCheckoutFlow() {
   return (
     <>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
-      <link
-        href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,600&display=swap"
-        rel="stylesheet"
-      />
 
       {/* Embedded CSS animations and template font rules from design artifacts */}
-      <style jsx global>{`
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,600&display=swap');
+
         .hn-checkout-root,
         .hn-checkout-root * {
           font-family: 'Noto Sans', var(--font-noto-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
@@ -665,7 +676,9 @@ export default function CourseCheckoutFlow() {
             opacity: 1;
           }
         }
-      `}</style>
+      `
+        }}
+      />
 
       {/* ─────────────────────────────────────────────────────────────────────────────
           STATE 1: CONFIRMING PAYMENT (C3)
@@ -1152,12 +1165,6 @@ export default function CourseCheckoutFlow() {
                     1. Choose your plan
                   </h2>
 
-                  {isAuthenticated && !readerEligibilityResolved && (
-                    <p role="status" className="mb-3 text-sm font-semibold text-[#6E5B7A]">
-                      Checking your Gigi book purchase…
-                    </p>
-                  )}
-
                   <div
                     role="radiogroup"
                     aria-label="Plan options"
@@ -1175,7 +1182,6 @@ export default function CourseCheckoutFlow() {
                           type="button"
                           role="radio"
                           aria-checked={isSelected}
-                          disabled={isReaderVerified || (isAuthenticated && !readerEligibilityResolved)}
                           onClick={() => setSelectedPlan(pKey)}
                           className={`relative text-left rounded-2xl p-4 flex flex-col justify-between transition-all min-h-[108px] ${
                             isSelected

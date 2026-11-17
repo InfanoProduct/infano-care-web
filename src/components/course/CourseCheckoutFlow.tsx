@@ -73,7 +73,7 @@ const PLANS: Record<PlanKey, PlanConfig> = {
   bundle: {
     id: "bundle",
     tag: "BEST VALUE",
-    name: "Course + Gigi Book",
+    name: "Course + Gigi Book & Workbook",
     priceNum: 1099,
     price: "₹1,099",
     mrp: "₹2,498",
@@ -81,14 +81,14 @@ const PLANS: Record<PlanKey, PlanConfig> = {
     accent: "#2F7F62",
     includes: [
       "Everything in the course",
-      "Gigi: The Awkward Age book, delivered home",
+      "Gigi: The Awkward Age book + Activity Field Guide & Workbook, delivered home",
       "Read the book, then play the lessons: one story, two ways",
-      "Course unlocks today; book ships in 3–5 days",
+      "Course unlocks today; book + workbook ship in 3–5 days",
       "Lifetime access"
     ],
     lines: [
       { label: "Course (lifetime access)", value: "Included" },
-      { label: "Gigi book + free home delivery", value: "Included" }
+      { label: "Gigi book + workbook with free home delivery", value: "Included" }
     ],
     saveText: "Best value bundle"
   },
@@ -826,7 +826,7 @@ export default function CourseCheckoutFlow() {
                     <span className="text-white text-[10px] font-black">GIGI</span>
                   </div>
                   <div>
-                    <strong className="block text-sm sm:text-base font-bold">Your Gigi book is on its way</strong>
+                    <strong className="block text-sm sm:text-base font-bold">Your Gigi book + workbook are on their way</strong>
                     <span className="text-xs sm:text-sm text-[#5E4B6B] block">
                       Ships in 3–5 days to: {paidOrderDetails?.shippingAddress || cityState || "your address"}
                     </span>
@@ -1194,7 +1194,7 @@ export default function CourseCheckoutFlow() {
                             <span className="text-[10px] font-black tracking-wider uppercase text-[#6E5B7A] block mb-0.5">
                               {p.tag}
                             </span>
-                            <span className="font-bold text-sm text-[#3D2C4A] line-clamp-1">{p.name}</span>
+                            <span className="font-bold text-sm text-[#3D2C4A] leading-tight">{p.name}</span>
                           </div>
                           <div className="mt-2 flex items-baseline gap-2">
                             <span className="font-bold text-2xl text-[#3D2C4A]">{p.price}</span>
@@ -1392,7 +1392,7 @@ export default function CourseCheckoutFlow() {
                     <div className="mt-5 pt-5 border-t border-dashed border-[#EBD9E2] space-y-4 hn-pop">
                       <div className="flex items-center gap-2 font-bold text-sm text-[#3D2C4A]">
                         <Truck size={20} className="text-[#B05A20]" />
-                        <span>Where should we deliver the Gigi book?</span>
+                        <span>Where should we deliver the Gigi book + workbook?</span>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

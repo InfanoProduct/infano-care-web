@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "cross-env NODE_OPTIONS=\"--disable-warning=DEP0205\" next dev -H 0.0.0.0",
+    "dev": "cross-env NODE_OPTIONS=\"--disable-warning=DEP0205\" next dev --webpack -H 0.0.0.0",
     "build": "cross-env NODE_OPTIONS=\"--disable-warning=DEP0205\" next build",
     "start": "cross-env NODE_OPTIONS=\"--disable-warning=DEP0205\" next start",
     "lint": "eslint"

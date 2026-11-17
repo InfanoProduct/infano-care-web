@@ -1123,11 +1123,6 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
                     <p style={{ margin: 0, fontStyle: "italic", color: "#5E4B6B", fontSize: "15px" }}>
                       Gigi wakes up to something new and discovers her body has been preparing for this all along.
                     </p>
-                    <ul style={{ margin: "4px 0 0", paddingLeft: "18px", fontSize: "15px", display: "flex", flexDirection: "column", gap: "4px" }}>
-                      <li>Explain the menstrual cycle in her own words</li>
-                      <li>Connect periods to the bigger changes of puberty</li>
-                      <li>Know a normal flow, and when to see a doctor</li>
-                    </ul>
                     <div style={{ marginTop: "auto", paddingTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px", fontWeight: 800 }}>
                       <span style={{ color: "#6E5B7A" }}>3 lessons</span>
                       <span style={{ background: "#FFF4C7", borderRadius: "999px", padding: "4px 10px" }}>Badge: Cycle Explorer</span>
@@ -1152,11 +1147,6 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
                     <p style={{ margin: 0, fontStyle: "italic", color: "#5E4B6B", fontSize: "15px" }}>
                       Gigi packs her very first period kit and learns that caring for herself is a superpower.
                     </p>
-                    <ul style={{ margin: "4px 0 0", paddingLeft: "18px", fontSize: "15px", display: "flex", flexDirection: "column", gap: "4px" }}>
-                      <li>Build a simple daily hygiene routine</li>
-                      <li>Compare pads, cups &amp; period underwear, and their eco-impact</li>
-                      <li>Use, dispose and manage periods at school or outside</li>
-                    </ul>
                     <div style={{ marginTop: "auto", paddingTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px", fontWeight: 800 }}>
                       <span style={{ color: "#6E5B7A" }}>4 lessons</span>
                       <span style={{ background: "#FFF4C7", borderRadius: "999px", padding: "4px 10px" }}>Badge: Care Captain</span>
@@ -1181,11 +1171,6 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
                     <p style={{ margin: 0, fontStyle: "italic", color: "#5E4B6B", fontSize: "15px" }}>
                       Cramps on sports day? Gigi learns what her body is saying, and when to ask for help.
                     </p>
-                    <ul style={{ margin: "4px 0 0", paddingLeft: "18px", fontSize: "15px", display: "flex", flexDirection: "column", gap: "4px" }}>
-                      <li>Ease cramps with heat, movement and rest</li>
-                      <li>Spot signs of PCOS, heavy bleeding and other disorders</li>
-                      <li>Prevent infections with everyday habits</li>
-                    </ul>
                     <div style={{ marginTop: "auto", paddingTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px", fontWeight: 800 }}>
                       <span style={{ color: "#6E5B7A" }}>3 lessons</span>
                       <span style={{ background: "#FFF4C7", borderRadius: "999px", padding: "4px 10px" }}>Badge: Body Listener</span>
@@ -1210,11 +1195,6 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
                     <p style={{ margin: 0, fontStyle: "italic", color: "#5E4B6B", fontSize: "15px" }}>
                       Gigi learns her body belongs to her, her voice matters, and every feeling is welcome.
                     </p>
-                    <ul style={{ margin: "4px 0 0", paddingLeft: "18px", fontSize: "15px", display: "flex", flexDirection: "column", gap: "4px" }}>
-                      <li>Know safe vs unsafe touch, and say "No, Go, Tell"</li>
-                      <li>Understand her rights under the POCSO Act</li>
-                      <li>Build healthy friendships and manage big emotions</li>
-                    </ul>
                     <div style={{ marginTop: "auto", paddingTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px", fontWeight: 800 }}>
                       <span style={{ color: "#6E5B7A" }}>5 lessons</span>
                       <span style={{ background: "#FFF4C7", borderRadius: "999px", padding: "4px 10px" }}>Badge: Brave Heart</span>
@@ -2367,16 +2347,16 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
                 </button>
               </div>
 
-              {/* Card 2: Course + Gigi Book Bundle */}
+              {/* Card 2: Course + Gigi Book + Workbook Bundle */}
               <div style={{ position: "relative", background: "#FFFFFF", borderRadius: "28px", padding: "28px", border: "3px solid #E8738A", boxShadow: "0 24px 50px rgba(194,69,106,.16)", display: "flex", flexDirection: "column", gap: "14px" }}>
                 <span style={{ position: "absolute", top: "-15px", left: "50%", transform: "translateX(-50%)", background: "#3D2C4A", color: "#FFFAF6", borderRadius: "999px", padding: "6px 16px", fontSize: "12px", fontWeight: 900, letterSpacing: ".08em", whiteSpace: "nowrap" }}>
                   BEST VALUE
                 </span>
                 <span style={{ alignSelf: "flex-start", background: "#D4EFE4", color: "#24735A", borderRadius: "999px", padding: "4px 12px", fontSize: "12px", fontWeight: 900, letterSpacing: ".06em" }}>
-                  COURSE + BOOK
+                  COURSE + BOOK + WORKBOOK
                 </span>
                 <h3 style={{ margin: 0, fontFamily: "'Fraunces', serif", fontSize: "26px", fontWeight: 600 }}>
-                  Course + Gigi Book Bundle
+                  Course + Gigi Book &amp; Workbook
                 </h3>
                 <div style={{ display: "flex", alignItems: "baseline", gap: "10px" }}>
                   <span style={{ fontFamily: "'Fraunces', serif", fontSize: "52px", fontWeight: 700, lineHeight: 1 }}>
@@ -2385,7 +2365,7 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
                 </div>
                 <ul style={{ margin: 0, paddingLeft: "18px", display: "flex", flexDirection: "column", gap: "6px", fontSize: "15px" }}>
                   <li>Everything in the course</li>
-                  <li><em>Gigi: The Awkward Age</em> book, delivered home</li>
+                  <li><em>Gigi: The Awkward Age</em> book + Activity Field Guide &amp; Workbook, delivered home</li>
                   <li>Read the book, then play the lessons: one story, two ways</li>
                   <li>A thoughtful gift for birthdays and first periods</li>
                 </ul>
@@ -2396,7 +2376,7 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
                     <circle cx="22" cy="20" r="7" fill="#FFF4C7" />
                     <rect x="13" y="32" width="18" height="3" rx="1.5" fill="#FFFAF6" />
                   </svg>
-                  <span style={{ fontSize: "14px", fontWeight: 700 }}>Gigi: The Awkward Age book</span>
+                  <span style={{ fontSize: "14px", fontWeight: 700 }}>Placeholder · Gigi book + workbook covers</span>
                 </div>
                 <button
                   type="button"

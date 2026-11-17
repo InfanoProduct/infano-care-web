@@ -9,7 +9,9 @@ export function cssStyle(style: string): CSSProperties {
     const value = declaration.slice(separator + 1).trim();
     if (!property || !value) return [];
 
-    const reactProperty = property.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase());
+    const reactProperty = property.startsWith('--')
+      ? property
+      : property.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase());
     return [[reactProperty, value]];
   });
 

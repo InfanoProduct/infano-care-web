@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import type { ReactNode } from 'react';
 import { cssStyle } from './style';
 
@@ -25,8 +26,16 @@ export function SchoolTemplateShell({
     <div className={`sx ${pageClass}`} style={cssStyle("container-type: inline-size; position: relative; width: 100%; min-height: 100%; background: #FFFAF6; color: #3D2C4A; font-family: var(--font-noto-sans), 'Noto Sans', system-ui, sans-serif; font-size: 17px; line-height: 1.6; overflow-x: hidden")}>
       <header style={cssStyle('background: #2E2240; position: sticky; top: 0; z-index: 30')}>
         <div style={cssStyle('max-width: 1200px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px')}>
-          <Link href="/schools" style={cssStyle('display: inline-flex; align-items: baseline; gap: 8px; text-decoration: none; color: #FFFFFF')}>
-            <span style={cssStyle('font-weight: 900; font-size: 24px')}>infano</span>
+          <Link href="/schools" style={cssStyle('display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: #FFFFFF')}>
+            <span style={cssStyle('position: relative; display: inline-block; flex: 0 0 120px; width: 120px; height: 68px')}>
+              <Image
+                src="/logo/infano-logo-for-dark-bg.png"
+                alt="Infano"
+                fill
+                sizes="120px"
+                style={{ objectFit: 'contain' }}
+              />
+            </span>
             <span className="hand" style={cssStyle('font-size: 22px; color: #F4A3B4')}>for schools</span>
           </Link>
           <nav className="nav-links" aria-label="For Schools" style={cssStyle('display: flex; gap: 4px; flex-wrap: wrap')}>
@@ -53,7 +62,18 @@ export function SchoolTemplateShell({
       <footer style={cssStyle('background: #2E2240; color: #EFE6F2; padding: 48px 0 26px')}>
         <div style={cssStyle('max-width: 1200px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 26px')}>
           <div style={cssStyle('display: flex; flex-direction: column; gap: 8px')}>
-            <span style={cssStyle('font-weight: 900; font-size: 24px; color: #FFFFFF')}>infano <span className="hand" style={cssStyle('color: #F4A3B4')}>for schools</span></span>
+            <Link href="/schools" style={cssStyle('display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: #FFFFFF')}>
+              <span style={cssStyle('position: relative; display: inline-block; flex: 0 0 120px; width: 120px; height: 68px')}>
+                <Image
+                  src="/logo/infano-logo-for-dark-bg.png"
+                  alt="Infano"
+                  fill
+                  sizes="120px"
+                  style={{ objectFit: 'contain' }}
+                />
+              </span>
+              <span className="hand" style={cssStyle('color: #F4A3B4')}>for schools</span>
+            </Link>
             <span style={cssStyle('font-size: 14px')}>Growing Up Together: puberty, menstrual health and wellbeing for co-ed schools, Grades 4 to 9.</span>
           </div>
           <div style={cssStyle('display: flex; flex-direction: column; gap: 6px; font-size: 14px')}>

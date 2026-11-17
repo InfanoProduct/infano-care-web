@@ -30,7 +30,7 @@ export function BookSection() {
           });
         }
       } catch (err) {
-        console.error('Failed to load book in BookSection:', err);
+        console.warn('Failed to load book in BookSection; using fallback:', err);
         setBook({
           id: '7e248707-c9e8-462c-a716-99f3852ef8c0',
           title: 'The Awkward Age',

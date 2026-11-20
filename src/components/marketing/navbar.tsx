@@ -7,7 +7,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 import { useRegion } from '@/hooks/use-region';
-import { ShopService } from '@/services/shop.service';
 import { motion } from 'framer-motion';
 
 const navLinks = [
@@ -40,57 +39,6 @@ export function MarketingNavbar() {
 
   // Clean pathname for matching active state correctly in subpaths
   const cleanPath = pathname.replace(/^\/en-(us|uk)/, '') || '/';
-  const isWebinarPage = cleanPath.startsWith('/webinar');
-  const isWebinarSuccessPage = cleanPath.startsWith('/webinar/success');
-
-  const handleRegisterClick = () => {
-    window.dispatchEvent(new CustomEvent('open-webinar-registration'));
-  };
-
-  const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
-  const [webinarDate, setWebinarDate] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!isWebinarPage) return;
-
-    const parts = cleanPath.split('/');
-    const slug = parts[2] || 'active';
-
-    ShopService.getWebinarBySlug(slug)
-      .then((data) => {
-        if (data && data.date) {
-          setWebinarDate(data.date);
-        }
-      })
-      .catch((err) => {
-        if (err.message !== 'Webinar not found') {
-          console.error("Error fetching webinar details in Navbar:", err);
-        }
-      });
-  }, [cleanPath, isWebinarPage]);
-
-  useEffect(() => {
-    if (!webinarDate) return;
-
-    const calculateTimeLeft = () => {
-      const loopDurationMs = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
-      const difference = loopDurationMs - (new Date().getTime() % loopDurationMs);
-      return {
-        days: 0,
-        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-        minutes: Math.floor((difference / 1000 / 60) % 60),
-        seconds: Math.floor((difference / 1000) % 60)
-      };
-    };
-
-    setTimeLeft(calculateTimeLeft());
-
-    const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [webinarDate]);
 
   return (
     <>
@@ -115,21 +63,8 @@ export function MarketingNavbar() {
             </Link>
           </div>
 
-          {isWebinarPage ? (
-            <div className="flex items-center gap-4 md:gap-6 ml-auto">
-              {!isWebinarSuccessPage && (
-                <button
-                  onClick={handleRegisterClick}
-                  className="btn-primary text-xs md:text-[13px] px-5 md:px-7 py-2 md:py-2.5 whitespace-nowrap shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer border-none font-bold"
-                >
-                  Register Now
-                </button>
-              )}
-            </div>
-          ) : (
-            <>
-              {/* Center Column: Desktop Navigation (perfectly centered relative to viewport) */}
-              <div className="flex-initial hidden xl:flex justify-center">
+          {/* Center Column: Desktop Navigation (perfectly centered relative to viewport) */}
+          <div className="flex-initial hidden xl:flex justify-center">
                 <nav className="flex items-center gap-1 bg-white/80 p-1 rounded-full border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] backdrop-blur-md">
                   {navLinks.map((link) => {
                     const isActive = link.href === '/'
@@ -189,8 +124,6 @@ export function MarketingNavbar() {
                   </button>
                 </div>
               </div>
-            </>
-          )}
         </div>
       </header>
 

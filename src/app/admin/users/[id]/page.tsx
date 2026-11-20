@@ -6,7 +6,7 @@ import { apiClient } from '@/lib/api-client';
 import { 
   ArrowLeft, User, Phone, Mail, Award, BookOpen, Link2, 
   CalendarCheck, Clock, ShieldAlert, Sparkles, Shield, Trash2, 
-  ShoppingBag, FileText 
+  ShoppingBag, FileText, RotateCcw 
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
@@ -97,16 +97,31 @@ export default function UserDetailPage() {
   };
 
   const handleDeleteUser = async () => {
-    if (!confirm('Are you sure you want to delete this user? This will hide them from the admin panel.')) return;
+    if (!confirm('Are you sure you want to permanently delete this user? This will completely wipe all user data, learner profiles, and course progress from the database.')) return;
     try {
       setIsUpdating(true);
       await apiClient.delete(`/admin/users/${userId}`);
-      toast.success('User deleted successfully');
+      toast.success('User and all associated data permanently deleted');
       // Go back to list
       window.location.href = '/admin/users';
     } catch (err: any) {
       console.error('Failed to delete user', err);
-      toast.error('Failed to delete user');
+      toast.error(err?.response?.data?.message || err.message || 'Failed to delete user');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleResetUserData = async () => {
+    if (!confirm('Are you sure you want to reset this user data? This will wipe all daughter profiles, progress, and journals back to onboarding step 0 (PENDING_SETUP). The user can log in with OTP 0000.')) return;
+    try {
+      setIsUpdating(true);
+      await apiClient.post(`/admin/users/${userId}/reset-data`);
+      toast.success('User data reset to Step 0 successfully');
+      fetchUserOverview();
+    } catch (err: any) {
+      console.error('Failed to reset user data', err);
+      toast.error(err?.response?.data?.message || err.message || 'Failed to reset user data');
     } finally {
       setIsUpdating(false);
     }
@@ -194,6 +209,15 @@ export default function UserDetailPage() {
               Activate User
             </button>
           )}
+          <button
+            disabled={isUpdating}
+            onClick={handleResetUserData}
+            title="Reset user data back to Step 0"
+            className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
+          >
+            <RotateCcw size={13} />
+            <span>Reset Data</span>
+          </button>
           <button
             disabled={isUpdating}
             onClick={handleDeleteUser}

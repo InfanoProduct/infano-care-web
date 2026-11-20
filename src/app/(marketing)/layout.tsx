@@ -32,7 +32,6 @@ export default function MarketingLayout({
     cleanPathname.startsWith("/checkout") ||
     cleanPathname.startsWith("/gigi-the-awkward-age-book") ||
     isPurchaseSuccess ||
-    cleanPathname.startsWith("/webinar") ||
     cleanPathname.startsWith("/parents") ||
     cleanPathname.startsWith("/programs") ||
     cleanPathname.startsWith("/program-enrollment") ||
@@ -53,7 +52,7 @@ export default function MarketingLayout({
         {children}
       </main>
 
-      {!isPortal && !isSchoolLanding && !isPurchaseSuccess && !cleanPathname.startsWith("/webinar") && (
+      {!isPortal && !isSchoolLanding && !isPurchaseSuccess && (
         <MarketingFooter />
       )}
 

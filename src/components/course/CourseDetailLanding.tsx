@@ -10,6 +10,7 @@ import { toast } from "react-hot-toast";
 import { useAuthStore } from "@/store/auth-store";
 import { useRegion } from "@/hooks/use-region";
 import { apiClient } from "@/lib/api-client";
+import CourseDetailSkeleton from "./CourseDetailSkeleton";
 
 interface CourseDetailLandingProps {
   slugOrId?: string;
@@ -24,7 +25,7 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
   const { currencyCode } = useRegion();
 
   const [course, setCourse] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
 
@@ -616,15 +617,8 @@ export default function CourseDetailLanding({ slugOrId: propSlugOrId }: CourseDe
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-[#FFFAF6] text-[#3D2C4A]">
-        <div className="w-12 h-12 rounded-full border-4 border-[#C2456A]/20 border-t-[#C2456A] animate-spin" />
-        <p className="text-xs font-bold uppercase tracking-widest text-[#8A7896]">
-          Loading course details...
-        </p>
-      </div>
-    );
+  if (isLoading && !course) {
+    return <CourseDetailSkeleton />;
   }
 
   // Fallback defaults for metadata

@@ -15,7 +15,6 @@ import { toast } from 'react-hot-toast';
 
 interface BookFormProps {
   bookId?: string;
-  isWebinar?: boolean;
 }
 
 const emptyPromo = {
@@ -42,9 +41,8 @@ const parseNum = (raw: string, fallback: number | null = 0): number | null => {
   return Number.isNaN(n) ? fallback : n;
 };
 
-export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
+export default function BookForm({ bookId }: BookFormProps) {
   const router = useRouter();
-  const isWebinarMode = isWebinar || bookId?.startsWith('webinar-');
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(!!bookId);
   const [pricingTab, setPricingTab] = useState<'IN' | 'US' | 'UK'>('IN');
@@ -92,7 +90,7 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
     } catch (error) {
       console.error('Failed to load book:', error);
       toast.error('Failed to load book details');
-      router.push(isWebinar || bookId?.startsWith('webinar-') ? '/admin/webinar-products' : '/admin/books');
+      router.push('/admin/books');
     } finally {
       setInitialLoading(false);
     }
@@ -173,30 +171,26 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
         title: formData.title,
         description: formData.description,
         price: Number(formData.price),
-        priceUS: isWebinarMode ? null : (formData.priceUS !== undefined && formData.priceUS !== null && String(formData.priceUS) !== '' ? Number(formData.priceUS) : null),
-        priceUK: isWebinarMode ? null : (formData.priceUK !== undefined && formData.priceUK !== null && String(formData.priceUK) !== '' ? Number(formData.priceUK) : null),
-        shippingIN: isWebinarMode ? 0 : Number(formData.shippingIN ?? 0),
-        shippingUS: isWebinarMode ? 0 : Number(formData.shippingUS ?? 0),
-        shippingUK: isWebinarMode ? 0 : Number(formData.shippingUK ?? 0),
-        codChargeIN: isWebinarMode ? 0 : Number(formData.codChargeIN ?? 40),
-        stock: isWebinarMode ? 999999 : Number(formData.stock),
+        priceUS: formData.priceUS !== undefined && formData.priceUS !== null && String(formData.priceUS) !== '' ? Number(formData.priceUS) : null,
+        priceUK: formData.priceUK !== undefined && formData.priceUK !== null && String(formData.priceUK) !== '' ? Number(formData.priceUK) : null,
+        shippingIN: Number(formData.shippingIN ?? 0),
+        shippingUS: Number(formData.shippingUS ?? 0),
+        shippingUK: Number(formData.shippingUK ?? 0),
+        codChargeIN: Number(formData.codChargeIN ?? 40),
+        stock: Number(formData.stock),
         imageUrl: formData.imageUrl,
         isActive: formData.isActive,
       };
 
       if (bookId) {
         await ShopService.adminUpdateBook(bookId, payload);
-        toast.success(isWebinarMode ? 'Webinar updated successfully' : 'Book updated successfully');
+        toast.success('Book updated successfully');
       } else {
-        if (isWebinarMode) {
-          const cleanTitle = formData.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'temp';
-          payload.id = `webinar-${cleanTitle}-${Math.random().toString(36).substring(2, 6)}`;
-        }
         await ShopService.adminCreateBook(payload);
-        toast.success(isWebinarMode ? 'Webinar created successfully' : 'Book created successfully');
+        toast.success('Book created successfully');
       }
       router.refresh();
-      router.push(isWebinarMode ? '/admin/webinar-products' : '/admin/books');
+      router.push('/admin/books');
     } catch (error) {
       console.error('Failed to save book:', error);
       toast.error('Failed to save book');
@@ -221,12 +215,10 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
       <div className="admin-header flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-black tracking-tight">
-            {bookId ? 'Edit' : 'Add New'} <span className="text-primary">{isWebinarMode ? 'Webinar' : 'Product'}</span>
+            {bookId ? 'Edit' : 'Add New'} <span className="text-primary">Product</span>
           </h1>
           <p className="text-muted-foreground mt-1">
-            {isWebinarMode 
-              ? 'Configure parent masterclass topic and pricing ticket pass details' 
-              : 'Configure your book details, inventory, and promo code'}
+            Configure your book details, inventory, and promo code
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -243,7 +235,7 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
             className="btn-primary flex items-center gap-2 px-8 py-4 rounded-2xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
           >
             {loading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-            <span className="font-bold">{isWebinarMode ? 'Save Webinar' : 'Save Product'}</span>
+            <span className="font-bold">Save Product</span>
           </button>
         </div>
       </div>
@@ -255,7 +247,7 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
           <div className="glass-card p-8 rounded-[2.5rem] border-primary/5 shadow-2xl space-y-6">
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
-                {isWebinarMode ? 'Webinar Title' : 'Product Title'}
+                Product Title
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
@@ -275,7 +267,7 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
                       return nextData;
                     });
                   }}
-                  placeholder={isWebinarMode ? "e.g. Decoding Her Silence" : "e.g. Growing Up Honest"}
+                  placeholder="e.g. Growing Up Honest"
                   className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
                 />
               </div>
@@ -283,7 +275,7 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
 
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
-                {isWebinarMode ? 'Webinar Slug (URL Path) *' : 'Product Slug (URL Path) *'}
+                Product Slug (URL Path) *
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
@@ -294,7 +286,7 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
                   required
                   value={formData.slug || ''}
                   onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, '') })}
-                  placeholder={isWebinarMode ? "e.g. decoding-her-silence" : "e.g. gigi-the-awkward-age-book"}
+                  placeholder="e.g. gigi-the-awkward-age-book"
                   className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all font-mono text-sm"
                 />
               </div>
@@ -314,7 +306,7 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
                   rows={6}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder={isWebinarMode ? "Tell parents what this webinar masterclass is about..." : "Tell the readers what this book is about..."}
+                  placeholder="Tell the readers what this book is about..."
                   className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
                 />
               </div>
@@ -331,42 +323,40 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
                 </div>
                 <div>
                   <h3 className="text-lg font-black text-slate-900 tracking-tight">
-                    {isWebinarMode ? 'Webinar Ticket Pricing' : 'Regional Pricing & Shipping'}
+                    Regional Pricing & Shipping
                   </h3>
                   <p className="text-xs text-muted-foreground font-semibold mt-0.5">
-                    {isWebinarMode ? 'Configure entry fee for the parent masterclass ticket pass' : 'Set unit price and shipping charges per country'}
+                    Set unit price and shipping charges per country
                   </p>
                 </div>
               </div>
             </div>
 
             {/* Country Tabs */}
-            {!isWebinarMode && (
-              <div className="flex border-b border-border/20">
-                {([['IN', '🇮🇳', 'India (₹)'], ['US', '🇺🇸', 'USA ($)'], ['UK', '🇬🇧', 'UK (£)']] as const).map(([code, flag, label]) => (
-                  <button
-                    key={code}
-                    type="button"
-                    onClick={() => setPricingTab(code)}
-                    className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-black uppercase tracking-widest transition-all ${
-                      pricingTab === code
-                        ? 'bg-white border-b-2 border-blue-500 text-blue-600'
-                        : 'text-muted-foreground hover:bg-slate-50'
-                    }`}
-                  >
-                    <span className="text-lg">{flag}</span>
-                    <span className="hidden sm:inline">{label}</span>
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className="flex border-b border-border/20">
+              {([['IN', '🇮🇳', 'India (₹)'], ['US', '🇺🇸', 'USA ($)'], ['UK', '🇬🇧', 'UK (£)']] as const).map(([code, flag, label]) => (
+                <button
+                  key={code}
+                  type="button"
+                  onClick={() => setPricingTab(code)}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-black uppercase tracking-widest transition-all ${
+                    pricingTab === code
+                      ? 'bg-white border-b-2 border-blue-500 text-blue-600'
+                      : 'text-muted-foreground hover:bg-slate-50'
+                  }`}
+                >
+                  <span className="text-lg">{flag}</span>
+                  <span className="hidden sm:inline">{label}</span>
+                </button>
+              ))}
+            </div>
 
-            {/* India Tab / Webinar Pricing */}
-            {(pricingTab === 'IN' || isWebinarMode) && (
+            {/* India Tab */}
+            {pricingTab === 'IN' && (
               <div className="p-8 space-y-6 animate-in fade-in duration-200">
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
-                    {isWebinarMode ? 'Webinar Ticket Price (₹)' : 'Unit Price (₹) — India'}
+                    Unit Price (₹) — India
                   </label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
@@ -385,9 +375,7 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
                   </div>
                 </div>
 
-                {!isWebinarMode && (
-                  <>
-                    <div className="space-y-2">
+                <div className="space-y-2">
                       <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-1.5">
                         <Truck size={12} /> Shipping Charge (₹)
                       </label>
@@ -426,13 +414,11 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
                       </div>
                       <p className="text-[10px] text-muted-foreground ml-1">Configured Cash on Delivery (COD) charge for orders in India (defaults to 40)</p>
                     </div>
-                  </>
-                )}
               </div>
             )}
 
             {/* USA Tab */}
-            {pricingTab === 'US' && !isWebinarMode && (
+            {pricingTab === 'US' && (
               <div className="p-8 space-y-6 animate-in fade-in duration-200">
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Unit Price ($) — USA</label>
@@ -476,7 +462,7 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
             )}
 
             {/* UK Tab */}
-            {pricingTab === 'UK' && !isWebinarMode && (
+            {pricingTab === 'UK' && (
               <div className="p-8 space-y-6 animate-in fade-in duration-200">
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Unit Price (£) — UK</label>
@@ -521,26 +507,24 @@ export default function BookForm({ bookId, isWebinar = false }: BookFormProps) {
           </div>
 
           {/* Stock / Inventory */}
-          {!isWebinarMode && (
-            <div className="glass-card p-8 rounded-[2.5rem] border-primary/5 shadow-2xl">
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Inventory Level</label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                    <Package size={18} />
-                  </div>
-                  <input
-                    type="number"
-                    required
-                    min="0"
-                    value={safeNum(formData.stock, '')}
-                    onChange={(e) => setFormData({ ...formData, stock: parseNum(e.target.value, null) as number })}
-                    className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
-                  />
+          <div className="glass-card p-8 rounded-[2.5rem] border-primary/5 shadow-2xl">
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Inventory Level</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                  <Package size={18} />
                 </div>
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  value={safeNum(formData.stock, '')}
+                  onChange={(e) => setFormData({ ...formData, stock: parseNum(e.target.value, null) as number })}
+                  className="w-full pr-6 bg-secondary/30 border border-border/50 rounded-2xl focus:outline-none transition-all"
+                />
               </div>
             </div>
-          )}
+          </div>
 
           {/* ─── Promo Code Management Section ─── */}
           <div className="glass-card rounded-[2.5rem] border-emerald-500/10 shadow-2xl overflow-hidden">

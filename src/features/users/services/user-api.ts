@@ -6,6 +6,8 @@ export interface User {
   email?: string;
   role: string;
   accountStatus: string;
+  isTestNumber?: boolean;
+  onboardingStep?: number;
   createdAt: string;
   profile?: {
     displayName: string;
@@ -78,7 +80,19 @@ export const UserApiService = {
     return apiClient.patch(`/admin/users/${userId}/status`, { status });
   },
 
-  async deleteUser(userId: string) {
-    return apiClient.delete(`/admin/users/${userId}`);
+  async deleteUser(userId: string, soft: boolean = false) {
+    return apiClient.delete(`/admin/users/${userId}${soft ? '?soft=true' : ''}`);
+  },
+
+  async resetUserData(userId: string): Promise<any> {
+    return apiClient.post(`/admin/users/${userId}/reset-data`);
+  },
+
+  async createTestUser(payload: { phone: string; role?: string; overwriteIfExists?: boolean }): Promise<any> {
+    return apiClient.post('/admin/users/test-user', payload);
+  },
+
+  async getNextTestPhone(): Promise<{ suggestedPhone: string; fullPhone: string }> {
+    return apiClient.get('/admin/users/next-test-phone');
   }
 };

@@ -31,7 +31,7 @@ const PARENT_STEPS = [
   {
     number: '4',
     title: 'Monthly Expert Session',
-    desc: 'Live 45-min webinar for parents on topics they struggle with: \'How to talk about consent with a 12-year-old.\'',
+    desc: 'Live 45-min expert session for parents on topics they struggle with: \'How to talk about consent with a 12-year-old.\'',
     icon: Video,
     color: 'text-pink-500',
     bg: 'bg-pink-50',

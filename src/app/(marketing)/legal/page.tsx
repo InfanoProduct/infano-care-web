@@ -705,7 +705,7 @@ export default function LegalPage() {
                               Thank you for choosing Infano (operated by <strong>Berrybird Technologies Private Limited</strong>, “we”, “us”, “our”). Our platform infano.care (the “Website”) is referred to as the “Infano Platform”. Please read this Cancellations, Return, and Refund Policy carefully before making any purchases or transactions on the Infano Platform.
                             </p>
                             <p>
-                              By purchasing physical products (such as the printed Gigi Book), digital books, webinars, workshops, or enrolling in our programs and consultation sessions, you acknowledge and agree to the terms outlined in this policy.
+                              By purchasing physical products (such as the printed Gigi Book), digital books, workshops, or enrolling in our programs and consultation sessions, you acknowledge and agree to the terms outlined in this policy.
                             </p>
                           </div>
                         </div>
@@ -734,12 +734,12 @@ export default function LegalPage() {
                         <div className="pl-0 md:pl-16">
                           <h3 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
                             <span className="w-8 h-1 bg-primary/20 rounded-full" />
-                            Digital Products, Programs & Webinars
+                            Digital Products, Programs & Workshops
                           </h3>
                           <div className="prose prose-slate max-w-none prose-p:text-slate-600 prose-p:leading-relaxed prose-li:text-slate-600">
                             <ul className="space-y-2">
                               <li><strong>Digital Downloads (eBooks/Handbooks):</strong> All sales of instantly downloadable digital content are final and non-refundable once the download link or digital access has been generated.</li>
-                              <li><strong>Live Webinars & Workshops:</strong> Registrations may be cancelled up to 24 hours prior to the scheduled session time for a full refund or credit toward a future session. No refunds are provided for unattended or missed live sessions.</li>
+                              <li><strong>Live Workshops & Interactive Sessions:</strong> Registrations may be cancelled up to 24 hours prior to the scheduled session time for a full refund or credit toward a future session. No refunds are provided for unattended or missed live sessions.</li>
                               <li><strong>1-on-1 Expert Sessions & Cohort Programs:</strong> Rescheduling requests made at least 24 hours in advance will be accommodated free of charge. Cancellations prior to commencement are eligible for a refund minus administrative processing charges.</li>
                             </ul>
                           </div>

@@ -112,14 +112,6 @@ export default function AdminLayout({
           { name: 'Manage Books', icon: BookOpen, href: '/admin/books' },
         ]
       },
-      { 
-        name: 'Webinar', 
-        icon: Ticket, 
-        subItems: [
-          { name: 'Webinar Registrations', icon: Users, href: '/admin/webinar-orders' },
-          { name: 'Manage Webinars', icon: BookOpen, href: '/admin/webinar-products' },
-        ]
-      },
       { name: user?.role === 'EXPERT' ? 'Consultations' : 'Experts & Consultations', icon: Calendar, href: '/admin/expert-consultations' },
       { name: 'My Calendar', icon: CalendarDays, href: '/admin/calendar' },
       { name: 'Enquiries', icon: FileQuestion, href: '/admin/enquiries' },

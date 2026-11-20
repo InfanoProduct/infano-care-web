@@ -12,6 +12,11 @@ export interface User {
   profile?: {
     displayName: string;
   };
+  learners?: Array<{
+    id: string;
+    name: string;
+    age?: string;
+  }>;
   peerOnboarding: boolean;
   peerApplication?: {
     id: string;

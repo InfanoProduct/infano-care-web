@@ -4,7 +4,7 @@ import { useUsers } from '../hooks/use-users';
 import { useState } from 'react';
 import { 
   Search, MoreVertical, CheckCircle2, Clock, Eye, Trash2, Users, 
-  XCircle, UserPlus, Sparkles, AlertTriangle, RefreshCw, Copy, Check, RotateCcw 
+  XCircle, UserPlus, Sparkles, AlertTriangle, RefreshCw, Copy, Check, RotateCcw, GraduationCap 
 } from 'lucide-react';
 import { UserApiService, User } from '../services/user-api';
 import { toast } from 'react-hot-toast';
@@ -14,6 +14,7 @@ export function UserList() {
   const [page, setPage] = useState(1);
   const [selectedRole, setSelectedRole] = useState<string | undefined>(undefined);
   const [selectedStatus, setSelectedStatus] = useState<string | undefined>(undefined);
+  const [selectedLearnerStatus, setSelectedLearnerStatus] = useState<'CREATED' | 'NOT_CREATED' | undefined>(undefined);
   const [filterTestOnly, setFilterTestOnly] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFrom, setDateFrom] = useState('');
@@ -189,7 +190,8 @@ export function UserList() {
     all: dateFilteredUsers.length,
     active: dateFilteredUsers.filter(u => u.accountStatus === 'ACTIVE').length,
     inactive: dateFilteredUsers.filter(u => u.accountStatus === 'SUSPENDED').length,
-    peer: dateFilteredUsers.filter(u => u.role === 'PEER').length,
+    learnerCreated: dateFilteredUsers.filter(u => u.learners && u.learners.length > 0).length,
+    learnerNotCreated: dateFilteredUsers.filter(u => !u.learners || u.learners.length === 0).length,
     pending: dateFilteredUsers.filter(u => u.accountStatus === 'PENDING_SETUP').length,
     test: dateFilteredUsers.filter(u => u.isTestNumber).length,
   };
@@ -199,11 +201,14 @@ export function UserList() {
     if (filterTestOnly && !u.isTestNumber) return false;
     if (selectedRole && u.role !== selectedRole) return false;
     if (selectedStatus && u.accountStatus !== selectedStatus) return false;
+    if (selectedLearnerStatus === 'CREATED' && (!u.learners || u.learners.length === 0)) return false;
+    if (selectedLearnerStatus === 'NOT_CREATED' && (u.learners && u.learners.length > 0)) return false;
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       const displayName = (u.profile?.displayName || '').toLowerCase();
       const phone = u.phone || '';
-      return displayName.includes(term) || phone.includes(term);
+      const learnerNames = (u.learners || []).map(l => l.name.toLowerCase()).join(' ');
+      return displayName.includes(term) || phone.includes(term) || learnerNames.includes(term);
     }
     return true;
   });
@@ -214,7 +219,7 @@ export function UserList() {
   const paginatedUsers = filteredUsers.slice((page - 1) * limit, page * limit);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6">
       
       {/* 1. Header Page Title Block with Actions & Date filter */}
       <div className="admin-header flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -271,38 +276,39 @@ export function UserList() {
       </div>
 
       {/* 2. Overview Counts Cards Grid */}
-      <div className="bg-white rounded-3xl p-6 md:p-8 border border-border shadow-sm flex flex-col gap-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div className="bg-white rounded-2xl p-5 border border-border shadow-sm flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
           <div>
-            <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2 mb-1">
-              <Users size={16} className="text-primary" /> Total Members
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-0.5">
+              <Users size={15} className="text-primary" /> Total Members
             </span>
-            <div className="flex items-baseline gap-3">
-              <span className="text-5xl font-black text-slate-900">
+            <div className="flex items-baseline gap-2.5">
+              <span className="text-3xl font-black text-slate-900 leading-none">
                 {counts.all}
               </span>
-              <span className="text-sm font-medium text-muted-foreground">All registered users</span>
+              <span className="text-xs font-medium text-muted-foreground">All registered users</span>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 pt-6 border-t border-slate-100">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-3 border-t border-slate-100">
           
           <button
             onClick={() => {
               setSelectedRole(undefined);
               setSelectedStatus(undefined);
+              setSelectedLearnerStatus(undefined);
               setFilterTestOnly(false);
               setPage(1);
             }}
-            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${
-              !selectedRole && !selectedStatus && !filterTestOnly
+            className={`text-left rounded-xl p-3 border flex flex-col gap-0.5 transition-all hover:scale-[1.02] active:scale-95 ${
+              !selectedRole && !selectedStatus && !selectedLearnerStatus && !filterTestOnly
                 ? 'bg-slate-200 border-slate-400 shadow-sm ring-1 ring-slate-400'
-                : 'bg-slate-50 border-slate-100 hover:border-slate-350'
+                : 'bg-slate-50 border-slate-200/70 hover:border-slate-300'
             }`}
           >
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">All Members</span>
-            <span className="text-2xl font-black text-slate-800">
+            <span className="text-xl font-bold text-slate-800">
               {counts.all}
             </span>
           </button>
@@ -311,246 +317,288 @@ export function UserList() {
             onClick={() => {
               setSelectedRole(undefined);
               setSelectedStatus('ACTIVE');
+              setSelectedLearnerStatus(undefined);
               setFilterTestOnly(false);
               setPage(1);
             }}
-            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${
+            className={`text-left rounded-xl p-3 border flex flex-col gap-0.5 transition-all hover:scale-[1.02] active:scale-95 ${
               selectedStatus === 'ACTIVE' && !filterTestOnly
                 ? 'bg-emerald-100 border-emerald-400 shadow-sm ring-1 ring-emerald-400'
-                : 'bg-slate-50 border-slate-100 hover:border-slate-350'
+                : 'bg-slate-50 border-slate-200/70 hover:border-slate-300'
             }`}
           >
             <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Active</span>
-            <span className="text-2xl font-black text-emerald-700">{counts.active}</span>
+            <span className="text-xl font-bold text-emerald-700">{counts.active}</span>
           </button>
 
           <button
             onClick={() => {
               setSelectedRole(undefined);
-              setSelectedStatus('SUSPENDED');
+              setSelectedStatus(undefined);
+              setSelectedLearnerStatus(selectedLearnerStatus === 'CREATED' ? undefined : 'CREATED');
               setFilterTestOnly(false);
               setPage(1);
             }}
-            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${
-              selectedStatus === 'SUSPENDED' && !filterTestOnly
-                ? 'bg-amber-100 border-amber-400 shadow-sm ring-1 ring-amber-400'
-                : 'bg-slate-50 border-slate-100 hover:border-slate-350'
+            className={`text-left rounded-xl p-3 border flex flex-col gap-0.5 transition-all hover:scale-[1.02] active:scale-95 ${
+              selectedLearnerStatus === 'CREATED' && !filterTestOnly
+                ? 'bg-teal-100 border-teal-400 shadow-sm ring-1 ring-teal-400'
+                : 'bg-slate-50 border-slate-200/70 hover:border-slate-300'
             }`}
           >
-            <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Inactive</span>
-            <span className="text-2xl font-black text-amber-700">{counts.inactive}</span>
+            <span className="text-[10px] font-bold text-teal-700 uppercase tracking-wider flex items-center gap-1">
+              <GraduationCap size={12} /> Learner Created
+            </span>
+            <span className="text-xl font-bold text-teal-800">{counts.learnerCreated}</span>
           </button>
 
           <button
             onClick={() => {
-              setSelectedRole('PEER');
+              setSelectedRole(undefined);
               setSelectedStatus(undefined);
+              setSelectedLearnerStatus(selectedLearnerStatus === 'NOT_CREATED' ? undefined : 'NOT_CREATED');
               setFilterTestOnly(false);
               setPage(1);
             }}
-            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${
-              selectedRole === 'PEER' && !filterTestOnly
-                ? 'bg-blue-100 border-blue-400 shadow-sm ring-1 ring-blue-400'
-                : 'bg-slate-50 border-slate-100 hover:border-slate-350'
+            className={`text-left rounded-xl p-3 border flex flex-col gap-0.5 transition-all hover:scale-[1.02] active:scale-95 ${
+              selectedLearnerStatus === 'NOT_CREATED' && !filterTestOnly
+                ? 'bg-amber-100 border-amber-400 shadow-sm ring-1 ring-amber-400'
+                : 'bg-slate-50 border-slate-200/70 hover:border-slate-300'
             }`}
           >
-            <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Peers</span>
-            <span className="text-2xl font-black text-blue-700">{counts.peer}</span>
+            <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">No Learner</span>
+            <span className="text-xl font-bold text-amber-800">{counts.learnerNotCreated}</span>
           </button>
 
           <button
             onClick={() => {
               setSelectedRole(undefined);
               setSelectedStatus('PENDING_SETUP');
+              setSelectedLearnerStatus(undefined);
               setFilterTestOnly(false);
               setPage(1);
             }}
-            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${
+            className={`text-left rounded-xl p-3 border flex flex-col gap-0.5 transition-all hover:scale-[1.02] active:scale-95 ${
               selectedStatus === 'PENDING_SETUP' && !filterTestOnly
                 ? 'bg-indigo-100 border-indigo-400 shadow-sm ring-1 ring-indigo-400'
-                : 'bg-slate-50 border-slate-100 hover:border-slate-350'
+                : 'bg-slate-50 border-slate-200/70 hover:border-slate-300'
             }`}
           >
             <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Pending Setup</span>
-            <span className="text-2xl font-black text-indigo-700">{counts.pending}</span>
+            <span className="text-xl font-bold text-indigo-700">{counts.pending}</span>
           </button>
 
           <button
             onClick={() => {
               setSelectedRole(undefined);
               setSelectedStatus(undefined);
+              setSelectedLearnerStatus(undefined);
               setFilterTestOnly(!filterTestOnly);
               setPage(1);
             }}
-            className={`text-left rounded-2xl p-4 border flex flex-col gap-1 transition-all hover:scale-[1.02] active:scale-95 ${
+            className={`text-left rounded-xl p-3 border flex flex-col gap-0.5 transition-all hover:scale-[1.02] active:scale-95 ${
               filterTestOnly
                 ? 'bg-purple-100 border-purple-400 shadow-sm ring-1 ring-purple-400'
-                : 'bg-slate-50 border-slate-100 hover:border-slate-350'
+                : 'bg-slate-50 border-slate-200/70 hover:border-slate-300'
             }`}
           >
             <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider flex items-center gap-1">
               <Sparkles size={12} /> Test Users
             </span>
-            <span className="text-2xl font-black text-purple-700">{counts.test}</span>
+            <span className="text-xl font-bold text-purple-700">{counts.test}</span>
           </button>
 
         </div>
       </div>
 
       {/* 3. Table Card with Embedded Search Header */}
-      <div className="bg-white rounded-3xl shadow-sm border border-border relative z-10">
+      <div className="bg-white rounded-2xl shadow-sm border border-border relative z-10 overflow-hidden">
         
         {/* Search header built-in */}
-        <div className="p-6 border-b border-border flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-50/50">
+        <div className="p-4 sm:p-5 border-b border-border flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-50/50">
           <div className="relative w-full md:w-96">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={17} />
             <input 
               type="text" 
               placeholder="Search by name or phone..." 
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
-              className="w-full pl-12 pr-4 py-3 rounded-2xl border border-border bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm font-medium"
             />
           </div>
-          {filterTestOnly && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-xl text-xs font-bold">
-              <Sparkles size={14} />
-              <span>Showing test accounts only</span>
-              <button 
-                onClick={() => setFilterTestOnly(false)}
-                className="ml-1 text-purple-400 hover:text-purple-700"
-              >
-                <XCircle size={14} />
-              </button>
-            </div>
-          )}
+          <div className="flex items-center gap-2 flex-wrap">
+            {selectedLearnerStatus && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-teal-50 text-teal-700 border border-teal-200 rounded-xl text-xs font-bold">
+                <GraduationCap size={14} />
+                <span>{selectedLearnerStatus === 'CREATED' ? 'Learner created' : 'No learner created'}</span>
+                <button 
+                  onClick={() => setSelectedLearnerStatus(undefined)}
+                  className="ml-1 text-teal-400 hover:text-teal-700"
+                >
+                  <XCircle size={14} />
+                </button>
+              </div>
+            )}
+            {filterTestOnly && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-xl text-xs font-bold">
+                <Sparkles size={14} />
+                <span>Showing test accounts only</span>
+                <button 
+                  onClick={() => setFilterTestOnly(false)}
+                  className="ml-1 text-purple-400 hover:text-purple-700"
+                >
+                  <XCircle size={14} />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Table Body - Scrollable Container */}
-        <div className="overflow-auto max-h-[600px] relative z-10">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left border-collapse table-auto min-w-[960px]">
             <thead>
-              <tr className="bg-slate-50/50 border-b border-border sticky top-0 backdrop-blur-md z-20">
-                <th className="px-8 py-5 text-[11px] uppercase tracking-[0.2em] font-black text-muted-foreground/80">User Identity</th>
-                <th className="px-8 py-5 text-[11px] uppercase tracking-[0.2em] font-black text-muted-foreground/80">Contact Details</th>
-                <th className="px-8 py-5 text-[11px] uppercase tracking-[0.2em] font-black text-muted-foreground/80">Platform Role</th>
-                <th className="px-8 py-5 text-[11px] uppercase tracking-[0.2em] font-black text-muted-foreground/80">Account Status</th>
-                <th className="px-8 py-5 text-[11px] uppercase tracking-[0.2em] font-black text-muted-foreground/80">Membership</th>
-                <th className="px-8 py-5 text-[11px] uppercase tracking-[0.2em] font-black text-muted-foreground/80">Peer Onboarding</th>
-                <th className="px-8 py-5 text-right text-[11px] uppercase tracking-[0.2em] font-black text-muted-foreground/80">Actions</th>
+              <tr className="bg-slate-50/75 border-b border-border sticky top-0 backdrop-blur-md z-20">
+                <th className="px-5 py-3.5 text-[11px] uppercase tracking-wider font-bold text-slate-500 min-w-[190px]">User Identity</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase tracking-wider font-bold text-slate-500 min-w-[140px]">Contact Details</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase tracking-wider font-bold text-slate-500 min-w-[130px]">Learner Profile</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase tracking-wider font-bold text-slate-500 min-w-[120px]">Account Status</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase tracking-wider font-bold text-slate-500 min-w-[140px]">Membership</th>
+                <th className="px-5 py-3.5 text-[11px] uppercase tracking-wider font-bold text-slate-500 min-w-[120px]">Peer Onboarding</th>
+                <th className="px-5 py-3.5 text-right text-[11px] uppercase tracking-wider font-bold text-slate-500 min-w-[140px]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {paginatedUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-8 py-10 text-center text-slate-400 font-bold text-sm">No members found.</td>
+                  <td colSpan={7} className="px-5 py-12 text-center text-slate-400 font-semibold text-sm">No members found.</td>
                 </tr>
               ) : (
                 paginatedUsers.map((user, index) => {
                   const isNearBottom = index >= paginatedUsers.length - 2;
                   return (
-                    <tr key={user.id} className="hover:bg-primary/[0.01] transition-colors group">
+                    <tr key={user.id} className="hover:bg-slate-50/75 transition-colors group">
                       
                       {/* User Identity */}
-                      <td className="px-8 py-4">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-slate-800 block leading-tight">{user.profile?.displayName || 'Unknown User'}</span>
+                      <td className="px-5 py-3.5 align-middle">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-1.5 whitespace-nowrap">
+                            <span className="font-semibold text-slate-800 text-sm leading-tight whitespace-nowrap">{user.profile?.displayName || 'Unknown User'}</span>
                             {user.isTestNumber && (
-                              <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-100 text-purple-700 border border-purple-200">
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-purple-100 text-purple-700 border border-purple-200">
                                 TEST
                               </span>
                             )}
                           </div>
-                          <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">ID: {user.id.slice(0, 8)}</span>
+                          <p className="text-[11px] text-slate-400 font-medium font-mono leading-none">ID: {user.id.slice(0, 8)}</p>
                         </div>
                       </td>
 
                       {/* Contact details */}
-                      <td className="px-8 py-4">
-                        <span className="text-sm font-bold text-slate-700 block leading-tight">{user.phone}</span>
-                        {user.email && (
-                          <span className="text-[10px] text-slate-400 font-semibold block mt-1">{user.email}</span>
+                      <td className="px-5 py-3.5 align-middle">
+                        <div className="space-y-0.5">
+                          <span className="text-sm font-semibold text-slate-700 block whitespace-nowrap leading-tight">{user.phone}</span>
+                          {user.email && (
+                            <span className="text-[11px] text-slate-400 font-normal block truncate max-w-[150px] leading-none" title={user.email}>{user.email}</span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Learner Profile Status */}
+                      <td className="px-5 py-3.5 align-middle whitespace-nowrap">
+                        {user.learners && user.learners.length > 0 ? (
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-1.5 whitespace-nowrap">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <CheckCircle2 size={12} className="text-emerald-600" />
+                                {user.learners[0].name}
+                              </span>
+                              {user.learners.length > 1 && (
+                                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200" title={user.learners.map(l => l.name).join(', ')}>
+                                  +{user.learners.length - 1}
+                                </span>
+                              )}
+                            </div>
+                            {user.learners[0]?.age && (
+                              <p className="text-[11px] text-slate-400 font-medium pl-0.5 leading-none">
+                                Age: {user.learners[0].age} yrs
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                            Not Created
+                          </span>
                         )}
                       </td>
 
-                      <td className="px-8 py-4">
-                        <span className={`inline-flex items-center px-4 py-1 rounded-full text-[11px] font-black tracking-wider uppercase ${
-                          user.role === 'ADMIN' ? 'bg-indigo-500/10 text-indigo-600 border border-indigo-500/20' : 
-                          user.role === 'PEER' ? 'bg-blue-500/10 text-blue-600 border border-blue-500/20' : 
-                          'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
-                        }`}>
-                          {user.role}
-                        </span>
-                      </td>
-
-                      <td className="px-8 py-4">
-                        <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-xl text-xs font-bold border ${
+                      <td className="px-5 py-3.5 align-middle whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${
                           user.accountStatus === 'ACTIVE' 
-                            ? 'bg-green-50 text-green-600 border-green-200' 
-                            : 'bg-amber-50 text-amber-600 border-amber-200'
+                            ? 'bg-green-50 text-green-700 border-green-200' 
+                            : 'bg-amber-50 text-amber-700 border-amber-200'
                         }`}>
-                          <div className={`w-2 h-2 rounded-full animate-pulse ${
+                          <span className={`w-1.5 h-1.5 rounded-full ${
                             user.accountStatus === 'ACTIVE' ? 'bg-green-500' : 'bg-amber-500'
                           }`} />
                           {user.accountStatus}
                         </span>
                       </td>
 
-                      <td className="px-8 py-4">
-                        <p className="text-sm font-bold text-slate-700">{new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
-                        <p className="text-[10px] text-muted-foreground font-semibold">Joined at {new Date(user.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                      <td className="px-5 py-3.5 align-middle whitespace-nowrap">
+                        <p className="text-sm font-semibold text-slate-700 whitespace-nowrap leading-tight">{new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                        <p className="text-[11px] text-slate-400 whitespace-nowrap mt-0.5 leading-none">Joined at {new Date(user.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                       </td>
 
-                      <td className="px-8 py-4">
+                      <td className="px-5 py-3.5 align-middle whitespace-nowrap">
                         {user.peerOnboarding ? (
                           user.role === 'PEER' ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-600 rounded-lg text-xs font-bold border border-green-200">
-                              <CheckCircle2 size={14} /> Approved
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-green-50 text-green-700 rounded-lg text-xs font-semibold border border-green-200">
+                              <CheckCircle2 size={13} /> Approved
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold border border-blue-200">
-                              <Clock size={14} /> Applied
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-blue-50 text-blue-700 rounded-lg text-xs font-semibold border border-blue-200">
+                              <Clock size={13} /> Applied
                             </span>
                           )
                         ) : (
-                          <span className="text-xs text-muted-foreground">-</span>
+                          <span className="text-xs text-slate-400 pl-2">-</span>
                         )}
                       </td>
 
-                      <td className="px-8 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2 relative">
+                      <td className="px-5 py-3.5 align-middle text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1.5 relative">
                           <Link 
                             href={`/admin/users/${user.id}`}
                             title="View user overview page"
-                            className="p-2.5 bg-slate-50 hover:bg-primary/10 hover:text-primary text-slate-500 rounded-xl transition-all border border-slate-200/50 shadow-sm"
+                            className="p-2 bg-slate-50 hover:bg-primary/10 hover:text-primary text-slate-600 rounded-lg transition-all border border-slate-200 shadow-sm"
                           >
-                            <Eye size={16} />
+                            <Eye size={15} />
                           </Link>
 
                           {/* Direct reset data button */}
                           <button
                             onClick={() => setUserToReset(user)}
                             title="Reset user data (wipes learner profiles & progress back to step 0)"
-                            className="p-2.5 bg-slate-50 hover:bg-amber-50 hover:text-amber-600 text-slate-400 rounded-xl transition-all border border-slate-200/50 shadow-sm"
+                            className="p-2 bg-slate-50 hover:bg-amber-50 hover:text-amber-700 text-slate-500 rounded-lg transition-all border border-slate-200 shadow-sm"
                           >
-                            <RotateCcw size={16} />
+                            <RotateCcw size={15} />
                           </button>
 
                           {/* Direct delete button */}
                           <button
                             onClick={() => setUserToDelete(user)}
                             title="Delete user permanently"
-                            className="p-2.5 bg-slate-50 hover:bg-rose-50 hover:text-rose-600 text-slate-400 rounded-xl transition-all border border-slate-200/50 shadow-sm"
+                            className="p-2 bg-slate-50 hover:bg-rose-50 hover:text-rose-700 text-slate-500 rounded-lg transition-all border border-slate-200 shadow-sm"
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={15} />
                           </button>
 
                           <button 
                             onClick={() => setActiveMenuUserId(activeMenuUserId === user.id ? null : user.id)}
-                            className="p-2.5 bg-slate-50 hover:bg-slate-100 hover:text-slate-700 text-slate-500 rounded-xl transition-all border border-slate-200/50 shadow-sm"
+                            className="p-2 bg-slate-50 hover:bg-slate-100 hover:text-slate-800 text-slate-600 rounded-lg transition-all border border-slate-200 shadow-sm"
                           >
-                            <MoreVertical size={16} />
+                            <MoreVertical size={15} />
                           </button>
 
                           {activeMenuUserId === user.id && (
@@ -617,22 +665,22 @@ export function UserList() {
         </div>
 
         {/* Pagination bar */}
-        <div className="px-8 py-5 bg-slate-50/80 backdrop-blur-md flex items-center justify-between border-t border-border">
-          <p className="text-sm font-bold text-muted-foreground">
-            Showing <span className="text-foreground">{paginatedUsers.length}</span> of <span className="text-foreground">{filteredUsers.length}</span> members
+        <div className="px-6 py-4 bg-slate-50/80 backdrop-blur-md flex items-center justify-between border-t border-border">
+          <p className="text-sm font-semibold text-muted-foreground">
+            Showing <span className="text-foreground font-bold">{paginatedUsers.length}</span> of <span className="text-foreground font-bold">{filteredUsers.length}</span> members
           </p>
           <div className="flex items-center gap-3">
             <button 
               disabled={page === 1}
               onClick={() => setPage(p => p - 1)}
-              className="px-6 py-2.5 bg-white border border-border rounded-xl text-sm font-bold shadow-sm transition-all hover:bg-secondary disabled:opacity-40 disabled:hover:bg-white"
+              className="px-5 py-2 bg-white border border-border rounded-xl text-sm font-semibold shadow-sm transition-all hover:bg-secondary disabled:opacity-40 disabled:hover:bg-white"
             >
               Previous
             </button>
             <button 
               disabled={page === totalPages}
               onClick={() => setPage(p => p + 1)}
-              className="px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold shadow-md shadow-primary/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-40"
+              className="px-5 py-2 bg-primary text-white rounded-xl text-sm font-semibold shadow-md shadow-primary/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-40"
             >
               Next
             </button>

@@ -463,14 +463,13 @@ export function UserList() {
                 <th className="px-5 py-3.5 text-[11px] uppercase tracking-wider font-bold text-slate-500 min-w-[130px]">Learner Profile</th>
                 <th className="px-5 py-3.5 text-[11px] uppercase tracking-wider font-bold text-slate-500 min-w-[120px]">Account Status</th>
                 <th className="px-5 py-3.5 text-[11px] uppercase tracking-wider font-bold text-slate-500 min-w-[140px]">Membership</th>
-                <th className="px-5 py-3.5 text-[11px] uppercase tracking-wider font-bold text-slate-500 min-w-[120px]">Peer Onboarding</th>
                 <th className="px-5 py-3.5 text-right text-[11px] uppercase tracking-wider font-bold text-slate-500 min-w-[140px]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {paginatedUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-12 text-center text-slate-400 font-semibold text-sm">No members found.</td>
+                  <td colSpan={6} className="px-5 py-12 text-center text-slate-400 font-semibold text-sm">No members found.</td>
                 </tr>
               ) : (
                 paginatedUsers.map((user, index) => {
@@ -548,22 +547,6 @@ export function UserList() {
                       <td className="px-5 py-3.5 align-middle whitespace-nowrap">
                         <p className="text-sm font-semibold text-slate-700 whitespace-nowrap leading-tight">{new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                         <p className="text-[11px] text-slate-400 whitespace-nowrap mt-0.5 leading-none">Joined at {new Date(user.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                      </td>
-
-                      <td className="px-5 py-3.5 align-middle whitespace-nowrap">
-                        {user.peerOnboarding ? (
-                          user.role === 'PEER' ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-green-50 text-green-700 rounded-lg text-xs font-semibold border border-green-200">
-                              <CheckCircle2 size={13} /> Approved
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-blue-50 text-blue-700 rounded-lg text-xs font-semibold border border-blue-200">
-                              <Clock size={13} /> Applied
-                            </span>
-                          )
-                        ) : (
-                          <span className="text-xs text-slate-400 pl-2">-</span>
-                        )}
                       </td>
 
                       <td className="px-5 py-3.5 align-middle text-right whitespace-nowrap">

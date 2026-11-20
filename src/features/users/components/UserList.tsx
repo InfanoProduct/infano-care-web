@@ -576,24 +576,6 @@ export function UserList() {
                             <Eye size={15} />
                           </Link>
 
-                          {/* Direct reset data button */}
-                          <button
-                            onClick={() => setUserToReset(user)}
-                            title="Reset user data (wipes learner profiles & progress back to step 0)"
-                            className="p-2 bg-slate-50 hover:bg-amber-50 hover:text-amber-700 text-slate-500 rounded-lg transition-all border border-slate-200 shadow-sm"
-                          >
-                            <RotateCcw size={15} />
-                          </button>
-
-                          {/* Direct delete button */}
-                          <button
-                            onClick={() => setUserToDelete(user)}
-                            title="Delete user permanently"
-                            className="p-2 bg-slate-50 hover:bg-rose-50 hover:text-rose-700 text-slate-500 rounded-lg transition-all border border-slate-200 shadow-sm"
-                          >
-                            <Trash2 size={15} />
-                          </button>
-
                           <button 
                             onClick={() => setActiveMenuUserId(activeMenuUserId === user.id ? null : user.id)}
                             className="p-2 bg-slate-50 hover:bg-slate-100 hover:text-slate-800 text-slate-600 rounded-lg transition-all border border-slate-200 shadow-sm"

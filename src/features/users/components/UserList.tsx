@@ -103,10 +103,10 @@ export function UserList() {
       if (res?.suggestedPhone) {
         setTestPhoneInput(res.suggestedPhone);
       } else {
-        setTestPhoneInput('9000000004');
+        setTestPhoneInput('9876543201');
       }
     } catch {
-      setTestPhoneInput('9000000004');
+      setTestPhoneInput('9876543201');
     } finally {
       setIsFetchingNextPhone(false);
     }
@@ -771,13 +771,13 @@ export function UserList() {
                       maxLength={10}
                       value={testPhoneInput}
                       onChange={(e) => setTestPhoneInput(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                      placeholder="9000000004"
+                      placeholder="9876543201"
                       required
                       className="w-full px-4 py-3 bg-transparent text-sm font-bold text-slate-800 outline-none"
                     />
                   </div>
                   <p className="text-[11px] text-muted-foreground font-medium">
-                    Numbers like 9000000001–9000000099 look like valid 10-digit Indian numbers and bypass SMS.
+                    Natural 10-digit numbers (e.g., 9876543201, 9876543202) designated for test accounts bypass SMS.
                   </p>
                 </div>
 
